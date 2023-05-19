@@ -81,7 +81,8 @@ class Stats(object):
             with open(temp, 'wt') as fp:
                 fp.write(data)
 
-            os.replace(self.path, back)
+            if os.path.isfile(self.path):
+                os.replace(self.path, back)
             os.replace(temp, self.path)
 
 
@@ -117,7 +118,8 @@ class AsyncTrainer(object):
         temp = "%s.tmp" % self._nn_path
         back = "%s.bak" % self._nn_path
         self._model.save(temp)
-        os.replace(self._nn_path, back)
+        if os.path.isfile(self._nn_path):
+            os.replace(self._nn_path, back)
         os.replace(temp, self._nn_path)
 
     def on_ai_step(self):
