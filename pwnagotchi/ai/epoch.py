@@ -177,7 +177,7 @@ class Epoch(object):
             self.bored_for = 0
 
         now = time.time()
-        cpu = pwnagotchi.cpu_load()
+        cpu = pwnagotchi.cpu_load("epoch")
         mem = pwnagotchi.mem_usage()
         temp = pwnagotchi.temperature()
 
