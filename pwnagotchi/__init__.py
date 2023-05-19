@@ -9,7 +9,7 @@ from pwnagotchi._version import __version__
 
 _name = None
 config = None
-
+_cpu_stats = {}
 
 def set_name(new_name):
     if new_name is None:
@@ -83,13 +83,18 @@ def _cpu_stat():
         return list(map(int,fp.readline().split()[1:]))
 
 
-def cpu_load():
+def cpu_load(tag=None):
     """
     Returns the current cpuload
     """
-    parts0 = _cpu_stat()
+    if tag and tag in _cpu_stats.keys():
+        parts0 = _cpu_stats[tag]
+    else:
+        parts0 = _cpu_stat()
     time.sleep(0.1)
     parts1 = _cpu_stat()
+    if tag: _cpu_stats[tag] = parts1
+
     parts_diff = [p1 - p0 for (p0, p1) in zip(parts0, parts1)]
     user, nice, sys, idle, iowait, irq, softirq, steal, _guest, _guest_nice = parts_diff
     idle_sum = idle + iowait
