@@ -312,13 +312,36 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
     def _fetch_stats(self):
         while True:
-            s = self.session()
-            self._update_uptime(s)
-            self._update_advertisement(s)
-            self._update_peers()
-            self._update_counters()
-            self._update_handshakes(0)
-            time.sleep(1)
+            try:
+                s = self.session()
+            except Exception as err:
+                logging.error("[agent:_fetch_stats] self.session: %s" % repr(err))
+
+            try:
+                self._update_uptime(s)
+            except Exception as err:
+                logging.error("[agent:_fetch_stats] self.update_uptimes: %s" % repr(err))
+
+            try:
+                self._update_advertisement(s)
+            except Exception as err:
+                logging.error("[agent:_fetch_stats] self.update_advertisements: %s" % repr(err))
+
+            try:
+                self._update_peers()
+            except Exception as err:
+                logging.error("[agent:_fetch_stats] self.update_peers: %s" % repr(err))
+            try:
+                self._update_counters()
+            except Exception as err:
+                logging.error("[agent:_fetch_stats] self.update_counters: %s" % repr(err))
+            try:
+                self._update_handshakes(0)
+            except Exception as err:
+                logging.error("[agent:_fetch_stats] self.update_handshakes: %s" % repr(err))
+
+            time.sleep(5)
+
 
     async def _on_event(self, msg):
         found_handshake = False
@@ -362,12 +385,13 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         self.run('events.clear')
 
         while True:
-            logging.debug("polling events ...")
+            logging.debug("[agent:_event_poller] polling events ...")
             try:
                 loop.create_task(self.start_websocket(self._on_event))
                 loop.run_forever()
+                logging.debug("[agent:_event_poller] loop loop loop")
             except Exception as ex:
-                logging.debug("Error while polling via websocket (%s)", ex)
+                logging.debug("[agent:_event_poller] Error while polling via websocket (%s)", ex)
 
     def start_event_polling(self):
         # start a thread and pass in the mainloop
