@@ -16,6 +16,8 @@ from pwnagotchi.ui.components import *
 from pwnagotchi.ui.state import State
 from pwnagotchi.voice import Voice
 
+import RPi.GPIO as GPIO
+
 WHITE = 0xff
 BLACK = 0x00
 ROOT = None
