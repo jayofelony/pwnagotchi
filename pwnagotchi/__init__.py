@@ -91,7 +91,7 @@ def cpu_load(tag=None):
         parts0 = _cpu_stats[tag]
     else:
         parts0 = _cpu_stat()
-    time.sleep(0.1)
+        time.sleep(0.1)     # only need to sleep when no tag
     parts1 = _cpu_stat()
     if tag: _cpu_stats[tag] = parts1
 
@@ -167,3 +167,4 @@ def reboot(mode=None):
 
     os.system("sync")
     os.system("shutdown -r now")
+    os.system("service pwnagotchi restart")
