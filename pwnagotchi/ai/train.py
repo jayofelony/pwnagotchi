@@ -116,10 +116,7 @@ class AsyncTrainer(object):
     def _save_ai(self):
         logging.info("[ai] saving model to %s ..." % self._nn_path)
         temp = "%s.tmp" % self._nn_path
-        back = "%s.bak" % self._nn_path
         self._model.save(temp)
-        if os.path.isfile(self._nn_path):
-            os.replace(self._nn_path, back)
         os.replace(temp, self._nn_path)
 
     def on_ai_step(self):
@@ -180,7 +177,13 @@ class AsyncTrainer(object):
                     logging.info("[ai] learning for %d epochs ..." % epochs_per_episode)
                     try:
                         self.set_training(True, epochs_per_episode)
+                        # back up brain file before starting new training set
+                        if os.path.isfile(self._nn_path):
+                            back = "%s.bak" % self._nn_path
+                            os.replace(self._nn_path, back)
+                        self._view.set("mode", "  ai")
                         self._model.learn(total_timesteps=epochs_per_episode, callback=self.on_ai_training_step)
+                        self._view.set("mode", "  AI")
                     except Exception as e:
                         logging.exception("[ai] error while training (%s)", e)
                     finally:
