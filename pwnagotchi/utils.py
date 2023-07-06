@@ -254,6 +254,9 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('ws_27inch', 'ws27inch', 'waveshare_27inch', 'waveshare27inch'):
         config['ui']['display']['type'] = 'waveshare27inch'
 
+    elif config['ui']['display']['type'] in ('ws_27inchPartial', 'ws27inchPartial', 'waveshare_27inchPartial', 'waveshare27inchPartial'):
+        config['ui']['display']['type'] = 'waveshare27inchPartial'
+
     elif config['ui']['display']['type'] in ('ws_29inch', 'ws29inch', 'waveshare_29inch', 'waveshare29inch'):
         config['ui']['display']['type'] = 'waveshare29inch'
 
@@ -304,11 +307,13 @@ def total_unique_handshakes(path):
 
 def iface_channels(ifname):
     channels = []
-    output = subprocess.getoutput("/sbin/iwlist %s freq" % ifname)
+
+    phy = subprocess.getoutput("/sbin/iw %s info | grep wiphy | cut -d ' ' -f 2" % ifname)
+    output = subprocess.getoutput("/sbin/iw phy%s channels | grep ' MHz' | sed 's/^.*\[//g' | sed s/\].*\$//g" % phy)
     for line in output.split("\n"):
         line = line.strip()
-        if line.startswith("Channel "):
-            channels.append(int(line.split()[1]))
+        channels.append(int(line))
+
     return channels
 
 
