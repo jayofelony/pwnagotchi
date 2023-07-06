@@ -247,9 +247,9 @@ class View(object):
 
     def wait(self, secs, sleeping=True):
         was_normal = self.is_normal()
-        part = secs / 10.0
+        part = secs/3.0
 
-        for step in range(0, 10):
+        for step in range(0, 3):
             # if we weren't in a normal state before going
             # to sleep, keep that face and status on for
             # a while, otherwise the sleep animation will
@@ -259,11 +259,13 @@ class View(object):
                     if secs > 1:
                         self.set('face', faces.SLEEP)
                         self.set('status', self._voice.on_napping(int(secs)))
+                        plugins.on('sleep', self, secs)
                     else:
                         self.set('face', faces.SLEEP2)
                         self.set('status', self._voice.on_awakening())
                 else:
                     self.set('status', self._voice.on_waiting(int(secs)))
+                    plugins.on('wait', self, secs)
                     good_mood = self._agent.in_good_mood()
                     if step % 2 == 0:
                         self.set('face', faces.LOOK_R_HAPPY if good_mood else faces.LOOK_R)
