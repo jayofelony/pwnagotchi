@@ -137,10 +137,7 @@ ai.params.vf_coef = 0.25
 ai.params.ent_coef = 0.01
 ai.params.max_grad_norm = 0.5
 ai.params.learning_rate = 0.001
-ai.params.alpha = 0.99
-ai.params.epsilon = 0.00001
 ai.params.verbose = 1
-ai.params.lr_schedule = "constant"
 
 personality.advertise = true
 personality.deauth = true
