@@ -13,12 +13,10 @@ def load(config, agent, epoch, from_disk=True):
         return False
 
     try:
-        begin = time.time()
-
         logging.info("[ai] bootstrapping dependencies ...")
 
         start = time.time()
-        SB_BACKEND = "stable_baselines3";
+        SB_BACKEND = "stable_baselines3"
 
         try:
             from stable_baselines3 import A2C
