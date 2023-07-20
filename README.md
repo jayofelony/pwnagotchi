@@ -93,6 +93,8 @@ cd bettercap
 make all
 sudo make install
 sudo bettercap -eval "caplets.update; ui.update; quit"
+sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-auto.cap # change iface to wlan0
+sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change iface to wlan0
 ```
 
 # Install PwnGrid
