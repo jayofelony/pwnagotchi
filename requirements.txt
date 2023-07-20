@@ -19,3 +19,4 @@ websockets>=8.1
 torch>=2.0.1
 torchvision>=0.15.2
 stable-baselines3>=1.4.0
+RPi.GPIO
