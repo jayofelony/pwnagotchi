@@ -44,6 +44,7 @@ def installer():
     # for people updating https://github.com/evilsocket/pwnagotchi/pull/551/files
     os.system("systemctl enable fstrim.timer")
 
+
 def version(version_file):
     with open(version_file, 'rt') as vf:
         version_file_content = vf.read()
