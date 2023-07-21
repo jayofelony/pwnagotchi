@@ -100,7 +100,7 @@ sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change ifac
 # Install PwnGrid
 ```
 cd ~
-git clone https://github.com/jayofelony/pwngrid.git
+git clone https://github.com/evilsocket/pwngrid.git
 cd bettercap
 make
 sudo make install
