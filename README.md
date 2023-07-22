@@ -105,6 +105,7 @@ git clone -b pwnagotchi-torch https://github.com/jayofelony/pwnagotchi.git
 cd pwnagotchi
 for i in $(grep -v ^# requirements.txt | cut -d \> -f 1); do sudo apt -y install python3-$i; done
 sudo pip3 install -r requirements.txt
+sudo pip3 install .
 sudo pip3 install --upgrade numpy
 sudo ln -s `pwd`/bin/pwnagotchi /usr/local/bin
 sudo ln -s `pwd`/pwnagotchi /usr/local/lib/python3.9/dist-packages/pwnagotchi
