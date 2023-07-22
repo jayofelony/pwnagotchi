@@ -9,15 +9,6 @@ sudo apt-mark hold raspberrypi-kernel-headers
 sudo apt -y update
 sudo apt -y upgrade
 ```
-# Downgrade libpcap
-```
-cd ~
-wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8_1.9.1-3_arm64.deb
-wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8-dev_1.9.1-3_arm64.deb
-wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap-dev_1.9.1-3_arm64.deb
-sudo apt -y install ./libpcap*.deb  --allow-downgrades
-sudo apt-mark hold libpcap-dev libpcap0.8 libpcap0.8-dev
-```
 
 # Set-up dependencies
 ```
@@ -113,8 +104,8 @@ cd ~
 git clone -b pwnagotchi-torch https://github.com/jayofelony/pwnagotchi.git
 cd pwnagotchi
 for i in $(grep -v ^# requirements.txt | cut -d \> -f 1); do sudo apt -y install python3-$i; done
-sudo pip install -r requirements.txt
-sudo pip install --upgrade numpy
+sudo pip3 install -r requirements.txt
+sudo pip3 install --upgrade numpy
 sudo ln -s `pwd`/bin/pwnagotchi /usr/local/bin
 sudo ln -s `pwd`/pwnagotchi /usr/local/lib/python3.9/dist-packages/pwnagotchi
 sudo mkdir -p /usr/local/share/pwnagotchi/custom-plugins
@@ -142,6 +133,16 @@ for file in `find builder/data -type f`; do
     sudo cp -p $file $dest
   fi
 done
+```
+
+# Downgrade libpcap
+```
+cd ~
+wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8_1.9.1-3_arm64.deb
+wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8-dev_1.9.1-3_arm64.deb
+wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap-dev_1.9.1-3_arm64.deb
+sudo apt -y install ./libpcap*.deb  --allow-downgrades
+sudo apt-mark hold libpcap-dev libpcap0.8 libpcap0.8-dev
 ```
 
 # Enable all services and reboot
