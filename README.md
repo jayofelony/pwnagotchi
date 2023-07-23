@@ -1,7 +1,21 @@
 # Pwnagotchi Torch installation
 I assume you have a new image of Raspberry Pi OS lite 64-bit flashed to a micro sd-card.
 
-# APT hold packages
+
+# Install GoLang
+```
+wget https://go.dev/dl/go1.20.6.linux-arm64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.6.linux-arm64.tar.gz
+sudo nano /etc/profile
+export PATH=$PATH:/usr/local/go/bin # Add this line to the bottom
+sudo nano ~/.profile
+export PATH=$PATH:/usr/local/go/bin # Add this line to the bottom
+sudo visudo
+:/usr/local/go/bin # Add this to secure_path= line
+```
+
+
+# apt hold packages
 ```
 sudo apt-mark hold raspberrypi-kernel
 sudo apt install raspberrypi-kernel-headers
@@ -91,7 +105,7 @@ sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change ifac
 # Install PwnGrid
 ```
 cd ~
-git clone https://github.com/evilsocket/pwngrid.git
+git clone https://github.com/jayofelony/pwngrid.git
 cd bettercap
 make
 sudo make install
@@ -151,7 +165,7 @@ sudo apt-mark hold libpcap-dev libpcap0.8 libpcap0.8-dev
 sudo systemctl enable bettercap
 sudo systemctl enable pwngrid-peer
 sudo systemctl enable pwnagotchi
-
+sudo systemctl enable bluetooth
 sudo sync
 sudo reboot
 ```
