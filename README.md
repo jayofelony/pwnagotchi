@@ -48,6 +48,7 @@ Follow [README](https://github.com/jayofelony/nexmon#build-patches-for-bcm43430a
 # Set-up dependencies
 ```
 cat > /tmp/dependencies << EOF
+aircrack-ng
 time
 rsync
 vim
@@ -119,8 +120,8 @@ cd bettercap
 sudo make
 sudo make install
 sudo bettercap -eval "caplets.update; ui.update; quit"
-sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-auto.cap # change iface to wlan0
-sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change iface to wlan0
+sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-auto.cap # change iface to wlan0mon
+sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change iface to wlan0mon
 ```
 
 # Install PwnGrid
