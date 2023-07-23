@@ -1,5 +1,5 @@
 # Pwnagotchi Torch installation
-I assume you have a new image of Raspberry Pi OS lite 64-bit flashed to a micro sd-card.
+I assume you have a new (fully upgraded) image of Raspberry Pi OS lite 64-bit flashed to a micro sd-card.
 
 
 # Install GoLang
@@ -14,15 +14,19 @@ sudo visudo
 :/usr/local/go/bin # Add this to secure_path= line
 ```
 
+# Install nexmon for Raspberry Pi Zero 2 W or Raspberry Pi 4
+First use dmesg | grep brcm
 
-# apt hold packages
+Write down what chip it uses (bcm43430 / bcm43455 / bcm43436)
+
+-------------
 ```
-sudo apt-mark hold raspberrypi-kernel
-sudo apt install raspberrypi-kernel-headers
-sudo apt-mark hold raspberrypi-kernel-headers
-sudo apt -y update
-sudo apt -y upgrade
+sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make autoconf libtool texinfo gcc-arm-none-eabi wl libfl-dev g++ xxd
+cd ~
+git clone https://github.com/jayofelony/nexmon.git
+cd nexmon
 ```
+Follow [README](https://github.com/jayofelony/nexmon#build-patches-for-bcm43430a1-on-the-rpi3zero-w-or-bcm434355c0-on-the-rpi3rpi4-or-bcm43436b0-on-the-rpi-zero-2w-using-raspbianraspberry-pi-os-recommended)
 
 # Set-up dependencies
 ```
@@ -95,7 +99,7 @@ cat /tmp/dependencies | xargs -n5 sudo apt install -y
 cd ~
 git clone https://github.com/jayofelony/bettercap.git
 cd bettercap
-make all
+sudo make
 sudo make install
 sudo bettercap -eval "caplets.update; ui.update; quit"
 sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-auto.cap # change iface to wlan0
@@ -107,7 +111,7 @@ sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change ifac
 cd ~
 git clone https://github.com/jayofelony/pwngrid.git
 cd bettercap
-make
+sudo make
 sudo make install
 sudo pwngrid -generate -keys /etc/pwnagotchi
 ```
@@ -160,12 +164,18 @@ sudo apt -y install ./libpcap*.deb  --allow-downgrades
 sudo apt-mark hold libpcap-dev libpcap0.8 libpcap0.8-dev
 ```
 
-# Enable all services and reboot
+# Enable all services, permissions and reboot
 ```
-sudo systemctl enable bettercap
-sudo systemctl enable pwngrid-peer
-sudo systemctl enable pwnagotchi
-sudo systemctl enable bluetooth
+sudo chmod 755 /usr/local/bin/bettercap
+sudo chown root:root /usr/local/bin/bettercap
+sudo chmod 755 /usr/bin/bettercap-launcher
+sudo chmod 755 /usr/local/bin/pwngrid
+sudo chown root:root /usr/local/bin/pwngrid
+sudo chmod 755 /usr/local/bin/pwnagotchi
+sudo chown root:root /usr/local/bin/pwnagotchi
+sudo chmod 711 /usr/bin/pwnagotchi-launcher
+sudo chmod 755 /usr/local/share/bettercap/
+sudo systemctl enable bettercap pwngrid-peer pwnagotchi bluetooth
 sudo sync
 sudo reboot
 ```
