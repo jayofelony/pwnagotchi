@@ -13,6 +13,7 @@ def load(config, agent, epoch, from_disk=True):
         return False
 
     try:
+        begin = time.time()
         logging.info("[ai] bootstrapping dependencies ...")
 
         start = time.time()
