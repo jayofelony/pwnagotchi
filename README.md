@@ -129,7 +129,7 @@ sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change ifac
 ```
 cd ~
 git clone https://github.com/jayofelony/pwngrid.git
-cd bettercap
+cd pwngrid
 sudo make
 sudo make install
 sudo pwngrid -generate -keys /etc/pwnagotchi
