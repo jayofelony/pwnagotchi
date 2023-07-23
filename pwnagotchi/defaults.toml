@@ -5,7 +5,7 @@ main.custom_plugins = ""
 main.custom_plugin_repos = [
     "https://github.com/evilsocket/pwnagotchi-plugins-contrib/archive/master.zip"
 ]
-main.iface = "mon0"
+main.iface = "wlan0mon"
 main.mon_start_cmd = "/usr/bin/monstart"
 main.mon_stop_cmd = "/usr/bin/monstop"
 main.mon_max_blind_epochs = 50
