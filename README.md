@@ -2,6 +2,23 @@
 I assume you have a new (fully upgraded) image of Raspberry Pi OS lite 64-bit flashed to a micro sd-card.
 With SPI turned on through raspi-config
 
+# If you install on a Pi02W:
+```
+sudo fallocate -l 4G /var/swapfile
+sudo chmod 600 /var/swapfile
+sudo mkswap /var/swapfile
+# start the swap service
+sudo swapon /var/swapfile
+# make the service permantent
+sudo bash -c 'cat >> /etc/fstab' <<EOF
+# add the following line to fstab
+/var/swapfile   swap    swap     defaults   0       0
+EOF
+swapon -s
+```
+
+-----------------------------
+
 # Install GoLang
 ```
 wget https://go.dev/dl/go1.20.6.linux-arm64.tar.gz
