@@ -1,6 +1,6 @@
 # Pwnagotchi Torch installation
 I assume you have a new (fully upgraded) image of Raspberry Pi OS lite 64-bit flashed to a micro sd-card.
-
+With SPI turned on through raspi-config
 
 # Install GoLang
 ```
