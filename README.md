@@ -114,6 +114,7 @@ cat /tmp/dependencies | xargs -n5 sudo apt install -y
 
 # Install Bettercap
 ```
+sudo apt install build-essential libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev
 cd ~
 git clone https://github.com/jayofelony/bettercap.git
 cd bettercap
