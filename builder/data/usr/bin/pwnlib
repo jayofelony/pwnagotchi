@@ -33,17 +33,12 @@ reload_brcm() {
 
 # starts mon0
 start_monitor_interface() {
-  airmon-ng check kill
-  ip link set wlan0 down
-  iw dev wlan0 set type monitor
-  ip link set wlan0 up
+  airmon-ng start wlan0
 }
 
 # stops mon0
 stop_monitor_interface() {
-  ip link set wlan0 down
-  iw dev wlan0 set type managed
-  ip link set wlan0 up
+  airmon-ng stop wlan0
 }
 
 # returns 0 if the specificed network interface is up
