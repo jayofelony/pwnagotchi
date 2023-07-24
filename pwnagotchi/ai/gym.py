@@ -36,7 +36,7 @@ class Environment(gym.Env):
 
         # see https://github.com/evilsocket/pwnagotchi/issues/583
         self._supported_channels = agent.supported_channels()
-        self._extended_spectrum = any(ch > 140 for ch in self._supported_channels)
+        self._extended_spectrum = any(ch > 150 for ch in self._supported_channels)
         self._histogram_size, self._observation_shape = featurizer.describe(self._extended_spectrum)
 
         Environment.params += [

@@ -13,7 +13,7 @@ fi
 blink_led 10 &
 
 if is_auto_mode; then
-  /usr/local/bin/pwnagotchi --debug
+  /usr/local/bin/pwnagotchi
 else
-  /usr/local/bin/pwnagotchi --manual --debug
+  /usr/local/bin/pwnagotchi --manual
 fi
