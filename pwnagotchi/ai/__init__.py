@@ -14,10 +14,11 @@ def load(config, agent, epoch, from_disk=True):
 
     try:
         begin = time.time()
+
         logging.info("[ai] bootstrapping dependencies ...")
 
         start = time.time()
-        SB_BACKEND = "stable_baselines3"
+        SB_BACKEND = "stable_baselines3";
 
         try:
             from stable_baselines3 import A2C
@@ -51,7 +52,6 @@ def load(config, agent, epoch, from_disk=True):
 
         start = time.time()
         import pwnagotchi.ai.gym as wrappers
-
         logging.debug("[ai] gym wrapper imported in %.2fs" % (time.time() - start))
 
         env = wrappers.Environment(agent, epoch)
@@ -79,5 +79,5 @@ def load(config, agent, epoch, from_disk=True):
     except Exception as e:
         logging.exception("error while starting AI (%s)", e)
 
-        logging.warning("[ai] AI not loaded!")
-        return False
+    logging.warning("[ai] AI not loaded!")
+    return False

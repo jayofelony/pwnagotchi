@@ -69,7 +69,7 @@ def do_auto_mode(agent):
                     # deauth all client stations in order to get a full handshake
                     for sta in ap['clients']:
                         agent.deauth(ap, sta)
-                        time.sleep(1)
+                        time.sleep(1)  # delay to not trigger nexmon firmware bugs
 
             # An interesting effect of this:
             #

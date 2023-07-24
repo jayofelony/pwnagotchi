@@ -2,8 +2,9 @@ import logging
 import json
 import toml
 import _thread
+import pwnagotchi
 from pwnagotchi import restart, plugins
-from pwnagotchi.utils import save_config
+from pwnagotchi.utils import save_config, merge_config
 from flask import abort
 from flask import render_template_string
 
@@ -180,7 +181,10 @@ INDEX = """
         <span><select id="selAddType"><option value="text">Text</option><option value="number">Number</option></select></span>
         <span><button id="btnAdd" type="button" onclick="addOption()">+</button></span>
     </div>
-    <button id="btnSave" type="button" onclick="saveConfig()">Save and restart</button>
+    <div id="divSaveTop">
+        <button id="btnSave" type="button" onclick="saveConfig()">Save and restart</button>
+        <button id="btnSave" type="button" onclick="saveConfigNoRestart()">Merge and Save (CAUTION)</button>
+    </div>
     <div id="content"></div>
 {% endblock %}
 
@@ -240,6 +244,24 @@ INDEX = """
                 });
             }
         }
+
+        function saveConfigNoRestart(){
+            // get table
+            var table = document.getElementById("tableOptions");
+            if (table) {
+                var json = tableToJson(table);
+                sendJSON("webcfg/merge-save-config", json, function(response) {
+                    if (response) {
+                        if (response.status == "200") {
+                            alert("Config got updated");
+                        } else {
+                            alert("Error while updating the config (err-code: " + response.status + ")");
+                        }
+                    }
+                });
+            }
+        }
+
         var searchInput = document.getElementById("searchText");
         searchInput.onkeyup = function() {
             var filter, table, tr, td, i, txtValue;
@@ -471,15 +493,18 @@ class WebConfig(plugins.Plugin):
     def __init__(self):
         self.ready = False
         self.mode = 'MANU'
+        self._agent = None
 
     def on_config_changed(self, config):
         self.config = config
         self.ready = True
 
     def on_ready(self, agent):
+        self._agent = agent
         self.mode = 'MANU' if agent.mode == 'manual' else 'AUTO'
 
     def on_internet_available(self, agent):
+        self._agent = agent
         self.mode = 'MANU' if agent.mode == 'manual' else 'AUTO'
 
     def on_loaded(self):
@@ -512,5 +537,19 @@ class WebConfig(plugins.Plugin):
                     return "success"
                 except Exception as ex:
                     logging.error(ex)
+                    return "config error", 500
+            elif path == "merge-save-config":
+                try:
+                    self.config = merge_config(request.get_json(), self.config)
+                    pwnagotchi.config = merge_config(request.get_json(), pwnagotchi.config)
+                    logging.debug("PWNAGOTCHI CONFIG:\n%s" % repr(pwnagotchi.config))
+                    if self._agent:
+                        self._agent._config = merge_config(request.get_json(), self._agent._config)
+                        logging.debug("    Agent CONFIG:\n%s" % repr(self._agent._config))
+                    logging.debug("   Updated CONFIG:\n%s" % request.get_json())
+                    save_config(request.get_json(), '/etc/pwnagotchi/config.toml') # test
+                    return "success"
+                except Exception as ex:
+                    logging.error("[webcfg mergesave] %s" % ex)
                     return "config error", 500
         abort(404)

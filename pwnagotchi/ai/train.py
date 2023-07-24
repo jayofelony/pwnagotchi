@@ -77,9 +77,12 @@ class Stats(object):
             })
 
             temp = "%s.tmp" % self.path
+            back = "%s.bak" % self.path
             with open(temp, 'wt') as fp:
                 fp.write(data)
 
+            if os.path.isfile(self.path):
+                os.replace(self.path, back)
             os.replace(temp, self.path)
 
 
@@ -174,7 +177,13 @@ class AsyncTrainer(object):
                     logging.info("[ai] learning for %d epochs ..." % epochs_per_episode)
                     try:
                         self.set_training(True, epochs_per_episode)
+                        # back up brain file before starting new training set
+                        if os.path.isfile(self._nn_path):
+                            back = "%s.bak" % self._nn_path
+                            os.replace(self._nn_path, back)
+                        self._view.set("mode", "  ai")
                         self._model.learn(total_timesteps=epochs_per_episode, callback=self.on_ai_training_step)
+                        self._view.set("mode", "  AI")
                     except Exception as e:
                         logging.exception("[ai] error while training (%s)", e)
                     finally:

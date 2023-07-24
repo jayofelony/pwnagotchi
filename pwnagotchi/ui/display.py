@@ -43,6 +43,9 @@ class Display(View):
     def is_waveshare27inch(self):
         return self._implementation.name == 'waveshare27inch'
 
+    def is_waveshare27inchPartial(self):
+        return self._implementation.name == 'waveshare27inchPartial'
+
     def is_waveshare29inch(self):
         return self._implementation.name == 'waveshare29inch'
 
@@ -75,6 +78,9 @@ class Display(View):
 
     def is_spotpear24inch(self):
         return self._implementation.name == 'spotpear24inch'
+    
+    def is_displayhatmini(self):
+        return self._implementation.name == 'displayhatmini'
 
     def is_waveshare_any(self):
         return self.is_waveshare_v1() or self.is_waveshare_v2()
@@ -101,7 +107,8 @@ class Display(View):
 
         while True:
             self._canvas_next_event.wait()
-            self._canvas_next_event.clear()
+            if self._implementation.name != 'waveshare27inchPartial':
+                self._canvas_next_event.clear()
             self._implementation.render(self._canvas_next)
 
     def _on_view_rendered(self, img):

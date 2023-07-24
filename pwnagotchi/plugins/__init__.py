@@ -46,13 +46,13 @@ def toggle_plugin(name, enable=True):
         if name not in pwnagotchi.config['main']['plugins']:
             pwnagotchi.config['main']['plugins'][name] = dict()
         pwnagotchi.config['main']['plugins'][name]['enabled'] = enable
-        save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
 
     if not enable and name in loaded:
         if getattr(loaded[name], 'on_unload', None):
             loaded[name].on_unload(view.ROOT)
         del loaded[name]
-
+        if pwnagotchi.config:
+            save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
         return True
 
     if enable and name in database and name not in loaded:
@@ -64,6 +64,8 @@ def toggle_plugin(name, enable=True):
             one(name, 'config_changed', pwnagotchi.config)
         one(name, 'ui_setup', view.ROOT)
         one(name, 'ready', view.ROOT._agent)
+        if pwnagotchi.config:
+            save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
         return True
 
     return False
