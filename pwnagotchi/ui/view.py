@@ -16,10 +16,8 @@ from pwnagotchi.ui.components import *
 from pwnagotchi.ui.state import State
 from pwnagotchi.voice import Voice
 
-import RPi.GPIO as GPIO
-
-WHITE = 0x181010
-BLACK = 0xffcccc
+WHITE = 0xff
+BLACK = 0x00
 ROOT = None
 
 
@@ -124,7 +122,7 @@ class View(object):
         while True:
             try:
                 name = self._state.get('name')
-                self.set('name', name.rstrip('-').strip() if '-' in name else (name + ' -'))
+                self.set('name', name.rstrip('█').strip() if '█' in name else (name + ' █'))
                 self.update()
             except Exception as e:
                 logging.warning("non fatal error while updating view: %s" % e)
@@ -247,9 +245,9 @@ class View(object):
 
     def wait(self, secs, sleeping=True):
         was_normal = self.is_normal()
-        part = secs/3.0
+        part = secs/10.0
 
-        for step in range(0, 3):
+        for step in range(0, 10):
             # if we weren't in a normal state before going
             # to sleep, keep that face and status on for
             # a while, otherwise the sleep animation will
@@ -259,13 +257,13 @@ class View(object):
                     if secs > 1:
                         self.set('face', faces.SLEEP)
                         self.set('status', self._voice.on_napping(int(secs)))
-                        plugins.on('sleep', self, secs)
+
                     else:
                         self.set('face', faces.SLEEP2)
                         self.set('status', self._voice.on_awakening())
                 else:
                     self.set('status', self._voice.on_waiting(int(secs)))
-                    plugins.on('wait', self, secs)
+
                     good_mood = self._agent.in_good_mood()
                     if step % 2 == 0:
                         self.set('face', faces.LOOK_R_HAPPY if good_mood else faces.LOOK_R)
@@ -375,9 +373,7 @@ class View(object):
             state = self._state
             changes = state.changes(ignore=self._ignore_changes)
             if force or len(changes):
-                colormode = '1' if not 'colormode' in self._config['ui'] else self._config['ui']['colormode']
-                backgroundcolor = WHITE if not 'backgroundcolor' in self._config['ui'] else self._config['ui']['backgroundcolor']
-                self._canvas = Image.new(colormode, (self._width, self._height), backgroundcolor)
+                self._canvas = Image.new('1', (self._width, self._height), WHITE)
                 drawer = ImageDraw.Draw(self._canvas)
 
                 plugins.on('ui_update', self)
