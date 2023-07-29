@@ -1,200 +1,42 @@
-# Pwnagotchi Torch installation
-I assume you have a new (fully upgraded) image of Raspberry Pi OS lite 64-bit flashed to a micro sd-card.
-With SPI turned on through raspi-config
+# Pwnagotchi
 
-# If you install on a Pi02W:
-```
-sudo fallocate -l 4G /var/swapfile
-sudo chmod 600 /var/swapfile
-sudo mkswap /var/swapfile
-# start the swap service
-sudo swapon /var/swapfile
-# make the service permantent
-sudo bash -c 'cat >> /etc/fstab' <<EOF
-# add the following line to fstab
-/var/swapfile   swap    swap     defaults   0       0
-EOF
-swapon -s
-```
+<p align="center">
+    <a href="https://github.com/evilsocket/pwnagotchi/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/evilsocket/pwnagotchi.svg?style=flat-square"></a>
+    <a href="https://github.com/evilsocket/pwnagotchi/blob/master/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-GPL3-brightgreen.svg?style=flat-square"></a>
+    <a href="https://github.com/evilsocket/pwnagotchi/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/evilsocket/pwnagotchi"/></a>
+    <a href="https://travis-ci.org/evilsocket/pwnagotchi"><img alt="Travis" src="https://img.shields.io/travis/evilsocket/pwnagotchi/master.svg?style=flat-square"></a>
+    <a href="https://invite.pwnagotchi.ai/"><img alt="Slack" src="https://invite.pwnagotchi.ai/badge.svg"></a>
+    <a href="https://community.pwnagotchi.ai/"><img alt="Forum" src="https://img.shields.io/discourse/posts?server=https%3A%2F%2Fcommunity.pwnagotchi.ai%2F&style=flat-square"></a>
+    <a href="https://twitter.com/intent/follow?screen_name=pwnagotchi"><img src="https://img.shields.io/twitter/follow/pwnagotchi?style=social&logo=twitter" alt="follow on Twitter"></a>
+</p>
 
------------------------------
+[Pwnagotchi](https://pwnagotchi.ai/) is an [A2C](https://hackernoon.com/intuitive-rl-intro-to-advantage-actor-critic-a2c-4ff545978752)-based "AI" leveraging [bettercap](https://www.bettercap.org/) that learns from its surrounding WiFi environment to maximize the crackable WPA key material it captures (either passively, or by performing authentication and association attacks). This material is collected as PCAP files containing any form of handshake supported by [hashcat](https://hashcat.net/hashcat/), including [PMKIDs](https://www.evilsocket.net/2019/02/13/Pwning-WiFi-networks-with-bettercap-and-the-PMKID-client-less-attack/), 
+full and half WPA handshakes.
 
-# Install GoLang
-```
-wget https://go.dev/dl/go1.20.6.linux-arm64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.6.linux-arm64.tar.gz
-sudo nano /etc/profile
-export PATH=$PATH:/usr/local/go/bin # Add this line to the bottom
-sudo nano ~/.profile
-export PATH=$PATH:/usr/local/go/bin # Add this line to the bottom
-sudo visudo
-:/usr/local/go/bin # Add this to secure_path= line
-```
+![ui](https://i.imgur.com/X68GXrn.png)
 
-# Install nexmon for Raspberry Pi Zero 2 W or Raspberry Pi 4
-First use dmesg | grep brcm
+Instead of merely playing [Super Mario or Atari games](https://becominghuman.ai/getting-mario-back-into-the-gym-setting-up-super-mario-bros-in-openais-gym-8e39a96c1e41?gi=c4b66c3d5ced) like most reinforcement learning-based "AI" *(yawn)*, Pwnagotchi tunes [its parameters](https://github.com/evilsocket/pwnagotchi/blob/master/pwnagotchi/defaults.toml) over time to **get better at pwning WiFi things to** in the environments you expose it to. 
 
-Write down what chip it uses (bcm43430 / bcm43455 / bcm43436)
+More specifically, Pwnagotchi is using an [LSTM with MLP feature extractor](https://stable-baselines.readthedocs.io/en/master/modules/policies.html#stable_baselines.common.policies.MlpLstmPolicy) as its policy network for the [A2C agent](https://stable-baselines.readthedocs.io/en/master/modules/a2c.html). If you're unfamiliar with A2C, here is [a very good introductory explanation](https://hackernoon.com/intuitive-rl-intro-to-advantage-actor-critic-a2c-4ff545978752) (in comic form!) of the basic principles behind how Pwnagotchi learns. (You can read more about how Pwnagotchi learns in the [Usage](https://www.pwnagotchi.ai/usage/#training-the-ai) doc.)
 
--------------
-```
-sudo apt install raspberrypi-kernel-headers git libgmp3-dev gawk qpdf bison flex make autoconf libtool texinfo gcc-arm-none-eabi wl libfl-dev g++ xxd
-cd ~
-git clone https://github.com/jayofelony/nexmon.git
-cd nexmon
-```
-Follow [README](https://github.com/jayofelony/nexmon#build-patches-for-bcm43430a1-on-the-rpi3zero-w-or-bcm434355c0-on-the-rpi3rpi4-or-bcm43436b0-on-the-rpi-zero-2w-using-raspbianraspberry-pi-os-recommended)
+**Keep in mind:** Unlike the usual RL simulations, Pwnagotchi learns over time. Time for a Pwnagotchi is measured in epochs; a single epoch can last from a few seconds to minutes, depending on how many access points and client stations are visible. Do not expect your Pwnagotchi to perform amazingly well at the very beginning, as it will be [exploring](https://hackernoon.com/intuitive-rl-intro-to-advantage-actor-critic-a2c-4ff545978752) several combinations of [key parameters](https://www.pwnagotchi.ai/usage/#training-the-ai) to determine ideal adjustments for pwning the particular environment you are exposing it to during its beginning epochs ... but ** listen to your Pwnagotchi when it tells you it's boring!** Bring it into novel WiFi environments with you and have it observe new networks and capture new handshakes—and you'll see. :)
 
-# Set-up dependencies
-```
-cat > /tmp/dependencies << EOF
-aircrack-ng
-time
-rsync
-vim
-wget
-screen
-git
-build-essential
-dkms
-python3-pip  
-python3-smbus
-unzip
-gawk
-libopenmpi-dev
-libatlas-base-dev
-libelf-dev
-libopenjp2-7
-libtiff5
-tcpdump
-lsof
-libgstreamer1.0-0
-libavcodec58
-libavformat58
-libswscale5
-libusb-1.0-0-dev
-libnetfilter-queue-dev
-libopenmpi3
-dphys-swapfile
-libdbus-1-dev 
-libdbus-glib-1-dev
-liblapack-dev 
-libhdf5-dev 
-libc-ares-dev 
-libeigen3-dev
-fonts-dejavu
-fonts-dejavu-core
-fonts-dejavu-extra
-python3-pil
-python3-smbus
-libfuse-dev
-libatlas-base-dev 
-libopenblas-dev 
-libblas-dev
-bc
-libgl1-mesa-glx
-libncursesw5-dev 
-libssl-dev 
-libsqlite3-dev 
-tk-dev 
-libgdbm-dev 
-libc6-dev 
-libbz2-dev 
-libffi-dev 
-zlib1g-dev
-fonts-freefont-ttf
-fbi
-python3-flask
-python3-flask-cors
-python3-flaskext.wtf
-EOF
+Multiple units within close physical proximity can "talk" to each other, advertising their presence to each other by broadcasting custom information elements using a parasite protocol I've built on top of the existing dot11 standard. Over time, two or more units trained together will learn to cooperate upon detecting each other's presence by dividing the available channels among them for optimal pwnage.
 
-cat /tmp/dependencies | xargs -n5 sudo apt install -y
-```
+## Documentation
 
-# Install Bettercap
-```
-sudo apt install build-essential libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev
-cd ~
-git clone https://github.com/jayofelony/bettercap.git
-cd bettercap
-sudo make
-sudo make install
-sudo bettercap -eval "caplets.update; ui.update; quit"
-sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-auto.cap # change iface to wlan0mon
-sudo nano /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap # change iface to wlan0mon
-```
+https://www.pwnagotchi.ai
 
-# Install PwnGrid
-```
-cd ~
-git clone https://github.com/jayofelony/pwngrid.git
-cd pwngrid
-sudo make
-sudo make install
-sudo pwngrid -generate -keys /etc/pwnagotchi
-```
+## Links
 
-# Install Pwnagotchi-Torch
-```
-cd ~
-git clone -b pwnagotchi-torch https://github.com/jayofelony/pwnagotchi.git
-cd pwnagotchi
-for i in $(grep -v ^# requirements.txt | cut -d \> -f 1); do sudo apt -y install python3-$i; done
-sudo pip3 install -r requirements.txt
-sudo pip3 install .
-sudo pip3 install --upgrade numpy
-sudo ln -s `pwd`/bin/pwnagotchi /usr/local/bin
-sudo ln -s `pwd`/pwnagotchi /usr/local/lib/python3.9/dist-packages/pwnagotchi
-sudo mkdir -p /usr/local/share/pwnagotchi/custom-plugins
+&nbsp; | Official Links
+---------|-------
+Website | [pwnagotchi.ai](https://pwnagotchi.ai/)
+Forum | [community.pwnagotchi.ai](https://community.pwnagotchi.ai/)
+Slack | [pwnagotchi.slack.com](https://invite.pwnagotchi.ai/)
+Subreddit | [r/pwnagotchi](https://www.reddit.com/r/pwnagotchi/)
+Twitter | [@pwnagotchi](https://twitter.com/pwnagotchi)
 
+## License
 
-sudo bash -c 'cat > /etc/pwnagotchi/config.toml' << EOF
-main.name = "new_ai_CHANGEME"
-main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins"
-
-main.plugins.led.enabled = false
-
-personality.deauth = false
-
-ui.display.enabled = false
-ui.web.username = "pwny"
-ui.web.password = "pwny1234"
-EOF
-
-for file in `find builder/data -type f`; do
-  dest=${file#builder/data}
-  if [ -s $dest ]; then
-    echo File $dest exists. Skipping
-  else
-    echo Copying $file to $dest
-    sudo cp -p $file $dest
-  fi
-done
-```
-
-# Downgrade libpcap
-```
-cd ~
-wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8_1.9.1-3_arm64.deb
-wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8-dev_1.9.1-3_arm64.deb
-wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap-dev_1.9.1-3_arm64.deb
-sudo apt -y install ./libpcap*.deb  --allow-downgrades
-sudo apt-mark hold libpcap-dev libpcap0.8 libpcap0.8-dev
-```
-
-# Enable all services, permissions and reboot
-```
-sudo chmod 755 /usr/local/bin/bettercap
-sudo chown root:root /usr/local/bin/bettercap
-sudo chmod 755 /usr/bin/bettercap-launcher
-sudo chmod 755 /usr/local/bin/pwngrid
-sudo chown root:root /usr/local/bin/pwngrid
-sudo chmod 755 /usr/local/bin/pwnagotchi
-sudo chown root:root /usr/local/bin/pwnagotchi
-sudo chmod 711 /usr/bin/pwnagotchi-launcher
-sudo chmod 755 /usr/local/share/bettercap/
-sudo systemctl enable bettercap pwngrid-peer pwnagotchi bluetooth
-sudo sync
-sudo reboot
-```
+`pwnagotchi` is made with ♥  by [@evilsocket](https://twitter.com/evilsocket) and the [amazing dev team](https://github.com/evilsocket/pwnagotchi/graphs/contributors). It is released under the GPL3 license.
