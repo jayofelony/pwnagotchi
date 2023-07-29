@@ -78,7 +78,7 @@ main.plugins.bt-tether.devices.ios-phone.max_tries = 0
 main.plugins.bt-tether.devices.ios-phone.share_internet = false
 main.plugins.bt-tether.devices.ios-phone.priority = 999
 
-main.plugins.memtemp.enabled = false
+main.plugins.memtemp.enabled = true
 main.plugins.memtemp.scale = "celsius"
 main.plugins.memtemp.orientation = "horizontal"
 
@@ -116,6 +116,8 @@ main.plugins.led.patterns.epoch = "oo  oo  oo oo  oo  oo  oo"
 main.plugins.led.patterns.peer_detected = "oo  oo  oo oo  oo  oo  oo"
 main.plugins.led.patterns.peer_lost = "oo  oo  oo oo  oo  oo  oo"
 
+main.plugins.webcfg.enabled = true
+
 main.plugins.logtail.enabled = false
 main.plugins.logtail.max-lines = 10000
 
@@ -146,7 +148,7 @@ ai.params.learning_rate = 0.001
 ai.params.verbose = 1
 
 personality.advertise = true
-personality.deauth = true
+personality.deauth = false
 personality.associate = true
 personality.channels = []
 personality.min_rssi = -200
