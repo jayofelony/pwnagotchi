@@ -36,6 +36,7 @@ reload_brcm() {
 
 # starts mon0
 start_monitor_interface() {
+  rfkill unblock all
   airmon-ng start wlan0
 }
 
