@@ -36,17 +36,16 @@
         - dnsmasq.service
     packages:
       bettercap:
-        url: "https://github.com/bettercap/bettercap/releases/download/v2.31.1/bettercap_linux_aarch64_v2.31.1.zip"
+        # We will install bettercap from source
+        # url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
         url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
       apt:
         hold:
-          - firmware-atheros
-          - firmware-brcm80211
-          - firmware-libertas
-          - firmware-misc-nonfree
-          - firmware-realtek
+          - libpcap-dev
+          - libpcap0.8
+          - libpcap0.8-dev
         remove:
           - raspberrypi-net-mods
           - dhcpcd5
@@ -58,59 +57,96 @@
           - libraspberrypi-doc
           - libraspberrypi-bin
         install:
+          - bluez
+          - raspberrypi-kernel-headers
+          - git
+          - libgmp3-dev
+          - gawk
+          - qpdf
+          - bison
+          - flex
+          - make
+          - autoconf
+          - libtool
+          - texinfo
+          - gcc-arm-none-eabi
+          - wl
+          - libfl-dev
+          - g++
+          - xxd
+          - aircrack-ng
+          - time
           - rsync
           - vim
+          - wget
           - screen
-          - golang
-          - git
           - build-essential
+          - dkms
           - python3-pip
-          - python3-mpi4py
           - python3-smbus
           - unzip
-          - gawk
           - libopenmpi-dev
           - libatlas-base-dev
-          - libjasper-dev
-          - libqtgui4
-          - libqt4-test
+          - libelf-dev
           - libopenjp2-7
           - libtiff5
           - tcpdump
           - lsof
-          - libilmbase23
-          - libopenexr23
           - libgstreamer1.0-0
           - libavcodec58
           - libavformat58
           - libswscale5
-          - libpcap-dev
           - libusb-1.0-0-dev
           - libnetfilter-queue-dev
           - libopenmpi3
           - dphys-swapfile
-          - kalipi-kernel
-          - kalipi-bootloader
-          - kalipi-re4son-firmware
-          - kalipi-kernel-headers
-          - libraspberrypi0
-          - libraspberrypi-dev
-          - libraspberrypi-doc
-          - libraspberrypi-bin
+          - libdbus-1-dev
+          - libdbus-glib-1-dev
+          - liblapack-dev
+          - libhdf5-dev
+          - libc-ares-dev
+          - libeigen3-dev
           - fonts-dejavu
           - fonts-dejavu-core
           - fonts-dejavu-extra
           - python3-pil
           - python3-smbus
           - libfuse-dev
+          - libatlas-base-dev
+          - libopenblas-dev
+          - libblas-dev
           - bc
+          - libgl1-mesa-glx
+          - libncursesw5-dev
+          - libssl-dev
+          - libsqlite3-dev
+          - tk-dev
+          - libgdbm-dev
+          - libc6-dev
+          - libbz2-dev
+          - libffi-dev
+          - zlib1g-dev
           - fonts-freefont-ttf
           - fbi
-          - fonts-ipaexfont-gothic
-          - cryptsetup
-          - dnsmasq
+          - python3-flask
+          - python3-flask-cors
+          - python3-flaskext.wtf
+          - build-essential
+          - libpcap-dev
+          - libusb-1.0-0-dev
+          - libnetfilter-queue-dev
 
   tasks:
+  - name: download old libpcap packages
+    shell: "wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8_1.9.1-3_arm64.deb && wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8-dev_1.9.1-3_arm64.deb && wget http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap-dev_1.9.1-3_arm64.deb"
+    dest: /usr/local/src/
+
+  - name: install old libpcap packages
+    shell: dpkg -i /usr/local/src/libpcap*
+    args:
+      executable: /bin/bash
+    register: libpcap
+
   - name: change hostname
     hostname:
       name: "{{pwnagotchi.hostname}}"
@@ -132,37 +168,18 @@
       line: 'ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap'
       state: present
 
-  - name: Add re4son-kernel repo key
-    apt_key:
-      url: https://re4son-kernel.com/keys/http/archive-key.asc
-      state: present
-
-  - name: Add re4son-kernel repository
-    apt_repository:
-      repo: deb http://http.re4son-kernel.com/re4son/ kali-pi main
-      state: present
-
-  - name: create /etc/apt/preferences.d/kali.pref
-    copy:
-      dest: /etc/apt/preferences.d/kali.pref
-      force: yes
-      content: |
-        # ensure kali packages that are installed take precedence
-        Package: *
-        Pin: release n=kali-pi
-        Pin-Priority: 999
-
   - name: add firmware packages to hold
     dpkg_selections:
       name: "{{ item }}"
       selection: hold
     with_items: "{{ packages.apt.hold }}"
+    when: libpcap.changed
 
   - name: update apt package cache
     apt:
       update_cache: yes
 
-  - name: remove unecessary apt packages
+  - name: remove unnecessary apt packages
     apt:
       name: "{{ packages.apt.remove }}"
       state: absent
@@ -180,7 +197,7 @@
   - name: configure dphys-swapfile
     file:
       path: /etc/dphys-swapfile
-      content: "CONF_SWAPSIZE=1024"
+      content: "CONF_SWAPSIZE=2048"
 
   - name: clone papirus repository
     git:
@@ -206,6 +223,12 @@
         PANEL_VERSION: 'V231_G2'
     when: gratisgit.changed
 
+  - name: Creates custom plugin directory
+    file:
+      path: /usr/local/share/pwnagotchi/custom-plugins/
+      state: directory
+    when: gratisgit.changed
+
   - name: configure papirus display size
     lineinfile:
       dest: /etc/default/epd-fuse
@@ -228,7 +251,7 @@
 
   - name: clone pwnagotchi repository
     git:
-      repo: https://github.com/evilsocket/pwnagotchi.git
+      repo: https://github.com/jayofelony/pwnagotchi.git
       dest: /usr/local/src/pwnagotchi
     register: pwnagotchigit
 
@@ -256,18 +279,6 @@
       chdir: /usr/local/src/pwnagotchi
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
-  - name: install opencv-python
-    pip:
-      name: "https://www.piwheels.org/simple/opencv-python/opencv_python-3.4.3.18-cp37-cp37m-linux_armv6l.whl"
-      extra_args: "--no-deps --no-cache-dir --platform=linux_armv6l --only-binary=:all: --target={{ pip_target.stdout }}"
-    when: (pip_packages['opencv-python'] is undefined) or (pip_packages['opencv-python'] != '3.4.3.18')
-
-  - name: install tensorflow
-    pip:
-      name: "https://www.piwheels.org/simple/tensorflow/tensorflow-1.13.1-cp37-none-linux_armv6l.whl"
-      extra_args: "--no-deps --no-cache-dir --platform=linux_armv6l --only-binary=:all: --target={{ pip_target.stdout }}"
-    when: (pip_packages['tensorflow'] is undefined) or (pip_packages['tensorflow'] != '1.13.1')
-
   - name: install pwnagotchi wheel and dependencies
     pip:
       name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
@@ -280,6 +291,34 @@
       dest: /usr/bin
       remote_src: yes
       mode: 0755
+
+  # Install go-1.20.6
+  - name: Install go-1.21
+    unarchive:
+      src: https://go.dev/dl/go1.21.0.linux-arm64.tar.gz
+      dest: /usr/local
+      remote_src: yes
+    register: golang
+
+  - name: Update .bashrc for go-1.21
+    blockinfile:
+      dest: /home/pi/.bashrc
+      state: present
+      block: |
+        export GOPATH=$HOME/go
+        export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+        insertafter: EOF
+    when: golang.changed
+
+  - name: Install bettercap v2.32.1
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go env -w GO111MODULE=off && go get github.com/jayofelony/bettercap && cd $GOPATH/src/github.com/jayofelony/bettercap && make build && make install"
+    args:
+      executable: /bin/bash
+    register: bettercap
+
+  - name: Link bettercap v2.32.1
+    command: ln -s /usr/local/bin/bettercap /usr/bin/bettercap
+    when: bettercap.changed
 
   - name: download and install bettercap
     unarchive:
@@ -296,6 +335,99 @@
       repo: https://github.com/bettercap/caplets.git
       dest: /tmp/caplets
     register: capletsgit
+
+# Install nexmon to fix wireless scanning (takes 2.5G of space)
+  - name: clone nexmon repository
+    git:
+      repo: https://github.com/jayofelony/nexmon.git
+      dest: /usr/local/src/nexmon
+    register: nexmongit
+
+  - name: make firmware
+    shell: "source ./setup_env.sh && make"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+# Raspberry Pi Zero 2w (chipset 43436b0)
+
+  - name: make firmware patch (bcm43436b0)
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: backup original firmware
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make backup-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: install new firmware
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make install-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+# Raspberry Pi zero 2w (chipset 43430a1)
+
+  - name: make firmware patch (bcm43430a1)
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: backup original firmware
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make backup-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: install new firmware
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make install-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+# Raspberry Pi 4
+
+  - name: make firmware patch (bcm43455c0)
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: backup original firmware
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make backup-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: install new firmware
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make install-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: choose kernel
+    shell: "uname -r"
+    register: kernel
+
+  - name: copy modified driver
+    copy:
+      src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
+      dest: "/lib/modules/{{ kernel.stdout }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+
+  - name: ensure depmod runs on reboot to load modified driver (brcmfmac)
+    lineinfile:
+      dest: /etc/rc.local
+      line: "/sbin/depmod -a"
+
+  # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
+  - name: Delete nexmon content & directory
+    file:
+      state: absent
+      path: /usr/local/src/nexmon/
 
   - name: install bettercap caplets
     make:
