@@ -5,6 +5,10 @@ main.custom_plugins = ""
 main.custom_plugin_repos = [
     "https://github.com/evilsocket/pwnagotchi-plugins-contrib/archive/master.zip"
 ]
+main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
+
+main.fix_brcmf_plugin.enabled = true
+
 main.iface = "wlan0mon"
 main.mon_start_cmd = "/usr/bin/monstart"
 main.mon_stop_cmd = "/usr/bin/monstop"
@@ -34,6 +38,20 @@ main.plugins.net-pos.api_key = "test"
 main.plugins.gps.enabled = false
 main.plugins.gps.speed = 19200
 main.plugins.gps.device = "/dev/ttyUSB0"
+
+main.plugins.exp.enabled = true
+main.plugins.exp.lvl_x_coord = 0
+main.plugins.exp.lvl_y_coord = 81
+main.plugins.exp.exp_x_coord = 38
+main.plugins.exp.exp_y_coord = 81
+main.plugins.exp.bar_symbols_count = 12
+
+main.plugins.bluetoothsniffer.enabled = false
+main.plugins.bluetoothsniffer.timer = 45 # On how may seconds to scan for bluetooth devices
+main.plugins.bluetoothsniffer.devices_file = "/root/handshakes/bluetooth_devices.json"  # Path to the JSON file with bluetooth devices
+main.plugins.bluetoothsniffer.count_interval = 86400 # On how may seconds to update count bluetooth devices
+main.plugins.bluetoothsniffer.bt_x_coord = 160
+main.plugins.bluetoothsniffer.bt_y_coord = 66
 
 main.plugins.webgpsmap.enabled = false
 
