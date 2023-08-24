@@ -20,7 +20,7 @@ langs:
 	done
 
 install:
-PACKER := /tmp/pwnagotchi/packer
+PACKER := /home/hakselaar/pwnagotchi/packer
 PACKER_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip
 $(PACKER):
 	mkdir -p $(@D)
