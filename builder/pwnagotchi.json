@@ -19,7 +19,7 @@
     {
       "type": "file",
       "sources": [
-        "~/pwnagotchi/dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
+        "../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
       ],
       "destination": "/usr/local/src/pwnagotchi/"
     },
