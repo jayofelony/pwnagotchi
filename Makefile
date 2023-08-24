@@ -1,6 +1,6 @@
 PACKER_VERSION=1.9.4
 PWN_HOSTNAME=pwnagotchi
-PWN_VERSION=2.0.1
+PWN_VERSION:=$(shell cut -d"'" -f2 < pwnagotchi/_version.py)
 
 # The Ansible part of the build can inadvertently change the active hostname of
 # the build machine while updating the permanent hostname of the build image.
