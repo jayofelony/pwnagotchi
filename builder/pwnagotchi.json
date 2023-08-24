@@ -41,7 +41,7 @@
       "type": "shell",
       "inline": [
         "mv /etc/ld.so.preload.DISABLED /etc/ld.so.preload"
-      ]
+        ]
     }
   ]
 }

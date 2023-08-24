@@ -414,7 +414,7 @@
       chdir: /usr/local/src/nexmon/
 
   - name: choose kernel
-    shell: uname -r
+    shell: "uname -r"
     register: kernel
 
   - name: copy modified driver
