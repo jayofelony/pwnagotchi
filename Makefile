@@ -19,6 +19,7 @@ langs:
 		./scripts/language.sh compile $$(basename $$lang); \
 	done
 
+install:
 PACKER := /tmp/pwnagotchi/packer
 PACKER_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip
 $(PACKER):
