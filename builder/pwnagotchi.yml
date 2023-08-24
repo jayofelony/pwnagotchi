@@ -138,7 +138,7 @@
 
   tasks:
   - name: download old libpcap packages
-    ansible.builtin.get_url:
+    get_url:
       url: "http://ports.ubuntu.com/pool/main/libp/libpcap/{{ item }}"
       dest: /usr/local/src/
       with_items:
@@ -149,6 +149,7 @@
   - name: install old libpcap packages
     apt:
       deb: /usr/local/src/libpcap*
+      args: allow-downgrades
     register: libpcap
 
   - name: change hostname
