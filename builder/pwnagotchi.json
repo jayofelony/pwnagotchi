@@ -10,7 +10,6 @@
     {
       "type": "shell",
       "inline": [
-        "mv /etc/ld.so.preload /etc/ld.so.preload.DISABLED",
         "uname -a",
         "dpkg-architecture",
         "mkdir -p /usr/local/src/pwnagotchi"
