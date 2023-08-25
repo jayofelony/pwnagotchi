@@ -92,6 +92,7 @@ def do_auto_mode(agent):
             else:
                 logging.exception("main loop exception (%s)", e)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser = plugins_cmd.add_parsers(parser)
@@ -118,7 +119,6 @@ if __name__ == '__main__':
                         help="Print the configuration.")
 
     args = parser.parse_args()
-
 
     if plugins_cmd.used_plugin_cmd(args):
       config = utils.load_config(args)

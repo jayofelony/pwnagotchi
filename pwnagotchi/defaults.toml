@@ -2,11 +2,12 @@ main.name = ""
 main.lang = "en"
 main.confd = "/etc/pwnagotchi/conf.d/"
 main.custom_plugin_repos = [
-    "https://github.com/evilsocket/pwnagotchi-plugins-contrib/archive/master.zip"
+    "https://github.com/evilsocket/pwnagotchi-plugins-contrib/archive/master.zip",
+    "https://github.com/PwnPeter/pwnagotchi-plugins/archive/master.zip",
 ]
 main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
-main.fix_brcmf_plugin.enabled = true
+main.plugins.fix_brcmf_plugin.enabled = true
 
 main.iface = "wlan0mon"
 main.mon_start_cmd = "/usr/bin/monstart"
@@ -29,7 +30,7 @@ main.plugins.grid.exclude = [
 
 main.plugins.auto-update.enabled = false
 main.plugins.auto-update.install = false
-main.plugins.auto-update.interval = 1
+main.plugins.auto-update.interval = 24
 
 main.plugins.net-pos.enabled = false
 main.plugins.net-pos.api_key = "test"
@@ -95,7 +96,7 @@ main.plugins.bt-tether.devices.ios-phone.max_tries = 0
 main.plugins.bt-tether.devices.ios-phone.share_internet = false
 main.plugins.bt-tether.devices.ios-phone.priority = 999
 
-main.plugins.memtemp.enabled = true
+main.plugins.memtemp.enabled = false
 main.plugins.memtemp.scale = "celsius"
 main.plugins.memtemp.orientation = "horizontal"
 
@@ -145,7 +146,7 @@ main.log.path = "/var/log/pwnagotchi.log"
 main.log.rotation.enabled = true
 main.log.rotation.size = "10M"
 
-main.plugins.age.enabled = true
+main.plugins.age.enabled = false
 main.plugins.age.age_x_coord = 0
 main.plugins.age.age_y_coord = 32
 main.plugins.age.str_x_coord = 67
@@ -165,7 +166,7 @@ ai.params.learning_rate = 0.001
 ai.params.verbose = 1
 
 personality.advertise = true
-personality.deauth = false
+personality.deauth = true
 personality.associate = true
 personality.channels = []
 personality.min_rssi = -200

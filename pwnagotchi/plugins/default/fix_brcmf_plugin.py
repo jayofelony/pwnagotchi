@@ -67,7 +67,7 @@ class Fix_BRCMF(plugins.Plugin):
                 try:
                     self._tryTurningItOffAndOnAgain(agent)
                 except Exception as err:
-                    logging.warning("[FixBRCMF turnOffAndfOn] %s" % repr(err))
+                    logging.warning("[FixBRCMF turnOffAndOn] %s" % repr(err))
             else:
                 logging.info("[FixBRCMF] Logs look good, too:\n%s" % last_lines)
                 self._status = ""
@@ -262,29 +262,29 @@ class Fix_BRCMF(plugins.Plugin):
                         # success! now make the mon0
                         try:
                             cmd_output = subprocess.check_output(
-                                "sudo iw phy \"$(iw phy | head -1 | cut -d' ' -f2)\" interface add mon0 type monitor && sudo ifconfig mon0 up",
+                                "airmon-ng start wlan0",
                                 shell=True)
                             self.logPrintView("info",
-                                              "[FixBRCMF interface add mon0] worked #%d: %s" % (tries, cmd_output))
+                                              "[FixBRCMF interface add wlan0mon] worked #%d: %s" % (tries, cmd_output))
                             self._status = "up"
                             time.sleep(tries + 5)
                             try:
                                 # try accessing mon0 in bettercap
-                                result = connection.run("set wifi.interface mon0")
+                                result = connection.run("set wifi.interface wlan0mon")
                                 if "success" in result:
-                                    logging.info("[FixBRCMF set wifi.interface mon0] worked: %s" % repr(result))
+                                    logging.info("[FixBRCMF set wifi.interface wlan0mon] worked: %s" % repr(result))
                                     self._status = ""
                                     self._count = self._count + 1
                                     time.sleep(1)
                                     # stop looping and get back to recon
                                     break
                                 else:
-                                    logging.info("[FixBRCMF set wifi.interfaceface mon0] failed? %s" % repr(result))
+                                    logging.info("[FixBRCMF set wifi.interfaceface wlan0mon] failed? %s" % repr(result))
                             except Exception as err:
                                 logging.info(
-                                    "[FixBRCMF set wifi.interface mon0] except: %s" % (repr(result), repr(err)))
+                                    "[FixBRCMF set wifi.interface wlan0mon] except: %s" % (repr(result), repr(err)))
                         except Exception as cerr:  #
-                            if not display: print("failed loading mon0 attempt #%d: %s" % (tries, repr(cerr)))
+                            if not display: print("failed loading wlan0mon attempt #%d: %s" % (tries, repr(cerr)))
                     except Exception as err:  # from modprobe
                         if not display: print("Failed reloading brcmfmac")
                         logging.error("[FixBRCMF] Failed reloading brcmfmac %s" % repr(err))
@@ -308,7 +308,7 @@ class Fix_BRCMF(plugins.Plugin):
                                                          "face": faces.INTENSE})
                 else:
                     print("And back on again...")
-                logging.info("[FixBRCMF] mon0 back up")
+                logging.info("[FixBRCMF] wlan0mon back up")
             else:
                 self.LASTTRY = time.time()
 
@@ -369,13 +369,13 @@ class Fix_BRCMF(plugins.Plugin):
 
 # run from command line to brute force a reload
 if __name__ == "__main__":
-    print("Performing brcmfmac reload and restart mon0 in 5 seconds...")
+    print("Performing brcmfmac reload and restart wlan0mon in 5 seconds...")
     fb = Fix_BRCMF()
 
     data = {'Message': "kernel: brcmfmac: brcmf_cfg80211_nexmon_set_channel: Set Channel failed: chspec=1234"}
     event = {'data': data}
 
-    agent = Client('localhost', port=8081, username="pwnagotchi", password="pwnagotchi");
+    agent = Client('localhost', port=8081, username="pwnagotchi", password="pwnagotchi")
 
     time.sleep(2)
     print("3 seconds")
