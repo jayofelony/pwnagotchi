@@ -489,7 +489,7 @@
       content: |
         (◕‿‿◕) {{pwnagotchi.hostname}}
 
-        Hi! I'm a pwnagotchi, please take good care of me!
+        Hi! I'm a pwnagotchi {{pwnagotchi.version}}, please take good care of me!
         Here are some basic things you need to know to raise me properly!
 
         If you want to change my configuration, use /etc/pwnagotchi/config.toml
