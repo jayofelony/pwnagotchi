@@ -12,91 +12,6 @@
   ],
   "provisioners": [
     {
-      "type": "shell",
-      "inline": [
-        "sed -i 's/^\\([^#]\\)/#\\1/g' /etc/ld.so.preload",
-        "dpkg-architecture",
-        "apt-get -y --allow-releaseinfo-change update",
-        "apt-get install -y ansible"
-      ]
-    },
-    {
-      "type": "file",
-      "source": "data/usr/bin/pwnlib",
-      "destination": "/usr/bin/pwnlib"
-    },
-    {
-      "type": "file",
-      "source": "data/usr/bin/bettercap-launcher",
-      "destination": "/usr/bin/bettercap-launcher"
-    },
-    {
-      "type": "file",
-      "source": "data/usr/bin/pwnagotchi-launcher",
-      "destination": "/usr/bin/pwnagotchi-launcher"
-    },
-    {
-      "type": "file",
-      "source": "data/usr/bin/monstop",
-      "destination": "/usr/bin/monstop"
-    },
-    {
-      "type": "file",
-      "source": "data/usr/bin/monstart",
-      "destination": "/usr/bin/monstart"
-    },
-    {
-      "type": "file",
-      "source": "data/usr/bin/hdmion",
-      "destination": "/usr/bin/hdmion"
-    },
-    {
-      "type": "file",
-      "source": "data/usr/bin/hdmioff",
-      "destination": "/usr/bin/hdmioff"
-    },
-    {
-      "type": "file",
-      "source": "data/etc/network/interfaces.d/lo-cfg",
-      "destination": "/etc/network/interfaces.d/lo-cfg"
-    },
-    {
-      "type": "file",
-      "source": "data/etc/network/interfaces.d/wlan0-cfg",
-      "destination": "/etc/network/interfaces.d/wlan0-cfg"
-    },
-    {
-      "type": "file",
-      "source": "data/etc/network/interfaces.d/usb0-cfg",
-      "destination": "/etc/network/interfaces.d/usb0-cfg"
-    },
-    {
-      "type": "file",
-      "source": "data/etc/network/interfaces.d/eth0-cfg",
-      "destination": "/etc/network/interfaces.d/eth0-cfg"
-    },
-    {
-      "type": "file",
-      "source": "data/etc/systemd/system/pwngrid-peer.service",
-      "destination": "/etc/systemd/system/pwngrid-peer.service"
-    },
-    {
-      "type": "file",
-      "source": "data/etc/systemd/system/pwnagotchi.service",
-      "destination": "/etc/systemd/system/pwnagotchi.service"
-    },
-    {
-      "type": "file",
-      "source": "data/etc/systemd/system/bettercap.service",
-      "destination": "/etc/systemd/system/bettercap.service"
-    },
-    {
-      "type": "shell",
-      "inline": [
-        "chmod +x /usr/bin/*"
-      ]
-    },
-    {
       "type": "file",
       "sources": [
         "../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
@@ -108,12 +23,6 @@
       "playbook_file": "pwnagotchi.yml",
       "extra_arguments": [ "--extra-vars \"ansible_python_interpreter=/usr/bin/python3\"" ],
       "command": "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION={{user `pwn_version`}} PWN_HOSTNAME={{user `pwn_hostname`}} ansible-playbook"
-    },
-    {
-      "type": "shell",
-      "inline": [
-        "mv /etc/ld.so.preload.DISABLED /etc/ld.so.preload"
-        ]
     }
   ]
 }
