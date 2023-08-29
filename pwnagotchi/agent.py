@@ -230,8 +230,8 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
             if ap['mac'] == ap_mac:
                 for sta in ap['clients']:
                     if sta['mac'] == station_mac:
-                        return (ap, sta)
-                return (ap, {'mac': station_mac, 'vendor': ''})
+                        return ap, sta
+                return ap, {'mac': station_mac, 'vendor': ''}
         return None
 
     def _update_uptime(self, s):
@@ -260,7 +260,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         txt = '%d (%d)' % (len(self._handshakes), tot)
 
         if self._last_pwnd is not None:
-            txt += ' [%s]' % self._last_pwnd[:11]
+            txt += ' [%s]' % self._last_pwnd[:11]  # So it doesn't overlap with fix_brcmfmac_plugin
 
         self._view.set('shakes', txt)
 
@@ -305,10 +305,8 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
             if not no_exceptions:
                 raise
 
-
     def start_session_fetcher(self):
         _thread.start_new_thread(self._fetch_stats, ())
-
 
     def _fetch_stats(self):
         while True:
@@ -341,7 +339,6 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                 logging.error("[agent:_fetch_stats] self.update_handshakes: %s" % repr(err))
 
             time.sleep(5)
-
 
     async def _on_event(self, msg):
         found_handshake = False
