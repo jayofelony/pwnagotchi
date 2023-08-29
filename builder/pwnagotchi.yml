@@ -181,7 +181,6 @@
     file:
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
-    when: gratisgit.changed
 
   - name: collect python pip package list
     command: "pip3 list"

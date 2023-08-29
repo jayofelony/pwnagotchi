@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86d472f7-3417-4a77-9947-c1c255a4f4e8" name="Changes" comment="Small update version 2.1.1" />
+    <list default="true" id="86d472f7-3417-4a77-9947-c1c255a4f4e8" name="Changes" comment="Small update version 2.1.1">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/builder/pwnagotchi.yml" beforeDir="false" afterPath="$PROJECT_DIR$/builder/pwnagotchi.yml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -72,7 +75,7 @@
       <workItem from="1693311805926" duration="418000" />
       <workItem from="1693332220165" duration="602000" />
       <workItem from="1693333349115" duration="1395000" />
-      <workItem from="1693335518752" duration="375000" />
+      <workItem from="1693335518752" duration="1065000" />
     </task>
     <task id="LOCAL-00001" summary="Update Makefile">
       <option name="closed" value="true" />
@@ -90,7 +93,15 @@
       <option name="project" value="LOCAL" />
       <updated>1693335763749</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Small update version 2.1.1">
+      <option name="closed" value="true" />
+      <created>1693338470692</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1693338470692</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
