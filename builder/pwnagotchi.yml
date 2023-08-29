@@ -235,7 +235,7 @@
   - name: download and install pwngrid
     unarchive:
       src: "{{ packages.pwngrid.url }}"
-      dest: /usr/bin
+      dest: /usr/local/bin
       remote_src: yes
       mode: 0755
 
@@ -262,10 +262,6 @@
     args:
       executable: /bin/bash
     register: bettercap
-
-  - name: Link bettercap v2.32.1
-    command: ln -s /usr/local/bin/bettercap /usr/bin/bettercap
-    when: bettercap.changed
 
   - name: clone bettercap caplets
     git:
