@@ -171,11 +171,6 @@
       state: absent
       purge: yes
 
-  - name: upgrade apt distro
-    become_user: root
-    apt:
-      upgrade: dist
-
   - name: install packages
     become_user: root
     apt:
@@ -303,21 +298,24 @@
     command: ln -s /usr/local/bin/bettercap /usr/bin/bettercap
     when: bettercap.changed
 
-  - name: download and install bettercap
-    unarchive:
-      src: "{{ packages.bettercap.url }}"
-      dest: /usr/bin
-      remote_src: yes
-      exclude:
-        - README.md
-        - LICENSE.md
-      mode: 0755
-
   - name: clone bettercap caplets
     git:
       repo: https://github.com/jayofelony/caplets.git
       dest: /tmp/caplets
     register: capletsgit
+
+  - name: install bettercap caplets
+    make:
+      chdir: /tmp/caplets
+      target: install
+    when: capletsgit.changed
+
+  - name: download and install bettercap ui
+    unarchive:
+      src: "{{ packages.bettercap.ui }}"
+      dest: /usr/local/share/bettercap/
+      remote_src: yes
+      mode: 0755
 
 # Install nexmon to fix wireless scanning (takes 2.5G of space)
   - name: clone nexmon repository
@@ -416,19 +414,6 @@
     file:
       state: absent
       path: /usr/local/src/nexmon/
-
-  - name: install bettercap caplets
-    make:
-      chdir: /tmp/caplets
-      target: install
-    when: capletsgit.changed
-
-  - name: download and install bettercap ui
-    unarchive:
-      src: "{{ packages.bettercap.ui }}"
-      dest: /usr/local/share/bettercap/
-      remote_src: yes
-      mode: 0755
 
   - name: add HDMI powersave to rc.local
     blockinfile:

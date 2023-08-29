@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="86d472f7-3417-4a77-9947-c1c255a4f4e8" name="Changes" comment="Update Makefile">
-      <change beforePath="$PROJECT_DIR$/.DEREK.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.travis.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,12 +46,12 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "pwnagotchi-torch",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -68,6 +66,13 @@
       <workItem from="1693181063054" duration="672000" />
       <workItem from="1693181774881" duration="48000" />
       <workItem from="1693209737513" duration="271000" />
+      <workItem from="1693308042171" duration="8000" />
+      <workItem from="1693308261277" duration="87000" />
+      <workItem from="1693308365487" duration="13000" />
+      <workItem from="1693309300580" duration="42000" />
+      <workItem from="1693311805926" duration="418000" />
+      <workItem from="1693332220165" duration="602000" />
+      <workItem from="1693333349115" duration="1395000" />
     </task>
     <task id="LOCAL-00001" summary="Update Makefile">
       <option name="closed" value="true" />
@@ -82,6 +87,17 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Update Makefile" />

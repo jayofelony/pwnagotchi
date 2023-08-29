@@ -37,26 +37,16 @@
   ],
   "provisioners": [
     {
-      "inline": ["mkdir -p /usr/local/src/pwnagotchi"],
-      "type": "shell"
-    },
-    {
-      "type": "file",
-      "sources": [
-        "../../../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
-      ],
-      "destination": "/usr/local/src/pwnagotchi/"
-    },
-    {
       "type": "shell",
       "inline": [
         "apt-get -y --allow-releaseinfo-change update",
-        "apt-get install -y --no-install-recommends ansible"
+        "apt-get -y dist-upgrade",
+        "apt-get install -y ansible"
       ]
     },
     {
       "type": "ansible-local",
-      "playbook_file": "../../../builder/pwnagotchi.yml",
+      "playbook_file": "../../builder/pwnagotchi.yml",
       "extra_arguments": [
         "--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""
       ],

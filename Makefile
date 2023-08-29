@@ -39,9 +39,9 @@ $(PWN_RELEASE).img: | $(PACKER)
 # If the packer or ansible files are updated, rebuild the image.
 $(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json builder/pwnagotchi.yml $(shell find builder/data -type f)
 	# $(PACKER) plugins install github.com/mkaczanowski/builder-arm
-	cd builder/packer-builder-arm/packer-builder-arm && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" ../../pwnagotchi.json
-	sudo chown -R $$USER:$$USER ../../builder/output-pwnagotchi
-	mv ../../builder/output-pwnagotchi/image $@
+	cd builder/packer-builder-arm/ && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" ../pwnagotchi.json
+	sudo chown -R $$USER:$$USER ../builder/output-pwnagotchi
+	mv ../builder/output-pwnagotchi/image $@
 
 # If any of these files are updated, rebuild the checksums.
 $(PWN_RELEASE).sha256: $(PWN_RELEASE).img
