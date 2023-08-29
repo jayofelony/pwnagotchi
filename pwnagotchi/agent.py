@@ -260,7 +260,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         txt = '%d (%d)' % (len(self._handshakes), tot)
 
         if self._last_pwnd is not None:
-            txt += ' [%s]' % self._last_pwnd[:20]
+            txt += ' [%s]' % self._last_pwnd[:10]
 
         self._view.set('shakes', txt)
 
