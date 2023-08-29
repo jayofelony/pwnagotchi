@@ -38,10 +38,10 @@ $(PWN_RELEASE).img: | $(PACKER)
 
 # If the packer or ansible files are updated, rebuild the image.
 $(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json builder/pwnagotchi.yml $(shell find builder/data -type f)
-	sudo $(PACKER) plugins install github.com/solo-io/arm-image
-	cd builder && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json
-	sudo chown -R $$USER:$$USER builder/output-pwnagotchi
-	mv builder/output-pwnagotchi/image $@
+	# $(PACKER) plugins install github.com/mkaczanowski/builder-arm
+	cd builder/packer-builder-arm/packer-builder-arm && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" ../../pwnagotchi.json
+	sudo chown -R $$USER:$$USER ../../builder/output-pwnagotchi
+	mv ../../builder/output-pwnagotchi/image $@
 
 # If any of these files are updated, rebuild the checksums.
 $(PWN_RELEASE).sha256: $(PWN_RELEASE).img
@@ -57,6 +57,6 @@ image: $(PWN_RELEASE).zip
 clean:
 	- python3 setup.py clean --all
 	- rm -rf dist pwnagotchi.egg-info
-	- rm -f $(PACKER)
-	- rm -f $(PWN_RELEASE).*
+	- rm -rf $(PACKER)
+	- rm -rf $(PWN_RELEASE).*
 	- sudo rm -rf builder/output-pwnagotchi builder/packer_cache

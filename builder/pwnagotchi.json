@@ -1,27 +1,65 @@
-{  "builders": [
+{
+  "builders": [
     {
       "name": "pwnagotchi",
-      "type": "arm-image",
-      "iso_url": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz",
-      "iso_checksum": "sha256:bf982e56b0374712d93e185780d121e3f5c3d5e33052a95f72f9aed468d58fa7",
-      "target_image_size": 9368709120,
-      "qemu_args": [
-        "-m 8G"
-        ]
+      "type": "arm",
+      "file_urls": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz",
+      "file_checksum_url": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256",
+      "file_checksum_type": "sha256",
+      "file_target_extension": "xz",
+      "file_unarchive_cmd": ["xz", "--decompress", "$ARCHIVE_PATH"],
+      "image_path": "pwnagotchi.img.tar.gz",
+      "image_size": "10G",
+      "image_type": "dos",
+      "qemu_binary_destination_path": "/usr/bin/qemu-aarch64-static",
+      "qemu_binary_source_path": "/usr/bin/qemu-aarch64-static",
+      "image_build_method": "resize",
+      "image_partitions": [
+        {
+          "name": "boot",
+          "type": "c",
+          "start_sector": "2048",
+          "filesystem": "fat",
+          "size": "256M",
+          "mountpoint": "/boot/firmware"
+        },
+        {
+          "name": "root",
+          "type": "83",
+          "start_sector": "526336",
+          "filesystem": "ext4",
+          "size": "0",
+          "mountpoint": "/"
+        }
+      ],
+      "image_chroot_env": ["PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"]
     }
   ],
   "provisioners": [
     {
+      "inline": ["mkdir -p /usr/local/src/pwnagotchi"],
+      "type": "shell"
+    },
+    {
       "type": "file",
       "sources": [
-        "../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
+        "../../../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
       ],
       "destination": "/usr/local/src/pwnagotchi/"
     },
     {
+      "type": "shell",
+      "inline": [
+        "apt-get -y --allow-releaseinfo-change update",
+        "apt-get install -y --no-install-recommends ansible"
+      ]
+    },
+    {
       "type": "ansible-local",
-      "playbook_file": "pwnagotchi.yml",
-      "extra_arguments": [ "--extra-vars \"ansible_python_interpreter=/usr/bin/python3\"" ],
+      "playbook_file": "../../../builder/pwnagotchi.yml",
+      "extra_arguments": [
+        "--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""
+      ],
       "command": "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION={{user `pwn_version`}} PWN_HOSTNAME={{user `pwn_hostname`}} ansible-playbook"
     }
   ]

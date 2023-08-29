@@ -1,7 +1,7 @@
 ---
 - hosts:
-    - 127.0.0.1
-  become: yes
+    - all
+  become: true
   vars:
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
@@ -48,7 +48,6 @@
           - libpcap0.8-dev
         remove:
           - raspberrypi-net-mods
-          - dhcpcd5
           - triggerhappy
           - wpa_supplicant
           - nfs-common
@@ -138,8 +137,11 @@
 
   tasks:
   - name: change hostname
-    hostname:
-      name: "{{pwnagotchi.hostname}}"
+    lineinfile:
+      dest: /etc/hostname
+      regexp: '^raspberrypi'
+      line: "{{pwnagotchi.hostname}}"
+      state: present
     when: lookup('file', '/etc/hostname') == "raspberrypi"
     register: hostname
 
@@ -163,24 +165,22 @@
       update_cache: yes
 
   - name: remove unnecessary apt packages
+    become_user: root
     apt:
       name: "{{ packages.apt.remove }}"
       state: absent
       purge: yes
 
   - name: upgrade apt distro
+    become_user: root
     apt:
       upgrade: dist
 
   - name: install packages
+    become_user: root
     apt:
       name: "{{ packages.apt.install }}"
       state: present
-
-  - name: configure dphys-swapfile
-    file:
-      path: /etc/dphys-swapfile
-      content: "CONF_SWAPSIZE=1024"
 
   - name: clone papirus repository
     git:
@@ -335,18 +335,21 @@
 # Raspberry Pi Zero 2w (chipset 43436b0)
 
   - name: make firmware patch (bcm43436b0)
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
   - name: backup original firmware
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make backup-firmware"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
   - name: install new firmware
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make install-firmware"
     args:
       executable: /bin/bash
@@ -355,18 +358,21 @@
 # Raspberry Pi zero 2w (chipset 43430a1)
 
   - name: make firmware patch (bcm43430a1)
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
   - name: backup original firmware
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make backup-firmware"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
   - name: install new firmware
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make install-firmware"
     args:
       executable: /bin/bash
@@ -375,29 +381,34 @@
 # Raspberry Pi 4
 
   - name: make firmware patch (bcm43455c0)
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
   - name: backup original firmware
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make backup-firmware"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
   - name: install new firmware
+    become_user: root
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make install-firmware"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
   - name: copy modified driver
+    become_user: root
     copy:
       src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
       dest: "/lib/modules/{{ ansible_kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
   - name: "Update kernel modules"
+    become_user: root
     command: /sbin/depmod -a
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
@@ -429,16 +440,19 @@
         fi
 
   - name: create /etc/pwnagotchi folder
+    become_user: root
     file:
       path: /etc/pwnagotchi
       state: directory
 
   - name: check if user configuration exists
+    become_user: root
     stat:
       path: /etc/pwnagotchi/config.toml
     register: user_config
 
   - name: create /etc/pwnagotchi/config.toml
+    become_user: root
     copy:
       dest: /etc/pwnagotchi/config.toml
       content: |
@@ -449,11 +463,13 @@
     when: not user_config.stat.exists
 
   - name: enable ssh on boot
+    become_user: root
     file:
       path: /boot/ssh
       state: touch
 
   - name: adjust /boot/config.txt
+    become_user: root
     lineinfile:
       dest: /boot/config.txt
       insertafter: EOF
@@ -461,6 +477,7 @@
     with_items: "{{system.boot_options}}"
 
   - name: adjust /etc/modules
+    become_user: root
     lineinfile:
       dest: /etc/modules
       insertafter: EOF
@@ -468,6 +485,7 @@
     with_items: "{{system.modules}}"
 
   - name: change root partition
+    become_user: root
     replace:
       dest: /boot/cmdline.txt
       backup: no
@@ -475,6 +493,7 @@
       replace: "root=/dev/mmcblk0p2"
 
   - name: configure /boot/cmdline.txt
+    become_user: root
     lineinfile:
       path: /boot/cmdline.txt
       backrefs: True
@@ -484,6 +503,7 @@
       line: '\1 modules-load=dwc2,g_ether'
 
   - name: configure motd
+    become_user: root
     copy:
       dest: /etc/motd
       content: |
@@ -516,6 +536,7 @@
     when: hostname.changed
 
   - name: clean apt cache
+    become_user: root
     apt:
       autoclean: yes
 
@@ -533,12 +554,14 @@
         - libpcap-dev_1.9.1-3_arm64.deb
 
   - name: install old libpcap packages
+    become_user: root
     apt:
       deb: /usr/local/src/libpcap*
       args: allow-downgrades
     register: libpcap
 
   - name: add firmware packages to hold
+    become_user: root
     dpkg_selections:
       name: "{{ item }}"
       selection: hold
@@ -546,6 +569,7 @@
     when: libpcap.changed
 
   - name: enable services
+    become_user: root
     systemd:
       name: "{{ item }}"
       state: started
@@ -553,6 +577,7 @@
     with_items: "{{ services.enable }}"
 
   - name: disable unecessary services
+    become_user: root
     systemd:
       name: "{{ item }}"
       state: stopped
@@ -560,6 +585,7 @@
     with_items: "{{ services.disable }}"
 
   - name: remove ssh keys
+    become_user: root
     file:
       state: absent
       path: "{{item}}"
@@ -568,5 +594,6 @@
 
   handlers:
   - name: reload systemd services
+    become_user: root
     systemd:
       daemon_reload: yes
