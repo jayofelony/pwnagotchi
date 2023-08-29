@@ -177,41 +177,11 @@
       name: "{{ packages.apt.install }}"
       state: present
 
-  - name: clone papirus repository
-    git:
-      repo: https://github.com/repaper/gratis.git
-      dest: /usr/local/src/gratis
-    register: gratisgit
-
-  - name: build papirus service
-    make:
-      chdir: /usr/local/src/gratis
-      target: rpi
-      params:
-        EPD_IO: epd_io_free_uart.h
-        PANEL_VERSION: 'V231_G2'
-    when: gratisgit.changed
-
-  - name: install papirus service
-    make:
-      chdir: /usr/local/src/gratis
-      target: rpi-install
-      params:
-        EPD_IO: epd_io_free_uart.h
-        PANEL_VERSION: 'V231_G2'
-    when: gratisgit.changed
-
   - name: Creates custom plugin directory
     file:
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
     when: gratisgit.changed
-
-  - name: configure papirus display size
-    lineinfile:
-      dest: /etc/default/epd-fuse
-      regexp: "#EPD_SIZE=2.0"
-      line: "EPD_SIZE=2.0"
 
   - name: collect python pip package list
     command: "pip3 list"

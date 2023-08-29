@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86d472f7-3417-4a77-9947-c1c255a4f4e8" name="Changes" comment="Update Makefile">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="86d472f7-3417-4a77-9947-c1c255a4f4e8" name="Changes" comment="Small update version 2.1.1" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -46,6 +44,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "pwnagotchi-torch",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -73,6 +72,7 @@
       <workItem from="1693311805926" duration="418000" />
       <workItem from="1693332220165" duration="602000" />
       <workItem from="1693333349115" duration="1395000" />
+      <workItem from="1693335518752" duration="375000" />
     </task>
     <task id="LOCAL-00001" summary="Update Makefile">
       <option name="closed" value="true" />
@@ -82,7 +82,15 @@
       <option name="project" value="LOCAL" />
       <updated>1693209921918</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Small update version 2.1.1">
+      <option name="closed" value="true" />
+      <created>1693335763749</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1693335763749</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -101,6 +109,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Update Makefile" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update Makefile" />
+    <MESSAGE value="Small update version 2.1.1" />
+    <option name="LAST_COMMIT_MESSAGE" value="Small update version 2.1.1" />
   </component>
 </project>
