@@ -1,4 +1,4 @@
-gym
+gym>=0.26.2
 shimmy
 pycryptodome>=3.9.4
 requests>=2.21.0
@@ -20,5 +20,5 @@ python-dateutil>=2.8.1
 websockets>=8.1
 torch>=2.0.1
 torchvision>=0.15.2
-stable_baselines3==1.8.0
+stable_baselines3==2.1.0
 RPi.GPIO
