@@ -368,7 +368,7 @@
   - name: Delete old driver
     file:
       state: absent
-      path: /lib/modules/{{ ansible_kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz"
+      path: /lib/modules/{{ ansible_kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
   - name: copy modified driver
     become_user: root

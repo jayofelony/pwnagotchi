@@ -1,17 +1,16 @@
 import os
 import glob
+import _thread
 import threading
 import importlib, importlib.util
 import logging
-from concurrent.futures import ThreadPoolExecutor
+
+
 
 default_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default")
 loaded = {}
 database = {}
 locks = {}
-
-THREAD_POOL_SIZE = 10
-executor = ThreadPoolExecutor(max_workers=THREAD_POOL_SIZE)
 
 
 class Plugin:
@@ -45,7 +44,7 @@ def toggle_plugin(name, enable=True):
     global loaded, database
 
     if pwnagotchi.config:
-        if name not in pwnagotchi.config['main']['plugins']:
+        if not name in pwnagotchi.config['main']['plugins']:
             pwnagotchi.config['main']['plugins'][name] = dict()
         pwnagotchi.config['main']['plugins'][name]['enabled'] = enable
         save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
@@ -97,7 +96,7 @@ def one(plugin_name, event_name, *args, **kwargs):
             try:
                 lock_name = "%s::%s" % (plugin_name, cb_name)
                 locked_cb_args = (lock_name, callback, *args, *kwargs)
-                executor.submit(locked_cb, *locked_cb_args)
+                _thread.start_new_thread(locked_cb, locked_cb_args)
             except Exception as e:
                 logging.error("error while running %s.%s : %s" % (plugin_name, cb_name, e))
                 logging.error(e, exc_info=True)
