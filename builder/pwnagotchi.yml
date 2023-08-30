@@ -48,6 +48,7 @@
           - libpcap0.8-dev
         remove:
           - raspberrypi-net-mods
+          - dhcpcd5
           - triggerhappy
           - wpa_supplicant
           - nfs-common

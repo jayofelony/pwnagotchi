@@ -2,108 +2,90 @@
   "builders": [
     {
       "name": "pwnagotchi",
-      "type": "arm",
-      "file_urls": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz",
-      "file_checksum_url": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256",
-      "file_checksum_type": "sha256",
-      "file_target_extension": "xz",
-      "file_unarchive_cmd": ["xz", "--decompress", "$ARCHIVE_PATH"],
-      "image_path": "pwnagotchi.img.tar.gz",
-      "image_size": "10G",
-      "image_type": "dos",
-      "qemu_binary_destination_path": "/usr/bin/qemu-aarch64-static",
-      "qemu_binary_source_path": "/usr/bin/qemu-aarch64-static",
-      "image_build_method": "resize",
-      "image_partitions": [
-        {
-          "name": "boot",
-          "type": "c",
-          "start_sector": "2048",
-          "filesystem": "fat",
-          "size": "256M",
-          "mountpoint": "/boot/firmware"
-        },
-        {
-          "name": "root",
-          "type": "83",
-          "start_sector": "526336",
-          "filesystem": "ext4",
-          "size": "0",
-          "mountpoint": "/"
-        }
-      ],
-      "image_chroot_env": ["PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"]
+      "type": "arm-image",
+      "iso_urls": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz",
+      "iso_checksum": "file:https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256",
+      "target_image_size": 9368709120,
+      "qemu_binary": "qemu-aarch64-static"
     }
   ],
   "provisioners": [
     {
+      "type": "shell",
+      "inline": [
+        "uname -a",
+        "dpkg-architecture",
+        "mkdir -p /usr/local/src/pwnagotchi"
+      ]
+    },
+    {
       "type": "file",
-      "source": "../../builder/data/usr/bin/pwnlib",
+      "source": "../builder/data/usr/bin/pwnlib",
       "destination": "/usr/bin/pwnlib"
     },
     {
       "type": "file",
-      "source": "../../builder/data/usr/bin/bettercap-launcher",
+      "source": "../builder/data/usr/bin/bettercap-launcher",
       "destination": "/usr/bin/bettercap-launcher"
     },
     {
       "type": "file",
-      "source": "../../builder/data/usr/bin/pwnagotchi-launcher",
+      "source": "../builder/data/usr/bin/pwnagotchi-launcher",
       "destination": "/usr/bin/pwnagotchi-launcher"
     },
     {
       "type": "file",
-      "source": "../../builder/data/usr/bin/monstop",
+      "source": "../builder/data/usr/bin/monstop",
       "destination": "/usr/bin/monstop"
     },
     {
       "type": "file",
-      "source": "../../builder/data/usr/bin/monstart",
+      "source": "../builder/data/usr/bin/monstart",
       "destination": "/usr/bin/monstart"
     },
     {
       "type": "file",
-      "source": "../../builder/data/usr/bin/hdmion",
+      "source": "../builder/data/usr/bin/hdmion",
       "destination": "/usr/bin/hdmion"
     },
     {
       "type": "file",
-      "source": "../../builder/data/usr/bin/hdmioff",
+      "source": "../builder/data/usr/bin/hdmioff",
       "destination": "/usr/bin/hdmioff"
     },
     {
       "type": "file",
-      "source": "../../builder/data/etc/network/interfaces.d/lo-cfg",
+      "source": "../builder/data/etc/network/interfaces.d/lo-cfg",
       "destination": "/etc/network/interfaces.d/lo-cfg"
     },
     {
       "type": "file",
-      "source": "../../builder/data/etc/network/interfaces.d/wlan0-cfg",
+      "source": "../builder/data/etc/network/interfaces.d/wlan0-cfg",
       "destination": "/etc/network/interfaces.d/wlan0-cfg"
     },
     {
       "type": "file",
-      "source": "../../builder/data/etc/network/interfaces.d/usb0-cfg",
+      "source": "../builder/data/etc/network/interfaces.d/usb0-cfg",
       "destination": "/etc/network/interfaces.d/usb0-cfg"
     },
     {
       "type": "file",
-      "source": "../../builder/data/etc/network/interfaces.d/eth0-cfg",
+      "source": "../builder/data/etc/network/interfaces.d/eth0-cfg",
       "destination": "/etc/network/interfaces.d/eth0-cfg"
     },
     {
       "type": "file",
-      "source": "../../builder/data/etc/systemd/system/pwngrid-peer.service",
+      "source": "../builder/data/etc/systemd/system/pwngrid-peer.service",
       "destination": "/etc/systemd/system/pwngrid-peer.service"
     },
     {
       "type": "file",
-      "source": "../../builder/data/etc/systemd/system/pwnagotchi.service",
+      "source": "../builder/data/etc/systemd/system/pwnagotchi.service",
       "destination": "/etc/systemd/system/pwnagotchi.service"
     },
     {
       "type": "file",
-      "source": "../../builder/data/etc/systemd/system/bettercap.service",
+      "source": "../builder/data/etc/systemd/system/bettercap.service",
       "destination": "/etc/systemd/system/bettercap.service"
     },
     {
@@ -122,7 +104,7 @@
     },
     {
       "type": "ansible-local",
-      "playbook_file": "../../builder/pwnagotchi.yml",
+      "playbook_file": "../builder/pwnagotchi.yml",
       "extra_arguments": [
         "--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""
       ],
