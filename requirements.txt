@@ -1,4 +1,4 @@
-gym>=0.26.2
+Gymnasium
 shimmy
 pycryptodome>=3.9.4
 requests>=2.21.0

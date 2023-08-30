@@ -1,4 +1,4 @@
-from gym import spaces
+from gymnasium import spaces
 
 
 class Parameter(object):
