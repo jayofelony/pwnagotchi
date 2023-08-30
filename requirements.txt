@@ -20,5 +20,5 @@ python-dateutil>=2.8.1
 websockets>=8.1
 torch>=2.0.1
 torchvision>=0.15.2
-stable-baselines3>=1.4.0
+stable_baselines3==1.8.0
 RPi.GPIO
