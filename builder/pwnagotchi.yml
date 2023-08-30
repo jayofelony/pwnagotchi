@@ -50,7 +50,7 @@
           - raspberrypi-net-mods
           - dhcpcd5
           - triggerhappy
-          - wpa_supplicant
+          - wpasupplicant
           - nfs-common
           - libraspberrypi0
           - libraspberrypi-dev
@@ -364,6 +364,11 @@
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
+
+  - name: Delete old driver
+    file:
+      state: absent
+      path: /lib/modules/{{ ansible_kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz"
 
   - name: copy modified driver
     become_user: root
