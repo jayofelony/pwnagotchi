@@ -283,104 +283,6 @@
       remote_src: yes
       mode: 0755
 
-# Install nexmon to fix wireless scanning (takes 2.5G of space)
-  - name: clone nexmon repository
-    git:
-      repo: https://github.com/jayofelony/nexmon.git
-      dest: /usr/local/src/nexmon
-    register: nexmongit
-
-  - name: make firmware
-    shell: "source ./setup_env.sh && make"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-# Raspberry Pi Zero 2w (chipset 43436b0)
-
-  - name: make firmware patch (bcm43436b0)
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-  - name: backup original firmware
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make backup-firmware"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-  - name: install new firmware
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make install-firmware"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-# Raspberry Pi zero 2w (chipset 43430a1)
-
-  - name: make firmware patch (bcm43430a1)
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-  - name: backup original firmware
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make backup-firmware"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-  - name: install new firmware
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make install-firmware"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-# Raspberry Pi 4
-
-  - name: make firmware patch (bcm43455c0)
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-  - name: backup original firmware
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make backup-firmware"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-  - name: install new firmware
-    become_user: root
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make install-firmware"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/nexmon/
-
-  - name: copy modified driver
-    become_user: root
-    copy:
-      src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
-      dest: "/lib/modules/{{ ansible_kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
-
-  - name: "Update kernel modules"
-    become_user: root
-    command: /sbin/depmod -a
-
-  # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
-  - name: Delete nexmon content & directory
-    file:
-      state: absent
-      path: /usr/local/src/nexmon/
-
   - name: add HDMI powersave to rc.local
     blockinfile:
       path: /etc/rc.local
@@ -518,14 +420,6 @@
       selection: hold
     with_items: "{{ packages.apt.hold }}"
     when: libpcap.changed
-
-  - name: enable services
-    become_user: root
-    systemd:
-      name: "{{ item }}"
-      state: started
-      enabled: yes
-    with_items: "{{ services.enable }}"
 
   - name: disable unecessary services
     become_user: root
