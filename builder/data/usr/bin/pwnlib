@@ -37,7 +37,9 @@ reload_brcm() {
 # starts mon0
 start_monitor_interface() {
   rfkill unblock all
-  airmon-ng start wlan0
+  ifconfig wlan0 up
+  iw phy `iw dev wlan0 info | gawk '/wiphy/ {printf "phy" $2}'` interface add wlan0mon type monitor
+  ifconfig wlan0 down && ifconfig wlan0mon up
 }
 
 # stops mon0
