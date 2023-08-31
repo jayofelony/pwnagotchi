@@ -399,12 +399,12 @@
 
   - name: download old libpcap packages
     get_url:
-      url: "http://ports.ubuntu.com/pool/main/libp/libpcap/{{ item }}"
+      url: "{{ item }}"
       dest: /usr/local/src/
-      with_items:
-        - libpcap0.8-dev_1.9.1-3_arm64.deb
-        - libpcap0.8_1.9.1-3_arm64.deb
-        - libpcap-dev_1.9.1-3_arm64.deb
+      loop:
+        - http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8-dev_1.9.1-3_arm64.deb
+        - http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8_1.9.1-3_arm64.deb
+        - http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap-dev_1.9.1-3_arm64.deb
 
   - name: install old libpcap packages
     become_user: root
