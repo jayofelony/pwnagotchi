@@ -3,13 +3,10 @@
     {
       "name": "pwnagotchi",
       "type": "arm-image",
-      "iso_urls": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz",
+      "iso_url": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz",
       "iso_checksum": "file:https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256",
       "target_image_size": 9368709120,
-      "qemu_binary": "qemu-aarch64-static",
-      "qemu_args": [
-        "-cpu", "cortex-a72"
-      ]
+      "qemu_binary": "qemu-aarch64-static"
     }
   ],
   "provisioners": [
