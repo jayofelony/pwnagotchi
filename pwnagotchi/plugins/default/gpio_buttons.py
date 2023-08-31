@@ -36,4 +36,8 @@ class GPIOButtons(plugins.Plugin):
             self.ports[gpio] = command
             GPIO.setup(gpio, GPIO.IN, GPIO.PUD_UP)
             GPIO.add_event_detect(gpio, GPIO.FALLING, callback=self.runCommand, bouncetime=600)
+            #set pimoroni display hat mini LED off/dim
+            GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
             logging.info("Added command: %s to GPIO #%d", command, gpio)

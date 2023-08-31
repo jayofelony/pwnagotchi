@@ -278,12 +278,15 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('ws_213bc', 'ws213bc', 'waveshare_213bc', 'waveshare213bc'):
         config['ui']['display']['type'] = 'waveshare213bc'
 
+    elif config['ui']['display']['type'] in ('spotpear24inch'):
+        config['ui']['display']['type'] = 'spotpear24inch'
+
+    elif config['ui']['display']['type'] in ('displayhatmini'):
+        config['ui']['display']['type'] = 'displayhatmini'
+
     elif config['ui']['display']['type'] in ('waveshare35lcd'):
         config['ui']['display']['type'] = 'waveshare35lcd'
 
-    elif config['ui']['display']['type'] in ('spotpear24inch'):
-        config['ui']['display']['type'] = 'spotpear24inch'
-    
     else:
         print("unsupported display type %s" % config['ui']['display']['type'])
         sys.exit(1)
@@ -304,13 +307,11 @@ def total_unique_handshakes(path):
 
 def iface_channels(ifname):
     channels = []
-
     output = subprocess.getoutput("/sbin/iwlist %s freq" % ifname)
     for line in output.split("\n"):
         line = line.strip()
         if line.startswith("Channel "):
             channels.append(int(line.split()[1]))
-
     return channels
 
 
