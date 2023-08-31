@@ -181,7 +181,7 @@ class AsyncTrainer(object):
                         if os.path.isfile(self._nn_path):
                             back = "%s.bak" % self._nn_path
                             os.replace(self._nn_path, back)
-                        self._view.set("mode", "AI")
+                        self._view.set("mode", "  AI")
                         self._model.learn(total_timesteps=epochs_per_episode, callback=self.on_ai_training_step)
                     except Exception as e:
                         logging.exception("[ai] error while training (%s)", e)

@@ -28,8 +28,8 @@ main.plugins.grid.exclude = [
     "YourHomeNetworkHere"
 ]
 
-main.plugins.auto-update.enabled = false
-main.plugins.auto-update.install = false
+main.plugins.auto-update.enabled = true
+main.plugins.auto-update.install = true
 main.plugins.auto-update.interval = 24
 
 main.plugins.net-pos.enabled = false
@@ -38,13 +38,6 @@ main.plugins.net-pos.api_key = "test"
 main.plugins.gps.enabled = false
 main.plugins.gps.speed = 19200
 main.plugins.gps.device = "/dev/ttyUSB0"
-
-main.plugins.exp.enabled = true
-main.plugins.exp.lvl_x_coord = 0
-main.plugins.exp.lvl_y_coord = 81
-main.plugins.exp.exp_x_coord = 38
-main.plugins.exp.exp_y_coord = 81
-main.plugins.exp.bar_symbols_count = 12
 
 main.plugins.bluetoothsniffer.enabled = false
 main.plugins.bluetoothsniffer.timer = 45 # On how may seconds to scan for bluetooth devices
@@ -145,12 +138,6 @@ main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
 main.log.path = "/var/log/pwnagotchi.log"
 main.log.rotation.enabled = true
 main.log.rotation.size = "10M"
-
-main.plugins.age.enabled = false
-main.plugins.age.age_x_coord = 0
-main.plugins.age.age_y_coord = 32
-main.plugins.age.str_x_coord = 67
-main.plugins.age.str_y_coord = 32
 
 ai.enabled = true
 ai.path = "/root/brain.nn"
