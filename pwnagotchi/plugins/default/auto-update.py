@@ -35,11 +35,11 @@ def check(version, repo, native=True):
         if not native:
             info['url'] = "https://github.com/%s/archive/%s.zip" % (repo, latest['tag_name'])
         else:
-            # check if this release is compatible with arm6
+            # check if this release is compatible with armv8+
             for asset in latest['assets']:
                 download_url = asset['browser_download_url']
                 if download_url.endswith('.zip') and (
-                        info['arch'] in download_url or (is_arm and 'armhf' in download_url)):
+                        info['arch'] in download_url or (is_arm and 'arm64' in download_url)):
                     info['url'] = download_url
                     break
 
