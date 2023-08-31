@@ -29,11 +29,8 @@
         - apt-daily.service
         - apt-daily-upgrade.timer
         - apt-daily-upgrade.service
-        - wpa_supplicant.service
         - bluetooth.service
-        - triggerhappy.service
         - ifup@wlan0.service
-        - dnsmasq.service
     packages:
       bettercap:
         # We will install bettercap from source
@@ -50,7 +47,7 @@
           - raspberrypi-net-mods
           - dhcpcd5
           - triggerhappy
-          - wpa_supplicant
+          - wpasupplicant
           - nfs-common
           - libraspberrypi0
           - libraspberrypi-dev
@@ -396,30 +393,6 @@
   - name: remove dependencies that are no longer required
     apt:
       autoremove: yes
-
-  - name: download old libpcap packages
-    get_url:
-      url: "{{ item }}"
-      dest: /usr/local/src/
-      loop:
-        - http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8-dev_1.9.1-3_arm64.deb
-        - http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap0.8_1.9.1-3_arm64.deb
-        - http://ports.ubuntu.com/pool/main/libp/libpcap/libpcap-dev_1.9.1-3_arm64.deb
-
-  - name: install old libpcap packages
-    become_user: root
-    apt:
-      deb: /usr/local/src/libpcap*
-      args: allow-downgrades
-    register: libpcap
-
-  - name: add firmware packages to hold
-    become_user: root
-    dpkg_selections:
-      name: "{{ item }}"
-      selection: hold
-    with_items: "{{ packages.apt.hold }}"
-    when: libpcap.changed
 
   - name: disable unecessary services
     become_user: root
