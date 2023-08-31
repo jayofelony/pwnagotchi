@@ -204,7 +204,7 @@
   - name: clone pisugar 2 git
     git:
       repo: https://github.com/PiSugar/pisugar2py.git
-      dest: /usr/local/lib/python3.7/dist-packages
+      dest: /usr/local/lib/python3.9/dist-packages
 
   - name: clone pisugar2 plugin
     git:

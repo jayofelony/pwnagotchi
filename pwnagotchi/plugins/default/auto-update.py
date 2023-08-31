@@ -38,8 +38,7 @@ def check(version, repo, native=True):
             # check if this release is compatible with armv8+
             for asset in latest['assets']:
                 download_url = asset['browser_download_url']
-                if download_url.endswith('.zip') and (
-                        info['arch'] in download_url or (is_arm and 'arm64' in download_url)):
+                if download_url.endswith('.zip'):
                     info['url'] = download_url
                     break
 

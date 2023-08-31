@@ -24,6 +24,12 @@ main.whitelist = [
 ]
 main.filter = ""
 
+main.plugins.age.enabled = false
+main.plugins.age.age_x_coord = 0
+main.plugins.age.age_y_coord = 32
+main.plugins.age.str_x_coord = 67
+main.plugins.age.str_y_coord = 32
+
 main.plugins.ups_hat_c.enabled = false
 main.plugins.ups_hat_c.label_on = true  # show BAT label or just percentage
 main.plugins.ups_hat_c.shutdown = 5  # battery percent at which the device will turn off
