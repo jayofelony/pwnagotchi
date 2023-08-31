@@ -283,9 +283,6 @@ def load_config(args):
 
     elif config['ui']['display']['type'] in ('spotpear24inch'):
         config['ui']['display']['type'] = 'spotpear24inch'
-
-    elif config['ui']['display']['type'] in ('ws_37inch', 'ws37inch', 'waveshare_37inch', 'waveshare37inch'):
-        config['ui']['display']['type'] = 'waveshare37inch'
     
     else:
         print("unsupported display type %s" % config['ui']['display']['type'])

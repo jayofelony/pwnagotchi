@@ -47,7 +47,7 @@ def check(version, repo, native=True):
 
 
 def make_path_for(name):
-    path = os.path.join("/tmp/updates/", name)
+    path = os.path.join("/usr/local/src/", name)
     if os.path.exists(path):
         logging.debug("[update] deleting %s" % path)
         shutil.rmtree(path, ignore_errors=True, onerror=None)
