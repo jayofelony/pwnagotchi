@@ -37,7 +37,7 @@
         # url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
-        url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
+        # url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
       apt:
         hold:
           - libpcap-dev
@@ -266,13 +266,6 @@
       extra_args: "--no-cache-dir"
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
-  - name: download and install pwngrid
-    unarchive:
-      src: "{{ packages.pwngrid.url }}"
-      dest: /usr/local/bin
-      remote_src: yes
-      mode: 0755
-
   # Install go-1.20.6
   - name: Install go-1.21
     unarchive:
@@ -289,6 +282,19 @@
         export GOPATH=$HOME/go
         export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
     when: golang.changed
+
+  - name: download pwngrid
+    git:
+      repo: https://github.com/jayofelony/pwngrid.git
+      dest: /usr/local/src/
+    register: pwngrid
+
+  - name: install pwngrid
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && sudo make install"
+    arsg:
+      executables: /bin/bash
+    chdir: /usr/local/src/pwngrid
+    when: pwngrid.changed
 
   - name: Install bettercap v2.32.1
     shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go env -w GO111MODULE=off && go get github.com/jayofelony/bettercap && cd $GOPATH/src/github.com/jayofelony/bettercap && make build && make install"
