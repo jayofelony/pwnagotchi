@@ -15,6 +15,7 @@ from pwnagotchi.ui.hw.waveshare213d import Waveshare213d
 from pwnagotchi.ui.hw.waveshare213bc import Waveshare213bc
 from pwnagotchi.ui.hw.waveshare35lcd import Waveshare35lcd
 from pwnagotchi.ui.hw.spotpear24inch import Spotpear24inch
+from pwnagotchi.ui.hw.waveshare37inch import Waveshare37inch
 
 
 def display_for(config):
@@ -69,3 +70,6 @@ def display_for(config):
 
     elif config['ui']['display']['type'] == 'spotpear24inch':
         return Spotpear24inch(config)
+
+    elif config['ui']['display']['type'] == 'waveshare37inch':
+        return Waveshare37inch(config)

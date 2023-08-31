@@ -4,6 +4,8 @@ main.confd = "/etc/pwnagotchi/conf.d/"
 main.custom_plugin_repos = [
     "https://github.com/evilsocket/pwnagotchi-plugins-contrib/archive/master.zip",
     "https://github.com/PwnPeter/pwnagotchi-plugins/archive/master.zip",
+    "https://github.com/tisboyo/pwnagotchi-pisugar2-plugin/archive/master.zip",
+    "https://github.com/nullm0ose/pwnagotchi-plugin-pisugar3/archive/master.zip"
 ]
 main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
@@ -21,6 +23,16 @@ main.whitelist = [
     "fo:od:ba"
 ]
 main.filter = ""
+
+main.plugins.ups_hat_c.enabled = false
+main.plugins.ups_hat_c.label_on = true  # show BAT label or just percentage
+main.plugins.ups_hat_c.shutdown = 5  # battery percent at which the device will turn off
+main.plugins.ups_hat_c.bat_x_coord = 140
+main.plugins.ups_hat_c.bat_y_coord = 0
+
+main.plugins.pisugar2.enabled = false
+main.plugins.pisugar2.shutdown = 5
+main.plugins.pisugar2.sync_rtc_on_boot = false
 
 main.plugins.grid.enabled = true
 main.plugins.grid.report = true

@@ -1,6 +1,6 @@
 import logging
-import gymnasium
-from gymnasium import spaces
+import gym
+from gym import spaces
 import numpy as np
 
 import pwnagotchi.ai.featurizer as featurizer
@@ -8,7 +8,7 @@ import pwnagotchi.ai.reward as reward
 from pwnagotchi.ai.parameter import Parameter
 
 
-class Environment(gymnasium.Env):
+class Environment(gym.Env):
     metadata = {'render.modes': ['human']}
     params = [
         Parameter('min_rssi', min_value=-200, max_value=-50),
