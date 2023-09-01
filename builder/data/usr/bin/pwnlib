@@ -37,6 +37,7 @@ reload_brcm() {
 # starts mon0
 start_monitor_interface() {
   rfkill unblock all
+  iw dev wlan0 set power_save off
   ifconfig wlan0 up
   iw phy `iw dev wlan0 info | gawk '/wiphy/ {printf "phy" $2}'` interface add wlan0mon type monitor
   ifconfig wlan0 down && ifconfig wlan0mon up
@@ -44,7 +45,8 @@ start_monitor_interface() {
 
 # stops mon0
 stop_monitor_interface() {
-  airmon-ng stop wlan0
+  ifconfig wlan0mon down && iw dev wlan0mon del
+  ifconfig wlan0 up
 }
 
 # returns 0 if the specificed network interface is up
