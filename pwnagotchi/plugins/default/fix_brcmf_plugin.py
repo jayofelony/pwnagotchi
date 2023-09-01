@@ -262,7 +262,7 @@ class Fix_BRCMF(plugins.Plugin):
                         # success! now make the mon0
                         try:
                             cmd_output = subprocess.check_output(
-                                "airmon-ng start wlan0",
+                                "monstart",
                                 shell=True)
                             self.logPrintView("info",
                                               "[FixBRCMF interface add wlan0mon] worked #%d: %s" % (tries, cmd_output))
