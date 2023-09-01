@@ -226,7 +226,7 @@ class Fix_BRCMF(plugins.Plugin):
             logging.info("[FixBRCMF] recon paused. Now trying wlan0mon reload")
 
             try:
-                cmd_output = subprocess.check_output("sudo airmon-ng stop wlan0mon", shell=True)
+                cmd_output = subprocess.check_output("monstop", shell=True)
                 self._status = "dn"
                 self.logPrintView("info", "[FixBRCMF] wlan0mon down and deleted: %s" % cmd_output,
                                   display, {"status": "wlan0mon d-d-d-down!", "face": faces.BORED})
