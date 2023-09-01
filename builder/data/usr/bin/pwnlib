@@ -39,13 +39,12 @@ start_monitor_interface() {
   rfkill unblock all
   iw dev wlan0 set power_save off
   ifconfig wlan0 up
-  iw phy `iw dev wlan0 info | gawk '/wiphy/ {printf "phy" $2}'` interface add wlan0mon type monitor
-  ifconfig wlan0 down && ifconfig wlan0mon up
+  airmon-ng start wlan0
 }
 
 # stops mon0
 stop_monitor_interface() {
-  ifconfig wlan0mon down && iw dev wlan0mon del
+  airmon-ng stop wlan0mon
   ifconfig wlan0 up
 }
 
