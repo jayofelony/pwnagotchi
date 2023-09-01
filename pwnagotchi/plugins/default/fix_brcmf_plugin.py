@@ -259,11 +259,9 @@ class Fix_BRCMF(plugins.Plugin):
                         self._status = "rl"
                         time.sleep(10 + 4 * tries)  # give it some time for wlan device to stabilize, or whatever
 
-                        # success! now make the mon0
+                        # success! now make the wlan0mon
                         try:
-                            cmd_output = subprocess.check_output(
-                                "monstart",
-                                shell=True)
+                            cmd_output = subprocess.check_output("monstart", shell=True)
                             self.logPrintView("info",
                                               "[FixBRCMF interface add wlan0mon] worked #%d: %s" % (tries, cmd_output))
                             self._status = "up"
