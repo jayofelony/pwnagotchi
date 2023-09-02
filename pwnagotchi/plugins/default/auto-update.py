@@ -20,12 +20,27 @@ def check(version, repo, native=True):
         'current': version,
         'available': None,
         'url': None,
-        'native': native
+        'native': native,
+        'arch': platform.machine()
     }
 
     resp = requests.get("https://api.github.com/repos/%s/releases/latest" % repo)
     latest = resp.json()
     info['available'] = latest_ver = latest['tag_name'].replace('v', '')
+    is_arm = info['arch'].startswith('arm')
+
+    local = version_to_tuple(info['current'])
+    remote = version_to_tuple(latest_ver)
+    if remote > local:
+        if not native:
+            info['url'] = "https://github.com/%s/archive/%s.zip" % (repo, latest['tag_name'])
+        else:
+            # check if this release is compatible with armv8+
+            for asset in latest['assets']:
+                download_url = asset['browser_download_url']
+                if download_url.endswith('.zip'):
+                    info['url'] = download_url
+                    break
 
     return info
 
@@ -39,17 +54,21 @@ def make_path_for(name):
     return path
 
 
-def pull_github(name, path, display, update):
-    target = "%s %s" % (name, update['available'])
+def download_and_unzip(name, path, display, update):
+    target = "%s_%s.zip" % (name, update['available'])
     target_path = os.path.join(path, target)
 
-    logging.info("[update] Pulling %s from Github" % target_path)
-    display.update(force=True, new_data={'status': 'Updating %s %s ...' % (name, update['available'])})
+    logging.info("[update] downloading %s to %s ..." % (update['url'], target_path))
+    display.update(force=True, new_data={'status': 'Downloading %s %s ...' % (name, update['available'])})
 
-    os.system('cd %s && git pull' % path)
+    os.system('wget -q "%s" -O "%s"' % (update['url'], target_path))
+
+    logging.info("[update] extracting %s to %s ..." % (target_path, path))
+    display.update(force=True, new_data={'status': 'Extracting %s %s ...' % (name, update['available'])})
+
+    os.system('unzip "%s" -d "%s"' % (target_path, path))
 
 
-"""
 def verify(name, path, source_path, display, update):
     display.update(force=True, new_data={'status': 'Verifying %s %s ...' % (name, update['available'])})
 
@@ -74,18 +93,18 @@ def verify(name, path, source_path, display, update):
             return False
 
     return True
-"""
+
 
 def install(display, update):
     name = update['repo'].split('/')[1]
 
     path = make_path_for(name)
 
-    pull_github(name, path, display, update)
+    download_and_unzip(name, path, display, update)
 
     source_path = os.path.join(path, name)
-    # if not verify(name, path, source_path, display, update):
-        # return False
+    if not verify(name, path, source_path, display, update):
+        return False
 
     logging.info("[update] installing %s ..." % name)
     display.update(force=True, new_data={'status': 'Installing %s %s ...' % (name, update['available'])})
@@ -105,8 +124,6 @@ def install(display, update):
         if not os.path.exists(source_path):
             source_path = "%s-%s" % (source_path, update['available'])
 
-        if "bettercap" or "pwngrid" in source_path:
-            os.system("cd %s && make && make install" % source_path)
         # setup.py is going to install data files for us
         os.system("cd %s && pip3 install ." % source_path)
 
@@ -172,10 +189,10 @@ class AutoUpdate(plugins.Plugin):
 
                 for repo, local_version, is_native, svc_name in to_check:
                     info = check(local_version, repo, is_native)
-                    if info['available'] > info['current']:
+                    if info['url'] is not None:
                         logging.warning(
                             "update for %s available (local version is '%s'): %s" % (
-                                repo, info['current'], info['available']))
+                                repo, info['current'], info['url']))
                         info['service'] = svc_name
                         to_install.append(info)
 
