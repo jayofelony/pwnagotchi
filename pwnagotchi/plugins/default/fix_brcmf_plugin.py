@@ -246,7 +246,7 @@ class Fix_BRCMF(plugins.Plugin):
                     # unload the module
                     cmd_output = subprocess.check_output("sudo modprobe -r brcmfmac", shell=True)
                     self.logPrintView("info", "[FixBRCMF] unloaded brcmfmac", display,
-                                      {"status": "Turning it off #%d" % tries, "face": faces.SMART})
+                                      {"status": "Turning it off #%d" % tries+1, "face": faces.SMART})
                     self._status = "ul"
                     time.sleep(1 + tries)
 
