@@ -151,22 +151,6 @@ class Fix_BRCMF(plugins.Plugin):
                 except Exception as err:
                     logging.error("[FixBRCMF wifi.recon flip] %s" % repr(err))
 
-            # Look for pattern 3
-            elif len(self.pattern3.findall(other_last_lines)) >= 1:
-                if self.pattern3.search(other_last_lines):
-                    logging.info("[FixBRCMF]**** Should trigger a reload of the wlan0mon device:\n%s" % other_last_lines)
-                    if hasattr(agent, 'view'):
-                        display = agent.view()
-                        display.set('status', 'Firmware has halted or crashed. Restarting.')
-                        display.update(force=True)
-                    logging.info('[FixBRCMF] Firmware has halted or crashed. Restarting.')
-                    try:
-                        self._tryTurningItOffAndOnAgain(agent)
-                    except Exception as err:
-                        logging.warning("[FixBRCMF] TTOAOA: %s" % repr(err))
-            else:
-                print("logs look good")
-
     def logPrintView(self, level, message, ui=None, displayData=None, force=True):
         try:
             if level is "error":
