@@ -153,8 +153,8 @@ class Fix_BRCMF(plugins.Plugin):
 
             # Look for pattern 3
             elif len(self.pattern3.findall(other_last_lines)) >= 1:
-                if self.pattern3.search(last_lines):
-                    logging.info("[FixBRCMF]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                if self.pattern3.search(other_last_lines):
+                    logging.info("[FixBRCMF]**** Should trigger a reload of the wlan0mon device:\n%s" % other_last_lines)
                     if hasattr(agent, 'view'):
                         display = agent.view()
                         display.set('status', 'Firmware has halted or crashed. Restarting.')
