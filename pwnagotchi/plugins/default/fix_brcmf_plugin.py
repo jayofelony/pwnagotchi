@@ -45,7 +45,6 @@ class Fix_BRCMF(plugins.Plugin):
         """
         Gets called when the plugin gets loaded
         """
-        self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self._status = "ld"
         logging.info("[FixBRCMF] plugin loaded.")
 
