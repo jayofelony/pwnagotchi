@@ -150,6 +150,8 @@ class Fix_BRCMF(plugins.Plugin):
 
                 except Exception as err:
                     logging.error("[FixBRCMF wifi.recon flip] %s" % repr(err))
+            else:
+                logging.info("Logs are fine")
 
     def logPrintView(self, level, message, ui=None, displayData=None, force=True):
         try:
