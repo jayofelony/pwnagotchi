@@ -15,8 +15,8 @@ import pwnagotchi.ui.fonts as fonts
 
 
 class Fix_BRCMF(plugins.Plugin):
-    __author__ = 'xBits'
-    __version__ = '0.1.1'
+    __author__ = 'xBITS'
+    __version__ = '0.1.2'
     __license__ = 'GPL3'
     __description__ = 'Reload brcmfmac module when blindbug is detected, instead of rebooting. Adapted from WATCHDOG.'
     __name__ = 'Fix_BRCMF'
@@ -27,13 +27,14 @@ class Fix_BRCMF(plugins.Plugin):
         'pip': ['scapy']
     }
     __defaults__ = {
-        'enabled': False,
+        'enabled': True,
     }
 
     def __init__(self):
         self.options = dict()
         self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
+        self.pattern3 = re.compile(r'Firmware has halted or crashed')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
@@ -44,7 +45,6 @@ class Fix_BRCMF(plugins.Plugin):
         """
         Gets called when the plugin gets loaded
         """
-        self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self._status = "ld"
         logging.info("[FixBRCMF] plugin loaded.")
 
@@ -93,8 +93,8 @@ class Fix_BRCMF(plugins.Plugin):
                     logging.info("[FixBRCMF] wifi.recon flip: success!")
                     if hasattr(agent, 'view'):
                         display = agent.view()
-                        if display: display.update(force=True, new_data={"status": "Wifi recon flipped!",
-                                                                         "face": faces.COOL})
+                        if display:
+                            display.update(force=True, new_data={"status": "Wifi recon flipped!", "face": faces.COOL})
                     else:
                         print("Wifi recon flipped")
                 else:
@@ -113,6 +113,8 @@ class Fix_BRCMF(plugins.Plugin):
             other_last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10'],
                                                                            stdout=subprocess.PIPE).stdout))[-10:])
             logging.debug("[FixBRCMF]**** checking")
+
+            # Find pattern 1
             if len(self.pattern.findall(last_lines)) >= 3:
                 logging.info("[FixBRCMF]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
@@ -124,6 +126,8 @@ class Fix_BRCMF(plugins.Plugin):
                     self._tryTurningItOffAndOnAgain(agent)
                 except Exception as err:
                     logging.warning("[FixBRCMF] TTOAOA: %s" % repr(err))
+
+            # Find pattern 2
             elif len(self.pattern2.findall(other_last_lines)) >= 5:
                 if hasattr(agent, 'view'):
                     display = agent.view()
@@ -147,6 +151,19 @@ class Fix_BRCMF(plugins.Plugin):
                 except Exception as err:
                     logging.error("[FixBRCMF wifi.recon flip] %s" % repr(err))
 
+            # Look for pattern 3
+            elif len(self.pattern3.findall(other_last_lines)) >= 1:
+                if self.pattern3.search(last_lines):
+                    logging.info("[FixBRCMF]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                    if hasattr(agent, 'view'):
+                        display = agent.view()
+                        display.set('status', 'Firmware has halted or crashed. Restarting.')
+                        display.update(force=True)
+                    logging.info('[FixBRCMF] Firmware has halted or crashed. Restarting.')
+                    try:
+                        self._tryTurningItOffAndOnAgain(agent)
+                    except Exception as err:
+                        logging.warning("[FixBRCMF] TTOAOA: %s" % repr(err))
             else:
                 print("logs look good")
 
@@ -182,7 +199,8 @@ class Fix_BRCMF(plugins.Plugin):
             self._status = "BL"
             if hasattr(connection, 'view'):
                 display = connection.view()
-                if display: display.update(force=True, new_data={"status": "I'm blind! Try turning it off and on again",
+                if display:
+                    display.update(force=True, new_data={"status": "I'm blind! Try turning it off and on again",
                                                                  "brcmfmac_status": self._status,
                                                                  "face": faces.BORED})
             else:
