@@ -133,6 +133,7 @@ if __name__ == '__main__':
 
     if args.donate:
         print("Donations can made @ https://www.patreon.com/pwnagotchi_torch \n\nBut only if you really want to!")
+        sys.exit(0)
 
     if args.check_update:
         resp = requests.get("https://api.github.com/repos/jayofelony/pwnagotchi/releases/latest")
@@ -150,6 +151,7 @@ if __name__ == '__main__':
                 print("Okay, guess not!")
         else:
             print("You are currently on the latest release, %s." % pwnagotchi.__version__)
+        sys.exit(0)
 
     if args.version:
         print(pwnagotchi.__version__)
