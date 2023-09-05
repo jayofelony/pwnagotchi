@@ -3,6 +3,7 @@ import re
 import subprocess
 import time
 import random
+from pwnagotchi import restart
 from io import TextIOWrapper
 from pwnagotchi import plugins
 
@@ -18,7 +19,7 @@ class Fix_BRCMF(plugins.Plugin):
     __author__ = 'xBits'
     __version__ = '0.1.1'
     __license__ = 'GPL3'
-    __description__ = 'Reload brcmfmac module when blindbug is detected, instead of rebooting. Adapted from WATCHDOG.'
+    __description__ = 'Fix blindness, firmware crashes and brain not being loaded'
     __name__ = 'Fix_BRCMF'
     __help__ = """
     Reload brcmfmac module when blindbug is detected, instead of rebooting. Adapted from WATCHDOG.
@@ -34,17 +35,23 @@ class Fix_BRCMF(plugins.Plugin):
         self.options = dict()
         self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
+        self.pattern3 = re.compile(r'Firmware has halted or crashed')
+        self.pattern4 = re.compile(r'AI not loaded!')
+        self.pattern5 = re.compile(r'ConnectionError')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
         self._status = "--"
         self._count = 0
+        self.last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
+                                                                 stdout=subprocess.PIPE).stdout))[-10:])
+        self.other_last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10'],
+                                                                       stdout=subprocess.PIPE).stdout))[-10:])
 
     def on_loaded(self):
         """
         Gets called when the plugin gets loaded
         """
-        self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self._status = "ld"
         logging.info("[FixBRCMF] plugin loaded.")
 
@@ -55,21 +62,21 @@ class Fix_BRCMF(plugins.Plugin):
             if ",UP," in str(cmd_output):
                 logging.info("wlan0mon is up.")
                 self._status = "up"
-            last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
-                                                                     stdout=subprocess.PIPE).stdout))[-10:])
-            if len(self.pattern.findall(last_lines)) >= 3:
+
+            if len(self.pattern.findall(self.last_lines)) >= 3:
                 self._status = "XX"
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Blind-Bug detected. Restarting.')
                     display.update(force=True)
-                logging.info('[FixBRCMF] Blind-Bug detected. Restarting.\n%s' % repr(last_lines))
+                logging.info('[FixBRCMF] Blind-Bug detected. Restarting.\n%s' % repr(self.last_lines))
                 try:
                     self._tryTurningItOffAndOnAgain(agent)
                 except Exception as err:
                     logging.warning("[FixBRCMF turnOffAndOn] %s" % repr(err))
+
             else:
-                logging.info("[FixBRCMF] Logs look good, too:\n%s" % last_lines)
+                logging.info("[FixBRCMF] Logs look good, too:\n%s" % self.last_lines)
                 self._status = ""
 
         except Exception as err:
@@ -108,13 +115,12 @@ class Fix_BRCMF(plugins.Plugin):
         if time.time() - self.LASTTRY > 180:
             # get last 10 lines
             display = None
-            last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
-                                                                     stdout=subprocess.PIPE).stdout))[-10:])
-            other_last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10'],
-                                                                           stdout=subprocess.PIPE).stdout))[-10:])
+
             logging.debug("[FixBRCMF]**** checking")
-            if len(self.pattern.findall(last_lines)) >= 3:
-                logging.info("[FixBRCMF]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+
+            # Look for pattern 1
+            if len(self.pattern.findall(self.last_lines)) >= 3:
+                logging.info("[FixBRCMF]**** Should trigger a reload of the wlan0mon device:\n%s" % self.last_lines)
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Blind-Bug detected. Restarting.')
@@ -124,7 +130,9 @@ class Fix_BRCMF(plugins.Plugin):
                     self._tryTurningItOffAndOnAgain(agent)
                 except Exception as err:
                     logging.warning("[FixBRCMF] TTOAOA: %s" % repr(err))
-            elif len(self.pattern2.findall(other_last_lines)) >= 5:
+
+            # Look for pattern 2
+            elif len(self.pattern2.findall(self.other_last_lines)) >= 5:
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
@@ -147,6 +155,52 @@ class Fix_BRCMF(plugins.Plugin):
                 except Exception as err:
                     logging.error("[FixBRCMF wifi.recon flip] %s" % repr(err))
 
+            # Look for pattern 3
+            elif len(self.pattern3.findall(self.other_last_lines)) >= 1:
+                logging.info("[FixBRCMF] Firmware has halted or crashed. Restarting wlan0mon.")
+                if hasattr(agent, 'view'):
+                    display = agent.view()
+                    display.set('status', 'Firmware has halted or crashed. Restarting wlan0mon.')
+                    display.update(force=True)
+                try:
+                    # Run the monstart command to restart wlan0mon
+                    cmd_output = restart("AUTO")
+                    self._status = "up"
+                    logging.info("[FixBRCMF monstart]: %s" % repr(cmd_output))
+                except Exception as err:
+                    logging.error("[FixBRCMF monstart]: %s" % repr(err))
+
+             # Look for pattern 4
+            elif len(self.pattern4.findall(self.other_last_lines)) >= 1:
+                logging.info("[FixBRCMF] Having a brain meltdown. Deleting myself.")
+                if hasattr(agent, 'view'):
+                    display = agent.view()
+                    if display: display.update(force=True,
+                                               new_data={"status": "Having a brain meltdown. Deleting myself.",
+                                                         "face": faces.SAD})
+                try:
+                    # Delete brain /root/brain.nn and restarting pwnagotchi service
+                    cmd_output = subprocess.check_output("rm /root/brain.nn && systemctl restart pwnagotchi",
+                                                        shell=True)
+                    self._status = "up"
+                    logging.info("[FixBRCMF brain]: %s" % repr(cmd_output))
+                except Exception as err:
+                    logging.error("[FixBRCMF brain]: %s" % repr(err))
+
+            # Look for pattern 5
+            elif len(self.pattern5.findall(self.other_last_lines)) >= 1:
+                logging.info("[FixBRCMF] Bettercap connection failure. Restarting Bettercap.")
+                if hasattr(agent, 'view'):
+                    display = agent.view()
+                    display.set('status', 'Bettercap connection failure. Restarting Bettercap.')
+                try:
+                    # Delete brain /root/brain.nn and restarting pwnagotchi service
+                    cmd_output = subprocess.check_output("systemctl restart bettercap",
+                                                        shell=True)
+                    self._status = "up"
+                    logging.info("[FixBRCMF bettercap]: %s" % repr(cmd_output))
+                except Exception as err:
+                    logging.error("[FixBRCMF bettercap]: %s" % repr(err))
             else:
                 print("logs look good")
 
