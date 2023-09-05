@@ -123,8 +123,13 @@ def install(display, update):
         if not os.path.exists(source_path):
             source_path = "%s-%s" % (source_path, update['available'])
 
-        # setup.py is going to install data files for us
-        os.system("cd %s && pip3 install ." % source_path)
+        if "pwngrid" in source_path:
+            os.system("cd %s && make && make install" % source_path)
+        elif "bettercap" in source_path:
+            os.system("cd %s && make && make install" % source_path)
+        else:
+            # setup.py is going to install data files for us
+            os.system("cd %s && pip3 install ." % source_path)
 
     return True
 
@@ -182,7 +187,7 @@ class AutoUpdate(plugins.Plugin):
                 to_install = []
                 to_check = [
                     ('jayofelony/bettercap', parse_version('bettercap -version'), True, 'bettercap'),
-                    ('evilsocket/pwngrid', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
+                    ('jayofelony/pwngrid', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
                     ('jayofelony/pwnagotchi', pwnagotchi.__version__, False, 'pwnagotchi')
                 ]
 

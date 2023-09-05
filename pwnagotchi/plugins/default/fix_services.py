@@ -35,9 +35,8 @@ class Fix_BRCMF(plugins.Plugin):
         self.options = dict()
         self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
-        self.pattern3 = re.compile(r'Firmware has halted or crashed')
+        self.pattern3 = re.compile(r'error 400: could not find interface wlan0mon')
         self.pattern4 = re.compile(r'AI not loaded!')
-        self.pattern5 = re.compile(r'ConnectionError')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
@@ -113,6 +112,8 @@ class Fix_BRCMF(plugins.Plugin):
                                                                  stdout=subprocess.PIPE).stdout))[-10:])
         other_last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10'],
                                                                        stdout=subprocess.PIPE).stdout))[-10:])
+        other_other_last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['tail', '-n10', '/var/log/pwnagotchi.log'],
+                                                                       stdout=subprocess.PIPE).stdout))[-10:])
         # don't check if we ran a reset recently
         logging.debug("[FixBRCMF]**** epoch")
         if time.time() - self.LASTTRY > 180:
@@ -159,7 +160,7 @@ class Fix_BRCMF(plugins.Plugin):
                     logging.error("[FixBRCMF wifi.recon flip] %s" % repr(err))
 
             # Look for pattern 3
-            elif len(self.pattern3.findall(other_last_lines)) >= 1:
+            elif len(self.pattern3.findall(other_other_last_lines)) >= 1:
                 logging.info("[FixBRCMF] Firmware has halted or crashed. Restarting wlan0mon.")
                 if hasattr(agent, 'view'):
                     display = agent.view()
@@ -167,14 +168,14 @@ class Fix_BRCMF(plugins.Plugin):
                     display.update(force=True)
                 try:
                     # Run the monstart command to restart wlan0mon
-                    cmd_output = restart("AUTO")
+                    cmd_output = subprocess.check_output("monstart", shell=True)
                     self._status = "up"
                     logging.info("[FixBRCMF monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[FixBRCMF monstart]: %s" % repr(err))
 
              # Look for pattern 4
-            elif len(self.pattern4.findall(other_last_lines)) >= 1:
+            elif len(self.pattern4.findall(other_other_last_lines)) >= 1:
                 logging.info("[FixBRCMF] Having a brain meltdown. Deleting myself.")
                 if hasattr(agent, 'view'):
                     display = agent.view()
@@ -190,20 +191,6 @@ class Fix_BRCMF(plugins.Plugin):
                 except Exception as err:
                     logging.error("[FixBRCMF brain]: %s" % repr(err))
 
-            # Look for pattern 5
-            elif len(self.pattern5.findall(other_last_lines)) >= 1:
-                logging.info("[FixBRCMF] Bettercap connection failure. Restarting Bettercap.")
-                if hasattr(agent, 'view'):
-                    display = agent.view()
-                    display.set('status', 'Bettercap connection failure. Restarting Bettercap.')
-                try:
-                    # Delete brain /root/brain.nn and restarting pwnagotchi service
-                    cmd_output = subprocess.check_output("systemctl restart bettercap",
-                                                        shell=True)
-                    self._status = "up"
-                    logging.info("[FixBRCMF bettercap]: %s" % repr(cmd_output))
-                except Exception as err:
-                    logging.error("[FixBRCMF bettercap]: %s" % repr(err))
             else:
                 print("logs look good")
 

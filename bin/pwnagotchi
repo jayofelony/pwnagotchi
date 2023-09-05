@@ -12,7 +12,7 @@ from pwnagotchi.plugins import cmd as plugins_cmd
 from pwnagotchi import log
 from pwnagotchi import restart
 from pwnagotchi import fs
-from pwnagotchi.utils import DottedTomlEncoder
+from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
 
 
 def do_clear(display):
@@ -118,6 +118,11 @@ if __name__ == '__main__':
     parser.add_argument('--print-config', dest="print_config", action="store_true", default=False,
                         help="Print the configuration.")
 
+    parser.add_argument('--check-update', dest="check_update", action="store_true", default=False,
+                        help="Check for updates on Pwnagotchi.")
+    parser.add_argument('--donate', dest="donate", action="store_true", default=False,
+                        help="How to donate to this project.")
+
     args = parser.parse_args()
 
     if plugins_cmd.used_plugin_cmd(args):
@@ -125,6 +130,26 @@ if __name__ == '__main__':
       log.setup_logging(args, config)
       rc = plugins_cmd.handle_cmd(args, config)
       sys.exit(rc)
+
+    if args.donate:
+        print("Donations can made @ https://www.patreon.com/pwnagotchi_torch \n\nBut only if you really want to!")
+
+    if args.check_update:
+        resp = requests.get("https://api.github.com/repos/jayofelony/pwnagotchi/releases/latest")
+        latest = resp.json()
+        latest_ver = latest['tag_name'].replace('v', '')
+
+        local = version_to_tuple(pwnagotchi.__version__)
+        remote = version_to_tuple(latest_ver)
+        if remote > local:
+            user_input = input("There is a new version available! Update to %s? [y(es)/n(o)]" % latest_ver)
+            # input validation
+            if user_input.lower() in ('y', 'yes'):
+                os.system("rm /root/.auto-update && systemctl restart pwnagotchi")
+            elif user_input.lower() in ('n', 'no'):  # using this elif for readability
+                print("Okay, guess not!")
+        else:
+            print("You are currently on the latest release, %s." % pwnagotchi.__version__)
 
     if args.version:
         print(pwnagotchi.__version__)

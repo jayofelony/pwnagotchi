@@ -46,9 +46,9 @@ main.plugins.grid.exclude = [
     "YourHomeNetworkHere"
 ]
 
-main.plugins.auto-update.enabled = false
-main.plugins.auto-update.install = false
-main.plugins.auto-update.interval = 24
+main.plugins.auto-update.enabled = true
+main.plugins.auto-update.install = true
+main.plugins.auto-update.interval = 1
 
 main.plugins.net-pos.enabled = false
 main.plugins.net-pos.api_key = "test"
@@ -118,32 +118,6 @@ main.plugins.ups_lite.enabled = false
 main.plugins.ups_lite.shutdown = 2
 
 main.plugins.gpio_buttons.enabled = false
-
-main.plugins.led.enabled = false
-main.plugins.led.led = 0
-main.plugins.led.delay = 200
-main.plugins.led.patterns.loaded = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.updating = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.unread_inbox = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.ready = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.ai_ready = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.ai_training_start = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.ai_best_reward = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.ai_worst_reward = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.bored = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.sad = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.excited = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.lonely = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.rebooting = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.wait = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.sleep = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.wifi_update = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.association = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.deauthentication = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.handshake = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.epoch = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.peer_detected = "oo  oo  oo oo  oo  oo  oo"
-main.plugins.led.patterns.peer_lost = "oo  oo  oo oo  oo  oo  oo"
 
 main.plugins.webcfg.enabled = true
 
