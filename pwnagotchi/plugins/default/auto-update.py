@@ -27,7 +27,6 @@ def check(version, repo, native=True):
     resp = requests.get("https://api.github.com/repos/%s/releases/latest" % repo)
     latest = resp.json()
     info['available'] = latest_ver = latest['tag_name'].replace('v', '')
-    is_arm = info['arch'].startswith('arm')
 
     local = version_to_tuple(info['current'])
     remote = version_to_tuple(latest_ver)
