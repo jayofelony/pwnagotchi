@@ -4,6 +4,8 @@ import requests
 import websockets
 
 from requests.auth import HTTPBasicAuth
+import asyncio  # Add asyncio for async functionality
+from time import sleep  # Add sleep function
 
 
 def decode(r, verbose_errors=True):
@@ -49,11 +51,13 @@ class Client(object):
                             logging.debug("Error while parsing event (%s)", ex)
             except websockets.exceptions.ConnectionClosedError:
                 logging.debug("Lost websocket connection. Reconnecting...")
+                await asyncio.sleep(1)  # Sleep for 5 seconds before reconnecting
             except websockets.exceptions.WebSocketException as wex:
                 logging.debug("Websocket exception (%s)", wex)
+                await asyncio.sleep(1)  # Sleep for 5 seconds before reconnecting
             except Exception as e:
                 logging.exception("Other error while opening websocket (%s) with parameter %s", e, s)
-
+                await asyncio.sleep(1)  # Sleep for 5 seconds before reconnecting
 
     def run(self, command, verbose_errors=True):
         for _ in range(0, 2):
