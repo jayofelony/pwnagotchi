@@ -123,13 +123,8 @@ def install(display, update):
         if not os.path.exists(source_path):
             source_path = "%s-%s" % (source_path, update['available'])
 
-        if "pwngrid" in source_path:
-            os.system("cd %s && make && make install" % source_path)
-        elif "bettercap" in source_path:
-            os.system("cd %s && make && make install" % source_path)
-        else:
-            # setup.py is going to install data files for us
-            os.system("cd %s && pip3 install ." % source_path)
+        # setup.py is going to install data files for us
+        os.system("cd %s && pip3 install ." % source_path)
 
     return True
 

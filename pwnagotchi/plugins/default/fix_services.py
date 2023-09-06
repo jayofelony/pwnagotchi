@@ -35,8 +35,7 @@ class Fix_BRCMF(plugins.Plugin):
         self.options = dict()
         self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
-        self.pattern3 = re.compile(r'error 400: could not find interface wlan0mon')
-        self.pattern4 = re.compile(r'AI not loaded!')
+        self.pattern3 = re.compile(r'Firmware has halted or crashed')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
@@ -173,23 +172,6 @@ class Fix_BRCMF(plugins.Plugin):
                     logging.info("[FixBRCMF monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[FixBRCMF monstart]: %s" % repr(err))
-
-             # Look for pattern 4
-            elif len(self.pattern4.findall(other_other_last_lines)) >= 1:
-                logging.info("[FixBRCMF] Having a brain meltdown. Deleting myself.")
-                if hasattr(agent, 'view'):
-                    display = agent.view()
-                    if display: display.update(force=True,
-                                               new_data={"status": "Having a brain meltdown. Deleting myself.",
-                                                         "face": faces.SAD})
-                try:
-                    # Delete brain /root/brain.nn and restarting pwnagotchi service
-                    cmd_output = subprocess.check_output("rm /root/brain.nn && systemctl restart pwnagotchi",
-                                                        shell=True)
-                    self._status = "up"
-                    logging.info("[FixBRCMF brain]: %s" % repr(cmd_output))
-                except Exception as err:
-                    logging.error("[FixBRCMF brain]: %s" % repr(err))
 
             else:
                 print("logs look good")

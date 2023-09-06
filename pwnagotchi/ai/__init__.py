@@ -18,7 +18,7 @@ def load(config, agent, epoch, from_disk=True):
         logging.info("[ai] bootstrapping dependencies ...")
 
         start = time.time()
-        SB_BACKEND = "stable_baselines3";
+        SB_BACKEND = "stable_baselines3"
 
         try:
             from stable_baselines3 import A2C
@@ -78,6 +78,8 @@ def load(config, agent, epoch, from_disk=True):
         return a2c
     except Exception as e:
         logging.exception("error while starting AI (%s)", e)
+        logging.info("Deleting brain and restarting.")
+        os.system("rm /root/brain.nn && systemctl restart pwnagotchi")
 
     logging.warning("[ai] AI not loaded!")
     return False
