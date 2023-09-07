@@ -170,7 +170,6 @@ class Fix_Services(plugins.Plugin):
                 try:
                     # Run the monstart command to restart wlan0mon
                     cmd_output = subprocess.check_output("monstart", shell=True)
-                    self._status = "up"
                     logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
@@ -185,7 +184,6 @@ class Fix_Services(plugins.Plugin):
                 try:
                     # Run the monstart command to restart wlan0mon
                     cmd_output = subprocess.check_output("monstart", shell=True)
-                    self._status = "up"
                     logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
