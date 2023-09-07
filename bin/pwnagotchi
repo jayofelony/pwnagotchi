@@ -114,14 +114,11 @@ if __name__ == '__main__':
     parser.add_argument('--debug', dest="debug", action="store_true", default=False,
                         help="Enable debug logs.")
 
-    parser.add_argument('--version', dest="version", action="store_true", default=False,
-                        help="Print the version.")
-
     parser.add_argument('--print-config', dest="print_config", action="store_true", default=False,
                         help="Print the configuration.")
 
     parser.add_argument('--check-update', dest="check_update", action="store_true", default=False,
-                        help="Check for updates on Pwnagotchi.")
+                        help="Check for updates on Pwnagotchi. And tells current version.")
     parser.add_argument('--donate', dest="donate", action="store_true", default=False,
                         help="How to donate to this project.")
 
@@ -145,7 +142,7 @@ if __name__ == '__main__':
         local = version_to_tuple(pwnagotchi.__version__)
         remote = version_to_tuple(latest_ver)
         if remote > local:
-            user_input = input("There is a new version available! Update to %s? [y(es)/n(o)]" % latest_ver)
+            user_input = input("There is a new version available! Update from v%s to v%s?\n[y(es)/n(o)]" % (pwnagotchi.__version__, latest_ver))
             # input validation
             if user_input.lower() in ('y', 'yes'):
                 os.system("rm /root/.auto-update && systemctl restart pwnagotchi")
@@ -155,11 +152,7 @@ if __name__ == '__main__':
             elif user_input.lower() in ('n', 'no'):  # using this elif for readability
                 print("Okay, guess not!")
         else:
-            print("You are currently on the latest release, %s." % pwnagotchi.__version__)
-        sys.exit(0)
-
-    if args.version:
-        print(pwnagotchi.__version__)
+            print("You are currently on the latest release, v%s." % pwnagotchi.__version__)
         sys.exit(0)
 
     config = utils.load_config(args)
