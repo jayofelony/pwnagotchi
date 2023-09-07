@@ -114,7 +114,6 @@ class Fix_Services(plugins.Plugin):
         other_other_last_lines = ''.join(
             list(TextIOWrapper(subprocess.Popen(['tail', '-n10', '/var/log/pwnagotchi.log'],
                                                 stdout=subprocess.PIPE).stdout))[-10:])
-        print(other_other_last_lines)
         # don't check if we ran a reset recently
         logging.debug("[Fix_Services]**** epoch")
         if time.time() - self.LASTTRY > 180:
@@ -177,7 +176,7 @@ class Fix_Services(plugins.Plugin):
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
             # Look for pattern 3
-            elif len(self.pattern3.findall(other_other_last_lines)) >= 1:
+            elif len(self.pattern4.findall(other_other_last_lines)) >= 3:
                 logging.info("[Fix_Services] wlan0 is down!")
                 if hasattr(agent, 'view'):
                     display = agent.view()
