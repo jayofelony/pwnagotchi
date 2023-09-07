@@ -13,6 +13,7 @@ locks = {}
 THREAD_POOL_SIZE = 10
 executor = ThreadPoolExecutor(max_workers=THREAD_POOL_SIZE)
 
+
 class Plugin:
     @classmethod
     def __init_subclass__(cls, **kwargs):
@@ -29,6 +30,7 @@ class Plugin:
                 cb = getattr(plugin_instance, attr_name, None)
                 if cb is not None and callable(cb):
                     locks["%s::%s" % (plugin_name, attr_name)] = threading.Lock()
+
 
 def toggle_plugin(name, enable=True):
     """
@@ -68,9 +70,11 @@ def toggle_plugin(name, enable=True):
 
     return False
 
+
 def on(event_name, *args, **kwargs):
     for plugin_name in loaded.keys():
         one(plugin_name, event_name, *args, **kwargs)
+
 
 def locked_cb(lock_name, cb, *args, **kwargs):
     global locks
@@ -81,21 +85,24 @@ def locked_cb(lock_name, cb, *args, **kwargs):
     with locks[lock_name]:
         cb(*args, *kwargs)
 
+
 def one(plugin_name, event_name, *args, **kwargs):
     global loaded
-
-    if plugin_name in loaded:
-        plugin = loaded[plugin_name]
-        cb_name = 'on_%s' % event_name
-        callback = getattr(plugin, cb_name, None)
-        if callback is not None and callable(callback):
-            try:
-                lock_name = "%s::%s" % (plugin_name, cb_name)
-                locked_cb_args = (lock_name, callback, *args, *kwargs)
-                executor.submit(locked_cb, *locked_cb_args)
-            except Exception as e:
-                logging.error("error while running %s.%s : %s" % (plugin_name, cb_name, e))
-                logging.error(e, exc_info=True)
+    if not executor._shutdown:
+        if plugin_name in loaded:
+            plugin = loaded[plugin_name]
+            cb_name = 'on_%s' % event_name
+            callback = getattr(plugin, cb_name, None)
+            if callback is not None and callable(callback):
+                try:
+                    lock_name = "%s::%s" % (plugin_name, cb_name)
+                    locked_cb_args = (lock_name, callback, *args, *kwargs)
+                    executor.submit(locked_cb, *locked_cb_args)
+                except Exception as e:
+                    logging.error("error while running %s.%s : %s" % (plugin_name, cb_name, e))
+                    logging.error(e, exc_info=True)
+    else:
+        logging.warning("Executor is shut down. Cannot schedule new futures.")
 
 def load_from_file(filename):
     logging.debug("loading %s" % filename)
@@ -119,6 +126,7 @@ def load_from_path(path, enabled=()):
                 logging.debug(e, exc_info=True)
 
     return loaded
+
 
 def load(config):
     enabled = [name for name, options in config['main']['plugins'].items() if
