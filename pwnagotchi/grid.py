@@ -13,9 +13,10 @@ API_ADDRESS = "http://127.0.0.1:8666/api/v1"
 def is_connected():
     try:
         # check DNS
-        host = 'https://api.opwngrid.xyz/api/v1/uptime'
-        r = requests.get(host, headers=None, timeout=(30.0, 60.0))
-        if r.json().get('isUp'):
+        host = socket.gethostbyname('api.pwnagotchi.ai')
+        if host:
+            # check connectivity itself
+            socket.create_connection((host, 443), timeout=30)
             return True
     except:
         pass
