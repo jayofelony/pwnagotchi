@@ -4,6 +4,10 @@
 
 Patreon: [Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
 
+**Please do not install `display-password` plugin, for some reason it messes up things.**
+
+---
+
 [Pwnagotchi](https://pwnagotchi.ai/) is an [A2C](https://hackernoon.com/intuitive-rl-intro-to-advantage-actor-critic-a2c-4ff545978752)-based "AI" leveraging [bettercap](https://www.bettercap.org/) that learns from its surrounding WiFi environment to maximize the crackable WPA key material it captures (either passively, or by performing authentication and association attacks). This material is collected as PCAP files containing any form of handshake supported by [hashcat](https://hashcat.net/hashcat/), including [PMKIDs](https://www.evilsocket.net/2019/02/13/Pwning-WiFi-networks-with-bettercap-and-the-PMKID-client-less-attack/), 
 full and half WPA handshakes.
 
@@ -23,13 +27,13 @@ https://www.pwnagotchi.ai
 
 ## Links
 
-&nbsp; | Official Links
----------|-------
-Website | [pwnagotchi.ai](https://pwnagotchi.ai/)
-Forum | [community.pwnagotchi.ai](https://community.pwnagotchi.ai/)
-Slack | [pwnagotchi.slack.com](https://invite.pwnagotchi.ai/)
-Subreddit | [r/pwnagotchi](https://www.reddit.com/r/pwnagotchi/)
-Twitter | [@pwnagotchi](https://twitter.com/pwnagotchi)
+| &nbsp;    | Official Links                                              |
+|-----------|-------------------------------------------------------------|
+| Website   | [pwnagotchi.ai](https://pwnagotchi.ai/)                     |
+| Forum     | [community.pwnagotchi.ai](https://community.pwnagotchi.ai/) |
+| Slack     | [pwnagotchi.slack.com](https://invite.pwnagotchi.ai/)       |
+| Subreddit | [r/pwnagotchi](https://www.reddit.com/r/pwnagotchi/)        |
+| Twitter   | [@pwnagotchi](https://twitter.com/pwnagotchi)               |
 
 ## License
 

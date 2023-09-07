@@ -45,7 +45,7 @@ def toggle_plugin(name, enable=True):
     global loaded, database
 
     if pwnagotchi.config:
-        if not name in pwnagotchi.config['main']['plugins']:
+        if name not in pwnagotchi.config['main']['plugins']:
             pwnagotchi.config['main']['plugins'][name] = dict()
         pwnagotchi.config['main']['plugins'][name]['enabled'] = enable
         save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
@@ -104,6 +104,7 @@ def one(plugin_name, event_name, *args, **kwargs):
     else:
         logging.warning("Executor is shut down. Cannot schedule new futures.")
 
+
 def load_from_file(filename):
     logging.debug("loading %s" % filename)
     plugin_name = os.path.basename(filename.replace(".py", ""))
@@ -111,6 +112,7 @@ def load_from_file(filename):
     instance = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(instance)
     return plugin_name, instance
+
 
 def load_from_path(path, enabled=()):
     global loaded, database
