@@ -100,7 +100,7 @@ def edit(args, config):
     Edit the config of the plugin
     """
     plugin = args.name
-    editor = os.environ.get('EDITOR', 'vim') # because vim is the best
+    editor = os.environ.get('EDITOR', 'vim')  # because vim is the best
 
     if plugin not in config['main']['plugins']:
         return 1

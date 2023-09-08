@@ -1,7 +1,7 @@
-import json
 import logging
 import requests
 import websockets
+import backoff
 
 from requests.auth import HTTPBasicAuth
 import asyncio  # Add asyncio for async functionality
@@ -39,6 +39,7 @@ class Client(object):
         r = requests.get("%s/%s" % (self.url, sess), auth=self.auth)
         return decode(r)
 
+    @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError, max_tries=10)
     async def start_websocket(self, consumer):
         s = "%s/events" % self.websocket
         while True:
@@ -59,6 +60,7 @@ class Client(object):
                 logging.exception("Other error while opening websocket (%s) with parameter %s", e, s)
                 await asyncio.sleep(1)  # Sleep for x seconds before reconnecting
 
+    @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError, max_tries=10)
     def run(self, command, verbose_errors=True):
         for _ in range(0, 2):
             try:

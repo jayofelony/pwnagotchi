@@ -85,8 +85,5 @@ class Peer(object):
     def epoch(self):
         return self.adv.get('epoch', 0)
 
-    def full_name(self):
-        return '%s@%s' % (self.name(), self.identity())
-
     def is_closer(self, other):
         return self.rssi > other.rssi

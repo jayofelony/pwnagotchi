@@ -8,7 +8,7 @@ Profile
 {% block script %}
 $(function(){
     $('#qrcode').qrcode({
-        text: 'https://pwnagotchi.ai/pwnfile/#{{ fingerprint }}',
+        text: 'https://opwngrid.xyz/search/{{ fingerprint }}',
         render: 'div',
         mode: 0,
         size: 400,
@@ -25,7 +25,7 @@ $(function(){
 
     <label for="fingerprint">Fingerprint</label>
     <h4 id="fingerprint">
-        <a href="https://pwnagotchi.ai/pwnfile/#{{ fingerprint }}" target="_blank">{{ fingerprint }}</a>
+        <a href="https://opwngrid.xyz/search/{{ fingerprint }}" target="_blank">{{ fingerprint }}</a>
     </h4>
     <div id="qrcode"></div>
 
