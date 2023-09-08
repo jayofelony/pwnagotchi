@@ -28,7 +28,7 @@ class Fix_Services(plugins.Plugin):
         'pip': ['scapy']
     }
     __defaults__ = {
-        'enabled': True,
+        'enabled': False,
     }
 
     def __init__(self):
@@ -114,7 +114,6 @@ class Fix_Services(plugins.Plugin):
         other_other_last_lines = ''.join(
             list(TextIOWrapper(subprocess.Popen(['tail', '-n10', '/var/log/pwnagotchi.log'],
                                                 stdout=subprocess.PIPE).stdout))[-10:])
-        print(other_other_last_lines)
         # don't check if we ran a reset recently
         logging.debug("[Fix_Services]**** epoch")
         if time.time() - self.LASTTRY > 180:
@@ -138,7 +137,6 @@ class Fix_Services(plugins.Plugin):
 
             # Look for pattern 2
             elif len(self.pattern2.findall(other_last_lines)) >= 5:
-                logging.info("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
@@ -185,7 +183,7 @@ class Fix_Services(plugins.Plugin):
                     display.update(force=True)
                 try:
                     # Run the monstart command to restart wlan0mon
-                    cmd_output = subprocess.check_output("monstart", shell=True)
+                    cmd_output = subprocess.check_output("ifconfig wlan0 up && monstart", shell=True)
                     self._status = "up"
                     logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
@@ -196,11 +194,11 @@ class Fix_Services(plugins.Plugin):
 
     def logPrintView(self, level, message, ui=None, displayData=None, force=True):
         try:
-            if level == "error":
+            if level is "error":
                 logging.error(message)
-            elif level == "warning":
+            elif level is "warning":
                 logging.warning(message)
-            elif level == "debug":
+            elif level is "debug":
                 logging.debug(message)
             else:
                 logging.info(message)
