@@ -49,6 +49,7 @@ def load(config, agent, epoch, from_disk=True):
             from stable_baselines.common.vec_env import DummyVecEnv
             logging.debug("[ai] DummyVecEnv imported in %.2fs" % (time.time() - start))
 
+
         start = time.time()
         import pwnagotchi.ai.gym as wrappers
         logging.debug("[ai] gym wrapper imported in %.2fs" % (time.time() - start))
