@@ -6,7 +6,7 @@ import signal
 import sys
 import toml
 import requests
-import os
+import json
 
 import pwnagotchi
 from pwnagotchi import utils
