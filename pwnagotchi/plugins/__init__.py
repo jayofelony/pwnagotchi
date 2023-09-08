@@ -1,15 +1,17 @@
 import os
 import glob
-import _thread
 import threading
 import importlib, importlib.util
 import logging
-
+from concurrent.futures import ThreadPoolExecutor
 
 default_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default")
 loaded = {}
 database = {}
 locks = {}
+
+THREAD_POOL_SIZE = 5
+executor = ThreadPoolExecutor(max_workers=THREAD_POOL_SIZE)
 
 
 class Plugin:
@@ -46,13 +48,13 @@ def toggle_plugin(name, enable=True):
         if name not in pwnagotchi.config['main']['plugins']:
             pwnagotchi.config['main']['plugins'][name] = dict()
         pwnagotchi.config['main']['plugins'][name]['enabled'] = enable
+        save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
 
     if not enable and name in loaded:
         if getattr(loaded[name], 'on_unload', None):
             loaded[name].on_unload(view.ROOT)
         del loaded[name]
-        if pwnagotchi.config:
-            save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
+
         return True
 
     if enable and name in database and name not in loaded:
@@ -64,8 +66,6 @@ def toggle_plugin(name, enable=True):
             one(name, 'config_changed', pwnagotchi.config)
         one(name, 'ui_setup', view.ROOT)
         one(name, 'ready', view.ROOT._agent)
-        if pwnagotchi.config:
-            save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
         return True
 
     return False
@@ -88,19 +88,21 @@ def locked_cb(lock_name, cb, *args, **kwargs):
 
 def one(plugin_name, event_name, *args, **kwargs):
     global loaded
-
-    if plugin_name in loaded:
-        plugin = loaded[plugin_name]
-        cb_name = 'on_%s' % event_name
-        callback = getattr(plugin, cb_name, None)
-        if callback is not None and callable(callback):
-            try:
-                lock_name = "%s::%s" % (plugin_name, cb_name)
-                locked_cb_args = (lock_name, callback, *args, *kwargs)
-                _thread.start_new_thread(locked_cb, locked_cb_args)
-            except Exception as e:
-                logging.error("error while running %s.%s : %s" % (plugin_name, cb_name, e))
-                logging.error(e, exc_info=True)
+    if not executor._shutdown:
+        if plugin_name in loaded:
+            plugin = loaded[plugin_name]
+            cb_name = 'on_%s' % event_name
+            callback = getattr(plugin, cb_name, None)
+            if callback is not None and callable(callback):
+                try:
+                    lock_name = "%s::%s" % (plugin_name, cb_name)
+                    locked_cb_args = (lock_name, callback, *args, *kwargs)
+                    executor.submit(locked_cb, *locked_cb_args)
+                except Exception as e:
+                    logging.error("error while running %s.%s : %s" % (plugin_name, cb_name, e))
+                    logging.error(e, exc_info=True)
+    else:
+        logging.warning("Executor is shut down. Cannot schedule new futures.")
 
 
 def load_from_file(filename):
