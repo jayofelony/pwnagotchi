@@ -161,7 +161,7 @@ class Fix_Services(plugins.Plugin):
                     logging.error("[Fix_Services wifi.recon flip] %s" % repr(err))
 
             # Look for pattern 3
-            elif len(self.pattern3.findall(other_last_lines)) >= 1:
+            elif len(self.pattern3.findall(other_other_last_lines)) >= 1:
                 logging.info("[Fix_Services] Firmware has halted or crashed. Restarting wlan0mon.")
                 if hasattr(agent, 'view'):
                     display = agent.view()
