@@ -11,7 +11,6 @@ _name = None
 config = None
 _cpu_stats = {}
 
-
 def set_name(new_name):
     if new_name is None:
         return
@@ -42,7 +41,7 @@ def set_name(new_name):
             fp.write(patched)
 
         os.system("hostname '%s'" % new_name)
-        reboot()
+        pwnagotchi.reboot()
 
 
 def name():
