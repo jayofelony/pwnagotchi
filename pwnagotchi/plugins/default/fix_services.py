@@ -36,7 +36,6 @@ class Fix_BRCMF(plugins.Plugin):
         self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
         self.pattern3 = re.compile(r'Firmware has halted or crashed')
-        self.pattern4 = re.compile(r'error 400: could not find interface wlan0mon')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
@@ -169,21 +168,6 @@ class Fix_BRCMF(plugins.Plugin):
                 try:
                     # Run the monstart command to restart wlan0mon
                     cmd_output = subprocess.check_output("monstart", shell=True)
-                    self._status = "up"
-                    logging.info("[FixBRCMF monstart]: %s" % repr(cmd_output))
-                except Exception as err:
-                    logging.error("[FixBRCMF monstart]: %s" % repr(err))
-
-            # Look for pattern 3
-            elif len(self.pattern3.findall(other_other_last_lines)) >= 1:
-                logging.info("[FixBRCMF] wlan0 is down!")
-                if hasattr(agent, 'view'):
-                    display = agent.view()
-                    display.set('status', 'Restarting wlan0 now!')
-                    display.update(force=True)
-                try:
-                    # Run the monstart command to restart wlan0mon
-                    cmd_output = subprocess.check_output("ifconfig wlan0 up && monstart", shell=True)
                     self._status = "up"
                     logging.info("[FixBRCMF monstart]: %s" % repr(cmd_output))
                 except Exception as err:
