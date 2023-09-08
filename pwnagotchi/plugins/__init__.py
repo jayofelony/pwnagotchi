@@ -108,6 +108,7 @@ def load_from_file(filename):
     spec.loader.exec_module(instance)
     return plugin_name, instance
 
+
 def load_from_path(path, enabled=()):
     global loaded, database
     logging.debug("loading plugins from %s - enabled: %s" % (path, enabled))
