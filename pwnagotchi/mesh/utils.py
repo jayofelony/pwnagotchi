@@ -1,5 +1,4 @@
-# import _thread
-from concurrent.futures import ThreadPoolExecutor
+import _thread
 import logging
 import time
 
@@ -42,9 +41,7 @@ class AsyncAdvertiser(object):
 
     def start_advertising(self):
         if self._config['personality']['advertise']:
-            # _thread.start_new_thread(self._adv_poller, ())
-            with ThreadPoolExecutor(max_workers=4) as executor:
-                executor.submit(self._adv_poller)
+            _thread.start_new_thread(self._adv_poller, ())
 
             grid.set_advertisement_data(self._advertisement)
             grid.advertise(True)
