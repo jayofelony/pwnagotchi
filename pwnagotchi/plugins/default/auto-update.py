@@ -95,8 +95,6 @@ def verify(name, path, source_path, display, update):
 
 
 def install(display, update):
-    logging.info("[update] Stopping Bettercap and Pwngrid to save resources.")
-    os.system("systemctl stop bettercap pwngrid")
     name = update['repo'].split('/')[1]
 
     path = make_path_for(name)
