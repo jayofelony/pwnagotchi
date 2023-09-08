@@ -10,7 +10,7 @@ loaded = {}
 database = {}
 locks = {}
 
-THREAD_POOL_SIZE = 10
+THREAD_POOL_SIZE = 5
 executor = ThreadPoolExecutor(max_workers=THREAD_POOL_SIZE)
 
 
