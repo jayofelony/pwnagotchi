@@ -1,17 +1,15 @@
 import os
 import glob
+import _thread
 import threading
 import importlib, importlib.util
 import logging
-from concurrent.futures import ThreadPoolExecutor
 
 default_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default")
 loaded = {}
 database = {}
 locks = {}
 
-THREAD_POOL_SIZE = 10
-executor = ThreadPoolExecutor(max_workers=THREAD_POOL_SIZE)
 
 class Plugin:
     @classmethod
@@ -29,6 +27,7 @@ class Plugin:
                 cb = getattr(plugin_instance, attr_name, None)
                 if cb is not None and callable(cb):
                     locks["%s::%s" % (plugin_name, attr_name)] = threading.Lock()
+
 
 def toggle_plugin(name, enable=True):
     """
@@ -68,9 +67,11 @@ def toggle_plugin(name, enable=True):
 
     return False
 
+
 def on(event_name, *args, **kwargs):
     for plugin_name in loaded.keys():
         one(plugin_name, event_name, *args, **kwargs)
+
 
 def locked_cb(lock_name, cb, *args, **kwargs):
     global locks
@@ -80,6 +81,7 @@ def locked_cb(lock_name, cb, *args, **kwargs):
 
     with locks[lock_name]:
         cb(*args, *kwargs)
+
 
 def one(plugin_name, event_name, *args, **kwargs):
     global loaded
@@ -92,10 +94,11 @@ def one(plugin_name, event_name, *args, **kwargs):
             try:
                 lock_name = "%s::%s" % (plugin_name, cb_name)
                 locked_cb_args = (lock_name, callback, *args, *kwargs)
-                executor.submit(locked_cb, *locked_cb_args)
+                _thread.start_new_thread(locked_cb, locked_cb_args)
             except Exception as e:
                 logging.error("error while running %s.%s : %s" % (plugin_name, cb_name, e))
                 logging.error(e, exc_info=True)
+
 
 def load_from_file(filename):
     logging.debug("loading %s" % filename)
@@ -104,6 +107,7 @@ def load_from_file(filename):
     instance = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(instance)
     return plugin_name, instance
+
 
 def load_from_path(path, enabled=()):
     global loaded, database
@@ -119,6 +123,7 @@ def load_from_path(path, enabled=()):
                 logging.debug(e, exc_info=True)
 
     return loaded
+
 
 def load(config):
     enabled = [name for name, options in config['main']['plugins'].items() if
