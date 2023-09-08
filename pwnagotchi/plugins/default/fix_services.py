@@ -3,18 +3,19 @@ import re
 import subprocess
 import time
 import random
+from pwnagotchi import restart
 from io import TextIOWrapper
 from pwnagotchi import plugins
 
 import pwnagotchi.ui.faces as faces
 from pwnagotchi.bettercap import Client
 
-from pwnagotchi.ui.components import Text
+from pwnagotchi.ui.components import Text, LabeledValue
 from pwnagotchi.ui.view import BLACK
 import pwnagotchi.ui.fonts as fonts
 
 
-class FixServices(plugins.Plugin):
+class Fix_Services(plugins.Plugin):
     __author__ = 'xBits'
     __version__ = '0.1.1'
     __license__ = 'GPL3'
@@ -324,7 +325,7 @@ class FixServices(plugins.Plugin):
                                         "[Fix_Services set wifi.interfaceface wlan0mon] failed? %s" % repr(result))
                             except Exception as err:
                                 logging.info(
-                                    "[Fix_Services set wifi.interface wlan0mon] except: %s" % repr(err))
+                                    "[Fix_Services set wifi.interface wlan0mon] except: %s" % (repr(result), repr(err)))
                         except Exception as cerr:  #
                             if not display: print("failed loading wlan0mon attempt #%d: %s" % (tries, repr(cerr)))
                     except Exception as err:  # from modprobe
@@ -412,7 +413,7 @@ class FixServices(plugins.Plugin):
 # run from command line to brute force a reload
 if __name__ == "__main__":
     print("Performing brcmfmac reload and restart wlan0mon in 5 seconds...")
-    fb = FixServices()
+    fb = Fix_Services()
 
     data = {'Message': "kernel: brcmfmac: brcmf_cfg80211_nexmon_set_channel: Set Channel failed: chspec=1234"}
     event = {'data': data}
