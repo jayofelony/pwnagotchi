@@ -286,7 +286,7 @@ class FixServices(plugins.Plugin):
                     # unload the module
                     cmd_output = subprocess.check_output("sudo modprobe -r brcmfmac", shell=True)
                     self.logPrintView("info", "[Fix_Services] unloaded brcmfmac", display,
-                                      {"status": "Turning it off #%d" % tries, "face": faces.SMART})
+                                      {"status": "Turning it off #%s" % tries, "face": faces.SMART})
                     self._status = "ul"
                     time.sleep(1 + tries)
 
@@ -301,12 +301,9 @@ class FixServices(plugins.Plugin):
 
                         # success! now make the mon0
                         try:
-                            cmd_output = subprocess.check_output(
-                                "monstart",
-                                shell=True)
-                            self.logPrintView("info",
-                                              "[Fix_Services interface add wlan0mon] worked #%d: %s" % (
-                                                  tries, cmd_output))
+                            cmd_output = subprocess.check_output("monstart", shell=True)
+                            self.logPrintView("info", "[Fix_Services interface add wlan0mon] worked #%s: %s"
+                                              % (tries, cmd_output))
                             self._status = "up"
                             time.sleep(tries + 5)
                             try:
@@ -326,15 +323,15 @@ class FixServices(plugins.Plugin):
                                 logging.info(
                                     "[Fix_Services set wifi.interface wlan0mon] except: %s" % repr(err))
                         except Exception as cerr:  #
-                            if not display: print("failed loading wlan0mon attempt #%d: %s" % (tries, repr(cerr)))
+                            if not display: print("failed loading wlan0mon attempt #%s: %s" % (tries, repr(cerr)))
                     except Exception as err:  # from modprobe
                         if not display: print("Failed reloading brcmfmac")
                         logging.error("[Fix_Services] Failed reloading brcmfmac %s" % repr(err))
 
                 except Exception as nope:  # from modprobe -r
                     # fails if already unloaded, so probably fine
-                    logging.error("[Fix_Services #%d modprobe -r] %s" % (tries, repr(nope)))
-                    if not display: print("[Fix_Services #%d modprobe -r] %s" % (tries, repr(nope)))
+                    logging.error("[Fix_Services #%s modprobe -r] %s" % (tries, repr(nope)))
+                    if not display: print("[Fix_Services #%s modprobe -r] %s" % (tries, repr(nope)))
                     pass
 
                 tries = tries + 1

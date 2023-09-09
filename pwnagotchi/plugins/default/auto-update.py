@@ -95,6 +95,7 @@ def verify(name, path, source_path, display, update):
 
 
 def install(display, update):
+
     name = update['repo'].split('/')[1]
 
     path = make_path_for(name)
@@ -125,7 +126,6 @@ def install(display, update):
 
         # setup.py is going to install data files for us
         os.system("cd %s && pip3 install ." % source_path)
-
     return True
 
 
@@ -189,9 +189,15 @@ class AutoUpdate(plugins.Plugin):
                 for repo, local_version, is_native, svc_name in to_check:
                     info = check(local_version, repo, is_native)
                     if info['url'] is not None:
+                        # Turn of bettercap wifi recon while updating
+                        from pwnagotchi.bettercap import Client
+                        agent = Client('localhost', port=8081, username="pwnagotchi", password="pwnagotchi")
+                        agent.run("wifi.recon off")
+
                         logging.warning(
                             "update for %s available (local version is '%s'): %s" % (
                                 repo, info['current'], info['url']))
+                        logging.info("[update] turned off wifi recon ...")
                         info['service'] = svc_name
                         to_install.append(info)
 
