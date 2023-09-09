@@ -1,5 +1,4 @@
 import subprocess
-import socket
 import requests
 import json
 import logging
@@ -84,7 +83,8 @@ def update_data(last_session):
         },
         'uname': subprocess.getoutput("uname -a"),
         'brain': brain,
-        'version': pwnagotchi.__version__
+        'version': pwnagotchi.__version__,
+        'build': "Pwnagotchi-Torch by Jayofelony"
     }
 
     logging.debug("updating grid data: %s" % data)

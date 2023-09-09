@@ -23,7 +23,8 @@ def decode(r, verbose_errors=True):
 
 
 class Client(object):
-    def __init__(self, hostname='localhost', scheme='http', port=8081, username='user', password='pass'):
+    def __init__(self, hostname='localhost', scheme='http', port=8081, username='user', password='pass',
+                 max_websockets=5):
         self.hostname = hostname
         self.scheme = scheme
         self.port = port
@@ -32,6 +33,8 @@ class Client(object):
         self.url = "%s://%s:%d/api" % (scheme, hostname, port)
         self.websocket = "ws://%s:%s@%s:%d/api" % (username, password, hostname, port)
         self.auth = HTTPBasicAuth(username, password)
+        self.max_websockets = max_websockets
+        self.websocket_semaphore = asyncio.Semaphore(max_websockets)
 
     # session takes optional argument to pull a sub-dictionary
     #  ex.: "session/wifi", "session/ble"
@@ -41,24 +44,25 @@ class Client(object):
 
     @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError, max_tries=10)
     async def start_websocket(self, consumer):
-        s = "%s/events" % self.websocket
-        while True:
-            try:
-                async with websockets.connect(s, ping_interval=60, ping_timeout=90) as ws:
-                    async for msg in ws:
-                        try:
-                            await consumer(msg)
-                        except Exception as ex:
-                            logging.debug("Error while parsing event (%s)", ex)
-            except websockets.exceptions.ConnectionClosedError:
-                logging.debug("Lost websocket connection. Reconnecting...")
-                await asyncio.sleep(1)  # Sleep for x seconds before reconnecting
-            except websockets.exceptions.WebSocketException as wex:
-                logging.debug("Websocket exception (%s)", wex)
-                await asyncio.sleep(1)  # Sleep for x seconds before reconnecting
-            except Exception as e:
-                logging.exception("Other error while opening websocket (%s) with parameter %s", e, s)
-                await asyncio.sleep(1)  # Sleep for x seconds before reconnecting
+        async with self.websocket_semaphore:
+            s = "%s/events" % self.websocket
+            while True:
+                try:
+                    async with websockets.connect(s, ping_interval=60, ping_timeout=90) as ws:
+                        async for msg in ws:
+                            try:
+                                await consumer(msg)
+                            except Exception as ex:
+                                logging.debug("Error while parsing event (%s)", ex)
+                except websockets.ConnectionClosedError:
+                    logging.debug("Lost websocket connection. Reconnecting...")
+                    await asyncio.sleep(5)  # Sleep for x seconds before reconnecting
+                except websockets.WebSocketException as wex:
+                    logging.debug("Websocket exception (%s)", wex)
+                    await asyncio.sleep(5)  # Sleep for x seconds before reconnecting
+                except Exception as e:
+                    logging.exception("Other error while opening websocket (%s) with parameter %s", e, s)
+                    await asyncio.sleep(5)  # Sleep for x seconds before reconnecting
 
     @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError, max_tries=10)
     def run(self, command, verbose_errors=True):

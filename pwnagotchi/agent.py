@@ -394,7 +394,6 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         # start a thread and pass in the mainloop
         _thread.start_new_thread(self._event_poller, (asyncio.get_event_loop(),))
 
-
     def is_module_running(self, module):
         s = self.session()
         for m in s['modules']:

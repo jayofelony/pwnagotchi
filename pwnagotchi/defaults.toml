@@ -40,8 +40,8 @@ main.plugins.pisugar2.enabled = false
 main.plugins.pisugar2.shutdown = 5
 main.plugins.pisugar2.sync_rtc_on_boot = false
 
-main.plugins.grid.enabled = false
-main.plugins.grid.report = false
+main.plugins.grid.enabled = true
+main.plugins.grid.report = true
 main.plugins.grid.exclude = [
     "YourHomeNetworkHere"
 ]
