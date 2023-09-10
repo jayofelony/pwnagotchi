@@ -39,6 +39,10 @@
       pwngrid:
         # url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
       apt:
+        downgrade:
+          - libpcap0.8-dev_1.9.1-_arm64.deb
+          - libpcap0.8_1.9.1-3_arm64.deb
+          - libpcap-dev_1.9.1-3_arm64.deb
         hold:
           - libpcap-dev
           - libpcap0.8
@@ -53,6 +57,7 @@
           - libraspberrypi-dev
           - libraspberrypi-doc
           - libraspberrypi-bin
+          - golang
         install:
           - bluez
           - raspberrypi-kernel-headers
@@ -158,6 +163,12 @@
       line: 'ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap'
       state: present
 
+  - name: configure dphys-swapfile
+    lineinfile:
+      path: /etc/dphys-swapfile
+      regexp: "^CONF_SWAPSIZE=.*$"
+      line: "CONF_SWAPSIZE=2048"
+
   - name: update apt package cache
     apt:
       update_cache: yes
@@ -175,51 +186,124 @@
       name: "{{ packages.apt.install }}"
       state: present
 
-  - name: clone hannadiamond repository
+# Install nexmon to fix wireless scanning (takes 2.5G of space)
+  - name: clone nexmon repository
     git:
-      repo: https://github.com/hannadiamond/pwnagotchi-plugins.git
-      dest: /usr/local/src/hannadiamond
-    register: hannadiamondgit
+      repo: https://github.com/DrSchottky/nexmon.git
+      dest: /usr/local/src/nexmon
+#      version: bfb3fe90c881498d7ee245b38f16722c1de26fa1
+    register: nexmongit
+
+  - name: make firmware
+    shell: "source ./setup_env.sh && make"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: choose the right kernel version (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "KERNEL_VERSION = .*$"
+      replace: "KERNEL_VERSION = 6.1"
+
+  - name: choose the right kernel release (variable) (bcm43436b0)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      insertafter: "DRIVER_FOLDER_NAME = .*$"
+      line: "KERNEL_RELEASE = 6.1.21-v8+"
+
+  - name: choose the right kernel release (replace string) (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -r"
+      replace: "KERNEL_RELEASE"
+
+  - name: make firmware patch (bcm43436b0)
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make && make install-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: choose the right kernel version (bcm43430a1)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+      backup: no
+      regexp: "KERNEL_VERSION = .*$"
+      replace: "KERNEL_VERSION = 6.1"
+
+  - name: choose the right kernel release (variable) (bcm43430a1)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+      insertafter: "DRIVER_FOLDER_NAME = .*$"
+      line: "KERNEL_RELEASE = 6.1.21-v8+"
+
+  - name: choose the right kernel release (replace string) (bcm43430a1)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -r"
+      replace: "KERNEL_RELEASE"
+
+  - name: make firmware patch (bcm43430a1)
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make && make install-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: choose the right kernel version (bcm43455c0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+      backup: no
+      regexp: "KERNEL_VERSION = .*$"
+      replace: "KERNEL_VERSION = 6.1"
+
+  - name: choose the right kernel release (variable) (bcm43455c0)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+      insertafter: "DRIVER_FOLDER_NAME = .*$"
+      line: "KERNEL_RELEASE = 6.1.21-v8+"
+
+  - name: choose the right kernel release (replace string) (bcm43455c0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -r"
+      replace: "KERNEL_RELEASE"
+
+  - name: make firmware patch (bcm43455c0)
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make && make install-firmware"
+    args:
+      executable: /bin/bash
+      chdir: /usr/local/src/nexmon/
+
+  - name: copy modified driver (everyone but RPiZW)
+    copy:
+      src: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
+      dest: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.orig
+
+  - name: copy modified driver (everyone but RPiZW)
+    copy:
+      src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
+      dest: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
+
+  - name: ensure depmod runs on reboot to load modified driver (brcmfmac)
+    lineinfile:
+      dest: /etc/rc.local
+      line: "/sbin/depmod -a"
+
+  # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
+  - name: Delete nexmon content & directory
+    file:
+      state: absent
+      path: /usr/local/src/nexmon/
 
   - name: Creates custom plugin directory
     file:
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
     when: hannadiamondgit.changed
-
-  - name: Copy ups_hat_c.py
-    copy:
-      src: /usr/local/src/hannadiamond/plugins/ups_hat_c.py
-      dest: /usr/local/share/pwnagotchi/custom-plugins/ups_hat_c.py
-      owner: root
-      group: root
-      mode: '644'
-
-  - name: Delete hannadiamond content & directory
-    file:
-      state: absent
-      path: /usr/local/src/hannadiamond
-    when: hannadiamondgit.changed
-
-  - name: clone pisugar 2 git
-    git:
-      repo: https://github.com/PiSugar/pisugar2py.git
-      dest: /usr/local/lib/python3.9/dist-packages
-
-  - name: clone pisugar2 plugin
-    git:
-      repo: https://github.com/PiSugar/pwnagotchi-pisugar2-plugin.git
-      dest: /usr/local/share/pwnagotchi/custom-plugins/
-
-  - name: clone pisugar3 plugin
-    git:
-      repo: https://github.com/nullm0ose/pwnagotchi-plugin-pisugar3.git
-      dest: /usr/local/share/pwnagotchi/custom-plugins/
-
-  - name: clone pwnagotchi plugins repository
-    git:
-      repo: https://github.com/evilsocket/pwnagotchi-plugins-contrib.git
-      dest: /usr/local/share/pwnagotchi/custom-plugins
 
   - name: collect python pip package list
     command: "pip3 list"
@@ -269,7 +353,7 @@
   # Install go-1.20.6
   - name: Install go-1.21
     unarchive:
-      src: https://go.dev/dl/go1.21.0.linux-arm64.tar.gz
+      src: https://go.dev/dl/go1.21.1.linux-arm64.tar.gz
       dest: /usr/local
       remote_src: yes
     register: golang
@@ -291,9 +375,9 @@
 
   - name: install pwngrid
     shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && sudo make install"
-    arsg:
+    args:
       executables: /bin/bash
-    chdir: /usr/local/src/pwngrid
+      chdir: /usr/local/src/pwngrid
     when: pwngrid.changed
 
   - name: Install bettercap v2.32.1
@@ -426,6 +510,39 @@
         You learn more about me at https://pwnagotchi.ai/
     when: hostname.changed
 
+  - name: Add pwnlog alias
+    lineinfile:
+      dest: /home/pi/.bashrc
+      line: "\nalias pwnlog='tail -f -n300 /var/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'"
+      insertafter: EOF
+
+  - name: Add pwnlog alias
+    lineinfile:
+      dest: /home/pi/.bashrc
+      line: "\nalias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'"
+      insertafter: EOF
+
+  - name: download old libpcap packages
+    get_url:
+      url: "http://ports.ubuntu.com/pool/main/libp/libpcap/{{ item }}"
+      dest: /usr/local/src/
+    with_items: "{{ packages.apt.downgrade }}"
+
+  - name: install old libpcap packages
+    become_user: root
+    apt:
+      deb: /usr/local/src/libpcap*
+      args: allow-downgrades
+    register: libpcap
+
+  - name: add firmware packages to hold
+    become_user: root
+    dpkg_selections:
+      name: "{{ item }}"
+      selection: hold
+    with_items: "{{ packages.apt.hold }}"
+    when: libpcap.changed
+
   - name: clean apt cache
     become_user: root
     apt:
@@ -447,7 +564,7 @@
     become_user: root
     file:
       state: absent
-      path: "{{item}}"
+      path: "{{ item }}"
     with_fileglob:
       - "/etc/ssh/ssh_host*_key*"
 

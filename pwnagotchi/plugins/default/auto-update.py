@@ -27,6 +27,7 @@ def check(version, repo, native=True):
     resp = requests.get("https://api.github.com/repos/%s/releases/latest" % repo)
     latest = resp.json()
     info['available'] = latest_ver = latest['tag_name'].replace('v', '')
+    is_arm = info['arch'].startswith('arm')
 
     local = version_to_tuple(info['current'])
     remote = version_to_tuple(latest_ver)
@@ -34,10 +35,11 @@ def check(version, repo, native=True):
         if not native:
             info['url'] = "https://github.com/%s/archive/%s.zip" % (repo, latest['tag_name'])
         else:
-            # check if this release is compatible with armv8+
+            # check if this release is compatible with arm6
             for asset in latest['assets']:
                 download_url = asset['browser_download_url']
-                if download_url.endswith('.zip'):
+                if download_url.endswith('.zip') and (
+                        info['arch'] in download_url or (is_arm and 'armhf' in download_url)):
                     info['url'] = download_url
                     break
 
@@ -182,7 +184,7 @@ class AutoUpdate(plugins.Plugin):
                 to_install = []
                 to_check = [
                     ('jayofelony/bettercap', parse_version('bettercap -version'), True, 'bettercap'),
-                    ('jayofelony/pwngrid', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
+                    ('rai68/opwngrid/', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
                     ('jayofelony/pwnagotchi', pwnagotchi.__version__, False, 'pwnagotchi')
                 ]
 
