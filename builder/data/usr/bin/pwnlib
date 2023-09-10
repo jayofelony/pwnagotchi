@@ -37,8 +37,8 @@ reload_brcm() {
 # starts mon0
 start_monitor_interface() {
   rfkill unblock all
-  iw dev wlan0 set power_save off
   ifconfig wlan0 up
+  iw dev wlan0 set power_save off
   airmon-ng start wlan0
 }
 
