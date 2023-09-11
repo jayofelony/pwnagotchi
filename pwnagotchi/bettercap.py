@@ -1,7 +1,6 @@
 import logging
 import requests
 import websockets
-import backoff
 
 from requests.auth import HTTPBasicAuth
 import asyncio  # Add asyncio for async functionality
@@ -42,29 +41,23 @@ class Client(object):
         r = requests.get("%s/%s" % (self.url, sess), auth=self.auth)
         return decode(r)
 
-    @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError, max_tries=10)
     async def start_websocket(self, consumer):
-        async with self.websocket_semaphore:
-            s = "%s/events" % self.websocket
-            while True:
-                try:
-                    async with websockets.connect(s, ping_interval=60, ping_timeout=90) as ws:
-                        async for msg in ws:
-                            try:
-                                await consumer(msg)
-                            except Exception as ex:
-                                logging.debug("Error while parsing event (%s)", ex)
-                except websockets.ConnectionClosedError:
-                    logging.debug("Lost websocket connection. Reconnecting...")
-                    await asyncio.sleep(5)  # Sleep for x seconds before reconnecting
-                except websockets.WebSocketException as wex:
-                    logging.debug("Websocket exception (%s)", wex)
-                    await asyncio.sleep(5)  # Sleep for x seconds before reconnecting
-                except Exception as e:
-                    logging.exception("Other error while opening websocket (%s) with parameter %s", e, s)
-                    await asyncio.sleep(5)  # Sleep for x seconds before reconnecting
+        s = "%s/events" % self.websocket
+        while True:
+            try:
+                async with websockets.connect(s, ping_interval=60, ping_timeout=90) as ws:
+                    async for msg in ws:
+                        try:
+                            await consumer(msg)
+                        except Exception as ex:
+                            logging.debug("Error while parsing event (%s)", ex)
+            except websockets.ConnectionClosedError:
+                logging.debug("Lost websocket connection. Reconnecting...")
+            except websockets.WebSocketException as wex:
+                logging.debug("Websocket exception (%s)", wex)
+            except Exception as e:
+                logging.exception("Other error while opening websocket (%s) with parameter %s", e, s)
 
-    @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError, max_tries=10)
     def run(self, command, verbose_errors=True):
         for _ in range(0, 2):
             try:
