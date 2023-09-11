@@ -50,10 +50,10 @@ class Client(object):
                             await consumer(msg)
                         except Exception as ex:
                                 logging.debug("Error while parsing event (%s)", ex)
-                except websockets.exceptions.ConnectionClosedError:
+                except websockets.ConnectionClosedError:
                     logging.error("Lost websocket connection. Reconnecting...")
                     continue
-                except websockets.exceptions.WebSocketException as wex:
+                except websockets.WebSocketException as wex:
                     logging.error("Websocket exception (%s)", wex)
                     continue
                 except OSError as e:
