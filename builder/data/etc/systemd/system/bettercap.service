@@ -5,7 +5,6 @@ Wants=network.target
 
 [Service]
 Type=simple
-PermissionsStartOnly=true
 ExecStart=/usr/bin/bettercap-launcher
 Restart=always
 RestartSec=30
