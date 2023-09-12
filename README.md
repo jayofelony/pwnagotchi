@@ -4,6 +4,7 @@
 
 Patreon: [Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
 
+
 Flash version 2.3.7 then run the commands at version 2.3.8 to go to latest version released. Probably 2.3.8!
 
 ---
