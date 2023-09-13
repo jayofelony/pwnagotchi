@@ -303,7 +303,6 @@
     file:
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
-    when: hannadiamondgit.changed
 
   - name: collect python pip package list
     command: "pip3 list"
