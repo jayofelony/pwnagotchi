@@ -76,6 +76,7 @@ def on(event_name, *args, **kwargs):
     for plugin_name in loaded.keys():
         one(plugin_name, event_name, *args, **kwargs)
 
+
 def locked_cb(lock_name, cb, *args, **kwargs):
     global locks
 

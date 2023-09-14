@@ -2,11 +2,18 @@ import json
 import logging
 import requests
 import websockets
+import asyncio
+import random
 
 from requests.auth import HTTPBasicAuth
 from time import sleep
 
-requests.adapters.DEFAULT_RETRIES = 5 # increase retries number
+requests.adapters.DEFAULT_RETRIES = 5  # increase retries number
+
+ping_timeout = 90
+ping_interval = 60
+
+max_sleep = 2.0
 
 
 def decode(r, verbose_errors=True):
@@ -40,34 +47,62 @@ class Client(object):
 
     async def start_websocket(self, consumer):
         s = "%s/events" % self.websocket
-        async with websockets.connect(s, ping_interval=60, ping_timeout=90) as ws:
-            while True:
-                try:
-                    async for msg in ws:
+
+        # More modern version of the approach below
+        # logging.info("Creating new websocket...")
+        # async for ws in websockets.connect(s):
+        #     try:
+        #         async for msg in ws:
+        #             try:
+        #                 await consumer(msg)
+        #             except Exception as ex:
+        #                     logging.debug("Error while parsing event (%s)", ex)
+        #     except websockets.exceptions.ConnectionClosedError:
+        #         sleep_time = max_sleep*random.random()
+        #         logger.warning('Retrying websocket connection in {} sec'.format(sleep_time))
+        #         await asyncio.sleep(sleep_time)
+        #         continue
+
+        # restarted every time the connection fails
+        while True:
+            logging.info("creating new websocket...")
+            try:
+                async with websockets.connect(s, ping_interval=ping_interval, ping_timeout=ping_timeout) as ws:
+                    # listener loop
+                    while True:
                         try:
-                            await consumer(msg)
-                        except Exception as ex:
-                                logging.debug("Error while parsing event (%s)", ex)
-                except websockets.ConnectionClosedError:
-                    logging.error("Lost websocket connection. Reconnecting...")
-                    continue
-                except websockets.WebSocketException as wex:
-                    logging.error("Websocket exception (%s)", wex)
-                    continue
-                except OSError as e:
-                    logging.error("Websocket OSError exception (%s) with parameter %s", e, s)
-                    continue
-                except Exception as e:
-                    logging.error("Other exception (%s) with parameter %s", e, s)
-                    continue
+                            async for msg in ws:
+                                try:
+                                    await consumer(msg)
+                                except Exception as ex:
+                                    logging.debug("error while parsing event (%s)", ex)
+                        except websockets.exceptions.ConnectionClosedError:
+                            try:
+                                pong = await ws.ping()
+                                await asyncio.wait_for(pong, timeout=ping_timeout)
+                                logging.warning('ping OK, keeping connection alive...')
+                                continue
+                            except:
+                                sleep_time = max_sleep*random.random()
+                                logging.warning('ping error - retrying connection in {} sec'.format(sleep_time))
+                                await asyncio.sleep(sleep_time)
+                                break
+            except ConnectionRefusedError:
+                sleep_time = max_sleep*random.random()
+                logging.warning('nobody seems to listen to the bettercap endpoint...')
+                logging.warning('retrying connection in {} sec'.format(sleep_time))
+                await asyncio.sleep(sleep_time)
+                continue
 
     def run(self, command, verbose_errors=True):
-        for _ in range(0,2):
+        for _ in range(0, 2):
             try:
                 r = requests.post("%s/session" % self.url, auth=self.auth, json={'cmd': command})
             except requests.exceptions.ConnectionError as e:
+                sleep_time = max_sleep*random.random()
                 logging.exception("Request connection error (%s) while running command (%s)", e, command)
-                sleep(1) # Sleep for 1-s before trying a second time
+                logging.warning('Retrying run in {} sec'.format(sleep_time))
+                sleep(sleep_time)
             else:
                 break
 

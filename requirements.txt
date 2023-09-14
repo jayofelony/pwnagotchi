@@ -22,4 +22,3 @@ torch
 torchvision
 stable_baselines3
 RPi.GPIO
-backoff
