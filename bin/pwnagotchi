@@ -120,6 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('--print-config', dest="print_config", action="store_true", default=False,
                         help="Print the configuration.")
 
+    # Jayofelony added these
     parser.add_argument('--check-update', dest="check_update", action="store_true", default=False,
                         help="Check for updates on Pwnagotchi. And tells current version.")
     parser.add_argument('--donate', dest="donate", action="store_true", default=False,
