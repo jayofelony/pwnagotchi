@@ -114,6 +114,9 @@ if __name__ == '__main__':
     parser.add_argument('--debug', dest="debug", action="store_true", default=False,
                         help="Enable debug logs.")
 
+    parser.add_argument('--version', dest="version", action="store_true", default=False,
+                        help="Print the version.")
+
     parser.add_argument('--print-config', dest="print_config", action="store_true", default=False,
                         help="Print the configuration.")
 
@@ -129,6 +132,10 @@ if __name__ == '__main__':
       log.setup_logging(args, config)
       rc = plugins_cmd.handle_cmd(args, config)
       sys.exit(rc)
+
+    if args.version:
+        print(pwnagotchi.__version__)
+        sys.exit(0)
 
     if args.donate:
         print("Donations can made @ https://www.patreon.com/pwnagotchi_torch \n\nBut only if you really want to!")
