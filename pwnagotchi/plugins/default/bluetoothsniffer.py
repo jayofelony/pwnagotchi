@@ -46,26 +46,28 @@ class BluetoothSniffer(plugins.Plugin):
             self.data = json.load(f)
 
     def on_ui_setup(self, ui):
-        ui.add_element('BtS', LabeledValue(color=BLACK,
-                                           label='BT SNFD',
-                                           value=" ",
-                                           position=(int(self.options["bt_x_coord"]),
-                                                     int(self.options["bt_y_coord"])),
-                                           label_font=fonts.Small,
-                                           text_font=fonts.Small))
+        with ui._lock:
+            ui.add_element('BtS', LabeledValue(color=BLACK,
+                                               label='BT SNFD',
+                                               value=" ",
+                                               position=(int(self.options["bt_x_coord"]),
+                                                         int(self.options["bt_y_coord"])),
+                                               label_font=fonts.Small,
+                                               text_font=fonts.Small))
 
     def on_unload(self, ui):
         with ui._lock:
             ui.remove_element('BtS')
 
     def on_ui_update(self, ui):
-        current_time = time.time()
-        # Checking the time elapsed since last scan
-        if current_time - self.last_scan_time >= self.options['timer']:
-            self.last_scan_time = current_time
-            #logging.info("[BtS] Bluetooth sniffed: %s", str(self.bt_sniff_info()))
-            ui.set('BtS', str(self.bt_sniff_info()))
-            self.scan(ui)
+        with ui._lock:
+            current_time = time.time()
+            # Checking the time elapsed since last scan
+            if current_time - self.last_scan_time >= self.options['timer']:
+                self.last_scan_time = current_time
+                #logging.info("[BtS] Bluetooth sniffed: %s", str(self.bt_sniff_info()))
+                ui.set('BtS', str(self.bt_sniff_info()))
+                self.scan(ui)
 
     # Method for scanning the nearby bluetooth devices
     def scan(self, display):

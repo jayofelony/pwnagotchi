@@ -378,32 +378,34 @@ class FixServices(plugins.Plugin):
 
     # called to setup the ui elements
     def on_ui_setup(self, ui):
-        # add custom UI elements
-        if "position" in self.options:
-            pos = self.options['position'].split(',')
-            pos = [int(x.strip()) for x in pos]
-        else:
-            pos = (ui.width() / 2 + 35, ui.height() - 11)
+        with ui._lock:
+            # add custom UI elements
+            if "position" in self.options:
+                pos = self.options['position'].split(',')
+                pos = [int(x.strip()) for x in pos]
+            else:
+                pos = (ui.width() / 2 + 35, ui.height() - 11)
 
-        logging.info("Got here")
-        ui.add_element('brcmfmac_status', Text(color=BLACK, value='--', position=pos, font=fonts.Small))
+            logging.info("Got here")
+            ui.add_element('brcmfmac_status', Text(color=BLACK, value='--', position=pos, font=fonts.Small))
 
-        # called when the ui is updated
-
+    # called when the ui is updated
     def on_ui_update(self, ui):
-        # update those elements
-        if self._status:
-            ui.set('brcmfmac_status', "wlan0mon %s" % self._status)
-        else:
-            ui.set('brcmfmac_status', "rst#%s" % self._count)
+        with ui._lock:
+            # update those elements
+            if self._status:
+                ui.set('brcmfmac_status', "wlan0mon %s" % self._status)
+            else:
+                ui.set('brcmfmac_status', "rst#%s" % self._count)
 
     def on_unload(self, ui):
-        try:
-            ui.remove_element('brcmfmac_status')
-            logging.info("[Fix_Services] unloaded")
-        except Exception as err:
-            logging.info("[Fix_Services] unload err %s " % repr(err))
-        pass
+        with ui._lock:
+            try:
+                ui.remove_element('brcmfmac_status')
+                logging.info("[Fix_Services] unloaded")
+            except Exception as err:
+                logging.info("[Fix_Services] unload err %s " % repr(err))
+            pass
 
 
 # run from command line to brute force a reload
