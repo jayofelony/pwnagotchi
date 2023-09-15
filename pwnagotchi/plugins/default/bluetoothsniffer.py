@@ -65,7 +65,7 @@ class BluetoothSniffer(plugins.Plugin):
             # Checking the time elapsed since last scan
             if current_time - self.last_scan_time >= self.options['timer']:
                 self.last_scan_time = current_time
-                #logging.info("[BtS] Bluetooth sniffed: %s", str(self.bt_sniff_info()))
+                # logging.info("[BtS] Bluetooth sniffed: %s", str(self.bt_sniff_info()))
                 ui.set('BtS', str(self.bt_sniff_info()))
                 self.scan(ui)
 
