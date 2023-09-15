@@ -2,16 +2,14 @@ import logging
 import os
 import subprocess
 import json
-import re
 import time
 
-import pwnagotchi
-import pwnagotchi.agent
 import pwnagotchi.plugins as plugins
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
 from datetime import datetime
+
 
 class BluetoothSniffer(plugins.Plugin):
     __author__ = 'diytechtinker'
@@ -31,7 +29,6 @@ class BluetoothSniffer(plugins.Plugin):
         self.data = {}
         self.last_scan_time = 0
 
-
     def on_loaded(self):
         logging.info("[BtS] bluetoothsniffer plugin loaded.")
         logging.info("[BtS] Bluetooth devices file location: %s", self.options['devices_file'])
@@ -48,7 +45,6 @@ class BluetoothSniffer(plugins.Plugin):
         with open(self.options['devices_file'], 'r') as f:
             self.data = json.load(f)
 
-
     def on_ui_setup(self, ui):
         ui.add_element('BtS', LabeledValue(color=BLACK,
                                            label='BT SNFD',
@@ -62,7 +58,6 @@ class BluetoothSniffer(plugins.Plugin):
         with ui._lock:
             ui.remove_element('BtS')
 
-
     def on_ui_update(self, ui):
         current_time = time.time()
         # Checking the time elapsed since last scan
@@ -70,11 +65,10 @@ class BluetoothSniffer(plugins.Plugin):
             self.last_scan_time = current_time
             #logging.info("[BtS] Bluetooth sniffed: %s", str(self.bt_sniff_info()))
             ui.set('BtS', str(self.bt_sniff_info()))
-            self.scan()
-
+            self.scan(ui)
 
     # Method for scanning the nearby bluetooth devices
-    def scan(self):
+    def scan(self, display):
         logging.info("[BtS] Scanning for bluetooths...")
         current_time = time.time()
         changed = False
