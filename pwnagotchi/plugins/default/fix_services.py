@@ -36,6 +36,7 @@ class FixServices(plugins.Plugin):
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
         self.pattern3 = re.compile(r'Firmware has halted or crashed')
         self.pattern4 = re.compile(r'error 400: could not find interface wlan0mon')
+        self.pattern5 = re.compiler(r'cannot schedule new futures after shutdown')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
@@ -173,7 +174,7 @@ class FixServices(plugins.Plugin):
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
-            # Look for pattern 3
+            # Look for pattern 4
             elif len(self.pattern4.findall(other_other_last_lines)) >= 3:
                 logging.info("[Fix_Services] wlan0 is down!")
                 if hasattr(agent, 'view'):
@@ -186,6 +187,20 @@ class FixServices(plugins.Plugin):
                     logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
+
+            # Look for pattern 5
+            elif len(self.pattern4.findall(other_other_last_lines)) >= 3:
+                logging.info("[Fix_Services] Threading issues, restarting")
+                if hasattr(agent, 'view'):
+                    display = agent.view()
+                    display.set('status', 'Restarting pwnagotchi now!')
+                    display.update(force=True)
+                try:
+                    # Run the monstart command to restart wlan0mon
+                    cmd_output = subprocess.check_output("systemctl restart pwnagotchi", shell=True)
+                    logging.info("[Fix_Services systemd]: %s" % repr(cmd_output))
+                except Exception as err:
+                    logging.error("[Fix_Services systemd]: %s" % repr(err))
 
             else:
                 print("logs look good")
