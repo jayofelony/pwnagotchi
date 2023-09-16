@@ -189,7 +189,7 @@ class FixServices(plugins.Plugin):
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
             # Look for pattern 5
-            elif len(self.pattern4.findall(other_other_last_lines)) >= 3:
+            elif len(self.pattern4.findall(other_other_last_lines)) >= 1:
                 logging.info("[Fix_Services] Threading issues, restarting")
                 if hasattr(agent, 'view'):
                     display = agent.view()
