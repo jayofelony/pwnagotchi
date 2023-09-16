@@ -6,7 +6,6 @@ import importlib, importlib.util
 import logging
 
 
-
 default_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default")
 loaded = {}
 database = {}
