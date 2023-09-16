@@ -4,6 +4,8 @@ import subprocess
 import time
 import random
 from io import TextIOWrapper
+
+import pwnagotchi
 from pwnagotchi import plugins
 
 import pwnagotchi.ui.faces as faces
@@ -197,8 +199,8 @@ class FixServices(plugins.Plugin):
                     display.update(force=True)
                 try:
                     # Run the monstart command to restart wlan0mon
-                    cmd_output = subprocess.check_output("systemctl restart pwnagotchi", shell=True)
-                    logging.info("[Fix_Services systemd]: %s" % repr(cmd_output))
+                    pwnagotchi.restart("AUTO")
+                    logging.info("[Fix_Services systemd]: restarting bettercap and pwnagotchi")
                 except Exception as err:
                     logging.error("[Fix_Services systemd]: %s" % repr(err))
 
