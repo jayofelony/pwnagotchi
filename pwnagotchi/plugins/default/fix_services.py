@@ -198,9 +198,9 @@ class FixServices(plugins.Plugin):
                     display.set('status', 'Restarting pwnagotchi now!')
                     display.update(force=True)
                 try:
-                    # Run the monstart command to restart wlan0mon
-                    pwnagotchi.restart("AUTO")
+                    # Restarting bettercap and pwnagotchi
                     logging.info("[Fix_Services systemd]: restarting bettercap and pwnagotchi")
+                    pwnagotchi.restart("AUTO")
                 except Exception as err:
                     logging.error("[Fix_Services systemd]: %s" % repr(err))
 
