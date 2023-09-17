@@ -349,6 +349,7 @@ class FixServices(plugins.Plugin):
                     if not display:
                         print(" wlan0mon didn't make it. trying again")
                 else:
+                    logging.info("[Fix_Services] wlan0mon loading failed, no choice but to reboot ..")
                     pwnagotchi.reboot()
 
             # exited the loop, so hopefully it loaded
