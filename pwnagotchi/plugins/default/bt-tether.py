@@ -583,5 +583,4 @@ class BTTether(plugins.Plugin):
                            label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_ui_update(self, ui):
-        with ui._lock:
-            ui.set('bluetooth', self.status)
+        ui.set('bluetooth', self.status)

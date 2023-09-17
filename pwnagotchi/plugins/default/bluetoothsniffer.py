@@ -60,14 +60,13 @@ class BluetoothSniffer(plugins.Plugin):
             ui.remove_element('BtS')
 
     def on_ui_update(self, ui):
-        with ui._lock:
-            current_time = time.time()
-            # Checking the time elapsed since last scan
-            if current_time - self.last_scan_time >= self.options['timer']:
-                self.last_scan_time = current_time
-                # logging.info("[BtS] Bluetooth sniffed: %s", str(self.bt_sniff_info()))
-                ui.set('BtS', str(self.bt_sniff_info()))
-                self.scan(ui)
+        current_time = time.time()
+        # Checking the time elapsed since last scan
+        if current_time - self.last_scan_time >= self.options['timer']:
+            self.last_scan_time = current_time
+            # logging.info("[BtS] Bluetooth sniffed: %s", str(self.bt_sniff_info()))
+            ui.set('BtS', str(self.bt_sniff_info()))
+            self.scan(ui)
 
     # Method for scanning the nearby bluetooth devices
     def scan(self, display):
