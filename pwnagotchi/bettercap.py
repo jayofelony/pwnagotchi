@@ -7,9 +7,11 @@ import random
 from requests.auth import HTTPBasicAuth
 from time import sleep
 
+import pwnagotchi
+
 requests.adapters.DEFAULT_RETRIES = 5 # increase retries number
 
-ping_timeout  = 180
+ping_timeout = 180
 ping_interval = 15
 max_queue = 10000
 
@@ -66,7 +68,7 @@ class Client(object):
 
         # restarted every time the connection fails
         while True:
-            logging.info("creating new websocket...")
+            logging.info("[bettercap] creating new websocket...")
             try:
                 async with websockets.connect(s, ping_interval=ping_interval, ping_timeout=ping_timeout, max_queue=max_queue) as ws:
                     # listener loop
@@ -97,8 +99,7 @@ class Client(object):
             except OSError:
                 sleep_time = min_sleep + max_sleep*random.random()
                 logging.warning('connection to the bettercap endpoint failed...')
-                logging.warning('retrying connection in {} sec'.format(sleep_time))
-                await asyncio.sleep(sleep_time)
+                pwnagotchi.restart("AUTO")
                 continue
 
     def run(self, command, verbose_errors=True):
