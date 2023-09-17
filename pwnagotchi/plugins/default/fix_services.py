@@ -348,6 +348,8 @@ class FixServices(plugins.Plugin):
                     logging.info("[Fix_Services] wlan0mon didn't make it. trying again")
                     if not display:
                         print(" wlan0mon didn't make it. trying again")
+                else:
+                    pwnagotchi.reboot()
 
             # exited the loop, so hopefully it loaded
             if tries < 3:
