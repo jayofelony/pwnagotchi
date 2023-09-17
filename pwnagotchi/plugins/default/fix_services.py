@@ -196,7 +196,7 @@ class FixServices(plugins.Plugin):
                 logging.info("[Fix_Services] bettercap is down!")
                 if hasattr(agent, 'view'):
                     display = agent.view()
-                    display.set('status', 'Restarting wlan0 now!')
+                    display.set('status', 'Restarting bettercap now!')
                     display.update(force=True)
                 try:
                     # Restart bettercap/pwnagotchi
