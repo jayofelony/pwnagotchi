@@ -38,7 +38,6 @@ class FixServices(plugins.Plugin):
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
         self.pattern3 = re.compile(r'Firmware has halted or crashed')
         self.pattern4 = re.compile(r'error 400: could not find interface wlan0mon')
-        self.pattern5 = re.compile(r'connection to the bettercap endpoint failed')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
@@ -190,20 +189,6 @@ class FixServices(plugins.Plugin):
                     logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
-
-            # Look for pattern 5
-            elif len(self.pattern5.findall(other_other_last_lines)) >= 3:
-                logging.info("[Fix_Services] bettercap is down!")
-                if hasattr(agent, 'view'):
-                    display = agent.view()
-                    display.set('status', 'Restarting bettercap now!')
-                    display.update(force=True)
-                try:
-                    # Restart bettercap/pwnagotchi
-                    logging.info("[Fix_Services restarting]")
-                    pwnagotchi.restart("AUTO")
-                except Exception as err:
-                    logging.error("[Fix_Services restarting]: %s" % repr(err))
 
             else:
                 print("logs look good")
