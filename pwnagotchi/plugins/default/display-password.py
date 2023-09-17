@@ -47,20 +47,17 @@ class DisplayPassword(plugins.Plugin):
                 v_pos = (180, 61)
 
             if self.options['orientation'] == "vertical":
-                ui.add_element('display-password', LabeledValue(color=BLACK, label='', value='',
-                                                       position=v_pos,
-                                                       label_font=fonts.Bold, text_font=fonts.Small))
+                ui.add_element('display_password', LabeledValue(color=BLACK, label='', value='', position=v_pos,
+                                                                label_font=fonts.Bold, text_font=fonts.Small))
             else:
                 # default to horizontal
-                ui.add_element('display-password', LabeledValue(color=BLACK, label='', value='',
-                                                       position=h_pos,
-                                                       label_font=fonts.Bold, text_font=fonts.Small))
+                ui.add_element('display_password', LabeledValue(color=BLACK, label='', value='', position=h_pos,
+                                                                label_font=fonts.Bold, text_font=fonts.Small))
 
     def on_unload(self, ui):
         with ui._lock:
-            ui.remove_element('display-password')
+            ui.remove_element('display_password')
 
     def on_ui_update(self, ui):
         last_line = 'tail -n 1 /root/handshakes/wpa-sec.cracked.potfile | awk -F: \'{print $3 " - " $4}\''
-        ui.set('display-password',
-                    "%s" % (os.popen(last_line).read().rstrip()))
+        ui.set('display_password', "%s" % (os.popen(last_line).read().rstrip()))
