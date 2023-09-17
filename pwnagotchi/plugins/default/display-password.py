@@ -26,7 +26,7 @@ class DisplayPassword(plugins.Plugin):
         Displays recently cracked passwords
         """
     __defaults__ = {
-        'enabled': True,
+        'enabled': False,
     }
 
     def on_loaded(self):
