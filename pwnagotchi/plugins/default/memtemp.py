@@ -103,91 +103,90 @@ class MemTemp(plugins.Plugin):
         return " " * (self.FIELD_WIDTH - len(data)) + data
 
     def on_ui_setup(self, ui):
-        with ui._lock:
-            try:
-                # Configure field list
-                self.fields = self.options['fields'].split(',')
-                self.fields = [x.strip() for x in self.fields if x.strip() in self.ALLOWED_FIELDS.keys()]
-                self.fields = self.fields[:3]  # limit to the first 3 fields
-            except Exception:
-                # Set default value
-                self.fields = self.DEFAULT_FIELDS
+        try:
+            # Configure field list
+            self.fields = self.options['fields'].split(',')
+            self.fields = [x.strip() for x in self.fields if x.strip() in self.ALLOWED_FIELDS.keys()]
+            self.fields = self.fields[:3]  # limit to the first 3 fields
+        except Exception:
+            # Set default value
+            self.fields = self.DEFAULT_FIELDS
 
-            try:
-                # Configure line_spacing
-                line_spacing = int(self.options['linespacing'])
-            except Exception:
-                # Set default value
-                line_spacing = self.LINE_SPACING
+        try:
+            # Configure line_spacing
+            line_spacing = int(self.options['linespacing'])
+        except Exception:
+            # Set default value
+            line_spacing = self.LINE_SPACING
 
-            try:
-                # Configure position
-                pos = self.options['position'].split(',')
-                pos = [int(x.strip()) for x in pos]
-                if self.options['orientation'] == "vertical":
-                    v_pos = (pos[0], pos[1])
-                else:
-                    h_pos = (pos[0], pos[1])
-            except Exception:
-                # Set default position based on screen type
-                if ui.is_waveshare_v2():
-                    h_pos = (178, 84)
-                    v_pos = (197, 74)
-                elif ui.is_waveshare_v1():
-                    h_pos = (170, 80)
-                    v_pos = (165, 61)
-                elif ui.is_waveshare144lcd():
-                    h_pos = (53, 77)
-                    v_pos = (73, 67)
-                elif ui.is_inky():
-                    h_pos = (140, 68)
-                    v_pos = (160, 54)
-                elif ui.is_waveshare27inch():
-                    h_pos = (192, 138)
-                    v_pos = (211, 122)
-                else:
-                    h_pos = (155, 76)
-                    v_pos = (175, 61)
-
+        try:
+            # Configure position
+            pos = self.options['position'].split(',')
+            pos = [int(x.strip()) for x in pos]
             if self.options['orientation'] == "vertical":
-                # Dynamically create the required LabeledValue objects
-                for idx, field in enumerate(self.fields):
-                    v_pos_x = v_pos[0]
-                    v_pos_y = v_pos[1] + ((len(self.fields) - 3) * -1 * line_spacing)
-                    ui.add_element(
-                        f"memtemp_{field}",
-                        LabeledValue(
-                            color=BLACK,
-                            label=f"{self.pad_text(field)}:",
-                            value="-",
-                            position=(v_pos_x, v_pos_y + (idx * line_spacing)),
-                            label_font=fonts.Small,
-                            text_font=fonts.Small,
-                            label_spacing=self.LABEL_SPACING,
-                        )
-                    )
+                v_pos = (pos[0], pos[1])
             else:
-                # default to horizontal
-                h_pos_x = h_pos[0] + ((len(self.fields) - 3) * -1 * 25)
-                h_pos_y = h_pos[1]
+                h_pos = (pos[0], pos[1])
+        except Exception:
+            # Set default position based on screen type
+            if ui.is_waveshare_v2():
+                h_pos = (178, 84)
+                v_pos = (197, 74)
+            elif ui.is_waveshare_v1():
+                h_pos = (170, 80)
+                v_pos = (165, 61)
+            elif ui.is_waveshare144lcd():
+                h_pos = (53, 77)
+                v_pos = (73, 67)
+            elif ui.is_inky():
+                h_pos = (140, 68)
+                v_pos = (160, 54)
+            elif ui.is_waveshare27inch():
+                h_pos = (192, 138)
+                v_pos = (211, 122)
+            else:
+                h_pos = (155, 76)
+                v_pos = (175, 61)
+
+        if self.options['orientation'] == "vertical":
+            # Dynamically create the required LabeledValue objects
+            for idx, field in enumerate(self.fields):
+                v_pos_x = v_pos[0]
+                v_pos_y = v_pos[1] + ((len(self.fields) - 3) * -1 * line_spacing)
                 ui.add_element(
-                    'memtemp_header',
-                    Text(
+                    f"memtemp_{field}",
+                    LabeledValue(
                         color=BLACK,
-                        value=" ".join([self.pad_text(x) for x in self.fields]),
-                        position=(h_pos_x, h_pos_y),
-                        font=fonts.Small,
+                        label=f"{self.pad_text(field)}:",
+                        value="-",
+                        position=(v_pos_x, v_pos_y + (idx * line_spacing)),
+                        label_font=fonts.Small,
+                        text_font=fonts.Small,
+                        label_spacing=self.LABEL_SPACING,
                     )
                 )
-                ui.add_element(
-                    'memtemp_data',
-                    Text(
-                        color=BLACK,
-                        value=" ".join([self.pad_text("-") for x in self.fields]),
-                        position=(h_pos_x, h_pos_y + line_spacing),
-                        font=fonts.Small,
-                    )
+        else:
+            # default to horizontal
+            h_pos_x = h_pos[0] + ((len(self.fields) - 3) * -1 * 25)
+            h_pos_y = h_pos[1]
+            ui.add_element(
+                'memtemp_header',
+                Text(
+                    color=BLACK,
+                    value=" ".join([self.pad_text(x) for x in self.fields]),
+                    position=(h_pos_x, h_pos_y),
+                    font=fonts.Small,
                 )
+            )
+            ui.add_element(
+                'memtemp_data',
+                Text(
+                    color=BLACK,
+                    value=" ".join([self.pad_text("-") for x in self.fields]),
+                    position=(h_pos_x, h_pos_y + line_spacing),
+                    font=fonts.Small,
+                )
+            )
 
     def on_unload(self, ui):
         with ui._lock:
