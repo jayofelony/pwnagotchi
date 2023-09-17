@@ -301,7 +301,7 @@ class FixServices(plugins.Plugin):
                         # reload the brcmfmac kernel module
                         cmd_output = subprocess.check_output("sudo modprobe brcmfmac", shell=True)
 
-                        self.logPrintView("info", "[FixBRCMF] reloaded brcmfmac")
+                        self.logPrintView("info", "[Fix_Services] reloaded brcmfmac")
                         self._status = "rl"
                         time.sleep(10 + 4 * tries)  # give it some time for wlan device to stabilize, or whatever
 
