@@ -74,7 +74,7 @@ class FixServices(plugins.Plugin):
                     logging.warning("[Fix_Services turnOffAndOn] %s" % repr(err))
 
             else:
-                logging.info("[Fix_Services] Logs look good, too:\n%s" % last_lines)
+                logging.info("[Fix_Services] Logs look good!")
                 self._status = ""
 
         except Exception as err:
