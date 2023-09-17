@@ -385,6 +385,7 @@ class FixServices(plugins.Plugin):
 
             except Exception as err:
                 logging.error("[Fix_Services wifi.recon on] %s" % repr(err))
+                pwnagotchi.reboot()
 
     # called to setup the ui elements
     def on_ui_setup(self, ui):
