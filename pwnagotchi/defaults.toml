@@ -1,4 +1,4 @@
-main.name = ""
+main.name = "pwnagotchi"
 main.lang = "en"
 main.confd = "/etc/pwnagotchi/conf.d/"
 main.custom_plugin_repos = [
