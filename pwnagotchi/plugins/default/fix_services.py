@@ -67,7 +67,7 @@ class FixServices(plugins.Plugin):
                     display = agent.view()
                     display.set('status', 'Blind-Bug detected. Restarting.')
                     display.update(force=True)
-                logging.info('[Fix_Services] Blind-Bug detected. Restarting.\n%s' % repr(last_lines))
+                logging.info('[Fix_Services] Blind-Bug detected. Restarting.')
                 try:
                     self._tryTurningItOffAndOnAgain(agent)
                 except Exception as err:
