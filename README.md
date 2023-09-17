@@ -4,8 +4,22 @@
 
 Patreon: [Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
 
+If you are using a Pi Zero 2W run the following commands through SSH.
 
-Flash version 2.3.7 then run the commands at version 2.3.8 to go to latest version released. Probably 2.3.8!
+```BATCH
+sudo systemctl enable dphys-swapfile.service
+sudo nano /etc/dphys-swapfile       # edit 100 -> 2048
+sudo reboot now
+```
+
+
+Flash version 2.3.7 then run the commands at version 2.3.8 to go to latest version released. Now 2.4!
+```BATCH
+cd /usr/local/src/pwnagotchi
+sudo git pull
+sudo pip3 install .
+sudo reboot
+```
 
 ---
 
