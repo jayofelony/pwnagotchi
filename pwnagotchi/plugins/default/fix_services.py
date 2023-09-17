@@ -105,8 +105,10 @@ class FixServices(plugins.Plugin):
                         print("Wifi recon flipped")
                 else:
                     logging.warning("[Fix_Services] wifi.recon flip: FAILED: %s" % repr(result))
+                    self._tryTurningItOffAndOnAgain(agent)
             except Exception as err:
                 logging.error("[Fix_Services]SYSLOG wifi.recon flip fail: %s" % err)
+                self._tryTurningItOffAndOnAgain(agent)
 
     def on_epoch(self, agent, epoch, epoch_data):
         last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
