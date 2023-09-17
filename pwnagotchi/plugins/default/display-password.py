@@ -21,6 +21,13 @@ class DisplayPassword(plugins.Plugin):
     __version__ = '1.0.0'
     __license__ = 'GPL3'
     __description__ = 'A plugin to display recently cracked passwords'
+    __name__ = 'display-password'
+    __help__ = """
+        Displays recently cracked passwords
+        """
+    __defaults__ = {
+        'enabled': True,
+    }
 
     def on_loaded(self):
         logging.info("display-password loaded")
@@ -47,17 +54,17 @@ class DisplayPassword(plugins.Plugin):
                 v_pos = (180, 61)
 
             if self.options['orientation'] == "vertical":
-                ui.add_element('display_password', LabeledValue(color=BLACK, label='', value='', position=v_pos,
+                ui.add_element('display-password', LabeledValue(color=BLACK, label='', value='', position=v_pos,
                                                                 label_font=fonts.Bold, text_font=fonts.Small))
             else:
                 # default to horizontal
-                ui.add_element('display_password', LabeledValue(color=BLACK, label='', value='', position=h_pos,
+                ui.add_element('display-password', LabeledValue(color=BLACK, label='', value='', position=h_pos,
                                                                 label_font=fonts.Bold, text_font=fonts.Small))
 
     def on_unload(self, ui):
         with ui._lock:
-            ui.remove_element('display_password')
+            ui.remove_element('display-password')
 
     def on_ui_update(self, ui):
         last_line = 'tail -n 1 /root/handshakes/wpa-sec.cracked.potfile | awk -F: \'{print $3 " - " $4}\''
-        ui.set('display_password', "%s" % (os.popen(last_line).read().rstrip()))
+        ui.set('display-password', "%s" % (os.popen(last_line).read().rstrip()))
