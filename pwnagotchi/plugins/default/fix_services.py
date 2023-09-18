@@ -38,7 +38,6 @@ class FixServices(plugins.Plugin):
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
         self.pattern3 = re.compile(r'Firmware has halted or crashed')
         self.pattern4 = re.compile(r'error 400: could not find interface wlan0mon')
-        self.pattern5 = re.compile(r'waiting for bettercap API to be available')
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
