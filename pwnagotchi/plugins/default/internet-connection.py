@@ -31,8 +31,8 @@ class InternetConnectionPlugin(plugins.Plugin):
         with ui._lock:
             # add a LabeledValue element to the UI with the given label and value
             # the position and font can also be specified
-            ui.add_element('connection_status', components.LabeledValue(color=view.BLACK, label='', value='',
-                                                                        position=(0, 30), label_font=fonts.Small,
+            ui.add_element('connection_status', components.LabeledValue(color=view.BLACK, label='WWW', value='-',
+                                                                        position=(0, 30), label_font=fonts.Bold,
                                                                         text_font=fonts.Small))
 
     def on_ui_update(self, ui):
@@ -44,10 +44,10 @@ class InternetConnectionPlugin(plugins.Plugin):
             # Connect to the host - tells us if the host is actually reachable
             s = socket.create_connection((host, 80), 2)
             s.close()
-            ui.set('connection_status', 'connected')
+            ui.set('connection_status', 'C')
         except:
             # if the command failed, it means there is no active Internet connection
-            ui.set('connection_status', 'disconnected')
+            ui.set('connection_status', 'D')
 
     def on_unload(self, ui):
         with ui._lock:
