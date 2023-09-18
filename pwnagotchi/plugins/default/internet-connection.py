@@ -8,8 +8,8 @@ import subprocess
 
 
 class InternetConnectionPlugin(plugins.Plugin):
-    __author__ = 'adi1708 made by chatGPT'
-    __version__ = '1.0.0'
+    __author__ = 'adi1708, edited by jayofelony'
+    __version__ = '1.0.1'
     __license__ = 'GPL3'
     __description__ = 'A plugin that displays the Internet connection status on the pwnagotchi display.'
     __name__ = 'InternetConnectionPlugin'
