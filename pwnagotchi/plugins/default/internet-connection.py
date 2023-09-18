@@ -35,13 +35,12 @@ class InternetConnectionPlugin(plugins.Plugin):
                                                                         text_font=fonts.Small))
 
     def on_ui_update(self, ui):
-        with ui._lock:
-            # check if there is an active Internet connection
-            try:
-                # use the 'ping' command to check if we can reach a well-known website
-                output = subprocess.check_output(['ping', '-c', '1', 'google.com'])
-                # if the command was successful, it means there is an active Internet connection
-                ui.set('connection_status', ' connected')
-            except subprocess.CalledProcessError:
-                # if the command failed, it means there is no active Internet connection
-                ui.set('connection_status', ' disconnected')
+        # check if there is an active Internet connection
+        try:
+            # use the 'ping' command to check if we can reach a well-known website
+            output = subprocess.check_output(['ping', '-c', '1', 'google.com'])
+            # if the command was successful, it means there is an active Internet connection
+            ui.set('connection_status', ' connected')
+        except subprocess.CalledProcessError:
+            # if the command failed, it means there is no active Internet connection
+            ui.set('connection_status', ' disconnected')
