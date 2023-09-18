@@ -31,7 +31,7 @@ class InternetConnectionPlugin(plugins.Plugin):
             # add a LabeledValue element to the UI with the given label and value
             # the position and font can also be specified
             ui.add_element('connection_status', components.LabeledValue(color=view.BLACK, label='Internet:', value='',
-                                                                        position=(0, 50), label_font=fonts.Small,
+                                                                        position=(0, 30), label_font=fonts.Small,
                                                                         text_font=fonts.Small))
 
     def on_ui_update(self, ui):
