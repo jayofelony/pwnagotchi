@@ -15,7 +15,7 @@ class Waveshare35lcd(DisplayImpl):
         fonts.setup(12, 10, 12, 70, 25, 9)
         self._layout['width'] = 480
         self._layout['height'] = 320
-        self._layout['face'] = (110, 60)
+        self._layout['face'] = (110, 100)
         self._layout['name'] = (10, 30)
         self._layout['channel'] = (0, 0)
         self._layout['aps'] = (80, 0)
@@ -27,7 +27,7 @@ class Waveshare35lcd(DisplayImpl):
         self._layout['shakes'] = (10, 300)
         self._layout['mode'] = (440, 300)
         self._layout['status'] = {
-            'pos': (80, 180),
+            'pos': (80, 200),
             'font': fonts.status_font(fonts.Medium),
             'max': 100
         }
