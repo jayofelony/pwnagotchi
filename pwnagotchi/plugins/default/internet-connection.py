@@ -24,7 +24,7 @@ class InternetConnectionPlugin(plugins.Plugin):
     }
 
     def on_loaded(self):
-        logging.info("Internet Connection Plugin loaded.")
+        logging.info("[Internet-Connection] plugin loaded.")
 
     def on_ui_setup(self, ui):
         with ui._lock:
@@ -47,4 +47,5 @@ class InternetConnectionPlugin(plugins.Plugin):
 
     def on_unload(self, ui):
         with ui._lock:
+            logging.info("[Internet-Connection] plugin unloaded")
             ui.remove_element('connection_status')
