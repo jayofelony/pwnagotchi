@@ -40,7 +40,7 @@ class InternetConnectionPlugin(plugins.Plugin):
             # use the 'ping' command to check if we can reach a well-known website
             output = subprocess.check_output(['ping', '-c', '1', 'google.com'])
             # if the command was successful, it means there is an active Internet connection
-            ui.set('connection_status', ' connected')
+            ui.set('connection_status', 'connected')
         except subprocess.CalledProcessError:
             # if the command failed, it means there is no active Internet connection
-            ui.set('connection_status', ' disconnected')
+            ui.set('connection_status', 'disconnected')
