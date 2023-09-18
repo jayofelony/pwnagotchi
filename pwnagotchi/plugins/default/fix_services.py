@@ -193,19 +193,6 @@ class FixServices(plugins.Plugin):
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
-            # Look for pattern 5
-            elif len(self.pattern5.findall(other_other_last_lines)) >= 8:
-                logging.info("[Fix_Services] bettercap is down, restarting!")
-                if hasattr(agent, 'view'):
-                    display = agent.view()
-                    display.set('status', 'Rebooting now!')
-                    display.update(force=True)
-                try:
-                    logging.info("[Fix_Services rebooting now]")
-                    pwnagotchi.reboot()
-                except Exception as err:
-                    logging.error("[Fix_Services monstart]: %s" % repr(err))
-
             else:
                 print("logs look good")
 
