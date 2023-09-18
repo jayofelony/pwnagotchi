@@ -44,3 +44,7 @@ class InternetConnectionPlugin(plugins.Plugin):
         except subprocess.CalledProcessError:
             # if the command failed, it means there is no active Internet connection
             ui.set('connection_status', 'disconnected')
+
+    def on_unload(self, ui):
+        with ui._lock:
+            ui.remove_element('connection_status')
