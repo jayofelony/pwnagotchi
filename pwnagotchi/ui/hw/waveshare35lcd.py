@@ -41,7 +41,7 @@ class Waveshare35lcd(DisplayImpl):
         from pwnagotchi.ui.hw.libs.fb import fb
         self._display = fb
         logging.info("initializing waveshare 3,5inch lcd display")
-        self._display.ready_fb(i=1)
+        self._display.ready_fb(i=0)
         self._display.black_scr()
 
     def render(self, canvas):
