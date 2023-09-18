@@ -33,7 +33,7 @@ class InternetConnectionPlugin(plugins.Plugin):
             # the position and font can also be specified
             ui.add_element('connection_status', components.LabeledValue(color=view.BLACK, label='WWW', value='-',
                                                                         position=(0, 30), label_font=fonts.Bold,
-                                                                        text_font=fonts.Small))
+                                                                        text_font=fonts.Medium))
 
     def on_ui_update(self, ui):
         # check if there is an active Internet connection
