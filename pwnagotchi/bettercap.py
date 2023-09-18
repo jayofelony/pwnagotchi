@@ -99,7 +99,7 @@ class Client(object):
             except OSError:
                 sleep_time = min_sleep + max_sleep*random.random()
                 logging.warning('connection to the bettercap endpoint failed...')
-                pwnagotchi.restart("AUTO")
+                pwnagotchi.reboot()
                 continue
 
     def run(self, command, verbose_errors=True):
