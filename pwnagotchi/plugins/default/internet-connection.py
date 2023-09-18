@@ -5,6 +5,7 @@ import pwnagotchi.ui.fonts as fonts
 import pwnagotchi.plugins as plugins
 import pwnagotchi
 import subprocess
+import socket
 
 
 class InternetConnectionPlugin(plugins.Plugin):
@@ -37,11 +38,14 @@ class InternetConnectionPlugin(plugins.Plugin):
     def on_ui_update(self, ui):
         # check if there is an active Internet connection
         try:
-            # use the 'ping' command to check if we can reach a well-known website
-            output = subprocess.check_output(['ping', '-c', '1', 'google.com'])
-            # if the command was successful, it means there is an active Internet connection
+            # See if we can resolve the host name - tells us if there is
+            # A DNS listening
+            host = socket.gethostbyname("1.1.1.1")
+            # Connect to the host - tells us if the host is actually reachable
+            s = socket.create_connection((host, 80), 2)
+            s.close()
             ui.set('connection_status', 'connected')
-        except subprocess.CalledProcessError:
+        except:
             # if the command failed, it means there is no active Internet connection
             ui.set('connection_status', 'disconnected')
 
