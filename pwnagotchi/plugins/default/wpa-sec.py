@@ -43,7 +43,6 @@ class WpaSec(plugins.Plugin):
             except requests.exceptions.RequestException as req_e:
                 raise req_e
 
-
     def _download_from_wpasec(self, output, timeout=30):
         """
         Downloads the results from wpasec and safes them to output
@@ -64,7 +63,6 @@ class WpaSec(plugins.Plugin):
             raise req_e
         except OSError as os_e:
             raise os_e
-
 
     def on_loaded(self):
         """
