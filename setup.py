@@ -21,7 +21,7 @@ def install_file(source_filename, dest_filename):
         if not os.path.isdir(dest_folder):
             os.makedirs(dest_folder)
 
-        shutil.copyfile(source_filename, dest_filename)
+        shutil.copy2(source_filename, dest_filename)
     except Exception as e:
         print("error installing %s: %s" % (source_filename, e))
 
