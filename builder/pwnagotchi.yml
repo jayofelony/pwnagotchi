@@ -489,10 +489,10 @@
       regexp: '(.*)$'
       line: '\1 modules-load=dwc2,g_ether'
 
-  - name: configure motd
+  - name: configure motd.sh
     become_user: root
     copy:
-      dest: /etc/motd
+      dest: /etc/motd.sh
       content: |
         (◕‿‿◕) {{pwnagotchi.hostname}}
 
