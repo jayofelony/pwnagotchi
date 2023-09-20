@@ -44,10 +44,10 @@ class InternetConnectionPlugin(plugins.Plugin):
             # Connect to the host - tells us if the host is actually reachable
             s = socket.create_connection((host, 80), 2)
             s.close()
-            ui.set('connection_status', '✓')
+            ui.set('connection_status', 'C')
         except:
             # if the command failed, it means there is no active Internet connection
-            ui.set('connection_status', '✗')
+            ui.set('connection_status', 'D')
 
     def on_unload(self, ui):
         with ui._lock:
