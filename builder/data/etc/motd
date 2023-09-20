@@ -16,7 +16,7 @@
         - pwnlog
         - pwnver, to check the current version
         - sudo pwnagotchi --donate, to see how you can donate to this project
-        - sudo pwnagotchi --check-updat, to see if there is a new version available
+        - sudo pwnagotchi --check-update, to see if there is a new version available
 
         If you want to know if I'm running, you can use
         systemctl status pwnagotchi
