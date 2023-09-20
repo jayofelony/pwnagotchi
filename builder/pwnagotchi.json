@@ -98,6 +98,12 @@
     {
       "type": "shell",
       "inline": [
+        "chmod +x /etc/update-motd.d/*"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
         "apt-get -y --allow-releaseinfo-change update",
         "apt-get -y dist-upgrade",
         "apt-get install -y ansible"
