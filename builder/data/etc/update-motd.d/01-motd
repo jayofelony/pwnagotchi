@@ -18,7 +18,7 @@ echo "    I'm managed by systemd. Here are some basic commands."
 echo
 echo "    If you want to know what I'm doing, you can check my logs with the command"
 echo "    - pwnlog"
-echo "    - pwnver, to check the current version"
+echo "    - sudo pwnagotchi --version, to check the current version"
 echo "    - sudo pwnagotchi --donate, to see how you can donate to this project"
 echo "    - sudo pwnagotchi --check-update, to see if there is a new version available"
 echo
