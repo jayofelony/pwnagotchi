@@ -1,5 +1,4 @@
 #!/bin/sh
-#!/bin/sh
 _hostname=$(hostname)
 _version=$(cut -d"'" -f2 < /usr/local/lib/python3.9/dist-packages/pwnagotchi/_version.py)
 echo
