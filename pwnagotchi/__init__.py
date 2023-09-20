@@ -140,7 +140,7 @@ def restart(mode):
     os.system("service pwnagotchi restart")
 
 
-def reboot(mode="Auto"):
+def reboot(mode=None):
     if mode is not None:
         mode = mode.upper()
         logging.warning("rebooting in %s mode ...", mode)
