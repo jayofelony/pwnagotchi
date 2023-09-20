@@ -99,8 +99,7 @@ class FixServices(plugins.Plugin):
                     if hasattr(agent, 'view'):
                         display = agent.view()
                         if display:
-                            display.update(force=True, new_data={"status": "Wifi recon flipped!",
-                                                                         "face": faces.COOL})
+                            display.update(force=True, new_data={"status": "Wifi recon flipped!", "face": faces.COOL})
                     else:
                         print("Wifi recon flipped")
                 else:
@@ -229,8 +228,7 @@ class FixServices(plugins.Plugin):
                 display = connection.view()
                 if display:
                     display.update(force=True, new_data={"status": "I'm blind! Try turning it off and on again",
-                                                                 "brcmfmac_status": self._status,
-                                                                 "face": faces.BORED})
+                                                         "brcmfmac_status": self._status, "face": faces.BORED})
             else:
                 display = None
 
