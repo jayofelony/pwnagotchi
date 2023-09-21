@@ -70,7 +70,8 @@ class Client(object):
         while True:
             logging.info("[bettercap] creating new websocket...")
             try:
-                async with websockets.connect(s, ping_interval=ping_interval, ping_timeout=ping_timeout, max_queue=max_queue) as ws:
+                async with websockets.connect(s, ping_interval=ping_interval, ping_timeout=ping_timeout,
+                                              max_queue=max_queue) as ws:
                     # listener loop
                     while True:
                         try:
@@ -78,7 +79,7 @@ class Client(object):
                                 try:
                                     await consumer(msg)
                                 except Exception as ex:
-                                        logging.debug("error while parsing event (%s)", ex)
+                                    logging.debug("error while parsing event (%s)", ex)
                         except websockets.ConnectionClosedError:
                             try:
                                 pong = await ws.ping()

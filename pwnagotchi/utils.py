@@ -58,8 +58,7 @@ class DottedTomlEncoder(TomlEncoder):
                     if not retstr.endswith('\n\n'):
                         retstr += '\n'
                 else:
-                    retstr += (pre + qsection + " = " +
-                                str(self.dump_value(value)) + '\n')
+                    retstr += (pre + qsection + " = " + str(self.dump_value(value)) + '\n')
         return retstr, self._dict()
 
 
