@@ -28,7 +28,7 @@ class InternetConnectionPlugin(plugins.Plugin):
 
     def on_ui_setup(self, ui):
         if ui.is_waveshare35lcd():
-            v_pos = (180, 61)
+            v_pos = (280, 61)
             with ui._lock:
                 ui.add_element('connection_ip', components.LabeledValue(color=view.BLACK, label='eth0:', value='',
                                                                         position=v_pos, label_font=fonts.Bold,
