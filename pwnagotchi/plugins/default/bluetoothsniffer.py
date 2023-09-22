@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 class BluetoothSniffer(plugins.Plugin):
-    __author__ = 'diytechtinker'
+    __author__ = 'diytechtinker, fixed by Jayofelony'
     __version__ = '0.1.3'
     __license__ = 'GPL3'
     __description__ = 'A plugin that sniffs Bluetooth devices and saves their MAC addresses, name and counts to a JSON file'
@@ -70,68 +70,76 @@ class BluetoothSniffer(plugins.Plugin):
 
     # Method for scanning the nearby bluetooth devices
     def scan(self, display):
-        logging.info("[BtS] Scanning for bluetooths...")
+        logging.info("[BtS] Scanning for bluetooth devices...")
         current_time = time.time()
         changed = False
+        device_class = None
 
         # Running the system command hcitool to scan nearby bluetooth devices
         cmd_inq = "hcitool inq --flush"
         try:
             inq_output = subprocess.check_output(cmd_inq.split())
+            for line in inq_output.splitlines()[1:]:
+                fields = line.split()
+                mac_address = fields[0].decode()
+                for i in range(len(fields)):
+                    if fields[i].decode() == "class:" and i + 1 < len(fields):
+                        device_class = fields[i + 1].decode()
+                logging.info("[BtS] Found bluetooth %s", mac_address)
+
+                # Update the count, first_seen, and last_seen time of the device
+                if mac_address in self.data and len(self.data) > 0:
+                    if 'Unknown' == self.data[mac_address]['name']:
+                        name = self.get_device_name(mac_address)
+                        self.data[mac_address]['name'] = name
+                        self.data[mac_address]['new_info'] = 2
+                        logging.info("[BtS] Updated bluetooth name: %s", name)
+                        changed = True
+
+                    if 'Unknown' == self.data[mac_address]['manufacturer']:
+                        manufacturer = self.get_device_manufacturer(mac_address)
+                        self.data[mac_address]['manufacturer'] = manufacturer
+                        self.data[mac_address]['new_info'] = 2
+                        logging.info("[BtS] Updated bluetooth manufacturer: %s", manufacturer)
+                        changed = True
+
+                    if device_class != self.data[mac_address]['class']:
+                        self.data[mac_address]['class'] = device_class
+                        self.data[mac_address]['new_info'] = 2
+                        logging.info("[BtS] Updated bluetooth class: %s", device_class)
+                        changed = True
+
+                    last_seen_time = int(
+                        datetime.strptime(self.data[mac_address]['last_seen'], '%H:%M:%S %d-%m-%Y').timestamp())
+                    if current_time - last_seen_time >= self.options['count_interval']:
+                        self.data[mac_address]['count'] += 1
+                        self.data[mac_address]['last_seen'] = time.strftime('%H:%M:%S %d-%m-%Y',
+                                                                            time.localtime(current_time))
+                        self.data[mac_address]['new_info'] = 2
+                        logging.info("[BtS] Updated bluetooth count.")
+                        changed = True
+                else:
+                    name = self.get_device_name(mac_address)
+                    manufacturer = self.get_device_manufacturer(mac_address)
+                    self.data[mac_address] = {'name': name, 'count': 1, 'class': device_class,
+                                              'manufacturer': manufacturer,
+                                              'first_seen': time.strftime('%H:%M:%S %d-%m-%Y',
+                                                                          time.localtime(current_time)),
+                                              'last_seen': time.strftime('%H:%M:%S %d-%m-%Y',
+                                                                         time.localtime(current_time)),
+                                              'new_info': True}
+                    logging.info("[BtS] Added new bluetooth device %s with MAC: %s", name, mac_address)
+                    changed = True
+
         except subprocess.CalledProcessError as e:
             logging.error("[BtS] Error running command: %s", e)
-
-        for line in inq_output.splitlines()[1:]:
-            fields = line.split()
-            mac_address = fields[0].decode()
-            for i in range(len(fields)):
-                if fields[i].decode() == "class:" and i+1 < len(fields):
-                    device_class = fields[i+1].decode()
-            logging.info("[BtS] Found bluetooth %s", mac_address)
-
-            # Update the count, first_seen, and last_seen time of the device
-            if mac_address in self.data and len(self.data) > 0:
-                if 'Unknown' == self.data[mac_address]['name']:
-                    name = self.get_device_name(mac_address)
-                    self.data[mac_address]['name'] = name
-                    self.data[mac_address]['new_info'] = 2
-                    logging.info("[BtS] Updated bluetooth name: %s", name)
-                    changed = True
-
-                if 'Unknown' == self.data[mac_address]['manufacturer']:
-                    manufacturer = self.get_device_manufacturer(mac_address)
-                    self.data[mac_address]['manufacturer'] = manufacturer
-                    self.data[mac_address]['new_info'] = 2
-                    logging.info("[BtS] Updated bluetooth manufacturer: %s", manufacturer)
-                    changed = True
-
-                if device_class != self.data[mac_address]['class']:
-                    self.data[mac_address]['class'] = device_class
-                    self.data[mac_address]['new_info'] = 2
-                    logging.info("[BtS] Updated bluetooth class: %s", device_class)
-                    changed = True
-
-                last_seen_time = int(datetime.strptime(self.data[mac_address]['last_seen'], '%H:%M:%S %d-%m-%Y').timestamp())
-                if current_time - last_seen_time >= self.options['count_interval']:
-                    self.data[mac_address]['count'] += 1
-                    self.data[mac_address]['last_seen'] = time.strftime('%H:%M:%S %d-%m-%Y', time.localtime(current_time))
-                    self.data[mac_address]['new_info'] = 2
-                    logging.info("[BtS] Updated bluetooth count.")
-                    changed = True
-            else:
-                name = self.get_device_name(mac_address)
-                manufacturer = self.get_device_manufacturer(mac_address)
-                self.data[mac_address] = {'name': name, 'count': 1, 'class': device_class, 'manufacturer': manufacturer, 'first_seen': time.strftime('%H:%M:%S %d-%m-%Y', time.localtime(current_time)), 'last_seen': time.strftime('%H:%M:%S %d-%m-%Y', time.localtime(current_time)), 'new_info': True}
-                logging.info("[BtS] Added new bluetooth device %s with MAC: %s", name, mac_address)
-                changed = True
 
         # Save the updated devices to the JSON file
         if changed:
             with open(self.options['devices_file'], 'w') as f:
                 logging.info("[BtS] Saving bluetooths %s into json.", name)
                 json.dump(self.data, f)
-            display.set('status', 'Bluetooth sniffed and stored!')
-            display.update(force=True)
+            display.set('status', 'Bluetooth sniffed and stored!').update(force=True)
 
     # Method to get the device name
     def get_device_name(self, mac_address):
