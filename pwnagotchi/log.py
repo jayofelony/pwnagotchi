@@ -17,8 +17,8 @@ LAST_SESSION_FILE = '/root/.pwnagotchi-last-session'
 
 class LastSession(object):
     EPOCH_TOKEN = '[epoch '
-    EPOCH_PARSER = re.compile(r'^.+\[epoch (\d+)\] (.+)')
-    EPOCH_DATA_PARSER = re.compile(r'([a-z_]+)=([^\s]+)')
+    EPOCH_PARSER = re.compile(r'^.+\[epoch (\d+)] (.+)')
+    EPOCH_DATA_PARSER = re.compile(r'([a-z_]+)=(\S+)')
     TRAINING_TOKEN = ' training epoch '
     START_TOKEN = 'connecting to http'
     DEAUTH_TOKEN = 'deauthing '
@@ -46,7 +46,7 @@ class LastSession(object):
         self.max_reward = -1000
         self.avg_reward = 0
         self._peer_parser = re.compile(
-            'detected unit (.+)@(.+) \(v.+\) on channel \d+ \(([\d\-]+) dBm\) \[sid:(.+) pwnd_tot:(\d+) uptime:(\d+)\]')
+            'detected unit (.+)@(.+) \(v.+\) on channel \d+ \(([\d\-]+) dBm\) \[sid:(.+) pwnd_tot:(\d+) uptime:(\d+)]')
         self.parsed = False
 
     def _get_last_saved_session_id(self):
@@ -197,7 +197,7 @@ class LastSession(object):
                 lines.reverse()
 
             if len(lines) == 0:
-                lines.append("Initial Session");
+                lines.append("Initial Session")
 
             ui.on_reading_logs()
 

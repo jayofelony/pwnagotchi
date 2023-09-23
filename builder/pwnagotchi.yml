@@ -204,7 +204,6 @@
     git:
       repo: https://github.com/DrSchottky/nexmon.git
       dest: /usr/local/src/nexmon
-#      version: bfb3fe90c881498d7ee245b38f16722c1de26fa1
     register: nexmongit
 
   - name: make firmware
@@ -234,10 +233,16 @@
       replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43436b0)
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make && make install-firmware"
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
+
+  - name: install new firmware (bcm43436b0)
+    copy:
+      src: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/brcmfmac43436-sdio.bin
+      dest: /lib/firmware/brcm/brcmfmac43436-sdio.bin
+
 
   - name: choose the right kernel version (bcm43430a1)
     replace:
@@ -260,10 +265,30 @@
       replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43430a1)
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make && make install-firmware"
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
+
+  - name: install new firmware (bcm43430a1)
+    copy:
+      src: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac43430-sdio.bin
+      dest: /lib/firmware/brcm/brcmfmac43430-sdio.bin
+
+  - name: Delete the firmware blob to avoid it crashing
+    file:
+      state: absent
+      path: /lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
+
+  - name: Delete the RPiZW firmware blob to avoid it crashing
+    file:
+      state: absent
+      path: /lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
+
+  - name: Delete the RPi3 firmware blob to avoid it crashing
+    file:
+      state: absent
+      path: /lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
 
   - name: choose the right kernel version (bcm43455c0)
     replace:
@@ -286,15 +311,20 @@
       replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43455c0)
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make && make install-firmware"
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
+  - name: install new firmware (bcm43455c0)
+    copy:
+      src: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/brcmfmac43455-sdio.bin
+      dest: /lib/firmware/brcm/brcmfmac43455-sdio.bin
+
   - name: copy modified driver (everyone but RPiZW)
     copy:
-      src: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
-      dest: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.orig
+      src: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz
+      dest: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig
 
   - name: copy modified driver (everyone but RPiZW)
     copy:
@@ -379,24 +409,31 @@
         export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
     when: golang.changed
 
-  - name: download pwngrid
+  - name: download pwngrid 1.10.4
     git:
       repo: https://github.com/jayofelony/pwngrid.git
-      dest: /usr/local/src/
+      dest: /usr/local/src/pwngrid
     register: pwngrid
 
-  - name: install pwngrid
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && sudo make install"
+  - name: install pwngrid 1.10.4
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && sudo make && sudo make install"
     args:
       executables: /bin/bash
       chdir: /usr/local/src/pwngrid
     when: pwngrid.changed
 
+  - name: download bettercap v2.32.1
+    git:
+      repo: https://github.com/jayofelony/bettercap.git
+      dest: /usr/local/src/bettercap
+    register: bettercap
+
   - name: Install bettercap v2.32.1
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go env -w GO111MODULE=off && go get github.com/jayofelony/bettercap && cd $GOPATH/src/github.com/jayofelony/bettercap && make build && make install"
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && sudo make && sudo make install"
     args:
       executable: /bin/bash
-    register: bettercap
+      chdir: /usr/local/src/bettercap
+    when: bettercap.changed
 
   - name: clone bettercap caplets
     git:
@@ -519,10 +556,10 @@
         echo    "- sudo pwnagotchi --check-update, to see if there is a new version available"
         echo
         echo    "If you want to know if I'm running, you can use"
-        echo    "systemctl status pwnagotchi"
+        echo    "sudo systemctl status pwnagotchi"
         echo
         echo    "You can restart me using"
-        echo    "systemctl restart pwnagotchi"
+        echo    "sudo systemctl restart pwnagotchi"
         echo
         echo    "You learn more about me at https://pwnagotchi.ai/"
     when: hostname.changed

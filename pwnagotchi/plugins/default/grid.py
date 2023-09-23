@@ -5,6 +5,7 @@ import glob
 import re
 
 import pwnagotchi.grid as grid
+import pwnagotchi.plugins
 import pwnagotchi.plugins as plugins
 from pwnagotchi.utils import StatusFile, WifiInfo, extract_from_pcap
 from threading import Lock
@@ -129,7 +130,7 @@ class Grid(plugins.Plugin):
 
         with self.lock:
             try:
-                grid.update_data(agent.last_session)
+                grid.update_data(agent.last_session, None)
             except Exception as e:
                 logging.error("error connecting to the pwngrid-peer service: %s" % e)
                 logging.debug(e, exc_info=True)

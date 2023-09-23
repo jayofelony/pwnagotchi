@@ -15,8 +15,7 @@
       "type": "shell",
       "inline": [
         "uname -a",
-        "dpkg-architecture",
-        "mkdir -p /usr/local/src/pwnagotchi"
+        "dpkg-architecture"
       ]
     },
     {

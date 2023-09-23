@@ -2,8 +2,8 @@ main.name = "pwnagotchi"
 main.lang = "en"
 main.confd = "/etc/pwnagotchi/conf.d/"
 main.custom_plugin_repos = [
+    "https://github.com/jayofelony/pwnagotchi-torch-plugins/archive/master.zip",
     "https://github.com/evilsocket/pwnagotchi-plugins-contrib/archive/master.zip",
-    "https://github.com/PwnPeter/pwnagotchi-plugins/archive/master.zip",
     "https://github.com/tisboyo/pwnagotchi-pisugar2-plugin/archive/master.zip",
     "https://github.com/nullm0ose/pwnagotchi-plugin-pisugar3/archive/master.zip"
 ]
@@ -40,8 +40,6 @@ main.plugins.pisugar2.enabled = false
 main.plugins.pisugar2.shutdown = 5
 main.plugins.pisugar2.sync_rtc_on_boot = false
 
-main.plugins.internet-connection.enabled = true
-
 main.plugins.grid.enabled = true
 main.plugins.grid.report = true
 main.plugins.grid.exclude = [
@@ -58,13 +56,6 @@ main.plugins.net-pos.api_key = "test"
 main.plugins.gps.enabled = false
 main.plugins.gps.speed = 19200
 main.plugins.gps.device = "/dev/ttyUSB0"
-
-main.plugins.bluetoothsniffer.enabled = false
-main.plugins.bluetoothsniffer.timer = 45 # On how may seconds to scan for bluetooth devices
-main.plugins.bluetoothsniffer.devices_file = "/root/handshakes/bluetooth_devices.json"  # Path to the JSON file with bluetooth devices
-main.plugins.bluetoothsniffer.count_interval = 86400 # On how may seconds to update count bluetooth devices
-main.plugins.bluetoothsniffer.bt_x_coord = 160
-main.plugins.bluetoothsniffer.bt_y_coord = 66
 
 main.plugins.webgpsmap.enabled = false
 

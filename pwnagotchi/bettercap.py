@@ -70,7 +70,8 @@ class Client(object):
         while True:
             logging.info("[bettercap] creating new websocket...")
             try:
-                async with websockets.connect(s, ping_interval=ping_interval, ping_timeout=ping_timeout, max_queue=max_queue) as ws:
+                async with websockets.connect(s, ping_interval=ping_interval, ping_timeout=ping_timeout,
+                                              max_queue=max_queue) as ws:
                     # listener loop
                     while True:
                         try:
@@ -78,27 +79,26 @@ class Client(object):
                                 try:
                                     await consumer(msg)
                                 except Exception as ex:
-                                        logging.debug("error while parsing event (%s)", ex)
+                                    logging.debug("[bettercap] error while parsing event (%s)", ex)
                         except websockets.ConnectionClosedError:
                             try:
                                 pong = await ws.ping()
                                 await asyncio.wait_for(pong, timeout=ping_timeout)
-                                logging.warning('ping OK, keeping connection alive...')
+                                logging.warning('[bettercap] ping OK, keeping connection alive...')
                                 continue
                             except:
                                 sleep_time = min_sleep + max_sleep*random.random()
-                                logging.warning('ping error - retrying connection in {} sec'.format(sleep_time))
+                                logging.warning('[bettercap] ping error - retrying connection in {} sec'.format(sleep_time))
                                 await asyncio.sleep(sleep_time)
                                 break
             except ConnectionRefusedError:
                 sleep_time = min_sleep + max_sleep*random.random()
-                logging.warning('nobody seems to be listening at the bettercap endpoint...')
-                logging.warning('retrying connection in {} sec'.format(sleep_time))
+                logging.warning('[bettercap] nobody seems to be listening at the bettercap endpoint...')
+                logging.warning('[bettercap] retrying connection in {} sec'.format(sleep_time))
                 await asyncio.sleep(sleep_time)
                 continue
             except OSError:
-                sleep_time = min_sleep + max_sleep*random.random()
-                logging.warning('connection to the bettercap endpoint failed...')
+                logging.warning('[bettercap] connection to the bettercap endpoint failed...')
                 pwnagotchi.reboot()
 
     def run(self, command, verbose_errors=True):
@@ -107,8 +107,8 @@ class Client(object):
                 r = requests.post("%s/session" % self.url, auth=self.auth, json={'cmd': command})
             except requests.exceptions.ConnectionError as e:
                 sleep_time = min_sleep + max_sleep*random.random()
-                logging.warning("can't run my request... connection to the bettercap endpoint failed...")
-                logging.warning('retrying run in {} sec'.format(sleep_time))
+                logging.warning("[bettercap] can't run my request... connection to the bettercap endpoint failed...")
+                logging.warning('[bettercap] retrying run in {} sec'.format(sleep_time))
                 sleep(sleep_time)
             else:
                 break

@@ -473,7 +473,7 @@ class BTTether(plugins.Plugin):
 
             devices_to_try = list()
             connected_priorities = list()
-            any_device_connected = False # if this is true, last status on screen should be C
+            any_device_connected = False  # if this is true, last status on screen should be C
 
             for _, device in self.devices.items():
                 if device.connected():
@@ -579,7 +579,7 @@ class BTTether(plugins.Plugin):
     def on_ui_setup(self, ui):
         with ui._lock:
             ui.add_element('bluetooth', LabeledValue(color=BLACK, label='BT', value='-',
-                                                     position=(ui.width() / 2 - 10, 0),
+                                                     position=(ui.width() / 2 - 5, 0),
                                                      label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_ui_update(self, ui):

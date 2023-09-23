@@ -1,10 +1,11 @@
-import os
-import glob
 import _thread
-import threading
-import importlib, importlib.util
+import glob
+import importlib
+import importlib.util
 import logging
-
+import os
+import threading
+import pwnagotchi.grid
 
 default_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default")
 loaded = {}
@@ -43,7 +44,7 @@ def toggle_plugin(name, enable=True):
     global loaded, database
 
     if pwnagotchi.config:
-        if not name in pwnagotchi.config['main']['plugins']:
+        if name not in pwnagotchi.config['main']['plugins']:
             pwnagotchi.config['main']['plugins'][name] = dict()
         pwnagotchi.config['main']['plugins'][name]['enabled'] = enable
         save_config(pwnagotchi.config, '/etc/pwnagotchi/config.toml')
@@ -129,6 +130,8 @@ def load_from_path(path, enabled=()):
 def load(config):
     enabled = [name for name, options in config['main']['plugins'].items() if
                'enabled' in options and options['enabled']]
+
+    pwnagotchi.grid.update_data(None, enabled)
 
     # load default plugins
     load_from_path(default_path, enabled=enabled)
