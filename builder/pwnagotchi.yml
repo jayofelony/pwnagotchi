@@ -347,10 +347,50 @@
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
 
-  - name: Install pwnagotchi from source archive
+  - name: collect python pip package list
+    command: "pip3 list"
+    register: pip_output
+
+  - name: set python pip package facts
+    set_fact:
+      pip_packages: >
+        {{ pip_packages | default({}) | combine( { item.split()[0]: item.split()[1] } ) }}
+    with_items: "{{ pip_output.stdout_lines }}"
+
+  - name: acquire python3 pip target
+    command: "python3 -c 'import sys;print(sys.path.pop())'"
+    register: pip_target
+
+  - name: clone pwnagotchi repository
+    git:
+      repo: https://github.com/jayofelony/pwnagotchi.git
+      dest: /usr/local/src/pwnagotchi
+    register: pwnagotchigit
+
+  - name: create /usr/local/share/pwnagotchi/ folder
+    file:
+      path: /usr/local/share/pwnagotchi/
+      state: directory
+
+  - name: fetch pwnagotchi version
+    set_fact:
+      pwnagotchi_version: "{{ lookup('file', '/usr/local/src/pwnagotchi/pwnagotchi/_version.py') | regex_replace('.*__version__.*=.*''([0-9]+\\.[0-9]+\\.[0-9]+[A-Za-z0-9]*)''.*', '\\1') }}"
+
+  - name: pwnagotchi version found
+    debug:
+      msg: "{{ pwnagotchi_version }}"
+
+  - name: build pwnagotchi wheel
+    command: "python3 setup.py sdist bdist_wheel"
+    args:
+      chdir: /usr/local/src/pwnagotchi
+    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
+
+  - name: install pwnagotchi wheel and dependencies
     pip:
-      name: /usr/local/src/pwnagotchi/pwnagotchi-{{ pwnagotchi.version }}.tar.gz
-      extra_args: --verbose --prefer-binary --ignore-installed
+      name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
+      extra_args: "--no-cache-dir"
+    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   # Install go-1.20.6
   - name: Install go-1.21
@@ -372,7 +412,7 @@
   - name: download pwngrid
     git:
       repo: https://github.com/jayofelony/pwngrid.git
-      dest: /usr/local/src/
+      dest: /usr/local/src/pwngrid
     register: pwngrid
 
   - name: install pwngrid
@@ -509,10 +549,10 @@
         echo    "- sudo pwnagotchi --check-update, to see if there is a new version available"
         echo
         echo    "If you want to know if I'm running, you can use"
-        echo    "systemctl status pwnagotchi"
+        echo    "sudo systemctl status pwnagotchi"
         echo
         echo    "You can restart me using"
-        echo    "systemctl restart pwnagotchi"
+        echo    "sudo systemctl restart pwnagotchi"
         echo
         echo    "You learn more about me at https://pwnagotchi.ai/"
     when: hostname.changed

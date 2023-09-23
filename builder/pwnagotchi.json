@@ -15,16 +15,8 @@
       "type": "shell",
       "inline": [
         "uname -a",
-        "dpkg-architecture",
-        "mkdir -p /usr/local/src/pwnagotchi"
+        "dpkg-architecture"
       ]
-    },
-    {
-      "type": "file",
-      "sources": [
-        "../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
-      ],
-      "destination": "/usr/local/src/pwnagotchi/"
     },
     {
       "type": "file",

@@ -60,7 +60,7 @@ def closest_peer():
     return all[0] if len(all) else None
 
 
-def update_data(last_session):
+def update_data(last_session, plugin_data):
     brain = {}
     try:
         with open('/root/brain.json') as fp:
@@ -84,7 +84,8 @@ def update_data(last_session):
         'uname': subprocess.getoutput("uname -a"),
         'brain': brain,
         'version': pwnagotchi.__version__,
-        'build': "Pwnagotchi-Torch by Jayofelony"
+        'build': "Pwnagotchi-Torch by Jayofelony",
+        'plugins': plugin_data
     }
 
     logging.debug("updating grid data: %s" % data)

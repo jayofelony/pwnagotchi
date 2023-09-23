@@ -129,7 +129,7 @@ class Grid(plugins.Plugin):
 
         with self.lock:
             try:
-                grid.update_data(agent.last_session)
+                grid.update_data(agent.last_session, None)
             except Exception as e:
                 logging.error("error connecting to the pwngrid-peer service: %s" % e)
                 logging.debug(e, exc_info=True)
