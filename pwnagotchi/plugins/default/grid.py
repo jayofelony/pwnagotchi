@@ -5,6 +5,7 @@ import glob
 import re
 
 import pwnagotchi.grid as grid
+import pwnagotchi.plugins
 import pwnagotchi.plugins as plugins
 from pwnagotchi.utils import StatusFile, WifiInfo, extract_from_pcap
 from threading import Lock

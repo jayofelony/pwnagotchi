@@ -409,24 +409,31 @@
         export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
     when: golang.changed
 
-  - name: download pwngrid
+  - name: download pwngrid 1.10.4
     git:
       repo: https://github.com/jayofelony/pwngrid.git
       dest: /usr/local/src/pwngrid
     register: pwngrid
 
-  - name: install pwngrid
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && sudo make install"
+  - name: install pwngrid 1.10.4
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && sudo make && sudo make install"
     args:
       executables: /bin/bash
       chdir: /usr/local/src/pwngrid
     when: pwngrid.changed
 
+  - name: download bettercap v2.32.1
+    git:
+      repo: https://github.com/jayofelony/bettercap.git
+      dest: /usr/local/src/bettercap
+    register: bettercap
+
   - name: Install bettercap v2.32.1
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go env -w GO111MODULE=off && go get github.com/jayofelony/bettercap && cd $GOPATH/src/github.com/jayofelony/bettercap && make build && make install"
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && sudo make && sudo make install"
     args:
       executable: /bin/bash
-    register: bettercap
+      chdir: /usr/local/src/bettercap
+    when: bettercap.changed
 
   - name: clone bettercap caplets
     git:
