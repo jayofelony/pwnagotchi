@@ -418,7 +418,7 @@
   - name: install pwngrid 1.10.4
     shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && sudo make && sudo make install"
     args:
-      executables: /bin/bash
+      executable: /bin/bash
       chdir: /usr/local/src/pwngrid
     when: pwngrid.changed
 

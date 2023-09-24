@@ -60,13 +60,15 @@ def closest_peer():
     return all[0] if len(all) else None
 
 
-def update_data(last_session, plugin_data):
+def update_data(last_session):
     brain = {}
     try:
         with open('/root/brain.json') as fp:
             brain = json.load(fp)
     except:
         pass
+    enabled = [name for name, options in pwnagotchi.config['main']['plugins'].items() if
+               'enabled' in options and options['enabled']]
 
     data = {
         'session': {
@@ -85,7 +87,7 @@ def update_data(last_session, plugin_data):
         'brain': brain,
         'version': pwnagotchi.__version__,
         'build': "Pwnagotchi-Torch by Jayofelony",
-        'plugins': plugin_data
+        'plugins': enabled
     }
 
     logging.debug("updating grid data: %s" % data)
