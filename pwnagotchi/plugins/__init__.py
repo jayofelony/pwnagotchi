@@ -130,21 +130,6 @@ def load_from_path(path, enabled=()):
 def load(config):
     enabled = [name for name, options in config['main']['plugins'].items() if
                'enabled' in options and options['enabled']]
-    data = {
-            'session': {
-                'duration': "",
-                'epochs': "",
-                'train_epochs': "",
-                'avg_reward': "",
-                'min_reward': "",
-                'max_reward': "",
-                'deauthed': "",
-                'associated': "",
-                'handshakes': "",
-                'peers': "",
-             }
-    }
-    pwnagotchi.grid.update_data(data, enabled)
 
     # load default plugins
     load_from_path(default_path, enabled=enabled)

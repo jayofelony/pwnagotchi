@@ -84,8 +84,7 @@ def update_data(last_session, plugin_data):
         'uname': subprocess.getoutput("uname -a"),
         'brain': brain,
         'version': pwnagotchi.__version__,
-        'build': "Pwnagotchi-Torch by Jayofelony",
-        'plugins': plugin_data
+        'build': "Pwnagotchi-Torch by Jayofelony"
     }
 
     logging.debug("updating grid data: %s" % data)
