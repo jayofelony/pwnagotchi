@@ -67,6 +67,8 @@ def update_data(last_session):
             brain = json.load(fp)
     except:
         pass
+    enabled = [name for name, options in config['main']['plugins'].items() if
+               'enabled' in options and options['enabled']]
 
     data = {
         'session': {
@@ -84,7 +86,8 @@ def update_data(last_session):
         'uname': subprocess.getoutput("uname -a"),
         'brain': brain,
         'version': pwnagotchi.__version__,
-        'build': "Pwnagotchi-Torch by Jayofelony"
+        'build': "Pwnagotchi-Torch by Jayofelony",
+        'plugins': enabled
     }
 
     logging.debug("updating grid data: %s" % data)
