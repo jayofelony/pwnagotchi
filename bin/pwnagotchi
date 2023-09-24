@@ -129,10 +129,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if plugins_cmd.used_plugin_cmd(args):
-      config = utils.load_config(args)
-      log.setup_logging(args, config)
-      rc = plugins_cmd.handle_cmd(args, config)
-      sys.exit(rc)
+        config = utils.load_config(args)
+        log.setup_logging(args, config)
+        rc = plugins_cmd.handle_cmd(args, config)
+        sys.exit(rc)
 
     if args.version:
         print(pwnagotchi.__version__)

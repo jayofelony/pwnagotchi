@@ -79,7 +79,7 @@ def _cpu_stat():
     Returns the splitted first line of the /proc/stat file
     """
     with open('/proc/stat', 'rt') as fp:
-        return list(map(int,fp.readline().split()[1:]))
+        return list(map(int, fp.readline().split()[1:]))
 
 
 def cpu_load(tag=None):
@@ -130,7 +130,7 @@ def shutdown():
 
 def restart(mode):
     logging.warning("restarting in %s mode ...", mode)
-
+    mode = mode.upper()
     if mode == 'AUTO':
         os.system("touch /root/.pwnagotchi-auto")
     else:
