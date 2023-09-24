@@ -67,7 +67,7 @@ def update_data(last_session):
             brain = json.load(fp)
     except:
         pass
-    enabled = [name for name, options in config['main']['plugins'].items() if
+    enabled = [name for name, options in pwnagotchi.config['main']['plugins'].items() if
                'enabled' in options and options['enabled']]
 
     data = {
