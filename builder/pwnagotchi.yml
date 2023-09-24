@@ -585,8 +585,10 @@
   - name: install old libpcap packages
     become_user: root
     apt:
-      deb: /usr/local/src/libpcap*
-      args: allow-downgrades
+      force: True
+      state: present
+      deb: "/usr/local/src/{{ item }}"
+    with_items: "{{ packages.apt.downgrade }}"
     register: libpcap
 
   - name: add firmware packages to hold
