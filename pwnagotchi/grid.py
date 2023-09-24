@@ -60,7 +60,7 @@ def closest_peer():
     return all[0] if len(all) else None
 
 
-def update_data(last_session, plugin_data):
+def update_data(last_session):
     brain = {}
     try:
         with open('/root/brain.json') as fp:
