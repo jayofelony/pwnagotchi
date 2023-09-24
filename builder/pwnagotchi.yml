@@ -416,7 +416,7 @@
     register: pwngrid
 
   - name: install pwngrid 1.10.4
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && make install"
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/pwngrid
@@ -429,7 +429,7 @@
     register: bettercap
 
   - name: Install bettercap v2.32.1
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && make install"
+    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/bettercap
@@ -570,7 +570,7 @@
       line: "\nalias pwnlog='tail -f -n300 /var/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'"
       insertafter: EOF
 
-  - name: Add pwnver alias
+  - name: Add pwnlog alias
     lineinfile:
       dest: /home/pi/.bashrc
       line: "\nalias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'"
