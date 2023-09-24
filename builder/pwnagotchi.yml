@@ -23,7 +23,6 @@
         - pwnagotchi.service
         - bettercap.service
         - pwngrid-peer.service
-        - epd-fuse.service
         - fstrim.timer
       disable:
         - apt-daily.timer
@@ -392,6 +391,11 @@
       extra_args: "--no-cache-dir"
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
+  - name: remove pwnagotchi folder
+    file:
+      state: absent
+      path: /usr/local/src/pwnagotchi
+
   # Install go-1.20.6
   - name: Install go-1.21
     unarchive:
@@ -422,6 +426,11 @@
       chdir: /usr/local/src/pwngrid
     when: pwngrid.changed
 
+  - name: remove pwngrid folder
+    file:
+      state: absent
+      path: /usr/local/src/pwngrid
+
   - name: download bettercap v2.32.1
     git:
       repo: https://github.com/jayofelony/bettercap.git
@@ -434,6 +443,11 @@
       executable: /bin/bash
       chdir: /usr/local/src/bettercap
     when: bettercap.changed
+
+  - name: remove bettercap folder
+    file:
+      state: absent
+      path: /usr/local/src/bettercap
 
   - name: clone bettercap caplets
     git:
@@ -591,6 +605,13 @@
     with_items: "{{ packages.apt.downgrade }}"
     register: libpcap
 
+  - name: remove old libpcap files
+    become_user: root
+    file:
+      path: "/usr/local/src/{{ item }}"
+      state: absent
+    with_items: "{{ packages.apt.downgrade }}"
+
   - name: add firmware packages to hold
     become_user: root
     dpkg_selections:
@@ -602,19 +623,28 @@
   - name: clean apt cache
     become_user: root
     apt:
-      autoclean: yes
+      autoclean: true
 
   - name: remove dependencies that are no longer required
+    become_user: root
     apt:
       autoremove: yes
 
-  - name: disable unecessary services
+  - name: disable unnecessary services
     become_user: root
     systemd:
       name: "{{ item }}"
       state: stopped
       enabled: no
     with_items: "{{ services.disable }}"
+
+  - name: enable services
+    become_user: root
+    systemd:
+      name: "{{ item }}"
+      enabled: true
+      state: stopped
+    with_items: "{{ services.enable }}"
 
   - name: remove ssh keys
     become_user: root
