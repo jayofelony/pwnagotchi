@@ -141,15 +141,12 @@
     ARCHFLAGS: "-arch armv8"
 
   tasks:
-  - name: System details
-    debug:
-      msg="{{ item }}"
-    with_items:
-      - "{{ ansible_distribution }}"
-      - "{{ ansible_distribution_version }}"
-      - "{{ ansible_distribution_major_version }}"
-      - "{{ ansible_architecture }}"
-      - "{{ ansible_machine }}"
+  - name: Create pi user
+    user:
+      name: pi
+      password: "{{ 'raspberry' | password_hash('sha512') }}"
+      shell: /bin/bash
+      update_password: on_create
 
   - name: change hostname
     lineinfile:
@@ -240,7 +237,7 @@
   - name: install new firmware (bcm43436b0)
     copy:
       src: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/brcmfmac43436-sdio.bin
-      dest: /lib/firmware/brcm/brcmfmac43436-sdio.bin
+      dest: /usr/lib/firmware/brcm/brcmfmac43436-sdio.bin
 
 
   - name: choose the right kernel version (bcm43430a1)
@@ -272,22 +269,27 @@
   - name: install new firmware (bcm43430a1)
     copy:
       src: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac43430-sdio.bin
-      dest: /lib/firmware/brcm/brcmfmac43430-sdio.bin
+      dest: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
+
+  - name: copy 43430-sdio as 43436s-sdio for the special 43430/1
+    copy:
+      src: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
+      dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
 
   - name: Delete the firmware blob to avoid it crashing
     file:
       state: absent
-      path: /lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
+      path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
 
   - name: Delete the RPiZW firmware blob to avoid it crashing
     file:
       state: absent
-      path: /lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
+      path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
 
   - name: Delete the RPi3 firmware blob to avoid it crashing
     file:
       state: absent
-      path: /lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
+      path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
 
   - name: choose the right kernel version (bcm43455c0)
     replace:
@@ -318,17 +320,17 @@
   - name: install new firmware (bcm43455c0)
     copy:
       src: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/brcmfmac43455-sdio.bin
-      dest: /lib/firmware/brcm/brcmfmac43455-sdio.bin
+      dest: /usr/lib/firmware/brcm/brcmfmac43455-sdio.bin
 
-  - name: copy modified driver (everyone but RPiZW)
+  - name: backup original driver
     copy:
-      src: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz
-      dest: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig
+      src: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz
+      dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig
 
-  - name: copy modified driver (everyone but RPiZW)
+  - name: copy modified driver
     copy:
       src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
-      dest: /lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
+      dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
   - name: ensure depmod runs on reboot to load modified driver (brcmfmac)
     lineinfile:
@@ -346,20 +348,6 @@
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
 
-  - name: collect python pip package list
-    command: "pip3 list"
-    register: pip_output
-
-  - name: set python pip package facts
-    set_fact:
-      pip_packages: >
-        {{ pip_packages | default({}) | combine( { item.split()[0]: item.split()[1] } ) }}
-    with_items: "{{ pip_output.stdout_lines }}"
-
-  - name: acquire python3 pip target
-    command: "python3 -c 'import sys;print(sys.path.pop())'"
-    register: pip_target
-
   - name: clone pwnagotchi repository
     git:
       repo: https://github.com/jayofelony/pwnagotchi.git
@@ -370,14 +358,6 @@
     file:
       path: /usr/local/share/pwnagotchi/
       state: directory
-
-  - name: fetch pwnagotchi version
-    set_fact:
-      pwnagotchi_version: "{{ lookup('file', '/usr/local/src/pwnagotchi/pwnagotchi/_version.py') | regex_replace('.*__version__.*=.*''([0-9]+\\.[0-9]+\\.[0-9]+[A-Za-z0-9]*)''.*', '\\1') }}"
-
-  - name: pwnagotchi version found
-    debug:
-      msg: "{{ pwnagotchi_version }}"
 
   - name: build pwnagotchi wheel
     command: "python3 setup.py sdist bdist_wheel"
