@@ -333,7 +333,7 @@
       dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
   - name: ensure depmod runs on reboot to load modified driver (brcmfmac)
-    shell: "depmod -A"
+    shell: "/sbin/depmod -A"
     args:
       executable: /bin/bash
 
