@@ -48,6 +48,11 @@
           - libpcap-dev
           - libpcap0.8
           - libpcap0.8-dev
+          - firmware-atheros
+          - firmware-brcm80211
+          - firmware-libertas
+          - firmware-misc-nonfree
+          - firmware-realtek
         remove:
           - raspberrypi-net-mods
           - dhcpcd5
