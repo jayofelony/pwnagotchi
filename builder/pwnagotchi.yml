@@ -333,9 +333,9 @@
       dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
   - name: ensure depmod runs on reboot to load modified driver (brcmfmac)
-    lineinfile:
-      dest: /etc/rc.local
-      line: "/sbin/depmod -a"
+    shell: "depmod -A"
+    args:
+      executable: /bin/bash
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
