@@ -24,6 +24,7 @@
         - bettercap.service
         - pwngrid-peer.service
         - fstrim.timer
+        - rc-local
       disable:
         - apt-daily.timer
         - apt-daily.service
@@ -333,9 +334,29 @@
       dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
   - name: ensure depmod runs on reboot to load modified driver (brcmfmac)
-    shell: "/sbin/depmod -A"
-    args:
-      executable: /bin/bash
+    copy:
+      dest: "/etc/rc.local"
+      content: |
+        depmod -a
+        exit 0
+
+  - name: make /etc/rc.local executable
+    file:
+      path: "/etc/rc.local"
+      mode: 0755
+
+  - name: make rc.local service
+    copy:
+      dest: "/etc/systemd/system/rc-local.service"
+      content: |
+        ExecStart=/etc/rc.local start
+        TimeoutSec=0
+        StandardOutput=tty
+        RemainAfterExit=yes
+        SysVStartPriority=99
+        
+        [Install]
+        WantedBy=multi-user.target
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
