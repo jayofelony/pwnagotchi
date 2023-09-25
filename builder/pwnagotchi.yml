@@ -271,7 +271,7 @@
       src: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac43430-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
 
-  - name: copy 43430-sdio as 43436s-sdio for the special 43430/1
+  - name: copy 43430-sdio as 43436s-sdio for the special 43430/1 /2
     copy:
       src: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
