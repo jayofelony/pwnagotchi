@@ -54,8 +54,8 @@ $(PWN_RELEASE).img: | $(PACKER)
 $(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json builder/pwnagotchi.yml $(shell find builder/data -type f)
 	sudo $(PACKER) plugins install github.com/solo-io/arm-image
 	cd builder && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json
-	sudo chown -R $USER:$USER builder/images
-	mv builder/images $@
+	sudo chown -R $$USER:$$USER builder/images
+	mv builder/images /home/$$USER
 
 # If any of these files are updated, rebuild the checksums.
 $(PWN_RELEASE).sha256: $(PWN_RELEASE).img
