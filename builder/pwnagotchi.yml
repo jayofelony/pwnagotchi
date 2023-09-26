@@ -358,10 +358,11 @@
         /sbin/depmod -a
         exit 0
 
-  - name: make /etc/rc.local executable
-    file:
-      path: "/etc/rc.local"
-      mode: 0755
+  - name: Add the brcmfmac module
+    community.general.modprobe:
+      name: brcmfmac
+      state: present
+      persistent: present
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
@@ -659,7 +660,9 @@
       path: "{{ item }}"
     with_fileglob:
       - "/etc/ssh/ssh_host*_key*"
-
+  community:
+    general:
+      modprobe:
   handlers:
   - name: reload systemd services
     become_user: root
