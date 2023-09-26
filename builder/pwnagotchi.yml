@@ -24,7 +24,6 @@
         - bettercap.service
         - pwngrid-peer.service
         - fstrim.timer
-        - rc-local
       disable:
         - apt-daily.timer
         - apt-daily.service
@@ -331,28 +330,8 @@
       src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
       dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
-  - name: ensure depmod runs on reboot to load modified driver (brcmfmac)
-    copy:
-      dest: "/etc/rc.local"
-      content: |
-        #!/bin/sh -e
-        #
-        # rc.local
-        #
-        # This script is executed at the end of each multiuser runlevel.
-        # Make sure that the script will "exit 0" on success or any other
-        # value on error.
-        #
-        # In order to enable or disable this script just change the execution
-        # bits.
-        #
-        # By default this script does nothing.
-
-        /sbin/depmod -a
-        exit 0
-
   - name: Add the brcmfmac module
-    community.general.modprobe:
+    modprobe:
       name: brcmfmac
       state: present
       persistent: present
