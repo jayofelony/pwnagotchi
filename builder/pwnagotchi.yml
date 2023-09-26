@@ -331,7 +331,7 @@
       dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
   - name: Add the brcmfmac module
-    modprobe:
+    community.general.modprobe:
       name: brcmfmac
       state: present
       persistent: present
@@ -622,14 +622,6 @@
       path: "{{ item }}"
     with_fileglob:
       - "/etc/ssh/ssh_host*_key*"
-  community:
-    general:
-      modprobe:
-  handlers:
-  - name: reload systemd services
-    become_user: root
-    systemd:
-      daemon_reload: yes
 
   - name: remove unnecessary apt packages
     become_user: root
@@ -647,3 +639,9 @@
     become_user: root
     apt:
       autoremove: yes
+
+  handlers:
+  - name: reload systemd services
+    become_user: root
+    systemd:
+      daemon_reload: yes
