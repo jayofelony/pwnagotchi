@@ -188,13 +188,6 @@
     apt:
       update_cache: yes
 
-  - name: remove unnecessary apt packages
-    become_user: root
-    apt:
-      name: "{{ packages.apt.remove }}"
-      state: absent
-      purge: yes
-
   - name: install packages
     become_user: root
     apt:
@@ -627,16 +620,6 @@
     with_items: "{{ packages.apt.hold }}"
     when: libpcap.changed
 
-  - name: clean apt cache
-    become_user: root
-    apt:
-      autoclean: true
-
-  - name: remove dependencies that are no longer required
-    become_user: root
-    apt:
-      autoremove: yes
-
   - name: disable unnecessary services
     become_user: root
     systemd:
@@ -668,3 +651,20 @@
     become_user: root
     systemd:
       daemon_reload: yes
+
+  - name: remove unnecessary apt packages
+    become_user: root
+    apt:
+      name: "{{ packages.apt.remove }}"
+      state: absent
+      purge: yes
+
+  - name: clean apt cache
+    become_user: root
+    apt:
+      autoclean: true
+
+  - name: remove dependencies that are no longer required
+    become_user: root
+    apt:
+      autoremove: yes
