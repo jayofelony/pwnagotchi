@@ -65,7 +65,6 @@
           - libraspberrypi-dev
           - libraspberrypi-doc
           - libraspberrypi-bin
-          - golang
         install:
           - bluez
           - raspberrypi-kernel-headers
