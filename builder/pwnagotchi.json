@@ -12,13 +12,6 @@
   ],
   "provisioners": [
     {
-      "type": "shell",
-      "inline": [
-        "uname -a",
-        "dpkg-architecture"
-      ]
-    },
-    {
       "type": "file",
       "source": "../builder/data/usr/bin/pwnlib",
       "destination": "/usr/bin/pwnlib"
