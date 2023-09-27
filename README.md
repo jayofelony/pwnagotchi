@@ -16,7 +16,7 @@ sudo reboot now
 Flash version 2.3.7 then run these commands to get the latest version released. Now 2.4.2!
 ```BATCH
 cd /usr/local/src
-rm pwnagotchi/
+sudo rm -r pwnagotchi/
 sudo git clone -b v2.4.2 https://github.com/jayofelony/pwnagotchi.git
 cd pwnagotchi/
 sudo pip3 install .
