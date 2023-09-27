@@ -4,6 +4,9 @@
   gather_facts: true
   become: true
   vars:
+    kernel:
+      min: "6.1"
+      full: "6.1.21-v8+"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
@@ -211,13 +214,13 @@
       dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
       backup: no
       regexp: "KERNEL_VERSION = .*$"
-      replace: "KERNEL_VERSION = 6.1"
+      replace: "KERNEL_VERSION = {{ kernel.min }}"
 
   - name: choose the right kernel release (variable) (bcm43436b0)
     lineinfile:
       dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
       insertafter: "DRIVER_FOLDER_NAME = .*$"
-      line: "KERNEL_RELEASE = 6.1.21-v8+"
+      line: "KERNEL_RELEASE = {{ kernel.full }}"
 
   - name: choose the right kernel release (replace string) (bcm43436b0)
     replace:
@@ -243,13 +246,13 @@
       dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
       backup: no
       regexp: "KERNEL_VERSION = .*$"
-      replace: "KERNEL_VERSION = 6.1"
+      replace: "KERNEL_VERSION = {{ kernel.min }}"
 
   - name: choose the right kernel release (variable) (bcm43430a1)
     lineinfile:
       dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
       insertafter: "DRIVER_FOLDER_NAME = .*$"
-      line: "KERNEL_RELEASE = 6.1.21-v8+"
+      line: "KERNEL_RELEASE = {{ kernel.full }}"
 
   - name: choose the right kernel release (replace string) (bcm43430a1)
     replace:
@@ -294,13 +297,13 @@
       dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
       backup: no
       regexp: "KERNEL_VERSION = .*$"
-      replace: "KERNEL_VERSION = 6.1"
+      replace: "KERNEL_VERSION = {{ kernel.min }}"
 
   - name: choose the right kernel release (variable) (bcm43455c0)
     lineinfile:
       dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
       insertafter: "DRIVER_FOLDER_NAME = .*$"
-      line: "KERNEL_RELEASE = 6.1.21-v8+"
+      line: "KERNEL_RELEASE = {{ kernel.full }}"
 
   - name: choose the right kernel release (replace string) (bcm43455c0)
     replace:
@@ -322,16 +325,16 @@
 
   - name: backup original driver
     copy:
-      src: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz
-      dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig
+      src: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz"
+      dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
 
   - name: copy modified driver
     copy:
-      src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
-      dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
+      src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
+      dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
   - name : load brcmfmac drivers
-    command: "/sbin/depmod -A -b -F System.map 6.1.21-v8+"
+    command: "/sbin/depmod -A -F System.map {{ kernel.full }}"
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
