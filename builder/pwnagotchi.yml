@@ -334,7 +334,7 @@
       dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
   - name : load brcmfmac drivers
-    command: "/sbin/depmod -A -F System.map {{ kernel.full }}"
+    command: "/sbin/depmod -a {{ kernel.full }}"
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
