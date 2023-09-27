@@ -105,8 +105,7 @@
       "inline": [
         "apt-get -y --allow-releaseinfo-change update",
         "apt-get -y dist-upgrade",
-        "apt-get install -y ansible",
-        "ansible-galaxy collection install community.general"
+        "apt-get install -y ansible"
       ]
     },
     {

@@ -330,11 +330,8 @@
       src: /usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko
       dest: /usr/lib/modules/6.1.21-v8+/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
 
-  - name: Add the brcmfmac module
-    community.general.modprobe:
-      name: brcmfmac
-      state: present
-      persistent: present
+  - name : load brcmfmac drivers
+    command: "/sbin/depmod -A -b -F System.map 6.1.21-v8+"
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
