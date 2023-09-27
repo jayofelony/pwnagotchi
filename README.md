@@ -13,12 +13,14 @@ sudo reboot now
 ```
 
 
-Flash version 2.3.7 then run the commands at version 2.3.8 to go to latest version released. Now 2.4!
+Flash version 2.3.7 then run these commands to get the latest version released. Now 2.4.2!
 ```BATCH
-cd /usr/local/src/pwnagotchi
-sudo git pull
+cd /usr/local/src
+rm pwnagotchi/
+sudo git clone -b v2.4.2 https://github.com/jayofelony/pwnagotchi.git
+cd pwnagotchi/
 sudo pip3 install .
-sudo reboot
+sudo reboot now
 ```
 
 ---
