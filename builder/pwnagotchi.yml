@@ -146,7 +146,7 @@
           - libusb-1.0-0-dev
           - libnetfilter-queue-dev
   environment:
-    ARCHFLAGS: "-arch armv8"
+    ARCHFLAGS: "-arch arm64"
 
   tasks:
   - name: Create pi user
