@@ -2,6 +2,8 @@
 <a href="https://github.com/jayofelony/pwnagotchi/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/jayofelony/pwnagotchi.svg?style=flat-square"></a><br/>
 **This fork of Pwnagotchi has been overhauled to work solely on 64-bit Raspberry Pi's, it uses PyTorch as it's AI.**
 
+**Use RPi imager to flash, and set a custom user/pass to ssh in.**
+
 Patreon: [Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
 
 ---
