@@ -151,11 +151,10 @@
   tasks:
   - name: Create pi user
     user:
-      create_home: yes
       name: pi
-      password: "'raspberry' | password_hash('sha512')"
+      password: "{{ 'raspberry' | password_hash('sha512') }}"
       shell: /bin/bash
-      update_password: on_create
+      generate_ssh_key: true
 
   - name: change hostname
     lineinfile:
