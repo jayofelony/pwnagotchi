@@ -152,7 +152,7 @@
   - name: Create pi user
     user:
       name: pi
-      password: "'raspberry' | password_hash('sha512')"
+      password: "$1$oQ1S6bS1$Z7T1GXrShpKWgP6nXEtAs."
       shell: /bin/bash
       update_password: on_create
 
