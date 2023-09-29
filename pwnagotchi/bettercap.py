@@ -99,7 +99,7 @@ class Client(object):
                 continue
             except OSError:
                 logging.warning('[bettercap] connection to the bettercap endpoint failed...')
-                sleep(10)
+                await asyncio.sleep(10)
                 continue
 
     def run(self, command, verbose_errors=True):
