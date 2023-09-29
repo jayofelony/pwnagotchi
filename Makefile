@@ -54,17 +54,19 @@ $(PWN_RELEASE).img: | $(PACKER)
 $(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json builder/pwnagotchi.yml $(shell find builder/data -type f)
 	sudo $(PACKER) plugins install github.com/solo-io/arm-image
 	cd builder && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json
+	sudo chown -R $$USER:$$USER ../../../
+	mv builder/images/* ../../../
 
 # If any of these files are updated, rebuild the checksums.
-pwnagotchi-$(PWN_VERSION)-arm64sha256: ../../pwnagotchi-$(PWN_VERSION)-arm64.img
+$(PWN_RELEASE).sha256: $(PWN_RELEASE).img
 	sha256sum $^ > $@
 
 # If any of the input files are updated, rebuild the archive.
-pwnagotchi-$(PWN_VERSION)-arm64.zip: ../../pwnagotchi-$(PWN_VERSION)-arm64.img pwnagotchi-$(PWN_VERSION)-arm64.sha256
-	zip pwnagotchi-$(PWN_VERSION)-arm64.zip $^
+$(PWN_RELEASE).zip: $(PWN_RELEASE).img $(PWN_RELEASE).sha256
+	zip $(PWN_RELEASE).zip $^
 
 .PHONY: image
-image: pwnagotchi-$(PWN_VERSION)-arm64.zip
+image: $(PWN_RELEASE).zip
 
 clean:
 	- python3 setup.py clean --all
