@@ -90,7 +90,7 @@
     {
       "type": "file",
       "source": "../builder/data/etc/update-motd.d/01-motd",
-      "destination": "/etc/update-motd.d/01-motd",
+      "destination": "/etc/update-motd.d/01-motd"
     },
     {
       "type": "shell",
