@@ -7,7 +7,7 @@
       "iso_checksum": "file:https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256",
       "target_image_size": 9368709120,
       "qemu_binary": "qemu-aarch64-static",
-      "output_filename": "images/pwnagotchi-{{user `pwn_version`}}-arm64.img"
+      "output_filename": "../../../pwnagotchi-{{user `pwn_version`}}-arm64.img"
     }
   ],
   "provisioners": [
@@ -86,6 +86,11 @@
       "inline": [
         "chmod +x /usr/bin/*"
       ]
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/etc/update-motd.d/01-motd",
+      "destination": "/etc/update-motd.d/01-motd",
     },
     {
       "type": "shell",

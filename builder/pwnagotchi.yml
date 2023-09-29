@@ -65,7 +65,6 @@
           - libraspberrypi-dev
           - libraspberrypi-doc
           - libraspberrypi-bin
-          - ansible
         install:
           - bluez
           - raspberrypi-kernel-headers
@@ -146,7 +145,7 @@
           - libusb-1.0-0-dev
           - libnetfilter-queue-dev
   environment:
-    ARCHFLAGS: "-arch armv8"
+    ARCHFLAGS: "-arch arm64"
 
   tasks:
   - name: Create pi user
@@ -154,7 +153,7 @@
       name: pi
       password: "{{ 'raspberry' | password_hash('sha512') }}"
       shell: /bin/bash
-      update_password: on_create
+      generate_ssh_key: true
 
   - name: change hostname
     lineinfile:
