@@ -103,6 +103,10 @@ build {
   provisioner "shell" {
     inline = ["chmod +x /usr/bin/*"]
   }
+  provisioner "file" {
+    destination = "/etc/update-motd.d/01-motd"
+    source      = "../builder/data/etc/update-motd.d/01-motd"
+  }
   provisioner "shell" {
     inline = ["chmod +x /etc/update-motd.d/*"]
   }
