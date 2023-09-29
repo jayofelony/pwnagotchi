@@ -76,8 +76,8 @@ def load(config, agent, epoch, from_disk=True):
 
         return a2c
     except Exception as e:
-        logging.exception("error while starting AI (%s)", e)
-        logging.info("Deleting brain and restarting.")
+        logging.exception("[AI] error while starting AI (%s)", e)
+        logging.info("[AI] Deleting brain and restarting.")
         os.system("rm /root/brain.nn && systemctl restart pwnagotchi")
 
     logging.warning("[ai] AI not loaded!")

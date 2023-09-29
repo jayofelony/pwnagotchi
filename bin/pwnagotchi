@@ -150,7 +150,8 @@ if __name__ == '__main__':
         local = version_to_tuple(pwnagotchi.__version__)
         remote = version_to_tuple(latest_ver)
         if remote > local:
-            user_input = input("There is a new version available! Update from v%s to v%s?\n[y(es)/n(o)]" % (pwnagotchi.__version__, latest_ver))
+            user_input = input("There is a new version available! Update from v%s to v%s?\n[y(es)/n(o)]"
+                               % (pwnagotchi.__version__, latest_ver))
             # input validation
             if user_input.lower() in ('y', 'yes'):
                 os.system("rm /root/.auto-update && systemctl restart pwnagotchi")
