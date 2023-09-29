@@ -151,6 +151,7 @@
   tasks:
   - name: Create pi user
     user:
+      create_home: yes
       name: pi
       password: "'raspberry' | password_hash('sha512')"
       shell: /bin/bash
