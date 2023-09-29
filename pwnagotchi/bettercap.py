@@ -99,7 +99,8 @@ class Client(object):
                 continue
             except OSError:
                 logging.warning('[bettercap] connection to the bettercap endpoint failed...')
-                pwnagotchi.reboot()
+                sleep(10)
+                continue
 
     def run(self, command, verbose_errors=True):
         while True:
