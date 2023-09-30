@@ -6,7 +6,20 @@
 
 Default SSH credentials are pi/raspberry
 
-Patreon: [Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
+# FAQ:
+- Is the Raspberry Pi Zero W 2 working perfectly with this image?
+
+  No, sadly not. The WiFi chip and/or the Nexmon firmware is not as stable as I would hope.
+- Will it go blind often?
+
+  Yes! But I have tried to make it automatically fix **most** errors that may occur.
+- Can you help me install an external antenna?
+
+  Nope I will not help with these 'issues'. Read the manual/readme for your specific device, if that doesn't help -> **GOOGLE**
+
+# Patreon: 
+
+[Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
 
 ---
 
