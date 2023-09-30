@@ -15,7 +15,7 @@ Default SSH credentials are pi/raspberry
   Yes! But I have tried to make it automatically fix **most** errors that may occur.
 - Can you help me install an external antenna?
 
-  Nope I will not help with these 'issues'. Read the manual/readme for your specific device, if that doesn't help -> **GOOGLE**
+  Nope I will not help with these 'issues'. Read the manual/readme for your specific device, if that doesn't help -> **[GOOGLE](https://www.google.com)**
 
 # Patreon: 
 
