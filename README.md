@@ -9,7 +9,7 @@ Default SSH credentials are pi/raspberry
 # FAQ:
 - Is the Raspberry Pi Zero W 2 working perfectly with this image?
 
-  No, sadly not. The libpcap is not as stable as I would hope.
+  No, sadly not. It will reboot and restart wifi as often as needed by fix_services plugin. So don't freak out by that. I hope it will be sorted in the future.
 - Will it go blind often?
 
   Yes! But I have tried to make it automatically fix **most** errors that may occur.
