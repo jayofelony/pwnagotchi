@@ -146,12 +146,10 @@
 
   tasks:
   - name: Create pi user
-    user:
-      name: pi
-      password: "{{ 'raspberry' | password_hash('sha512') }}"
-      shell: /bin/bash
-      generate_ssh_key: true
-      group: sudo
+    copy:
+      dest: /boot/userconf
+      content: |
+        pi:$6$3jNr0GA9KIyt4hmM$efeVIopdMQ8DGgEPCWWlbx3mJJNAYci1lEXGdlky0xPyjqwKNbwTL5SrCcpb4144C4IvzWjn7Iv.QjqmU7iyT/
 
   - name: change hostname
     lineinfile:
