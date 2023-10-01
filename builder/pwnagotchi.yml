@@ -70,6 +70,7 @@
           - bison
           - bluez
           - build-essential
+          - curl
           - dkms
           - dphys-swapfile
           - fbi
