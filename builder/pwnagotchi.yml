@@ -14,29 +14,28 @@
       boot_options:
         - "dtoverlay=dwc2"
         - "dtoverlay=spi1-3cs"
-        - "dtparam=spi=on"
-        - "dtparam=i2c_arm=on"
         - "dtparam=i2c1=on"
+        - "dtparam=i2c_arm=on"
+        - "dtparam=spi=on"
         - "gpu_mem=16"
       modules:
         - "i2c-dev"
     services:
       enable:
-        - dphys-swapfile.service
-        - pwnagotchi.service
         - bettercap.service
-        - pwngrid-peer.service
+        - dphys-swapfile.service
         - fstrim.timer
+        - pwnagotchi.service
+        - pwngrid-peer.service
       disable:
-        - apt-daily.timer
-        - apt-daily.service
-        - apt-daily-upgrade.timer
         - apt-daily-upgrade.service
+        - apt-daily-upgrade.timer
+        - apt-daily.service
+        - apt-daily.timer
         - bluetooth.service
         - ifup@wlan0.service
-        - dnsmasq.service
-        - wpa_supplicant.service
         - triggerhappy.service
+        - wpa_supplicant.service
     packages:
       bettercap:
         # We will install bettercap from source
@@ -46,31 +45,30 @@
         # url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
       apt:
         downgrade:
+          - libpcap-dev_1.9.1-4_arm64.deb
           - libpcap0.8-dev_1.9.1-4_arm64.deb
           - libpcap0.8_1.9.1-4_arm64.deb
-          - libpcap-dev_1.9.1-4_arm64.deb
         hold:
-          - libpcap-dev
-          - libpcap0.8
-          - libpcap0.8-dev
           - firmware-atheros
           - firmware-brcm80211
           - firmware-libertas
           - firmware-misc-nonfree
           - firmware-realtek
+          - libpcap-dev
+          - libpcap0.8
+          - libpcap0.8-dev
         remove:
-          - raspberrypi-net-mods
           - dhcpcd5
+          - nfs-common
+          - raspberrypi-net-mods
           - triggerhappy
           - wpasupplicant
-          - nfs-common
         install:
           - aircrack-ng
           - autoconf
           - bc
           - bison
           - bluez
-          - build-essential
           - build-essential
           - dkms
           - dphys-swapfile
@@ -84,7 +82,6 @@
           - gawk
           - gcc-arm-none-eabi
           - git
-          - libatlas-base-dev
           - libatlas-base-dev
           - libavcodec58
           - libavformat58
@@ -107,7 +104,6 @@
           - liblapack-dev
           - libncursesw5-dev
           - libnetfilter-queue-dev
-          - libnetfilter-queue-dev
           - libopenblas-dev
           - libopenjp2-7
           - libopenmpi-dev
@@ -123,7 +119,6 @@
           - libtiff5
           - libtool
           - libusb-1.0-0-dev
-          - libusb-1.0-0-dev
           - lsof
           - make
           - python3-flask
@@ -131,7 +126,6 @@
           - python3-flaskext.wtf
           - python3-pil
           - python3-pip
-          - python3-smbus
           - python3-smbus
           - qpdf
           - raspberrypi-kernel-headers
