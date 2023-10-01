@@ -9,7 +9,7 @@ Default SSH credentials are pi/raspberry
 # FAQ:
 - Is the Raspberry Pi Zero W 2 working perfectly with this image?
 
-  No, sadly not. The WiFi chip and/or the Nexmon firmware is not as stable as I would hope.
+  No, sadly not. The libpcap is not as stable as I would hope.
 - Will it go blind often?
 
   Yes! But I have tried to make it automatically fix **most** errors that may occur.
