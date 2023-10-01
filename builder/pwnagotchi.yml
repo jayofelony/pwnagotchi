@@ -34,6 +34,9 @@
         - apt-daily-upgrade.service
         - bluetooth.service
         - ifup@wlan0.service
+        - dnsmasq.service
+        - wpa_supplicant.service
+        - triggerhappy.service
     packages:
       bettercap:
         # We will install bettercap from source
@@ -43,9 +46,9 @@
         # url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
       apt:
         downgrade:
-          - libpcap0.8-dev_1.9.1-3_arm64.deb
-          - libpcap0.8_1.9.1-3_arm64.deb
-          - libpcap-dev_1.9.1-3_arm64.deb
+          - libpcap0.8-dev_1.9.1-4_arm64.deb
+          - libpcap0.8_1.9.1-4_arm64.deb
+          - libpcap-dev_1.9.1-4_arm64.deb
         hold:
           - libpcap-dev
           - libpcap0.8
@@ -61,89 +64,89 @@
           - triggerhappy
           - wpasupplicant
           - nfs-common
-          - libraspberrypi0
-          - libraspberrypi-dev
-          - libraspberrypi-doc
-          - libraspberrypi-bin
         install:
-          - bluez
-          - raspberrypi-kernel-headers
-          - git
-          - libgmp3-dev
-          - gawk
-          - qpdf
-          - bison
-          - flex
-          - make
-          - autoconf
-          - libtool
-          - texinfo
-          - gcc-arm-none-eabi
-          - wl
-          - libfl-dev
-          - g++
-          - xxd
           - aircrack-ng
-          - time
-          - rsync
-          - vim
-          - wget
-          - screen
+          - autoconf
+          - bc
+          - bison
+          - bluez
+          - build-essential
           - build-essential
           - dkms
-          - python3-pip
-          - python3-smbus
-          - unzip
-          - libopenmpi-dev
-          - libatlas-base-dev
-          - libelf-dev
-          - libopenjp2-7
-          - libtiff5
-          - tcpdump
-          - lsof
-          - libgstreamer1.0-0
-          - libavcodec58
-          - libavformat58
-          - libswscale5
-          - libusb-1.0-0-dev
-          - libnetfilter-queue-dev
-          - libopenmpi3
           - dphys-swapfile
-          - libdbus-1-dev
-          - libdbus-glib-1-dev
-          - liblapack-dev
-          - libhdf5-dev
-          - libc-ares-dev
-          - libeigen3-dev
+          - fbi
+          - flex
           - fonts-dejavu
           - fonts-dejavu-core
           - fonts-dejavu-extra
-          - python3-pil
-          - python3-smbus
-          - libfuse-dev
-          - libatlas-base-dev
-          - libopenblas-dev
-          - libblas-dev
-          - bc
-          - libgl1-mesa-glx
-          - libncursesw5-dev
-          - libssl-dev
-          - libsqlite3-dev
-          - tk-dev
-          - libgdbm-dev
-          - libc6-dev
-          - libbz2-dev
-          - libffi-dev
-          - zlib1g-dev
           - fonts-freefont-ttf
-          - fbi
+          - g++
+          - gawk
+          - gcc-arm-none-eabi
+          - git
+          - libatlas-base-dev
+          - libatlas-base-dev
+          - libavcodec58
+          - libavformat58
+          - libblas-dev
+          - libbz2-dev
+          - libc-ares-dev
+          - libc6-dev
+          - libdbus-1-dev
+          - libdbus-glib-1-dev
+          - libeigen3-dev
+          - libelf-dev
+          - libffi-dev
+          - libfl-dev
+          - libfuse-dev
+          - libgdbm-dev
+          - libgl1-mesa-glx
+          - libgmp3-dev
+          - libgstreamer1.0-0
+          - libhdf5-dev
+          - liblapack-dev
+          - libncursesw5-dev
+          - libnetfilter-queue-dev
+          - libnetfilter-queue-dev
+          - libopenblas-dev
+          - libopenjp2-7
+          - libopenmpi-dev
+          - libopenmpi3
+          - libpcap-dev
+          - libraspberrypi-bin
+          - libraspberrypi-dev
+          - libraspberrypi-doc
+          - libraspberrypi0
+          - libsqlite3-dev
+          - libssl-dev
+          - libswscale5
+          - libtiff5
+          - libtool
+          - libusb-1.0-0-dev
+          - libusb-1.0-0-dev
+          - lsof
+          - make
           - python3-flask
           - python3-flask-cors
           - python3-flaskext.wtf
-          - build-essential
-          - libpcap-dev
-          - libusb-1.0-0-dev
-          - libnetfilter-queue-dev
+          - python3-pil
+          - python3-pip
+          - python3-smbus
+          - python3-smbus
+          - qpdf
+          - raspberrypi-kernel-headers
+          - rsync
+          - screen
+          - tcpdump
+          - texinfo
+          - time
+          - tk-dev
+          - unzip
+          - vim
+          - wget
+          - wl
+          - xxd
+          - zlib1g-dev
   environment:
     ARCHFLAGS: "-arch arm64"
 
@@ -154,6 +157,7 @@
       password: "{{ 'raspberry' | password_hash('sha512') }}"
       shell: /bin/bash
       generate_ssh_key: true
+      group: sudo
 
   - name: change hostname
     lineinfile:
@@ -190,7 +194,6 @@
       update_cache: yes
 
   - name: install packages
-    become_user: root
     apt:
       name: "{{ packages.apt.install }}"
       state: present
@@ -456,19 +459,16 @@
         fi
 
   - name: create /etc/pwnagotchi folder
-    become_user: root
     file:
       path: /etc/pwnagotchi
       state: directory
 
   - name: check if user configuration exists
-    become_user: root
     stat:
       path: /etc/pwnagotchi/config.toml
     register: user_config
 
   - name: create /etc/pwnagotchi/config.toml
-    become_user: root
     copy:
       dest: /etc/pwnagotchi/config.toml
       content: |
@@ -479,13 +479,11 @@
     when: not user_config.stat.exists
 
   - name: enable ssh on boot
-    become_user: root
     file:
       path: /boot/ssh
       state: touch
 
   - name: adjust /boot/config.txt
-    become_user: root
     lineinfile:
       dest: /boot/config.txt
       insertafter: EOF
@@ -493,7 +491,6 @@
     with_items: "{{system.boot_options}}"
 
   - name: adjust /etc/modules
-    become_user: root
     lineinfile:
       dest: /etc/modules
       insertafter: EOF
@@ -501,7 +498,6 @@
     with_items: "{{system.modules}}"
 
   - name: change root partition
-    become_user: root
     replace:
       dest: /boot/cmdline.txt
       backup: no
@@ -509,7 +505,6 @@
       replace: "root=/dev/mmcblk0p2"
 
   - name: configure /boot/cmdline.txt
-    become_user: root
     lineinfile:
       path: /boot/cmdline.txt
       backrefs: True
@@ -532,12 +527,11 @@
 
   - name: download old libpcap packages
     get_url:
-      url: "http://ports.ubuntu.com/pool/main/libp/libpcap/{{ item }}"
+      url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
       dest: /usr/local/src/
     with_items: "{{ packages.apt.downgrade }}"
 
   - name: install old libpcap packages
-    become_user: root
     apt:
       force: True
       state: present
@@ -546,14 +540,12 @@
     register: libpcap
 
   - name: remove old libpcap files
-    become_user: root
     file:
       path: "/usr/local/src/{{ item }}"
       state: absent
     with_items: "{{ packages.apt.downgrade }}"
 
   - name: add firmware packages to hold
-    become_user: root
     dpkg_selections:
       name: "{{ item }}"
       selection: hold
@@ -561,7 +553,6 @@
     when: libpcap.changed
 
   - name: disable unnecessary services
-    become_user: root
     systemd:
       name: "{{ item }}"
       state: stopped
@@ -569,7 +560,6 @@
     with_items: "{{ services.disable }}"
 
   - name: enable services
-    become_user: root
     systemd:
       name: "{{ item }}"
       enabled: true
@@ -577,7 +567,6 @@
     with_items: "{{ services.enable }}"
 
   - name: remove ssh keys
-    become_user: root
     file:
       state: absent
       path: "{{ item }}"
@@ -585,24 +574,20 @@
       - "/etc/ssh/ssh_host*_key*"
 
   - name: remove unnecessary apt packages
-    become_user: root
     apt:
       name: "{{ packages.apt.remove }}"
       state: absent
       purge: yes
 
   - name: clean apt cache
-    become_user: root
     apt:
       autoclean: true
 
   - name: remove dependencies that are no longer required
-    become_user: root
     apt:
       autoremove: yes
 
   handlers:
   - name: reload systemd services
-    become_user: root
     systemd:
       daemon_reload: yes

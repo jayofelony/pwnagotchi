@@ -166,4 +166,3 @@ def reboot(mode=None):
 
     os.system("sync")
     os.system("shutdown -r now")
-    os.system("service pwnagotchi restart")

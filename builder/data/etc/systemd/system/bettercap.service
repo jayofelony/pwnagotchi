@@ -7,7 +7,7 @@ Wants=network.target
 Type=simple
 ExecStart=/usr/bin/bettercap-launcher
 Restart=always
-RestartSec=30
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
