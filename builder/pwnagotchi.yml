@@ -58,7 +58,6 @@
           - libpcap0.8
           - libpcap0.8-dev
         remove:
-          - dhcpcd5
           - nfs-common
           - raspberrypi-net-mods
           - triggerhappy
@@ -471,10 +470,26 @@
         # ui.display.type = "waveshare_2"
     when: not user_config.stat.exists
 
+  - name: Delete motd
+    file:
+      state: absent
+      path: /etc/motd
+
+  - name: Delete motd 10-uname
+    file:
+      state: absent
+      path: /etc/update-motd.d/10-uname
+
   - name: enable ssh on boot
     file:
       path: /boot/ssh
       state: touch
+
+  - name: disable wlan0 in dhcpcd.conf
+    lineinfile:
+      dest: /etc/dhcpcd.conf
+      insertafter: EOF
+      line: "denyinterfaces wlan0"
 
   - name: adjust /boot/config.txt
     lineinfile:
