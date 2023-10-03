@@ -12,19 +12,6 @@
   ],
   "provisioners": [
     {
-      "type": "shell",
-      "inline": [
-        "mkdir -p /usr/local/src/pwnagotchi"
-      ]
-    },
-    {
-      "type": "file",
-      "sources": [
-        "../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
-      ],
-      "destination": "/usr/local/src/pwnagotchi/"
-    },
-    {
       "type": "file",
       "source": "../builder/data/usr/bin/pwnlib",
       "destination": "/usr/bin/pwnlib"

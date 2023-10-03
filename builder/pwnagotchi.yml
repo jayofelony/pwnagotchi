@@ -346,10 +346,23 @@
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
 
-  - name: Install pwnagotchi from source archive
+  - name: clone pwnagotchi repository
+    git:
+      repo: https://github.com/evilsocket/pwnagotchi.git
+      dest: /usr/local/src/pwnagotchi
+    register: pwnagotchigit
+
+  - name: build pwnagotchi wheel
+    command: "python3 setup.py sdist bdist_wheel"
+    args:
+      chdir: /usr/local/src/pwnagotchi
+    when: pwnagotchigit.changed
+
+  - name: install pwnagotchi wheel and dependencies
     pip:
-      name: /usr/local/src/pwnagotchi/pwnagotchi-{{ pwnagotchi.version }}.tar.gz
-      extra_args: --verbose --prefer-binary --ignore-installed
+      name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
+      extra_args: "--no-cache-dir"
+    when: pwnagotchigit.changed
 
   - name: create /usr/local/share/pwnagotchi/ folder
     file:
