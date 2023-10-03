@@ -369,7 +369,6 @@
       state: absent
       path: /usr/local/src/pwnagotchi
 
-
   - name: create /usr/local/share/pwnagotchi/ folder
     file:
       path: /usr/local/share/pwnagotchi/
