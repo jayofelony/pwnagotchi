@@ -327,6 +327,11 @@
       src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
       dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
+  - name: archive brcmfmac.ko
+    archive:
+      path: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+      dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz"
+
   - name : load brcmfmac drivers
     command: "/sbin/depmod -a {{ kernel.full }}"
 
@@ -341,28 +346,15 @@
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
 
-  - name: clone pwnagotchi repository
-    git:
-      repo: https://github.com/jayofelony/pwnagotchi.git
-      dest: /usr/local/src/pwnagotchi
-    register: pwnagotchigit
+  - name: Install pwnagotchi from source archive
+    pip:
+      name: /usr/local/src/pwnagotchi/pwnagotchi-{{ pwnagotchi.version }}.tar.gz
+      extra_args: --verbose --prefer-binary --ignore-installed
 
   - name: create /usr/local/share/pwnagotchi/ folder
     file:
       path: /usr/local/share/pwnagotchi/
       state: directory
-
-  - name: build pwnagotchi wheel
-    command: "python3 setup.py sdist bdist_wheel"
-    args:
-      chdir: /usr/local/src/pwnagotchi
-    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
-
-  - name: install pwnagotchi wheel and dependencies
-    pip:
-      name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
-      extra_args: "--no-cache-dir"
-    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: remove pwnagotchi folder
     file:
