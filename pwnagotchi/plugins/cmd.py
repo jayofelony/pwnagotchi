@@ -201,7 +201,7 @@ def list_plugins(args, config, pattern='*'):
     max_len_list = available_and_installed if args.installed else available_not_installed
     max_len = max(map(len, max_len_list))
     header = line.format(name='Plugin', width=max_len, version='Version', enabled='Active', status='Status')
-    line_length = max(max_len, len('Plugin')) + len(header) - len('Plugin') - 12 # lol
+    line_length = max(max_len, len('Plugin')) + len(header) - len('Plugin') - 12  # lol
 
     print('-' * line_length)
     print(header)
@@ -223,13 +223,11 @@ def list_plugins(args, config, pattern='*'):
                 if available_version > installed_version:
                     status = "installed (^)"
 
-            enabled = 'enabled' if plugin in config['main']['plugins'] and \
-                'enabled' in config['main']['plugins'][plugin] and \
-                    config['main']['plugins'][plugin]['enabled'] \
-                        else 'disabled'
+            enabled = 'enabled' if (plugin in config['main']['plugins'] and
+                                    'enabled' in config['main']['plugins'][plugin] and
+                                    config['main']['plugins'][plugin]['enabled']) else 'disabled'
 
             print(line.format(name=plugin, width=max_len, version='.'.join(installed_version), enabled=enabled, status=status))
-
 
     for plugin in sorted(available_not_installed):
         if not fnmatch(plugin, pattern):
