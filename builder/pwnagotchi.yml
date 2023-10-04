@@ -616,13 +616,6 @@
       state: stopped
     with_items: "{{ services.enable }}"
 
-  - name: remove ssh keys
-    file:
-      state: absent
-      path: "{{ item }}"
-    with_fileglob:
-      - "/etc/ssh/ssh_host*_key*"
-
   - name: remove unnecessary apt packages
     apt:
       name: "{{ packages.apt.remove }}"
