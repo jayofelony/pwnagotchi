@@ -344,6 +344,7 @@
     copy:
       src: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
+      follow: true
 
   - name: Delete the firmware blob to avoid it crashing
     file:
