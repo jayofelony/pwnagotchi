@@ -7,6 +7,7 @@
     kernel:
       min: "6.1"
       full: "6.1.21-v8+"
+      arch: "aarch64"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
