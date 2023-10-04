@@ -217,6 +217,19 @@
       insertafter: "DRIVER_FOLDER_NAME = .*$"
       line: "KERNEL_RELEASE = {{ kernel.full }}"
 
+  - name: choose the right kernel arch (bcm43436b0)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      insertafter: "KERNEL_RELEASE = .*$"
+      line: "KERNEL_ARCH = {{ kernel.arch }}"
+
+  - name: choose the right kernel arch (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -m"
+      replace: "KERNEL_ARCH"
+
   - name: choose the right kernel release (replace string) (bcm43436b0)
     replace:
       dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
@@ -235,7 +248,6 @@
       src: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/brcmfmac43436-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43436-sdio.bin
 
-
   - name: choose the right kernel version (bcm43430a1)
     replace:
       dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
@@ -248,6 +260,19 @@
       dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
       insertafter: "DRIVER_FOLDER_NAME = .*$"
       line: "KERNEL_RELEASE = {{ kernel.full }}"
+
+  - name: choose the right kernel arch (bcm43430a1)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+      insertafter: "KERNEL_RELEASE = .*$"
+      line: "KERNEL_ARCH = {{ kernel.arch }}"
+
+  - name: choose the right kernel arch (bcm43430a1)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -m"
+      replace: "KERNEL_ARCH"
 
   - name: choose the right kernel release (replace string) (bcm43430a1)
     replace:
@@ -299,6 +324,19 @@
       dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
       insertafter: "DRIVER_FOLDER_NAME = .*$"
       line: "KERNEL_RELEASE = {{ kernel.full }}"
+
+  - name: choose the right kernel arch (bcm43455c0)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+      insertafter: "DRIVER_RELEASE = .*$"
+      line: "KERNEL_ARCH = {{ kernel.arch }}"
+
+  - name: choose the right kernel arch (replace string) (bcm43455c0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -m"
+      replace: "KERNEL_ARCH"
 
   - name: choose the right kernel release (replace string) (bcm43455c0)
     replace:
