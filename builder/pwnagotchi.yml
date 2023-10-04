@@ -81,7 +81,6 @@
           - fonts-freefont-ttf
           - g++
           - gawk
-          - gcc
           - gcc-arm-none-eabi
           - git
           - libatlas-base-dev
@@ -329,7 +328,7 @@
   - name: choose the right kernel arch (bcm43455c0)
     lineinfile:
       dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
-      insertafter: "DRIVER_RELEASE = .*$"
+      insertafter: "KERNEL_RELEASE = .*$"
       line: "KERNEL_ARCH = {{ kernel.arch }}"
 
   - name: choose the right kernel arch (replace string) (bcm43455c0)
