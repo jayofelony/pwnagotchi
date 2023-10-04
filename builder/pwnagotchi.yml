@@ -142,7 +142,7 @@
           - xxd
           - zlib1g-dev
   environment:
-    ARCHFLAGS: "-arch arm64"
+    ARCHFLAGS: "-arch aarch64"
 
   tasks:
   - name: Create pi user
