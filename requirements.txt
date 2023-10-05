@@ -1,4 +1,4 @@
-gym
+gymnasium
 shimmy
 pycryptodome
 requests

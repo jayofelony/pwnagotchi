@@ -182,14 +182,11 @@
       regexp: "^CONF_SWAPSIZE=.*$"
       line: "CONF_SWAPSIZE=2048"
 
-  - name: update apt package cache
-    apt:
-      update_cache: yes
-
   - name: install packages
     apt:
       name: "{{ packages.apt.install }}"
       state: present
+      update_cache: yes
 
 # Install nexmon to fix wireless scanning (takes 2.5G of space)
   - name: clone nexmon repository
@@ -630,6 +627,10 @@
   - name: clean apt cache
     apt:
       autoclean: true
+
+  - name: clean apt cache
+    apt:
+      clean: true
 
   - name: remove dependencies that are no longer required
     apt:
