@@ -633,4 +633,4 @@
   - name: reload systemd services
     systemd:
       daemon_reload: yes
-  when: enabled.changed
+    when: enabled.changed
