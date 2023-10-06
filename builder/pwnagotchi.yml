@@ -620,14 +620,17 @@
       name: "{{ packages.apt.remove }}"
       state: absent
       purge: yes
+    register: removed
 
   - name: clean apt cache
     apt:
       autoclean: true
+    when: removed.changed
 
   - name: remove dependencies that are no longer required
     apt:
       autoremove: yes
+    when: removed.changed
 
   handlers:
   - name: reload systemd services
