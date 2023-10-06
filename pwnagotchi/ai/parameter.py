@@ -10,7 +10,7 @@ class Parameter(object):
         self.min_value = min_value
         self.max_value = max_value + 1
 
-        # gym.space.Discrete is within [0, 1, 2, ..., n-1]
+        # gymnasium.space.Discrete is within [0, 1, 2, ..., n-1]
         if self.min_value < 0:
             self.scale_factor = abs(self.min_value)
         elif self.min_value > 0:
