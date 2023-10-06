@@ -18,5 +18,5 @@ dbus-python
 toml
 python-dateutil
 websockets
-git+https://github.com/openai/baselines
+https://github.com/openai/baselines
 RPi.GPIO
