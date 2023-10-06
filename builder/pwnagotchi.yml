@@ -59,7 +59,6 @@
           - libpcap0.8
           - libpcap0.8-dev
         remove:
-          - ansible
           - nfs-common
           - raspberrypi-net-mods
           - triggerhappy
