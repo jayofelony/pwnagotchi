@@ -59,6 +59,7 @@
           - libpcap0.8
           - libpcap0.8-dev
         remove:
+          - ansible
           - nfs-common
           - raspberrypi-net-mods
           - triggerhappy
@@ -408,11 +409,6 @@
       path: /usr/local/share/pwnagotchi/
       state: directory
 
-  - name: remove pwnagotchi folder
-    file:
-      state: absent
-      path: /usr/local/src/pwnagotchi
-
   # Install go-1.20.6
   - name: Install go-1.21
     unarchive:
@@ -617,6 +613,7 @@
       enabled: true
       state: stopped
     with_items: "{{ services.enable }}"
+    register: enabled
 
   - name: remove unnecessary apt packages
     apt:
@@ -636,3 +633,4 @@
   - name: reload systemd services
     systemd:
       daemon_reload: yes
+  when: enabled.changed
