@@ -21,14 +21,17 @@ def load(config, agent, epoch, from_disk=True):
         SB_BACKEND = "stable_baselines3"
 
         try:
-            from stable_baselines3.common.vec_env import DummyVecEnv
-            from stable_baselines3.a2c import a2c
+            from stable_baselines3 import A2C
             logging.debug("[ai] A2C imported in %.2fs" % (time.time() - start))
 
             start = time.time()
-            from stable_baselines3.a2c.policies import MlpPolicy
+            from stable_baselines3.a2c import MlpPolicy
             logging.debug("[ai] MlpPolicy imported in %.2fs" % (time.time() - start))
             SB_A2C_POLICY = MlpPolicy
+
+            start = time.time()
+            from stable_baselines3.common.vec_env import DummyVecEnv
+            logging.debug("[ai] DummyVecEnv imported in %.2fs" % (time.time() - start))
 
         except Exception as e:
             logging.debug("[ai] stable_baselines3 not accessible. Trying stable_baselines")
