@@ -180,7 +180,7 @@
     lineinfile:
       path: /etc/dphys-swapfile
       regexp: "^CONF_SWAPSIZE=.*$"
-      line: "CONF_SWAPSIZE=2048"
+      line: "CONF_SWAPSIZE=1048"
 
   - name: install packages
     apt:
