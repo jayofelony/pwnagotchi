@@ -103,7 +103,7 @@
       "inline": [
         "apt-get -y --allow-releaseinfo-change update",
         "apt-get -y dist-upgrade",
-        "apt-get install -y ansible"
+        "apt-get install -y --no-install-recommends ansible"
       ]
     },
     {
