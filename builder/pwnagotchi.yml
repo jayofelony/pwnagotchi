@@ -628,10 +628,6 @@
     apt:
       autoclean: true
 
-  - name: clean apt cache
-    apt:
-      clean: true
-
   - name: remove dependencies that are no longer required
     apt:
       autoremove: yes
