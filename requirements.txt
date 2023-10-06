@@ -21,4 +21,4 @@ websockets
 torch
 torchvision
 stable_baselines3
-RPi.GPI
+RPi.GPIO
