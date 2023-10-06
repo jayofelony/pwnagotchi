@@ -18,7 +18,5 @@ dbus-python
 toml
 python-dateutil
 websockets
-torch
-torchvision
-stable_baselines3
+git+https://github.com/openai/baselines
 RPi.GPIO
