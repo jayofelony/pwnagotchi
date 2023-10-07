@@ -7,7 +7,6 @@
     kernel:
       min: "6.1"
       full: "6.1.21-v8+"
-      arch: "aarch64"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
@@ -204,162 +203,161 @@
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
-  - name: choose the right kernel version (bcm43455c0)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
-      backup: no
-      regexp: "KERNEL_VERSION = .*$"
-      replace: "KERNEL_VERSION = {{ kernel.min }}"
+  #- name: choose the right kernel version (bcm43455c0)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+  #    backup: no
+  #    regexp: "KERNEL_VERSION = .*$"
+  #    replace: "KERNEL_VERSION = {{ kernel.min }}"
 
-  - name: choose the right kernel release (variable) (bcm43455c0)
-    lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
-      insertafter: "DRIVER_FOLDER_NAME = .*$"
-      line: "KERNEL_RELEASE = {{ kernel.full }}"
+  #- name: choose the right kernel release (variable) (bcm43455c0)
+  #  lineinfile:
+  #    dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+  #    insertafter: "DRIVER_FOLDER_NAME = .*$"
+  #    line: "KERNEL_RELEASE = {{ kernel.full }}"
 
-  - name: choose the right kernel arch (bcm43455c0)
-    lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
-      insertafter: "KERNEL_RELEASE = .*$"
-      line: "KERNEL_ARCH = {{ kernel.arch }}"
+  #- name: choose the right kernel arch (bcm43455c0)
+  #  lineinfile:
+  #    dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+  #    insertafter: "KERNEL_RELEASE = .*$"
+  #    line: "KERNEL_ARCH = {{ kernel.arch }}"
 
-  - name: choose the right kernel arch (replace string) (bcm43455c0)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
-      backup: no
-      regexp: "shell uname -m"
-      replace: "KERNEL_ARCH"
+  #- name: choose the right kernel arch (replace string) (bcm43455c0)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+  #    backup: no
+  #    regexp: "shell uname -m"
+  #    replace: "KERNEL_ARCH"
 
-  - name: choose the right kernel release (replace string) (bcm43455c0)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
-      backup: no
-      regexp: "shell uname -r"
-      replace: "KERNEL_RELEASE"
+  #- name: choose the right kernel release (replace string) (bcm43455c0)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
+  #    backup: no
+  #    regexp: "shell uname -r"
+  #    replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43455c0)
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make && make install-firmware"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
-  - name: install new firmware (bcm43455c0)
-    copy:
-      src: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/brcmfmac43455-sdio.bin
-      dest: /usr/lib/firmware/brcm/brcmfmac43455-sdio.bin
-      follow: true
+  #- name: install new firmware (bcm43455c0)
+  #  copy:
+  #    src: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/brcmfmac43455-sdio.bin
+  #    dest: /usr/lib/firmware/brcm/brcmfmac43455-sdio.bin
+  #    follow: true
 
+  #- name: choose the right kernel version (bcm43436b0)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+  #    backup: no
+  #    regexp: "KERNEL_VERSION = .*$"
+  #    replace: "KERNEL_VERSION = {{ kernel.min }}"
 
-  - name: choose the right kernel version (bcm43436b0)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
-      backup: no
-      regexp: "KERNEL_VERSION = .*$"
-      replace: "KERNEL_VERSION = {{ kernel.min }}"
+  #- name: choose the right kernel release (variable) (bcm43436b0)
+  #  lineinfile:
+  #    dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+  #    insertafter: "DRIVER_FOLDER_NAME = .*$"
+  #    line: "KERNEL_RELEASE = {{ kernel.full }}"
 
-  - name: choose the right kernel release (variable) (bcm43436b0)
-    lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
-      insertafter: "DRIVER_FOLDER_NAME = .*$"
-      line: "KERNEL_RELEASE = {{ kernel.full }}"
+  #- name: choose the right kernel arch (bcm43436b0)
+  #  lineinfile:
+  #    dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+  #    insertafter: "KERNEL_RELEASE = .*$"
+  #    line: "KERNEL_ARCH = {{ kernel.arch }}"
 
-  - name: choose the right kernel arch (bcm43436b0)
-    lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
-      insertafter: "KERNEL_RELEASE = .*$"
-      line: "KERNEL_ARCH = {{ kernel.arch }}"
+  #- name: choose the right kernel arch (bcm43436b0)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+  #    backup: no
+  #    regexp: "shell uname -m"
+  #   replace: "KERNEL_ARCH"
 
-  - name: choose the right kernel arch (bcm43436b0)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
-      backup: no
-      regexp: "shell uname -m"
-      replace: "KERNEL_ARCH"
-
-  - name: choose the right kernel release (replace string) (bcm43436b0)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
-      backup: no
-      regexp: "shell uname -r"
-      replace: "KERNEL_RELEASE"
+  #- name: choose the right kernel release (replace string) (bcm43436b0)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+  #    backup: no
+  #    regexp: "shell uname -r"
+  #    replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43436b0)
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make"
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make && make install-firmware"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
-  - name: install new firmware (bcm43436b0)
-    copy:
-      src: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/brcmfmac43436-sdio.bin
-      dest: /usr/lib/firmware/brcm/brcmfmac43436-sdio.bin
-      follow: true
+  #- name: install new firmware (bcm43436b0)
+  #  copy:
+  #    src: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/brcmfmac43436-sdio.bin
+  #    dest: /usr/lib/firmware/brcm/brcmfmac43436-sdio.bin
+  #    follow: true
 
-  - name: choose the right kernel version (bcm43430a1)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
-      backup: no
-      regexp: "KERNEL_VERSION = .*$"
-      replace: "KERNEL_VERSION = {{ kernel.min }}"
+  #- name: choose the right kernel version (bcm43430a1)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+  #    backup: no
+  #    regexp: "KERNEL_VERSION = .*$"
+  #    replace: "KERNEL_VERSION = {{ kernel.min }}"
 
-  - name: choose the right kernel release (variable) (bcm43430a1)
-    lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
-      insertafter: "DRIVER_FOLDER_NAME = .*$"
-      line: "KERNEL_RELEASE = {{ kernel.full }}"
+  #- name: choose the right kernel release (variable) (bcm43430a1)
+  #  lineinfile:
+  #    dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+  #    insertafter: "DRIVER_FOLDER_NAME = .*$"
+  #    line: "KERNEL_RELEASE = {{ kernel.full }}"
 
-  - name: choose the right kernel arch (bcm43430a1)
-    lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
-      insertafter: "KERNEL_RELEASE = .*$"
-      line: "KERNEL_ARCH = {{ kernel.arch }}"
+  #- name: choose the right kernel arch (bcm43430a1)
+  #  lineinfile:
+  #    dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+  #    insertafter: "KERNEL_RELEASE = .*$"
+  #    line: "KERNEL_ARCH = {{ kernel.arch }}"
 
-  - name: choose the right kernel arch (bcm43430a1)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
-      backup: no
-      regexp: "shell uname -m"
-      replace: "KERNEL_ARCH"
+  #- name: choose the right kernel arch (bcm43430a1)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+  #    backup: no
+  #    regexp: "shell uname -m"
+  #    replace: "KERNEL_ARCH"
 
-  - name: choose the right kernel release (replace string) (bcm43430a1)
-    replace:
-      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
-      backup: no
-      regexp: "shell uname -r"
-      replace: "KERNEL_RELEASE"
+  #- name: choose the right kernel release (replace string) (bcm43430a1)
+  #  replace:
+  #    dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
+  #    backup: no
+  #    regexp: "shell uname -r"
+  #    replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43430a1)
-    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make"
+    shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make && make install-firmware"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
 
-  - name: install new firmware (bcm43430a1)
-    copy:
-      src: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac43430-sdio.bin
-      dest: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
-      follow: true
+  #- name: install new firmware (bcm43430a1)
+  #  copy:
+  #    src: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac43430-sdio.bin
+  #    dest: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
+  #    follow: true
 
-  - name: copy 43430-sdio as 43436s-sdio for the special 43430/1 /2
-    copy:
-      src: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
-      dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
-      follow: true
+  #- name: copy 43430-sdio as 43436s-sdio for the special 43430/1 /2
+  #  copy:
+  #    src: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
+  #    dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
+  #    follow: true
 
-  - name: Delete the firmware blob to avoid it crashing
-    file:
-      state: absent
-      path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
+  #- name: Delete the firmware blob to avoid it crashing
+  #  file:
+  #    state: absent
+  #    path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
 
-  - name: Delete the RPiZW firmware blob to avoid it crashing
-    file:
-      state: absent
-      path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
+  #- name: Delete the RPiZW firmware blob to avoid it crashing
+  #  file:
+  #    state: absent
+  #    path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
 
-  - name: Delete the RPi3 firmware blob to avoid it crashing
-    file:
-      state: absent
-      path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
+  #- name: Delete the RPi3 firmware blob to avoid it crashing
+  #  file:
+  #    state: absent
+  #    path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
 
   - name: backup original driver
     command: "mv /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
@@ -370,7 +368,7 @@
       dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
   - name : load brcmfmac drivers
-    command: "/sbin/depmod -a {{ kernel.full }}"
+    command: "/sbin/depmod -a"
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
