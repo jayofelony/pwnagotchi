@@ -7,7 +7,11 @@
       "iso_checksum": "file:https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256",
       "target_image_size": 8568709120,
       "qemu_binary": "qemu-aarch64-static",
-      "output_filename": "../../pwnagotchi-{{user `pwn_version`}}-arm64.img"
+      "output_filename": "../../pwnagotchi-{{user `pwn_version`}}-arm64.img",
+      "qemu_args":[
+        ["-r", "6.1.21-v8+"],
+        ["-m", "aarch64"]
+      ]
     }
   ],
   "provisioners": [
