@@ -271,7 +271,7 @@ def _get_installed(config):
     Get all installed plugins
     """
     installed = dict()
-    search_dirs = [ default_path, config['main']['custom_plugins'] ]
+    search_dirs = [default_path, config['main']['custom_plugins']]
     for search_dir in search_dirs:
         if search_dir:
             for filename in glob.glob(os.path.join(search_dir, "*.py")):

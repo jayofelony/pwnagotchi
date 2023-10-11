@@ -6,7 +6,7 @@ After=pwngrid-peer.service
 
 [Service]
 Type=simple
-WorkingDirectory=/tmp
+WorkingDirectory=~
 ExecStart=/usr/bin/pwnagotchi-launcher
 Restart=always
 RestartSec=30
