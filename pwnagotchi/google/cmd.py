@@ -1,13 +1,8 @@
 # Handles the commandline stuff
 
-import os
+import pydrive2
+from pydrive2.auth import GoogleAuth
 import logging
-import glob
-import re
-import shutil
-from fnmatch import fnmatch
-from pwnagotchi.utils import download_file, unzip, save_config, parse_version, md5
-from pwnagotchi.plugins import default_path
 
 
 def add_parsers(parser):
@@ -16,45 +11,83 @@ def add_parsers(parser):
     """
     subparsers = parser.add_subparsers()
     # pwnagotchi google
-    parser_plugins = subparsers.add_parser('google')
-    plugin_subparsers = parser_plugins.add_subparsers(dest='googlecmd')
+    parser_google = subparsers.add_parser('google')
+    google_subparsers = parser_google.add_subparsers(dest='googlecmd')
 
     # pwnagotchi plugins search
-    parser_plugins_search = plugin_subparsers.add_parser('search', help='Search for pwnagotchi plugins')
-    parser_plugins_search.add_argument('pattern', type=str, help="Search expression (wildcards allowed)")
+    parser_google_auth = google_subparsers.add_parser('auth', help='Google Authentication')
+    parser_google_auth.add_argument('true', type=str, help="This will start the authentication process")
 
     return parser
 
 
-def used_plugin_cmd(args):
+def used_google_cmd(args):
     """
     Checks if the plugins subcommand was used
     """
-    return hasattr(args, 'plugincmd')
+    return hasattr(args, 'googlecmd')
 
 
-def handle_cmd(args, config):
+def handle_cmd(args):
     """
     Parses the arguments and does the thing the user wants
     """
-    if args.plugincmd == 'update':
-        return update(config)
-    elif args.plugincmd == 'search':
-        args.installed = True # also search in installed plugins
-        return list_plugins(args, config, args.pattern)
-    elif args.plugincmd == 'install':
-        return install(args, config)
-    elif args.plugincmd == 'uninstall':
-        return uninstall(args, config)
-    elif args.plugincmd == 'list':
-        return list_plugins(args, config)
-    elif args.plugincmd == 'enable':
-        return enable(args, config)
-    elif args.plugincmd == 'disable':
-        return disable(args, config)
-    elif args.plugincmd == 'upgrade':
-        return upgrade(args, config, args.pattern)
-    elif args.plugincmd == 'edit':
-        return edit(args, config)
-
+    if args.plugincmd == 'auth':
+        return auth(args)
+    elif args.plugincmd == 'refresh':
+        return refresh(args)
     raise NotImplementedError()
+
+
+def auth(args):
+    if args == "true":
+        # start authentication process
+        user_input = input("By completing these steps you give pwnagotchi access to your personal Google Drive!\n"
+                           "Personal credentials will be stored only locally for automated verification in the future.\n"
+                           "No one else but you have access to these.\n"
+                           "Do you agree? \n\n[y(es)/n(o)]")
+        if user_input.lower() in ('y', 'yes'):
+            try:
+                gauth = GoogleAuth(settings_file="settings.yaml")
+                print(gauth.GetAuthUrl())
+                user_input = input("Please copy this URL into a browser, "
+                                   "complete the verification and then copy/paste the code from addressbar.")
+                gauth.Auth(user_input)
+                gauth.SaveCredentialsFile("credentials.json")
+            except Exception as e:
+                logging.error(f"Error: {e}")
+    return
+
+
+def refresh(args):
+    if int(args):
+        # refresh token for x amount of time (seconds)
+        gauth = GoogleAuth(settings_file="settings.yaml")
+        try:
+            # Try to load saved client credentials
+            gauth.LoadCredentialsFile("credentials.json")
+        except pydrive2.auth.InvalidCredentialsError:
+            print(gauth.GetAuthUrl())
+            user_input = input("Please copy this URL into a browser, "
+                               "complete the verification and then copy/paste the code from addressbar.")
+            gauth.Auth(user_input)
+
+        if gauth.access_token_expired:
+            if gauth.credentials is not None:
+                try:
+                    # Refresh the token
+                    gauth.Refresh()
+                except pydrive2.auth.RefreshError:
+                    print(gauth.GetAuthUrl())
+                    user_input = input("Please copy this URL into a browser, "
+                                       "complete the verification and then copy/paste the code from addressbar.")
+                    gauth.Auth(user_input)
+            else:
+                print(gauth.GetAuthUrl())
+                user_input = input("Please copy this URL into a browser, "
+                                   "complete the verification and then copy/paste the code from addressbar.")
+                gauth.Auth(user_input)
+        gauth.Authorize()
+        gauth.SaveCredentialsFile("credentials.json")
+        print("No refresh is required.")
+    return

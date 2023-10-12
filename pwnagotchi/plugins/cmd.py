@@ -75,7 +75,7 @@ def handle_cmd(args, config):
     if args.plugincmd == 'update':
         return update(config)
     elif args.plugincmd == 'search':
-        args.installed = True # also search in installed plugins
+        args.installed = True  # also search in installed plugins
         return list_plugins(args, config, args.pattern)
     elif args.plugincmd == 'install':
         return install(args, config)
