@@ -126,8 +126,15 @@ if __name__ == '__main__':
     parent_parser.add_argument('--donate', dest="donate", action="store_true", default=False,
                         help="How to donate to this project.")
 
+    # create subparsers
+    subparsers = parent_parser.add_subparsers(title="Actions")
+
     # sub parser plugins
-    parser = plugins_cmd.add_parsers(parent_parser)
+    parser_plugin = subparsers.add_parser("plugins", parents=[parent_parser],
+                                      add_help=False,
+                                      description="The plugins parser",
+                                      help="custom plugins")
+    parser = plugins_cmd.add_parsers(parser_plugin)
     args = parser.parse_args()
 
     if plugins_cmd.used_plugin_cmd(args):
