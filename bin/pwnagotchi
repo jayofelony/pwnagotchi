@@ -108,6 +108,7 @@ if __name__ == '__main__':
 
         # Add parsers from google_cmd
         google_cmd.add_parsers(subparsers)
+
     parser = argparse.ArgumentParser(prog="pwnagotchi")
     # pwnagotchi --help
     parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
