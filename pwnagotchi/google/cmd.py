@@ -16,7 +16,6 @@ def add_parsers(subparsers):
 
     # pwnagotchi plugins search
     parser_google_auth = google_subparsers.add_parser('auth', help='Google Authentication')
-    parser_google_auth.add_argument('bool', type=bool, help="This will start the authentication process")
 
     return subparsers
 
@@ -33,29 +32,28 @@ def handle_cmd(args):
     Parses the arguments and does the thing the user wants
     """
     if args.plugincmd == 'auth':
-        return auth(args.bool)
+        return auth()
     elif args.plugincmd == 'refresh':
         return refresh(args)
     raise NotImplementedError()
 
 
-def auth(args):
-    if args == "true":
-        # start authentication process
-        user_input = input("By completing these steps you give pwnagotchi access to your personal Google Drive!\n"
-                           "Personal credentials will be stored only locally for automated verification in the future.\n"
-                           "No one else but you have access to these.\n"
-                           "Do you agree? \n\n[y(es)/n(o)]")
-        if user_input.lower() in ('y', 'yes'):
-            try:
-                gauth = GoogleAuth(settings_file="settings.yaml")
-                print(gauth.GetAuthUrl())
-                user_input = input("Please copy this URL into a browser, "
-                                   "complete the verification and then copy/paste the code from addressbar.")
-                gauth.Auth(user_input)
-                gauth.SaveCredentialsFile("credentials.json")
-            except Exception as e:
-                logging.error(f"Error: {e}")
+def auth():
+    # start authentication process
+    user_input = input("By completing these steps you give pwnagotchi access to your personal Google Drive!\n"
+                       "Personal credentials will be stored only locally for automated verification in the future.\n"
+                       "No one else but you have access to these.\n"
+                       "Do you agree? \n\n[y(es)/n(o)]")
+    if user_input.lower() in ('y', 'yes'):
+        try:
+            gauth = GoogleAuth(settings_file="settings.yaml")
+            print(gauth.GetAuthUrl())
+            user_input = input("Please copy this URL into a browser, "
+                               "complete the verification and then copy/paste the code from addressbar.")
+            gauth.Auth(user_input)
+            gauth.SaveCredentialsFile("credentials.json")
+        except Exception as e:
+            logging.error(f"Error: {e}")
     return 0
 
 
