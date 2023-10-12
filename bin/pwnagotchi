@@ -98,7 +98,7 @@ def do_auto_mode(agent):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
+    # pwnagotchi --help
     parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
                         help='Main configuration file.')
     parser.add_argument('-U', '--user-config', action='store', dest='user_config', default='/etc/pwnagotchi/config.toml',
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     parser.add_argument('--donate', dest="donate", action="store_true", default=False,
                         help="How to donate to this project.")
 
-    # sub parser plugins
+    # pwnagotchi plugins --help
     parser = plugins_cmd.add_parsers(parser)
     args = parser.parse_args()
 
