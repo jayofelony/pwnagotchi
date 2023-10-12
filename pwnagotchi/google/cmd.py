@@ -14,9 +14,11 @@ def add_parsers(subparsers):
     parser_google = subparsers.add_parser('google')
     google_subparsers = parser_google.add_subparsers(dest='googlecmd')
 
-    # pwnagotchi plugins search
+    # pwnagotchi google auth
     parser_google_auth = google_subparsers.add_parser('auth', help='Google Authentication')
 
+    # pwnagotchi google refresh token
+    parser_google_refresh = google_subparsers.add_parser('refresh', help="Refresh Google authentication token")
     return subparsers
 
 
