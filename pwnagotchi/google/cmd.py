@@ -34,7 +34,7 @@ def handle_cmd(args):
     if args.plugincmd == 'auth':
         return auth()
     elif args.plugincmd == 'refresh':
-        return refresh(args)
+        return refresh()
     raise NotImplementedError()
 
 
@@ -57,35 +57,34 @@ def auth():
     return 0
 
 
-def refresh(args):
-    if int(args):
-        # refresh token for x amount of time (seconds)
-        gauth = GoogleAuth(settings_file="settings.yaml")
-        try:
-            # Try to load saved client credentials
-            gauth.LoadCredentialsFile("credentials.json")
-        except pydrive2.auth.InvalidCredentialsError:
-            print(gauth.GetAuthUrl())
-            user_input = input("Please copy this URL into a browser, "
-                               "complete the verification and then copy/paste the code from addressbar.")
-            gauth.Auth(user_input)
+def refresh():
+    # refresh token for x amount of time (seconds)
+    gauth = GoogleAuth(settings_file="settings.yaml")
+    try:
+        # Try to load saved client credentials
+        gauth.LoadCredentialsFile("credentials.json")
+    except pydrive2.auth.InvalidCredentialsError:
+        print(gauth.GetAuthUrl())
+        user_input = input("Please copy this URL into a browser, "
+                           "complete the verification and then copy/paste the code from addressbar.")
+        gauth.Auth(user_input)
 
-        if gauth.access_token_expired:
-            if gauth.credentials is not None:
-                try:
-                    # Refresh the token
-                    gauth.Refresh()
-                except pydrive2.auth.RefreshError:
-                    print(gauth.GetAuthUrl())
-                    user_input = input("Please copy this URL into a browser, "
-                                       "complete the verification and then copy/paste the code from addressbar.")
-                    gauth.Auth(user_input)
-            else:
+    if gauth.access_token_expired:
+        if gauth.credentials is not None:
+            try:
+                # Refresh the token
+                gauth.Refresh()
+            except pydrive2.auth.RefreshError:
                 print(gauth.GetAuthUrl())
                 user_input = input("Please copy this URL into a browser, "
                                    "complete the verification and then copy/paste the code from addressbar.")
                 gauth.Auth(user_input)
-        gauth.Authorize()
-        gauth.SaveCredentialsFile("credentials.json")
-        print("No refresh is required.")
+        else:
+            print(gauth.GetAuthUrl())
+            user_input = input("Please copy this URL into a browser, "
+                               "complete the verification and then copy/paste the code from addressbar.")
+            gauth.Auth(user_input)
+    gauth.Authorize()
+    gauth.SaveCredentialsFile("credentials.json")
+    print("No refresh is required.")
     return 0
