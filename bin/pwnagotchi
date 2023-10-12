@@ -139,6 +139,8 @@ if __name__ == '__main__':
         rc = plugins_cmd.handle_cmd(args, config)
         sys.exit(rc)
     if google_cmd.used_google_cmd(args):
+        config = utils.load_config(args)
+        log.setup_logging(args, config)
         rc = google_cmd.handle_cmd(args)
         sys.exit(rc)
 
