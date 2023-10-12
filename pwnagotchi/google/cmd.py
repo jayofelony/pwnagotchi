@@ -18,7 +18,7 @@ def add_parsers(subparsers):
     parser_google_auth = google_subparsers.add_parser('auth', help='Google Authentication')
     parser_google_auth.add_argument('bool', type=bool, help="This will start the authentication process")
 
-    return parser
+    return subparsers
 
 
 def used_google_cmd(args):

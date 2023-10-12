@@ -58,7 +58,7 @@ def add_parsers(subparsers):
     parser_plugins_edit = plugin_subparsers.add_parser('edit', help='Edit the options')
     parser_plugins_edit.add_argument('name', type=str, help='Name of the plugin')
 
-    return parser
+    return subparsers
 
 
 def used_plugin_cmd(args):
