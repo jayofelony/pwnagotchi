@@ -33,9 +33,9 @@ def handle_cmd(args):
     """
     Parses the arguments and does the thing the user wants
     """
-    if args.plugincmd == 'auth':
+    if args.googlecmd == 'auth':
         return auth()
-    elif args.plugincmd == 'refresh':
+    elif args.googlecmd == 'refresh':
         return refresh()
     raise NotImplementedError()
 
