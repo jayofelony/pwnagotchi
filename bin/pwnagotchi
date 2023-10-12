@@ -97,43 +97,38 @@ def do_auto_mode(agent):
 
 
 if __name__ == '__main__':
-    parent_parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
 
-    parent_parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
+    parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
                         help='Main configuration file.')
-    parent_parser.add_argument('-U', '--user-config', action='store', dest='user_config', default='/etc/pwnagotchi/config.toml',
+    parser.add_argument('-U', '--user-config', action='store', dest='user_config', default='/etc/pwnagotchi/config.toml',
                         help='If this file exists, configuration will be merged and this will override default values.')
 
-    parent_parser.add_argument('--manual', dest="do_manual", action="store_true", default=False, help="Manual mode.")
-    parent_parser.add_argument('--skip-session', dest="skip_session", action="store_true", default=False,
+    parser.add_argument('--manual', dest="do_manual", action="store_true", default=False, help="Manual mode.")
+    parser.add_argument('--skip-session', dest="skip_session", action="store_true", default=False,
                         help="Skip last session parsing in manual mode.")
 
-    parent_parser.add_argument('--clear', dest="do_clear", action="store_true", default=False,
+    parser.add_argument('--clear', dest="do_clear", action="store_true", default=False,
                         help="Clear the ePaper display and exit.")
 
-    parent_parser.add_argument('--debug', dest="debug", action="store_true", default=False,
+    parser.add_argument('--debug', dest="debug", action="store_true", default=False,
                         help="Enable debug logs.")
 
-    parent_parser.add_argument('--version', dest="version", action="store_true", default=False,
+    parser.add_argument('--version', dest="version", action="store_true", default=False,
                         help="Print the version.")
 
-    parent_parser.add_argument('--print-config', dest="print_config", action="store_true", default=False,
+    parser.add_argument('--print-config', dest="print_config", action="store_true", default=False,
                         help="Print the configuration.")
 
     # Jayofelony added these
-    parent_parser.add_argument('--check-update', dest="check_update", action="store_true", default=False,
+    parser.add_argument('--check-update', dest="check_update", action="store_true", default=False,
                         help="Check for updates on Pwnagotchi. And tells current version.")
-    parent_parser.add_argument('--donate', dest="donate", action="store_true", default=False,
+    parser.add_argument('--donate', dest="donate", action="store_true", default=False,
                         help="How to donate to this project.")
 
     # sub parser plugins
-    parser = parent_parser.add_subparsers(title="actions")
-    parser1 = plugins_cmd.add_parsers(parser)
-    args = parser1.parse_args()
-
-    # sub parser google
-    parser2 = google_cmd.add_parsers(parser)
-    args2 = parser2.parse_args()
+    parser = plugins_cmd.add_parsers(parser)
+    args = parser.parse_args()
 
     if plugins_cmd.used_plugin_cmd(args):
         config = utils.load_config(args)
