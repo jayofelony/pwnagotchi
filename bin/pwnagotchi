@@ -138,6 +138,9 @@ if __name__ == '__main__':
         log.setup_logging(args, config)
         rc = plugins_cmd.handle_cmd(args, config)
         sys.exit(rc)
+    if google_cmd.used_google_cmd(args):
+        rc = google_cmd.handle_cmd(args)
+        sys.exit(rc)
 
     if args.version:
         print(pwnagotchi.__version__)
