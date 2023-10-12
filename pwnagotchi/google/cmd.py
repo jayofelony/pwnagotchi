@@ -3,6 +3,7 @@
 import pydrive2
 from pydrive2.auth import GoogleAuth
 import logging
+import os
 
 
 def add_parsers(subparsers):
@@ -49,6 +50,9 @@ def auth():
     if user_input.lower() in ('y', 'yes'):
         try:
             gauth = GoogleAuth(settings_file="settings.yaml")
+            if not os.path.exists("/root/client_secrets.json"):
+                logging.error("client_secrets.json not found in /root. Please RTFM!")
+                return 0
             print(gauth.GetAuthUrl())
             user_input = input("Please copy this URL into a browser, "
                                "complete the verification and then copy/paste the code from addressbar.")
