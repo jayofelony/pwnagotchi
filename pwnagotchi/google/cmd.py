@@ -16,7 +16,7 @@ def add_parsers(parser):
 
     # pwnagotchi plugins search
     parser_google_auth = google_subparsers.add_parser('auth', help='Google Authentication')
-    parser_google_auth.add_argument('true', type=str, help="This will start the authentication process")
+    parser_google_auth.add_argument('bool', type=bool, help="This will start the authentication process")
 
     return parser
 
@@ -33,7 +33,7 @@ def handle_cmd(args):
     Parses the arguments and does the thing the user wants
     """
     if args.plugincmd == 'auth':
-        return auth(args)
+        return auth(args.bool)
     elif args.plugincmd == 'refresh':
         return refresh(args)
     raise NotImplementedError()
