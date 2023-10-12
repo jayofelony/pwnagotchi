@@ -130,6 +130,7 @@ if __name__ == '__main__':
                         help="How to donate to this project.")
 
     args = parser.parse_args()
+    args2 = parser2.parse_args()
 
     if plugins_cmd.used_plugin_cmd(args):
         config = utils.load_config(args)
