@@ -48,11 +48,11 @@ def auth():
                        "No one else but you have access to these.\n"
                        "Do you agree? \n\n[y(es)/n(o)]")
     if user_input.lower() in ('y', 'yes'):
+        if not os.path.exists("/root/client_secrets.json"):
+            logging.error("client_secrets.json not found in /root. Please RTFM!")
+            return 0
         try:
             gauth = GoogleAuth(settings_file="settings.yaml")
-            if not os.path.exists("/root/client_secrets.json"):
-                logging.error("client_secrets.json not found in /root. Please RTFM!")
-                return 0
             print(gauth.GetAuthUrl())
             user_input = input("Please copy this URL into a browser, "
                                "complete the verification and then copy/paste the code from addressbar.")
