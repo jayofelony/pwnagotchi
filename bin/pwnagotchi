@@ -137,8 +137,8 @@ if __name__ == '__main__':
         log.setup_logging(args, config)
         rc = plugins_cmd.handle_cmd(args, config)
         sys.exit(rc)
-    elif google_cmd.used_google_cmd(args):
-        rc = google_cmd.handle_cmd(args)
+    elif google_cmd.used_google_cmd(args2):
+        rc = google_cmd.handle_cmd(args2)
         sys.exit(rc)
 
     if args.version:
