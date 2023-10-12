@@ -5,11 +5,11 @@ from pydrive2.auth import GoogleAuth
 import logging
 
 
-def add_parsers(parser):
+def add_parsers(subparsers):
     """
     Adds the plugins subcommand to a given argparse.ArgumentParser
     """
-    subparsers = parser.add_subparsers()
+    #subparsers = parser.add_subparsers()
     # pwnagotchi google
     parser_google = subparsers.add_parser('google')
     google_subparsers = parser_google.add_subparsers(dest='googlecmd')
