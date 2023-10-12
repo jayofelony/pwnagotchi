@@ -56,7 +56,7 @@ def auth(args):
                 gauth.SaveCredentialsFile("credentials.json")
             except Exception as e:
                 logging.error(f"Error: {e}")
-    return
+    return 0
 
 
 def refresh(args):
@@ -90,4 +90,4 @@ def refresh(args):
         gauth.Authorize()
         gauth.SaveCredentialsFile("credentials.json")
         print("No refresh is required.")
-    return
+    return 0
