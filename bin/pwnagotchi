@@ -127,8 +127,11 @@ if __name__ == '__main__':
                         help="How to donate to this project.")
 
     # pwnagotchi plugins --help
-    parser = plugins_cmd.add_parsers(parser)
-    args = parser.parse_args()
+    parser_plugins = plugins_cmd.add_parsers(parser)
+    args = parser_plugins.parse_args()
+
+    # pwnagotchi google --help
+    parser_google = google_cmd.add_parsers(parser)
 
     if plugins_cmd.used_plugin_cmd(args):
         config = utils.load_config(args)
