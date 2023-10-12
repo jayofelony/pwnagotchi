@@ -98,6 +98,7 @@ def do_auto_mode(agent):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser = plugins_cmd.add_parsers(parser)
+    parser = google_cmd.add_parsers(parser)
 
     parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
                         help='Main configuration file.')
