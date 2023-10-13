@@ -53,8 +53,13 @@ class GdriveSync(plugins.Plugin):
         try:
             gauth = GoogleAuth(settings_file="/root/settings.yaml")
             gauth.LoadCredentialsFile("/root/credentials.json")
+            if gauth.credentials is None:
+                # Authenticate if they're not there
+                gauth.LocalWebserverAuth()
+            elif gauth.access_token_expired:
+                # Refresh them if expired
+                gauth.Refresh()
             gauth.Authorize()
-
 
             # Create GoogleDrive instance
             self.drive = GoogleDrive(gauth)
