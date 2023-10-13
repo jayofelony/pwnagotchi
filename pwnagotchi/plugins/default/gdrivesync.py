@@ -35,13 +35,11 @@ class GdriveSync(plugins.Plugin):
 
     # Function to get the folder ID by its name
     def get_folder_id_by_name(self, drive, folder_name):
-        try:
-            file_list = drive.ListFile({'q': "name="+folder_name+" and mimetype='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-            if 'files' in file_list and len(file_list['files']) > 0:
-                return file_list['files'][0]['id']
-        except Exception as e:
-            logging.error(f"Error in get_folder_id_by_name: {e}")
-        return None
+        file_list = drive.ListFile({'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
+        for file in file_list:
+            if file['title'] == folder_name:
+                return file['id']
+            return None
 
     def on_loaded(self):
         # client_secrets.json needs to be not empty
@@ -82,7 +80,7 @@ class GdriveSync(plugins.Plugin):
                     print(f"Created folder '{backup_folder_name}' with ID: {backup_folder_id}")
 
                 # Continue with the rest of the code using backup_folder_id
-                file_list = self.drive.ListFile({'q': f"name='{backup_folder_id}' and trashed=false"}).GetList()
+                file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' and trashed=false"}).GetList()
 
                 if not file_list:
                     # Handle the case where no files were found
