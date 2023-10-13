@@ -68,16 +68,15 @@ class GdriveSync(plugins.Plugin):
             # if backup file does not exist, we will check for backup folder on gdrive.
             if not self.backup:
                 # Use self.options['backup_folder'] as the folder ID where backups are stored
-                backup_folder_name = self.options['backup_folder']
-                backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_name)
+                backup_folder_id = self.get_folder_id_by_name(self.drive, self.options['backup_folder'])
 
                 if not backup_folder_id:
                     # If the folder doesn't exist, create it
                     folder = self.drive.CreateFile(
-                        {'title': backup_folder_name, 'mimeType': 'application/vnd.google-apps.folder'})
+                        {'title': self.options['backup_folder'], 'mimeType': 'application/vnd.google-apps.folder'})
                     folder.Upload()
                     backup_folder_id = folder['id']
-                    print(f"Created folder '{backup_folder_name}' with ID: {backup_folder_id}")
+                    print(f"Created folder '{self.options['backup_folder']}' with ID: {backup_folder_id}")
 
                 # Continue with the rest of the code using backup_folder_id
                 file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' and trashed=false"}).GetList()
@@ -89,7 +88,7 @@ class GdriveSync(plugins.Plugin):
                         self.backupfiles = self.backupfiles + self.options['backupfiles']
                     self.backup_files(self.backupfiles, '/backup')
 
-                    self.upload_to_gdrive('/backup', 'PwnagotchiBackups')
+                    self.upload_to_gdrive('/backup', self.options['backup_folder'])
                     self.backup = True
 
                 # Specify the local backup path
