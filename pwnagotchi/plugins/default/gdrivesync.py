@@ -114,7 +114,7 @@ class GdriveSync(plugins.Plugin):
         file_list = drive.ListFile({'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
         for file in file_list:
             if file['title'] == folder_name:
-                return "test"
+                return file['id']
         return None
 
     def on_unload(self, ui):
