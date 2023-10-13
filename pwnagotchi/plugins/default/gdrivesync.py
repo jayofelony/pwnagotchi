@@ -35,6 +35,7 @@ class GdriveSync(plugins.Plugin):
 
     # Function to get the folder ID by its name
     def get_folder_id_by_name(self, drive, folder_name):
+        logging.info(self.options['backup_folder'])
         file_list = drive.ListFile({'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
         for file in file_list:
             if file['title'] == folder_name:
@@ -69,7 +70,6 @@ class GdriveSync(plugins.Plugin):
             if not self.backup:
                 # Use self.options['backup_folder'] as the folder ID where backups are stored
                 backup_folder_name = self.options['backup_folder']
-                logging.info(self.options['backup_folder'])
                 backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_name)
 
                 if not backup_folder_id:
