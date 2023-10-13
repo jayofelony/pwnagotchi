@@ -43,7 +43,6 @@ class GdriveSync(plugins.Plugin):
             self.backup = False
 
         try:
-            logging.error("TEST!!")
             gauth = GoogleAuth(settings_file="/root/settings.yaml")
             gauth.LoadCredentialsFile("/root/credentials.json")
             if gauth.credentials is None:
