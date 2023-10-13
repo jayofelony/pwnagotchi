@@ -43,7 +43,7 @@ class GdriveSync(plugins.Plugin):
 
     def on_loaded(self):
         # client_secrets.json needs to be not empty
-        if os.stat("/root/client_secrets.jso").st_size == 0:
+        if os.stat("/root/client_secrets.json").st_size == 0:
             logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
             return
         # backup file, so we know if there has been a backup made at least once before.
@@ -135,11 +135,11 @@ class GdriveSync(plugins.Plugin):
                 if current_timestamp - self.last_upload_timestamp >= 3600:
                     self.last_upload_timestamp = current_timestamp
                     logging.info("[gdrivesync] new handshake captured, backing up to gdrive")
-                    if self.config['backupfiles'] is not None:
-                        self.backupfiles = self.backupfiles + self.config['backupfiles']
+                    if self.options['backupfiles'] is not None:
+                        self.backupfiles = self.backupfiles + self.options['backupfiles']
                     self.backup_files(self.backupfiles, '/backup')
 
-                    self.upload_to_gdrive('/backup', 'PwnagotchiBackups')
+                    self.upload_to_gdrive('/backup', self.options['backup_folder'])
                     display = agent.view()
                     display.update(force=True, new_data={'Backing up to gdrive ...'})
         except Exception as e:
