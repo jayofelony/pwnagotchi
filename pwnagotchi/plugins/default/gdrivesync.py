@@ -40,7 +40,7 @@ class GdriveSync(plugins.Plugin):
             if 'files' in file_list and len(file_list['files']) > 0:
                 return file_list['files'][0]['id']
         except Exception as e:
-            print(f"Error in get_folder_id_by_name: {e}")
+            logging.error(f"Error in get_folder_id_by_name: {e}")
         return None
 
     def on_loaded(self):
