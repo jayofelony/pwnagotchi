@@ -16,7 +16,7 @@ def add_parsers(subparsers):
     google_subparsers = parser_google.add_subparsers(dest='googlecmd')
 
     # pwnagotchi google auth
-    parser_google_auth = google_subparsers.add_parser('auth', help='Google Authentication')
+    parser_google_auth = google_subparsers.add_parser('login', help='Login to Google')
 
     # pwnagotchi google refresh token
     parser_google_refresh = google_subparsers.add_parser('refresh', help="Refresh Google authentication token")
@@ -34,7 +34,7 @@ def handle_cmd(args):
     """
     Parses the arguments and does the thing the user wants
     """
-    if args.googlecmd == 'auth':
+    if args.googlecmd == 'login':
         return auth()
     elif args.googlecmd == 'refresh':
         return refresh()
@@ -42,13 +42,14 @@ def handle_cmd(args):
 
 
 def auth():
+    print(os.getcwd())
     # start authentication process
     user_input = input("By completing these steps you give pwnagotchi access to your personal Google Drive!\n"
                        "Personal credentials will be stored only locally for automated verification in the future.\n"
                        "No one else but you have access to these.\n"
                        "Do you agree? \n\n[y(es)/n(o)]")
     if user_input.lower() in ('y', 'yes'):
-        if not os.path.exists("client_secrets.json"):
+        if not os.path.exists("/rootclient_secrets.json"):
             logging.error("client_secrets.json not found in /root. Please RTFM!")
             return 0
         try:
