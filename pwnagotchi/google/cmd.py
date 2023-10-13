@@ -42,7 +42,6 @@ def handle_cmd(args):
 
 
 def auth():
-    print(os.getcwd())
     # start authentication process
     user_input = input("By completing these steps you give pwnagotchi access to your personal Google Drive!\n"
                        "Personal credentials will be stored only locally for automated verification in the future.\n"
