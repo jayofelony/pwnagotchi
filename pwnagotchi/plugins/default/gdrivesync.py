@@ -115,7 +115,7 @@ class GdriveSync(plugins.Plugin):
         for file in file_list:
             if file['title'] == folder_name:
                 return file['id']
-            return None
+        return None
 
     def on_unload(self, ui):
         logging.info("[gdrivesync] unloaded")
