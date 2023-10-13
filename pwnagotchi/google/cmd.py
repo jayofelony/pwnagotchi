@@ -46,16 +46,18 @@ def auth():
     user_input = input("By completing these steps you give pwnagotchi access to your personal Google Drive!\n"
                        "Personal credentials will be stored only locally for automated verification in the future.\n"
                        "No one else but you have access to these.\n"
-                       "Do you agree? \n\n[y(es)/n(o)]")
+                       "Do you agree? \n\n[y(es)/n(o)]\n"
+                       "Answer: ")
     if user_input.lower() in ('y', 'yes'):
         if not os.path.exists("/root/client_secrets.json"):
             logging.error("client_secrets.json not found in /root. Please RTFM!")
             return 0
         try:
-            gauth = GoogleAuth(settings_file="/root/settings.yaml")
+            gauth = GoogleAuth(settings_file="settings.yaml")
             print(gauth.GetAuthUrl())
             user_input = input("Please copy this URL into a browser, "
-                               "complete the verification and then copy/paste the code from addressbar.")
+                               "complete the verification and then copy/paste the code from addressbar.\n\n"
+                               "Code: ")
             gauth.Auth(user_input)
             gauth.SaveCredentialsFile("credentials.json")
         except Exception as e:
