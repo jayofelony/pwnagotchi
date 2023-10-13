@@ -111,12 +111,12 @@ class GdriveSync(plugins.Plugin):
             self.ready = False
 
     def get_folder_id_by_name(self, drive, folder_name):
-        logging.info("test")
         file_list = drive.ListFile(
             {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-        logging.info("test2")
         if file_list:
+            logging.info("test")
             return file_list[0]['id']
+        logging.info("test2")
         return None
 
     def on_unload(self, ui):
