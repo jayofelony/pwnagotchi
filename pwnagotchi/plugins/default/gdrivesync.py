@@ -71,7 +71,15 @@ class GdriveSync(plugins.Plugin):
                 backup_folder_name = 'PwnagotchiBackups'
                 backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_name)
 
-                # Get the list of files in the folder
+                if not backup_folder_id:
+                    # If the folder doesn't exist, create it
+                    folder = self.drive.CreateFile(
+                        {'title': backup_folder_name, 'mimeType': 'application/vnd.google-apps.folder'})
+                    folder.Upload()
+                    backup_folder_id = folder['id']
+                    print(f"Created folder '{backup_folder_name}' with ID: {backup_folder_id}")
+
+                # Continue with the rest of the code using backup_folder_id
                 file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' in parents and trashed=false"}).GetList()
 
                 if not file_list:
