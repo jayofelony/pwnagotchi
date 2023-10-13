@@ -59,7 +59,7 @@ def auth():
                                "complete the verification and then copy/paste the code from addressbar.\n\n"
                                "Code: ")
             gauth.Auth(user_input)
-            gauth.SaveCredentialsFile("credentials.json")
+            gauth.SaveCredentialsFile("/root/credentials.json")
         except Exception as e:
             logging.error(f"Error: {e}")
     return 0
@@ -94,7 +94,7 @@ def refresh():
                            "complete the verification and then copy/paste the code from addressbar.\n\n"
                            "Code: ")
         gauth.Auth(user_input)
-
+    gauth.SaveCredentialsFile("/root/credentials.json")
     gauth.Authorize()
     print("Succesfully refresh access token ..")
     return 0

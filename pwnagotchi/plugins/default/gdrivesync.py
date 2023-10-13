@@ -59,6 +59,7 @@ class GdriveSync(plugins.Plugin):
             elif gauth.access_token_expired:
                 # Refresh them if expired
                 gauth.Refresh()
+            gauth.SaveCredentialsFile("/root/credentials.json")
             gauth.Authorize()
 
             # Create GoogleDrive instance
