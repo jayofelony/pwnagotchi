@@ -68,7 +68,7 @@ def refresh():
     gauth = GoogleAuth(settings_file="settings.yaml")
     try:
         # Try to load saved client credentials
-        gauth.LoadCredentialsFile("credentials.json")
+        gauth.LoadCredentialsFile("/root/credentials.json")
     except pydrive2.auth.InvalidCredentialsError:
         print(gauth.GetAuthUrl())
         user_input = input("Please copy this URL into a browser, "
