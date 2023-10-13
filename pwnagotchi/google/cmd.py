@@ -76,6 +76,7 @@ def refresh():
                 try:
                     # Refresh the token
                     gauth.Refresh()
+                    print("Succesfully refresh access token ..")
                 except pydrive2.auth.RefreshError:
                     print(gauth.GetAuthUrl())
                     user_input = input("Please copy this URL into a browser, "
@@ -96,5 +97,5 @@ def refresh():
         gauth.Auth(user_input)
     gauth.SaveCredentialsFile("/root/credentials.json")
     gauth.Authorize()
-    print("Succesfully refresh access token ..")
+    print("No refresh required ..")
     return 0
