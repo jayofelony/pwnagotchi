@@ -68,11 +68,12 @@ class GdriveSync(plugins.Plugin):
             # if backup file does not exist, we will check for PwnagotchiBackups on gdrive.
             if not self.backup:
                 # Assume 'PwnagotchiBackups' is the folder ID where backups are stored
-                backup_folder_id = 'PwnagotchiBackups'
+                backup_folder_name = 'PwnagotchiBackups'
+                backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_name)
 
                 # Get the list of files in the folder
-                file_list = self.drive.ListFile({'q': f"'{self.get_folder_id_by_name(self.drive, backup_folder_id)}"
-                                                      f"' in parents and trashed=false"}).GetList()
+                file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' in parents and trashed=false"}).GetList()
+
                 if not file_list:
                     # Handle the case where no files were found
                     logging.warning(f"[gDriveSync] No files found in the folder with ID {backup_folder_id}")
