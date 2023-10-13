@@ -48,7 +48,7 @@ def auth():
                        "No one else but you have access to these.\n"
                        "Do you agree? \n\n[y(es)/n(o)]")
     if user_input.lower() in ('y', 'yes'):
-        if not os.path.exists("/root/client_secrets.json"):
+        if not os.path.exists("client_secrets.json"):
             logging.error("client_secrets.json not found in /root. Please RTFM!")
             return 0
         try:
@@ -68,7 +68,7 @@ def refresh():
     gauth = GoogleAuth(settings_file="settings.yaml")
     try:
         # Try to load saved client credentials
-        gauth.LoadCredentialsFile("/root/credentials.json")
+        gauth.LoadCredentialsFile("credentials.json")
     except pydrive2.auth.InvalidCredentialsError:
         print(gauth.GetAuthUrl())
         user_input = input("Please copy this URL into a browser, "
