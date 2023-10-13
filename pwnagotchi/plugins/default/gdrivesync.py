@@ -69,12 +69,12 @@ class GdriveSync(plugins.Plugin):
 
             # if backup file does not exist, we will check for backup folder on gdrive.
             if not self.backup:
-                logging.info("test")
                 # Use self.options['backup_folder'] as the folder ID where backups are stored
                 backup_folder_name = self.options['backup_folder']
                 backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_name)
 
                 if not backup_folder_id:
+                    logging.info("test")
                     # If the folder doesn't exist, create it
                     folder = self.drive.CreateFile(
                         {'title': backup_folder_name, 'mimeType': 'application/vnd.google-apps.folder'})
