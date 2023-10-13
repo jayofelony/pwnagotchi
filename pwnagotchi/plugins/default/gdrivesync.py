@@ -105,10 +105,10 @@ class GdriveSync(plugins.Plugin):
             self.ready = False
 
     def get_folder_id_by_name(self, drive, folder_name):
-        file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
-        for file in file_list:
-            if file['title'] == folder_name:
-                return file['id']
+        file_list = drive.ListFile(
+            {'q': "'"+folder_name+"' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
+        if file_list:
+            return file_list[0]['id']
         return None
 
     def on_unload(self, ui):
