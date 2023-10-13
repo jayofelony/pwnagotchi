@@ -61,6 +61,7 @@ class GdriveSync(plugins.Plugin):
             if not self.backup:
                 # Use self.options['backup_folder'] as the folder ID where backups are stored
                 backup_folder_id = self.get_folder_id_by_name(self.drive, self.options['backup_folder'])
+                logging.info("test1")
 
                 if not backup_folder_id:
                     # If the folder doesn't exist, create it
@@ -114,9 +115,7 @@ class GdriveSync(plugins.Plugin):
         file_list = drive.ListFile(
             {'q': "title='" + folder_name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
         if file_list:
-            logging.info("test")
             return file_list[0]['id']
-        logging.info("test2")
         return None
 
     def on_unload(self, ui):
