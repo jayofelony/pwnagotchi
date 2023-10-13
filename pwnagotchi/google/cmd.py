@@ -53,7 +53,7 @@ def auth():
             logging.error("client_secrets.json not found in /root. Please RTFM!")
             return 0
         try:
-            gauth = GoogleAuth(settings_file="settings.yaml")
+            gauth = GoogleAuth(settings_file="/root/settings.yaml")
             print(gauth.GetAuthUrl())
             user_input = input("Please copy this URL into a browser, "
                                "complete the verification and then copy/paste the code from addressbar.\n\n"
