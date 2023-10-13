@@ -50,73 +50,69 @@ class GdriveSync(plugins.Plugin):
         if not os.path.exists("/root/.gdrive-backup"):
             self.backup = False
 
-        try:
-            gauth = GoogleAuth(settings_file="/root/settings.yaml")
-            gauth.LoadCredentialsFile("/root/credentials.json")
-            if gauth.credentials is None:
-                # Authenticate if they're not there
-                gauth.LocalWebserverAuth()
-            elif gauth.access_token_expired:
-                # Refresh them if expired
-                gauth.Refresh()
-            gauth.SaveCredentialsFile("/root/credentials.json")
-            gauth.Authorize()
+        gauth = GoogleAuth(settings_file="/root/settings.yaml")
+        gauth.LoadCredentialsFile("/root/credentials.json")
+        if gauth.credentials is None:
+            # Authenticate if they're not there
+            gauth.LocalWebserverAuth()
+        elif gauth.access_token_expired:
+            # Refresh them if expired
+            gauth.Refresh()
+        gauth.SaveCredentialsFile("/root/credentials.json")
+        gauth.Authorize()
 
-            # Create GoogleDrive instance
-            self.drive = GoogleDrive(gauth)
+        # Create GoogleDrive instance
+        self.drive = GoogleDrive(gauth)
 
-            # if backup file does not exist, we will check for backup folder on gdrive.
-            if not self.backup:
-                # Use self.options['backup_folder'] as the folder ID where backups are stored
-                backup_folder_id = self.get_folder_id_by_name(self.drive, self.options['backup_folder'])
+        # if backup file does not exist, we will check for backup folder on gdrive.
+        if not self.backup:
+            # Use self.options['backup_folder'] as the folder ID where backups are stored
+            backup_folder_id = self.get_folder_id_by_name(self.drive, self.options['backup_folder'])
 
-                if not backup_folder_id:
-                    # If the folder doesn't exist, create it
-                    folder = self.drive.CreateFile(
-                        {'title': self.options['backup_folder'], 'mimeType': 'application/vnd.google-apps.folder'})
-                    folder.Upload()
-                    backup_folder_id = folder['id']
-                    print(f"Created folder '{self.options['backup_folder']}' with ID: {backup_folder_id}")
+            if not backup_folder_id:
+                # If the folder doesn't exist, create it
+                folder = self.drive.CreateFile(
+                    {'title': self.options['backup_folder'], 'mimeType': 'application/vnd.google-apps.folder'})
+                folder.Upload()
+                backup_folder_id = folder['id']
+                print(f"Created folder '{self.options['backup_folder']}' with ID: {backup_folder_id}")
 
-                # Continue with the rest of the code using backup_folder_id
-                file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' and trashed=false"}).GetList()
+            # Continue with the rest of the code using backup_folder_id
+            file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' and trashed=false"}).GetList()
 
-                if not file_list:
-                    # Handle the case where no files were found
-                    logging.warning(f"[gDriveSync] No files found in the folder with ID {backup_folder_id}")
-                    if self.options['backupfiles'] is not None:
-                        self.backupfiles = self.backupfiles + self.options['backupfiles']
-                    self.backup_files(self.backupfiles, '/backup')
+            if not file_list:
+                # Handle the case where no files were found
+                logging.warning(f"[gDriveSync] No files found in the folder with ID {backup_folder_id}")
+                if self.options['backupfiles'] is not None:
+                    self.backupfiles = self.backupfiles + self.options['backupfiles']
+                self.backup_files(self.backupfiles, '/backup')
 
-                    self.upload_to_gdrive('/backup', self.options['backup_folder'])
-                    self.backup = True
-
-                # Specify the local backup path
-                local_backup_path = '/'
-
-                # Create the local backup directory if it doesn't exist
-                os.makedirs(local_backup_path, exist_ok=True)
-
-                # Download each file in the folder
-                for file in file_list:
-                    local_file_path = os.path.join(local_backup_path, file['title'])
-                    file.GetContentFile(local_file_path)
-                    logging.info(f"[gDriveSync] Downloaded {file['title']} from Google Drive")
-
-                # Optionally, you can use the downloaded files as needed
-                # For example, you can copy them to the corresponding directories
+                self.upload_to_gdrive('/backup', self.options['backup_folder'])
                 self.backup = True
-                with open("/root/.gdrive-backup", "w").close():
-                    pass  # Create an empty file
-                # reboot so we can start opwngrid with backup id
-                pwnagotchi.reboot()
 
-            # all set, gdriveSync is ready to run
-            self.ready = True
-            logging.info("[gdrivesync] loaded")
-        except Exception as e:
-            logging.error(f"Error: {e}")
-            self.ready = False
+            # Specify the local backup path
+            local_backup_path = '/'
+
+            # Create the local backup directory if it doesn't exist
+            os.makedirs(local_backup_path, exist_ok=True)
+
+            # Download each file in the folder
+            for file in file_list:
+                local_file_path = os.path.join(local_backup_path, file['title'])
+                file.GetContentFile(local_file_path)
+                logging.info(f"[gDriveSync] Downloaded {file['title']} from Google Drive")
+
+            # Optionally, you can use the downloaded files as needed
+            # For example, you can copy them to the corresponding directories
+            self.backup = True
+            with open("/root/.gdrive-backup", "w").close():
+                pass  # Create an empty file
+            # reboot so we can start opwngrid with backup id
+            pwnagotchi.reboot()
+
+        # all set, gdriveSync is ready to run
+        self.ready = True
+        logging.info("[gdrivesync] loaded")
 
     def on_unload(self, ui):
         logging.info("[gdrivesync] unloaded")
