@@ -113,11 +113,11 @@ class GdriveSync(plugins.Plugin):
         try:
             file_list = drive.ListFile(
                 {'q': "'"+folder_name+"' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-            if file_list:
-                return file_list[0]['id']
         except pydrive2.files.FileNotDownloadableError:
             logging.warning("Folder does not exist ..")
             return None
+        if file_list:
+            return file_list[0]['id']
 
     def on_unload(self, ui):
         logging.info("[gdrivesync] unloaded")
