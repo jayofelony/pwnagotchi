@@ -67,7 +67,7 @@ class GdriveSync(plugins.Plugin):
                         {'title': self.options['backup_folder'], 'mimeType': 'application/vnd.google-apps.folder'})
                     folder.Upload()
                     backup_folder_id = folder['id']
-                    print(f"Created folder '{self.options['backup_folder']}' with ID: {backup_folder_id}")
+                    logging.info(f"[gDriveSync] Created folder '{self.options['backup_folder']}' with ID: {backup_folder_id}")
 
                 # Continue with the rest of the code using backup_folder_id
                 file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' and trashed=false"}).GetList()
@@ -140,7 +140,7 @@ class GdriveSync(plugins.Plugin):
                     display = agent.view()
                     display.update(force=True, new_data={'Backing up to gdrive ...'})
         except Exception as e:
-            logging.error(f"Error during handshake processing: {e}")
+            logging.error(f"[gDriveSync] Error during handshake processing: {e}")
 
     def backup_files(self, paths, dest_path):
         for src_path in paths:
@@ -155,7 +155,7 @@ class GdriveSync(plugins.Plugin):
                 else:
                     shutil.copy2(src_path, dest)
         except Exception as e:
-            logging.error(f"Error during backup_path: {e}")
+            logging.error(f"[gDriveSync] Error during backup_path: {e}")
 
     def upload_to_gdrive(self, backup_path, gdrive_folder):
         try:
@@ -179,7 +179,7 @@ class GdriveSync(plugins.Plugin):
             self.handle_upload_error(api_error, backup_path, gdrive_folder)
 
         except Exception as e:
-            logging.error(f"Error during upload_to_gdrive: {e}")
+            logging.error(f"[gDriveSync] Error during upload_to_gdrive: {e}")
 
     def handle_upload_error(self, api_error, backup_path, gdrive_folder):
         if 'Rate Limit Exceeded' in str(api_error):
