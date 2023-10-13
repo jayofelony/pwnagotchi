@@ -111,7 +111,7 @@ class GdriveSync(plugins.Plugin):
             self.ready = False
 
     def get_folder_id_by_name(self, drive, folder_name):
-        query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+        query = f"name=\"{folder_name}\" and mimeType='application/vnd.google-apps.folder' and trashed=false"
         file_list = drive.ListFile({'q': query}).GetList()
         print(f"Query: {query}")
         for file in file_list:
