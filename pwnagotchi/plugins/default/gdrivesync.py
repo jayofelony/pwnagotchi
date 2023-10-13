@@ -35,7 +35,6 @@ class GdriveSync(plugins.Plugin):
 
     # Function to get the folder ID by its name
     def get_folder_id_by_name(self, drive, folder_name):
-        logging.info(self.options['backup_folder'])
         file_list = drive.ListFile({'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
         for file in file_list:
             if file['title'] == folder_name:
@@ -43,6 +42,7 @@ class GdriveSync(plugins.Plugin):
         return None
 
     def on_loaded(self):
+        logging.info(self.options['backup_folder'])
         # client_secrets.json needs to be not empty
         if os.stat("/root/client_secrets.json").st_size == 0:
             logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
