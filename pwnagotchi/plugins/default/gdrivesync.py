@@ -165,10 +165,9 @@ class GdriveSync(plugins.Plugin):
             existing_folder = self.get_folder_id_by_name(self.drive, gdrive_folder)
             if existing_folder is not None:
                 folder = self.drive.CreateFile({'id': existing_folder})
-            else:
-                # Create a folder on Google Drive if it doesn't exist
-                folder = self.drive.CreateFile({'title': gdrive_folder, 'mimeType': 'application/vnd.google-apps.folder'})
-                folder.Upload()
+            # Create a folder on Google Drive if it doesn't exist
+            folder = self.drive.CreateFile({'title': gdrive_folder, 'mimeType': 'application/vnd.google-apps.folder'})
+            folder.Upload()
 
             # Upload files to the created folder
             for root, dirs, files in os.walk(backup_path):
