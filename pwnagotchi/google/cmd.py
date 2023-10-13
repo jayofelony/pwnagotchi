@@ -96,5 +96,5 @@ def refresh():
         gauth.Auth(user_input)
 
     gauth.Authorize()
-    print("No refresh is required.")
+    print("Succesfully refresh access token ..")
     return 0
