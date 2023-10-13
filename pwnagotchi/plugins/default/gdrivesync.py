@@ -51,7 +51,7 @@ class GdriveSync(plugins.Plugin):
             self.backup = False
 
         try:
-            gauth = GoogleAuth(settings_file="settings.yaml")
+            gauth = GoogleAuth(settings_file="/root/settings.yaml")
             gauth.Authorize()
 
             # Create GoogleDrive instance
