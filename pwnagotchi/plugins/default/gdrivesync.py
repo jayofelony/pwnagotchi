@@ -33,14 +33,6 @@ class GdriveSync(plugins.Plugin):
                     '/etc/pwnagotchi'
                 ]
 
-    # Function to get the folder ID by its name
-    def get_folder_id_by_name(self, drive, folder_name):
-        file_list = drive.ListFile({'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
-        for file in file_list:
-            if file['title'] == folder_name:
-                return file['id']
-        return None
-
     def on_loaded(self):
         # client_secrets.json needs to be not empty
         if os.stat("/root/client_secrets.json").st_size == 0:
@@ -117,6 +109,13 @@ class GdriveSync(plugins.Plugin):
         except Exception as e:
             logging.error(f"Error: {e}")
             self.ready = False
+
+    def get_folder_id_by_name(self, drive, folder_name):
+        file_list = drive.ListFile({'q': "mimeType='application/vnd.google-apps.folder' and trashed=false"}).GetList()
+        for file in file_list:
+            if file['title'] == folder_name:
+                return file['id']
+        return None
 
     def on_unload(self, ui):
         logging.info("[gdrivesync] unloaded")
