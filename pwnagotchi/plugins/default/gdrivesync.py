@@ -43,7 +43,7 @@ class GdriveSync(plugins.Plugin):
 
     def on_loaded(self):
         # client_secrets.json needs to be not empty
-        if os.stat("/root/client_secrets.json").st_size == 0:
+        if os.stat("/root/client_secrets.jso").st_size == 0:
             logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
             return
         # backup file, so we know if there has been a backup made at least once before.
