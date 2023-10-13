@@ -71,6 +71,23 @@ def refresh():
     try:
         # Try to load saved client credentials
         gauth.LoadCredentialsFile("/root/credentials.json")
+        if gauth.access_token_expired:
+            if gauth.credentials is not None:
+                try:
+                    # Refresh the token
+                    gauth.Refresh()
+                except pydrive2.auth.RefreshError:
+                    print(gauth.GetAuthUrl())
+                    user_input = input("Please copy this URL into a browser, "
+                                       "complete the verification and then copy/paste the code from addressbar.\n\n"
+                                       "Code: ")
+                    gauth.Auth(user_input)
+            else:
+                print(gauth.GetAuthUrl())
+                user_input = input("Please copy this URL into a browser, "
+                                   "complete the verification and then copy/paste the code from addressbar.\n\n"
+                                   "Code: ")
+                gauth.Auth(user_input)
     except pydrive2.auth.InvalidCredentialsError:
         print(gauth.GetAuthUrl())
         user_input = input("Please copy this URL into a browser, "
@@ -78,23 +95,6 @@ def refresh():
                            "Code: ")
         gauth.Auth(user_input)
 
-    if gauth.access_token_expired:
-        if gauth.credentials is not None:
-            try:
-                # Refresh the token
-                gauth.Refresh()
-            except pydrive2.auth.RefreshError:
-                print(gauth.GetAuthUrl())
-                user_input = input("Please copy this URL into a browser, "
-                                   "complete the verification and then copy/paste the code from addressbar.\n\n"
-                                   "Code: ")
-                gauth.Auth(user_input)
-        else:
-            print(gauth.GetAuthUrl())
-            user_input = input("Please copy this URL into a browser, "
-                               "complete the verification and then copy/paste the code from addressbar.\n\n"
-                               "Code: ")
-            gauth.Auth(user_input)
     gauth.Authorize()
     print("No refresh is required.")
     return 0
