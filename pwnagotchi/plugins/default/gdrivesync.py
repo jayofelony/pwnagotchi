@@ -40,11 +40,12 @@ class GdriveSync(plugins.Plugin):
             if file['title'] == folder_name:
                 return file['id']
             return None
+        return None
 
     def on_loaded(self):
-        # client_secrets.json needs to be in /root
-        if not os.path.exists("/root/client_secrets.json"):
-            logging.error("client_secrets.json not found in /root. Please RTFM!")
+        # client_secrets.json needs to be not empty
+        if os.stat("/root/client_secrets.json").st_size == 0:
+            logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
             return
         # backup file, so we know if there has been a backup made at least once before.
         if not os.path.exists("/root/.gdrive-backup"):
@@ -109,6 +110,7 @@ class GdriveSync(plugins.Plugin):
                 self.backup = True
                 with open("/root/.gdrive-backup", "w").close():
                     pass  # Create an empty file
+                # reboot so we can start opwngrid with backup id
                 pwnagotchi.reboot()
 
             # all set, gdriveSync is ready to run
