@@ -35,7 +35,7 @@ class GdriveSync(plugins.Plugin):
 
     # Function to get the folder ID by its name
     def get_folder_id_by_name(self, drive, folder_name):
-        file_list = drive.ListFile({'q': "mimeType='application/vnd.google-apps.folder' in parent and trashed=false"}).GetList()
+        file_list = drive.ListFile({'q': "'"+folder_name+"' in parents and trashed=false"}).GetList()
         for file in file_list:
             if file['title'] == folder_name:
                 return file['id']
@@ -65,9 +65,9 @@ class GdriveSync(plugins.Plugin):
             # Create GoogleDrive instance
             self.drive = GoogleDrive(gauth)
 
-            # if backup file does not exist, we will check for PwnagotchiBackups on gdrive.
+            # if backup file does not exist, we will check for backup folder on gdrive.
             if not self.backup:
-                # Assume 'PwnagotchiBackups' is the folder ID where backups are stored
+                # Use self.options['backup_folder'] as the folder ID where backups are stored
                 backup_folder_name = self.options['backup_folder']
                 backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_name)
 
