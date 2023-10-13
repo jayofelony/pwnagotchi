@@ -86,14 +86,15 @@ def refresh():
             except pydrive2.auth.RefreshError:
                 print(gauth.GetAuthUrl())
                 user_input = input("Please copy this URL into a browser, "
-                                   "complete the verification and then copy/paste the code from addressbar.")
+                                   "complete the verification and then copy/paste the code from addressbar.\n\n"
+                                   "Code: ")
                 gauth.Auth(user_input)
         else:
             print(gauth.GetAuthUrl())
             user_input = input("Please copy this URL into a browser, "
-                               "complete the verification and then copy/paste the code from addressbar.")
+                               "complete the verification and then copy/paste the code from addressbar.\n\n"
+                               "Code: ")
             gauth.Auth(user_input)
     gauth.Authorize()
-    gauth.SaveCredentialsFile("credentials.json")
     print("No refresh is required.")
     return 0
