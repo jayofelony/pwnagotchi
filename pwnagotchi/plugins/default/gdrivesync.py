@@ -7,6 +7,7 @@ import pwnagotchi
 import pydrive2
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
+from pwnagotchi.google import cmd as google_cmd
 
 
 class GdriveSync(plugins.Plugin):
@@ -45,14 +46,8 @@ class GdriveSync(plugins.Plugin):
         try:
             gauth = GoogleAuth(settings_file="/root/settings.yaml")
             gauth.LoadCredentialsFile("/root/credentials.json")
-            if gauth.credentials is None:
-                # Authenticate if they're not there
-                gauth.LocalWebserverAuth()
-            elif gauth.access_token_expired:
-                # Refresh them if expired
-                gauth.Refresh()
-            gauth.SaveCredentialsFile("/root/credentials.json")
             gauth.Authorize()
+            gauth.SaveCredentialsFile("/root/credentials.json")
 
             # Create GoogleDrive instance
             self.drive = GoogleDrive(gauth)
