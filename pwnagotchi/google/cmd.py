@@ -74,7 +74,8 @@ def refresh():
     except pydrive2.auth.InvalidCredentialsError:
         print(gauth.GetAuthUrl())
         user_input = input("Please copy this URL into a browser, "
-                           "complete the verification and then copy/paste the code from addressbar.")
+                           "complete the verification and then copy/paste the code from addressbar.\n\n"
+                           "Code: ")
         gauth.Auth(user_input)
 
     if gauth.access_token_expired:
