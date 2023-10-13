@@ -42,8 +42,6 @@ class GdriveSync(plugins.Plugin):
         return None
 
     def on_loaded(self):
-        print("loading ...")
-        logging.info("loading ..")
         # client_secrets.json needs to be not empty
         if os.stat("/root/client_secrets.json").st_size == 0:
             logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
