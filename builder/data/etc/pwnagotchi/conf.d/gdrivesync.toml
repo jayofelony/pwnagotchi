@@ -1,3 +1,4 @@
 main.plugins.gdrivesync.enabled = false
 main.plugins.gdrivesync.backupfiles = ['']
 main.plugins.gdrivesync.backup_folder = "PwnagotchiBackups"
+main.plugin.gdrivesync.interval = 1

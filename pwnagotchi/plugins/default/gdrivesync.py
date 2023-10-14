@@ -7,6 +7,8 @@ import pwnagotchi
 import pydrive2
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
+from threading import Lock
+from pwnagotchi.utils import StatusFile, parse_version as version_to_tuple
 
 
 class GdriveSync(plugins.Plugin):
@@ -19,17 +21,14 @@ class GdriveSync(plugins.Plugin):
     }
 
     def __init__(self):
+        self.lock = Lock()
         self.internet = False
         self.ready = False
         self.drive = None
-        self.last_upload_timestamp = time.time()
+        self.status = StatusFile('/root/.gdrive-backup')
         self.backup = True
         self.backupfiles = [
-                    '/root/brain.nn',
-                    '/root/brain.json',
-                    '/root/.api-report.json',
-                    '/root/handshakes',
-                    '/root/peers',
+                    '/root',
                     '/etc/pwnagotchi'
                 ]
 
@@ -70,7 +69,7 @@ class GdriveSync(plugins.Plugin):
                     logging.info(f"[gDriveSync] Created folder '{self.options['backup_folder']}' with ID: {backup_folder_id}")
 
                 # Continue with the rest of the code using backup_folder_id
-                file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' and trashed=false"}).GetList()
+                file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed=false"}).GetList()
 
                 if not file_list:
                     # Handle the case where no files were found
@@ -97,8 +96,7 @@ class GdriveSync(plugins.Plugin):
                 # Optionally, you can use the downloaded files as needed
                 # For example, you can copy them to the corresponding directories
                 self.backup = True
-                with open("/root/.gdrive-backup", "w").close():
-                    pass  # Create an empty file
+                self.status.update()
                 # reboot so we can start opwngrid with backup id
                 pwnagotchi.reboot()
 
@@ -123,24 +121,27 @@ class GdriveSync(plugins.Plugin):
         self.internet = True
 
     def on_handshake(self, agent):
-        if not self.ready:
+        if self.lock.locked():
             return
-        try:
-            if self.internet:
-                current_timestamp = time.time()
-                # Check if an hour has passed since the last upload
-                if current_timestamp - self.last_upload_timestamp >= 3600:
-                    self.last_upload_timestamp = current_timestamp
-                    logging.info("[gdrivesync] new handshake captured, backing up to gdrive")
-                    if self.options['backupfiles'] is not None:
-                        self.backupfiles = self.backupfiles + self.options['backupfiles']
-                    self.backup_files(self.backupfiles, '/backup')
+        with self.lock:
+            if not self.ready and not self.internet:
+                return
+            try:
+                if self.status.newer_then_hours(self.options['interval']):
+                    logging.debug("[update] last check happened less than %d hours ago" % self.options['interval'])
+                    return
 
-                    self.upload_to_gdrive('/backup', self.options['backup_folder'])
-                    display = agent.view()
-                    display.update(force=True, new_data={'Backing up to gdrive ...'})
-        except Exception as e:
-            logging.error(f"[gDriveSync] Error during handshake processing: {e}")
+                logging.info("[gdrivesync] new handshake captured, backing up to gdrive")
+                if self.options['backupfiles'] is not None:
+                    self.backupfiles = self.backupfiles + self.options['backupfiles']
+                self.backup_files(self.backupfiles, '/backup')
+
+                self.upload_to_gdrive('/backup', self.options['backup_folder'])
+                self.status.update()
+                display = agent.view()
+                display.update(force=True, new_data={'Backing up to gdrive ...'})
+            except Exception as e:
+                logging.error(f"[gDriveSync] Error during handshake processing: {e}")
 
     def backup_files(self, paths, dest_path):
         for src_path in paths:
