@@ -174,6 +174,7 @@ class GdriveSync(plugins.Plugin):
                     relative_filename = os.path.join(gdrive_folder, relative_path, filename)
                     gdrive_file = self.drive.CreateFile({'title': relative_filename, 'parents': [{'id': folder['id']}]})
                     gdrive_file.Upload()
+                    logging.info(f"[gDriveSync] Uploaded {file_path} to Google Drive")
                     uploaded_files_count += 1
 
             # Print the number of uploaded files
