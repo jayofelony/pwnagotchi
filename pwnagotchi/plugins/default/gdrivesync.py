@@ -37,6 +37,9 @@ class GdriveSync(plugins.Plugin):
         ]
 
     def on_loaded(self):
+        """
+
+        """
         # client_secrets.json needs to be not empty
         if os.stat("/root/client_secrets.json").st_size == 0:
             logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
@@ -77,7 +80,7 @@ class GdriveSync(plugins.Plugin):
                         self.backupfiles = self.backupfiles + self.options['backupfiles']
                     self.backup_files(self.backupfiles, '/backup')
 
-                    self.upload_to_gdrive('/backup', self.options['backup_folder'],backup_folder, root_folder, pwnagotchi_folder)
+                    self.upload_to_gdrive('/backup', self.options['backup_folder'], root_folder, pwnagotchi_folder)
                     self.backup = True
 
                 # Specify the local backup path
@@ -241,15 +244,15 @@ class GdriveSync(plugins.Plugin):
 
             logging.info(f"[gDriveSync] Backup uploaded to Google Drive")
         except pydrive2.files.ApiRequestError as api_error:
-            self.handle_upload_error(api_error, backup_path, gdrive_folder)
+            self.handle_upload_error(api_error, backup_path, gdrive_folder, root_folder_id, pwnagotchi_folder_id)
         except Exception as e:
             logging.error(f"[gDriveSync] Error during upload_to_gdrive: {e}")
 
-    def handle_upload_error(self, api_error, backup_path, gdrive_folder):
+    def handle_upload_error(self, api_error, backup_path, gdrive_folder, root_folder_id, pwnagotchi_folder_id):
         if 'Rate Limit Exceeded' in str(api_error):
             logging.warning("[gDriveSync] Rate limit exceeded. Waiting for some time before retrying...")
             # We set to 100 seconds, because there is a limit 20k requests per 100s per user
             time.sleep(100)  # You can adjust the sleep duration based on your needs
-            self.upload_to_gdrive(backup_path, gdrive_folder)
+            self.upload_to_gdrive(backup_path, gdrive_folder, root_folder_id, pwnagotchi_folder_id)
         else:
             logging.error(f"[gDriveSync] API Request Error: {api_error}")
