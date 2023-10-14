@@ -73,7 +73,7 @@ class GdriveSync(plugins.Plugin):
 
                 if not file_list:
                     # Handle the case where no files were found
-                    logging.warning(f"[gDriveSync] No files found in the folder with ID {backup_folder_id}")
+                    # logging.warning(f"[gDriveSync] No files found in the folder with ID {backup_folder_id}")
                     if self.options['backupfiles'] is not None:
                         self.backupfiles = self.backupfiles + self.options['backupfiles']
                     self.backup_files(self.backupfiles, '/backup')
@@ -164,16 +164,18 @@ class GdriveSync(plugins.Plugin):
             if existing_folder is not None:
                 folder = self.drive.CreateFile({'id': existing_folder})
 
-            # Upload files to the created folder
+            # Upload Files to the Created Folder
             uploaded_files_count = 0
             for root, dirs, files in os.walk(backup_path):
                 for filename in files:
                     file_path = os.path.join(root, filename)
                     relative_path = os.path.relpath(file_path, backup_path)
-                    gdrive_file = self.drive.CreateFile(
-                        {'title': os.path.join(gdrive_folder, relative_path), 'parents': [{'id': folder['id']}]})
+                    # Remove the directory part from the filename
+                    relative_filename = os.path.join(gdrive_folder, relative_path, filename)
+                    gdrive_file = self.drive.CreateFile({'title': relative_filename, 'parents': [{'id': folder['id']}]})
                     gdrive_file.Upload()
                     uploaded_files_count += 1
+
             # Print the number of uploaded files
             logging.info(f"[gDriveSync] Uploaded {uploaded_files_count} files to Google Drive")
 
