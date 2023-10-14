@@ -163,19 +163,20 @@ class GdriveSync(plugins.Plugin):
             existing_folder = self.get_folder_id_by_name(self.drive, gdrive_folder)
             if existing_folder is not None:
                 folder = self.drive.CreateFile({'id': existing_folder})
-            # Create a folder on Google Drive if it doesn't exist
-            folder = self.drive.CreateFile({'title': gdrive_folder, 'mimeType': 'application/vnd.google-apps.folder'})
-            folder.Upload()
 
             # Upload files to the created folder
+            uploaded_files_count = 0
             for root, dirs, files in os.walk(backup_path):
                 for filename in files:
                     file_path = os.path.join(root, filename)
-                    gdrive_file = self.drive.CreateFile({'title': filename, 'parents': [{'id': folder['id']}]})
+                    relative_path = os.path.relpath(file_path, backup_path)
+                    gdrive_file = self.drive.CreateFile(
+                        {'title': os.path.join(gdrive_folder, relative_path), 'parents': [{'id': folder['id']}]})
                     gdrive_file.Upload()
-                    logging.info(f"[gDriveSync] Uploaded {file_path} to Google Drive")
+                    uploaded_files_count += 1
+            # Print the number of uploaded files
+            logging.info(f"[gDriveSync] Uploaded {uploaded_files_count} files to Google Drive")
 
-            logging.info(f"[gDriveSync] Backup uploaded to Google Drive")
         except pydrive2.files.ApiRequestError as api_error:
             self.handle_upload_error(api_error, backup_path, gdrive_folder)
 
