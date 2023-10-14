@@ -28,9 +28,13 @@ class GdriveSync(plugins.Plugin):
         self.status = StatusFile('/root/.gdrive-backup')
         self.backup = True
         self.backupfiles = [
-                    '/root',
-                    '/etc/pwnagotchi'
-                ]
+            '/root/brain.nn',
+            '/root/brain.json',
+            '/root/.api-report.json',
+            '/root/handshakes',
+            '/root/peers',
+            '/etc/pwnagotchi'
+        ]
 
     def on_loaded(self):
         # client_secrets.json needs to be not empty
@@ -59,21 +63,14 @@ class GdriveSync(plugins.Plugin):
             # if backup file does not exist, we will check for backup folder on gdrive.
             if not self.backup:
                 # Use self.options['backup_folder'] as the folder ID where backups are stored
-                backup_folder_id = self.get_folder_id_by_name(self.drive, self.options['backup_folder'])
-                if backup_folder_id is None:
-                    # If the folder doesn't exist, create it
-                    folder = self.drive.CreateFile(
-                        {'title': self.options['backup_folder'], 'mimeType': 'application/vnd.google-apps.folder'})
-                    folder.Upload()
-                    backup_folder_id = folder['id']
-                    logging.info(f"[gDriveSync] Created folder '{self.options['backup_folder']}' with ID: {backup_folder_id}")
+                backup_folder_id = self.create_folder_if_not_exists(self.options['backup_folder'])
 
                 # Continue with the rest of the code using backup_folder_id
                 file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed=false"}).GetList()
 
                 if not file_list:
                     # Handle the case where no files were found
-                    # logging.warning(f"[gDriveSync] No files found in the folder with ID {backup_folder_id}")
+                    logging.warning(f"[gDriveSync] No files found in the folder with ID {backup_folder_id}")
                     if self.options['backupfiles'] is not None:
                         self.backupfiles = self.backupfiles + self.options['backupfiles']
                     self.backup_files(self.backupfiles, '/backup')
@@ -113,6 +110,43 @@ class GdriveSync(plugins.Plugin):
             if file['title'] == folder_name:
                 return file['id']
             return None
+
+    def create_folder_if_not_exists(self, backup_folder_name):
+        # First, create or retrieve the *BACKUP_FOLDER* folder
+        backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_name)
+        if backup_folder_id is None:
+            # Now create /*BACKUP_FOLDER*
+            backup_folder = self.drive.CreateFile(
+                {'title': 'PwnagotchiBackups', 'mimeType': 'application/vnd.google-apps.folder'})
+            backup_folder.Upload()
+            backup_folder_id = backup_folder['id']
+            logging.info(f"[gDriveSync] Created folder 'PwnagotchiBackups' with ID: {backup_folder_id}")
+
+            # Now, create /*BACKUP_FOLDER*/root
+            root_folder = self.drive.CreateFile(
+                    {'title': 'root', 'mimeType': 'application/vnd.google-apps.folder',
+                     'parents': [{'id': backup_folder_id}]})
+            root_folder.Upload()
+            root_folder_id = root_folder['id']
+            logging.info(f"[gDriveSync] Created folder 'root' with ID: {root_folder_id}")
+
+            # Now, create /*BACKUP_FOLDER*/etc
+            etc_folder = self.drive.CreateFile(
+                    {'title': 'etc', 'mimeType': 'application/vnd.google-apps.folder',
+                     'parents': [{'id': backup_folder_id}]})
+            etc_folder.Upload()
+            etc_folder_id = etc_folder['id']
+            logging.info(f"[gDriveSync] Created folder 'etc' with ID: {etc_folder_id}")
+
+            # Now, create /*BACKUP_FOLDER*/etc/pwnagotchi
+            pwnagotchi_folder = self.drive.CreateFile(
+                    {'title': 'pwnagotchi', 'mimeType': 'application/vnd.google-apps.folder',
+                     'parents': [{'id': etc_folder_id}]})
+            pwnagotchi_folder.Upload()
+            pwnagotchi_folder_id = pwnagotchi_folder['id']
+            logging.info(f"[gDriveSync] Created folder 'pwnagotchi' under 'etc' with ID: {pwnagotchi_folder_id}")
+
+        return root_folder_id, pwnagotchi_folder_id  # Return the IDs of both root and pwnagotchi folders
 
     def on_unload(self, ui):
         logging.info("[gdrivesync] unloaded")
@@ -160,29 +194,21 @@ class GdriveSync(plugins.Plugin):
 
     def upload_to_gdrive(self, backup_path, gdrive_folder):
         try:
-            existing_folder = self.get_folder_id_by_name(self.drive, gdrive_folder)
-            if existing_folder is not None:
-                folder = self.drive.CreateFile({'id': existing_folder})
+            # Get the ID of the main backup folder
+            backup_folder_id = self.get_folder_id_by_name(self.drive, gdrive_folder)
+            folder = self.drive.CreateFile({'id': backup_folder_id})
 
-            # Upload Files to the Created Folder
-            uploaded_files_count = 0
+            # Upload files and folders to the created folder
             for root, dirs, files in os.walk(backup_path):
                 for filename in files:
                     file_path = os.path.join(root, filename)
-                    relative_path = os.path.relpath(file_path, backup_path)
-                    # Remove the directory part from the filename
-                    relative_filename = os.path.join(gdrive_folder, relative_path, filename)
-                    gdrive_file = self.drive.CreateFile({'title': relative_filename, 'parents': [{'id': folder['id']}]})
+                    gdrive_file = self.drive.CreateFile({'title': filename, 'parents': [{'id': folder['id']}]})
                     gdrive_file.Upload()
                     logging.info(f"[gDriveSync] Uploaded {file_path} to Google Drive")
-                    uploaded_files_count += 1
 
-            # Print the number of uploaded files
-            logging.info(f"[gDriveSync] Uploaded {uploaded_files_count} files to Google Drive")
-
+            logging.info(f"[gDriveSync] Backup uploaded to Google Drive")
         except pydrive2.files.ApiRequestError as api_error:
             self.handle_upload_error(api_error, backup_path, gdrive_folder)
-
         except Exception as e:
             logging.error(f"[gDriveSync] Error during upload_to_gdrive: {e}")
 
