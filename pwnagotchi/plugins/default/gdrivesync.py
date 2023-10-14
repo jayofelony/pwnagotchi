@@ -69,8 +69,7 @@ class GdriveSync(plugins.Plugin):
                 backup_folder, root_folder, pwnagotchi_folder = self.create_folder_if_not_exists(self.options['backup_folder'])
 
                 # Continue with the rest of the code using backup_folder_id
-                root_file_list = self.drive.ListFile({
-                                                               'q': f"'{root_folder}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed=false"}).GetList()
+                root_file_list = self.drive.ListFile({'q': f"'{root_folder}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed=false"}).GetList()
                 pwnagotchi_file_list = self.drive.ListFile({'q': f"'{pwnagotchi_folder}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed=false"}).GetList()
 
                 if not (root_file_list or pwnagotchi_file_list):
