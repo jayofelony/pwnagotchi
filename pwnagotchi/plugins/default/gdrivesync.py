@@ -107,6 +107,7 @@ class GdriveSync(plugins.Plugin):
                         zip_ref.extractall('/')
 
                     self.status.update()
+                    os.remove("/backup")
                     # Reboot so we can start opwngrid with the backup id
                     pwnagotchi.reboot()
 
@@ -195,6 +196,7 @@ class GdriveSync(plugins.Plugin):
 
             # Cleanup the local zip file
             os.remove(zip_file_path)
+            os.remove("/backup")
             self.status.update()
             display = agent.view()
             display.update(force=True, new_data={'Backing up to gdrive ...'})
