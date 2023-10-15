@@ -21,3 +21,4 @@ websockets
 tensorflow
 stable_baselines3
 RPi.GPIO
+pydrive2
