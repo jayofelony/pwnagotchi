@@ -1,0 +1,4 @@
+main.plugins.wigle.enabled = false
+main.plugins.wigle.api_key = ""
+main.plugins.wigle.whitelist = []
+main.plugins.wigle.donate = true

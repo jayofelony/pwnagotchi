@@ -1,0 +1,2 @@
+main.plugins.paw-gps.enabled = false
+main.plugins.paw-gps.ip = "192.168.44.1:8080"

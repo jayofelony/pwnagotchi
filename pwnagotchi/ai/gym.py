@@ -138,13 +138,13 @@ class Environment(gym.Env):
 
         self._last_render = self._epoch_num
 
-        logging.info("[ai] --- training epoch %d/%d ---" % (self._epoch_num, self._agent.training_epochs()))
-        logging.info("[ai] REWARD: %f" % self.last['reward'])
+        logging.info("[AI] --- training epoch %d/%d ---" % (self._epoch_num, self._agent.training_epochs()))
+        logging.info("[AI] REWARD: %f" % self.last['reward'])
 
         logging.debug(
-            "[ai] policy: %s" % ', '.join("%s:%s" % (name, value) for name, value in self.last['params'].items()))
+            "[AI] policy: %s" % ', '.join("%s:%s" % (name, value) for name, value in self.last['params'].items()))
 
-        logging.info("[ai] observation:")
+        logging.info("[AI] observation:")
         for name, value in self.last['state'].items():
             if 'histogram' in name:
                 logging.info("    %s" % name.replace('_histogram', ''))

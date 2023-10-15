@@ -381,6 +381,11 @@
       path: /usr/local/share/pwnagotchi/custom-plugins/
       state: directory
 
+  - name: Create custom config directory
+    file:
+      path: /etc/pwnagotchi/conf.d/
+      state: directory
+
   - name: clone pwnagotchi repository
     git:
       repo: https://github.com/jayofelony/pwnagotchi.git
@@ -626,6 +631,11 @@
     apt:
       autoclean: true
     when: removed.changed
+
+  - name: apt clean
+    shell: "apt clean"
+    args:
+      executable: /bin/bash
 
   - name: remove dependencies that are no longer required
     apt:

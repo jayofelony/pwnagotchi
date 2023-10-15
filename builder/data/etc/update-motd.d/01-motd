@@ -23,9 +23,9 @@ echo "    - sudo pwnagotchi --donate, to see how you can donate to this project"
 echo "    - sudo pwnagotchi --check-update, to see if there is a new version available"
 echo
 echo "    If you want to know if I'm running, you can use"
-echo "    systemctl status pwnagotchi"
+echo "    sudo systemctl status pwnagotchi"
 echo
 echo "    You can restart me using"
-echo "    systemctl restart pwnagotchi"
+echo "    sudo systemctl restart pwnagotchi"
 echo
 echo "    You learn more about me at https://pwnagotchi.ai/"

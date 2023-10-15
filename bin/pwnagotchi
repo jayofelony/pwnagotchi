@@ -10,6 +10,7 @@ import os
 
 import pwnagotchi
 from pwnagotchi import utils
+from pwnagotchi.google import cmd as google_cmd
 from pwnagotchi.plugins import cmd as plugins_cmd
 from pwnagotchi import log
 from pwnagotchi import restart
@@ -96,9 +97,20 @@ def do_auto_mode(agent):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser = plugins_cmd.add_parsers(parser)
+    def add_parsers(parser):
+        """
+        Adds the plugins and google subcommands to a given argparse.ArgumentParser
+        """
+        subparsers = parser.add_subparsers()
 
+        # Add parsers from plugins_cmd
+        plugins_cmd.add_parsers(subparsers)
+
+        # Add parsers from google_cmd
+        google_cmd.add_parsers(subparsers)
+
+    parser = argparse.ArgumentParser(prog="pwnagotchi")
+    # pwnagotchi --help
     parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
                         help='Main configuration file.')
     parser.add_argument('-U', '--user-config', action='store', dest='user_config', default='/etc/pwnagotchi/config.toml',
@@ -126,12 +138,19 @@ if __name__ == '__main__':
     parser.add_argument('--donate', dest="donate", action="store_true", default=False,
                         help="How to donate to this project.")
 
+    # pwnagotchi plugins --help
+    add_parsers(parser)
     args = parser.parse_args()
 
     if plugins_cmd.used_plugin_cmd(args):
         config = utils.load_config(args)
         log.setup_logging(args, config)
         rc = plugins_cmd.handle_cmd(args, config)
+        sys.exit(rc)
+    if google_cmd.used_google_cmd(args):
+        config = utils.load_config(args)
+        log.setup_logging(args, config)
+        rc = google_cmd.handle_cmd(args)
         sys.exit(rc)
 
     if args.version:

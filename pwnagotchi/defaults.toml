@@ -7,9 +7,8 @@ main.custom_plugin_repos = [
     "https://github.com/tisboyo/pwnagotchi-pisugar2-plugin/archive/master.zip",
     "https://github.com/nullm0ose/pwnagotchi-plugin-pisugar3/archive/master.zip"
 ]
-main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
-main.plugins.fix_services.enabled = true
+main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
 main.iface = "wlan0mon"
 main.mon_start_cmd = "/usr/bin/monstart"
@@ -23,102 +22,6 @@ main.whitelist = [
     "fo:od:ba"
 ]
 main.filter = ""
-
-main.plugins.age.enabled = false
-main.plugins.age.age_x_coord = 0
-main.plugins.age.age_y_coord = 32
-main.plugins.age.str_x_coord = 67
-main.plugins.age.str_y_coord = 32
-
-main.plugins.ups_hat_c.enabled = false
-main.plugins.ups_hat_c.label_on = true  # show BAT label or just percentage
-main.plugins.ups_hat_c.shutdown = 5  # battery percent at which the device will turn off
-main.plugins.ups_hat_c.bat_x_coord = 140
-main.plugins.ups_hat_c.bat_y_coord = 0
-
-main.plugins.pisugar2.enabled = false
-main.plugins.pisugar2.shutdown = 5
-main.plugins.pisugar2.sync_rtc_on_boot = false
-
-main.plugins.grid.enabled = true
-main.plugins.grid.report = true
-main.plugins.grid.exclude = [
-    "YourHomeNetworkHere"
-]
-
-main.plugins.auto-update.enabled = true
-main.plugins.auto-update.install = true
-main.plugins.auto-update.interval = 1
-
-main.plugins.net-pos.enabled = false
-main.plugins.net-pos.api_key = "test"
-
-main.plugins.gps.enabled = false
-main.plugins.gps.speed = 19200
-main.plugins.gps.device = "/dev/ttyUSB0"
-
-main.plugins.webgpsmap.enabled = false
-
-main.plugins.onlinehashcrack.enabled = false
-main.plugins.onlinehashcrack.email = ""
-main.plugins.onlinehashcrack.dashboard = ""
-main.plugins.onlinehashcrack.single_files = false
-main.plugins.onlinehashcrack.whitelist = []
-
-main.plugins.wpa-sec.enabled = false
-main.plugins.wpa-sec.api_key = ""
-main.plugins.wpa-sec.api_url = "https://wpa-sec.stanev.org"
-main.plugins.wpa-sec.download_results = false
-main.plugins.wpa-sec.whitelist = []
-
-main.plugins.wigle.enabled = false
-main.plugins.wigle.api_key = ""
-main.plugins.wigle.whitelist = []
-main.plugins.wigle.donate = true
-
-main.plugins.bt-tether.enabled = false
-
-main.plugins.bt-tether.devices.android-phone.enabled = false
-main.plugins.bt-tether.devices.android-phone.search_order = 1
-main.plugins.bt-tether.devices.android-phone.mac = ""
-main.plugins.bt-tether.devices.android-phone.ip = "192.168.44.44"
-main.plugins.bt-tether.devices.android-phone.netmask = 24
-main.plugins.bt-tether.devices.android-phone.interval = 1
-main.plugins.bt-tether.devices.android-phone.scantime = 10
-main.plugins.bt-tether.devices.android-phone.max_tries = 10
-main.plugins.bt-tether.devices.android-phone.share_internet = false
-main.plugins.bt-tether.devices.android-phone.priority = 1
-
-main.plugins.bt-tether.devices.ios-phone.enabled = false
-main.plugins.bt-tether.devices.ios-phone.search_order = 2
-main.plugins.bt-tether.devices.ios-phone.mac = ""
-main.plugins.bt-tether.devices.ios-phone.ip = "172.20.10.6"
-main.plugins.bt-tether.devices.ios-phone.netmask = 24
-main.plugins.bt-tether.devices.ios-phone.interval = 5
-main.plugins.bt-tether.devices.ios-phone.scantime = 20
-main.plugins.bt-tether.devices.ios-phone.max_tries = 0
-main.plugins.bt-tether.devices.ios-phone.share_internet = false
-main.plugins.bt-tether.devices.ios-phone.priority = 999
-
-main.plugins.memtemp.enabled = false
-main.plugins.memtemp.scale = "celsius"
-main.plugins.memtemp.orientation = "horizontal"
-
-main.plugins.paw-gps.enabled = false
-main.plugins.paw-gps.ip = "192.168.44.1:8080"
-
-main.plugins.ups_lite.enabled = false
-main.plugins.ups_lite.shutdown = 2
-
-main.plugins.gpio_buttons.enabled = false
-
-main.plugins.webcfg.enabled = true
-
-main.plugins.logtail.enabled = false
-main.plugins.logtail.max-lines = 10000
-
-main.plugins.session-stats.enabled = true
-main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
 
 main.log.path = "/var/log/pwnagotchi.log"
 main.log.rotation.enabled = true

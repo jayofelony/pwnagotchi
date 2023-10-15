@@ -14,11 +14,11 @@ SAVE_DIR = '/usr/local/share/pwnagotchi/available-plugins/'
 DEFAULT_INSTALL_PATH = '/usr/local/share/pwnagotchi/installed-plugins/'
 
 
-def add_parsers(parser):
+def add_parsers(subparsers):
     """
     Adds the plugins subcommand to a given argparse.ArgumentParser
     """
-    subparsers = parser.add_subparsers()
+    #subparsers = parser.add_subparsers()
     # pwnagotchi plugins
     parser_plugins = subparsers.add_parser('plugins')
     plugin_subparsers = parser_plugins.add_subparsers(dest='plugincmd')
@@ -58,7 +58,7 @@ def add_parsers(parser):
     parser_plugins_edit = plugin_subparsers.add_parser('edit', help='Edit the options')
     parser_plugins_edit.add_argument('name', type=str, help='Name of the plugin')
 
-    return parser
+    return subparsers
 
 
 def used_plugin_cmd(args):
@@ -75,7 +75,7 @@ def handle_cmd(args, config):
     if args.plugincmd == 'update':
         return update(config)
     elif args.plugincmd == 'search':
-        args.installed = True # also search in installed plugins
+        args.installed = True  # also search in installed plugins
         return list_plugins(args, config, args.pattern)
     elif args.plugincmd == 'install':
         return install(args, config)
@@ -271,7 +271,7 @@ def _get_installed(config):
     Get all installed plugins
     """
     installed = dict()
-    search_dirs = [ default_path, config['main']['custom_plugins'] ]
+    search_dirs = [default_path, config['main']['custom_plugins']]
     for search_dir in search_dirs:
         if search_dir:
             for filename in glob.glob(os.path.join(search_dir, "*.py")):

@@ -479,10 +479,12 @@ INDEX = """
 {% endblock %}
 """
 
+
 def serializer(obj):
     if isinstance(obj, set):
         return list(obj)
     raise TypeError
+
 
 class WebConfig(plugins.Plugin):
     __author__ = '33197631+dadav@users.noreply.github.com'
@@ -513,7 +515,6 @@ class WebConfig(plugins.Plugin):
         """
         logging.info("webcfg: Plugin loaded.")
 
-
     def on_webhook(self, path, request):
         """
         Serves the current configuration
@@ -532,7 +533,7 @@ class WebConfig(plugins.Plugin):
         elif request.method == "POST":
             if path == "save-config":
                 try:
-                    save_config(request.get_json(), '/etc/pwnagotchi/config.toml') # test
+                    save_config(request.get_json(), '/etc/pwnagotchi/config.toml')  # test
                     _thread.start_new_thread(restart, (self.mode,))
                     return "success"
                 except Exception as ex:
@@ -547,7 +548,7 @@ class WebConfig(plugins.Plugin):
                         self._agent._config = merge_config(request.get_json(), self._agent._config)
                         logging.debug("    Agent CONFIG:\n%s" % repr(self._agent._config))
                     logging.debug("   Updated CONFIG:\n%s" % request.get_json())
-                    save_config(request.get_json(), '/etc/pwnagotchi/config.toml') # test
+                    save_config(request.get_json(), '/etc/pwnagotchi/config.toml')  # test
                     return "success"
                 except Exception as ex:
                     logging.error("[webcfg mergesave] %s" % ex)
