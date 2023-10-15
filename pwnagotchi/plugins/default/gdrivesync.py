@@ -117,6 +117,7 @@ class GdriveSync(plugins.Plugin):
             self.ready = False
 
     def get_latest_backup_file_id(self, backup_folder_id):
+        backup_folder_id = self.get_folder_id_by_name(self.drive, backup_folder_id)
         # Retrieve the latest backup file in the Google Drive folder
         file_list = self.drive.ListFile({'q': f"'{backup_folder_id}' in parents and trashed=false"}).GetList()
 
