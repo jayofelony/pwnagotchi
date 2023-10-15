@@ -8,7 +8,7 @@ import pydrive2
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
 from threading import Lock
-from pwnagotchi.utils import StatusFile, parse_version as version_to_tuple
+from pwnagotchi.utils import StatusFile
 import zipfile
 
 
@@ -172,35 +172,32 @@ class GdriveSync(plugins.Plugin):
         with self.lock:
             if not self.ready and not self.internet:
                 return
-            try:
-                if self.status.newer_then_hours(self.options['interval']):
-                    logging.debug("[update] last check happened less than %d hours ago" % self.options['interval'])
-                    return
+            if self.status.newer_then_hours(self.options['interval']):
+                logging.debug("[update] last check happened less than %d hours ago" % self.options['interval'])
+                return
 
-                logging.info("[gdrivesync] new handshake captured, backing up to gdrive")
-                if self.options['backupfiles'] is not None:
-                    self.backupfiles = self.backupfiles + self.options['backupfiles']
-                self.backup_files(self.backupfiles, '/backup')
+            logging.info("[gdrivesync] new handshake captured, backing up to gdrive")
+            if self.options['backupfiles'] is not None:
+                self.backupfiles = self.backupfiles + self.options['backupfiles']
+            self.backup_files(self.backupfiles, '/backup')
 
-                # Create a zip archive of the /backup folder
-                zip_file_path = os.path.join('/home/pi', 'backup.zip')
-                with zipfile.ZipFile(zip_file_path, 'w') as zip_ref:
-                    for root, dirs, files in os.walk('/backup'):
-                        for file in files:
-                            file_path = os.path.join(root, file)
-                            arcname = os.path.relpath(file_path, '/backup')
-                            zip_ref.write(file_path, arcname=arcname)
+            # Create a zip archive of the /backup folder
+            zip_file_path = os.path.join('/home/pi', 'backup.zip')
+            with zipfile.ZipFile(zip_file_path, 'w') as zip_ref:
+                for root, dirs, files in os.walk('/backup'):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, '/backup')
+                        zip_ref.write(file_path, arcname=arcname)
 
-                # Upload the zip archive to Google Drive
-                self.upload_to_gdrive(zip_file_path, self.get_folder_id_by_name(self.drive, self.options['backup_folder']))
+            # Upload the zip archive to Google Drive
+            self.upload_to_gdrive(zip_file_path, self.get_folder_id_by_name(self.drive, self.options['backup_folder']))
 
-                # Cleanup the local zip file
-                os.remove(zip_file_path)
-                self.status.update()
-                display = agent.view()
-                display.update(force=True, new_data={'Backing up to gdrive ...'})
-            except Exception as e:
-                logging.error(f"[gDriveSync] Error during handshake processing: {e}")
+            # Cleanup the local zip file
+            os.remove(zip_file_path)
+            self.status.update()
+            display = agent.view()
+            display.update(force=True, new_data={'Backing up to gdrive ...'})
 
     def backup_files(self, paths, dest_path):
         for src_path in paths:
