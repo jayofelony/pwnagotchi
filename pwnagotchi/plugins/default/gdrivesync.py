@@ -78,7 +78,17 @@ class GdriveSync(plugins.Plugin):
                         self.backupfiles = self.backupfiles + self.options['backupfiles']
                     self.backup_files(self.backupfiles, '/backup')
 
-                    self.upload_to_gdrive('/backup', self.options['backup_folder'])
+                    # Create a zip archive of the /backup folder
+                    zip_file_path = os.path.join('/home/pi', 'backup.zip')
+                    with zipfile.ZipFile(zip_file_path, 'w') as zip_ref:
+                        for root, dirs, files in os.walk('/backup'):
+                            for file in files:
+                                file_path = os.path.join(root, file)
+                                arcname = os.path.relpath(file_path, '/backup')
+                                zip_ref.write(file_path, arcname=arcname)
+
+                    # Upload the zip archive to Google Drive
+                    self.upload_to_gdrive(zip_file_path, self.options['backup_folder'])
                     self.backup = True
 
                     # Specify the local backup path
