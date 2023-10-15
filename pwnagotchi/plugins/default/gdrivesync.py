@@ -82,7 +82,7 @@ class GdriveSync(plugins.Plugin):
                     self.backup = True
 
                     # Specify the local backup path
-                    local_backup_path = '/home/pi'
+                    local_backup_path = '/'
 
                     # Create the local backup directory if it doesn't exist
                     os.makedirs(local_backup_path, exist_ok=True)
