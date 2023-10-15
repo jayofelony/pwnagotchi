@@ -38,7 +38,7 @@ class GdriveSync(plugins.Plugin):
 
     def on_loaded(self):
         """
-
+            Called when the plugin is loaded
         """
         # client_secrets.json needs to be not empty
         if os.stat("/root/client_secrets.json").st_size == 0:
@@ -175,9 +175,15 @@ class GdriveSync(plugins.Plugin):
         return subfolder_id
 
     def on_unload(self, ui):
+        """
+            Called when the plugin is unloaded
+        """
         logging.info("[gdrivesync] unloaded")
 
     def on_internet_available(self, agent):
+        """
+            Called when internet is available
+        """
         self.internet = True
 
     def on_handshake(self, agent):
@@ -205,18 +211,20 @@ class GdriveSync(plugins.Plugin):
 
     def backup_files(self, paths, dest_path):
         for src_path in paths:
-            self.backup_path(src_path, dest_path)
+            try:
+                if os.path.exists(src_path):
+                    dest_relative_path = os.path.relpath(src_path, '/')
+                    dest = os.path.join(dest_path, dest_relative_path)
 
-    def backup_path(self, src_path, dest_path):
-        try:
-            if os.path.exists(src_path):
-                dest = os.path.join(dest_path, os.path.basename(src_path))
-                if os.path.isdir(src_path):
-                    shutil.copytree(src_path, dest)
-                else:
-                    shutil.copy2(src_path, dest)
-        except Exception as e:
-            logging.error(f"[gDriveSync] Error during backup_path: {e}")
+                    if os.path.isfile(src_path):
+                        # If it's a file, copy it to the destination preserving the directory structure
+                        os.makedirs(os.path.dirname(dest), exist_ok=True)
+                        shutil.copy2(src_path, dest)
+                    elif os.path.isdir(src_path):
+                        # If it's a directory, copy the entire directory to the destination
+                        shutil.copytree(src_path, dest)
+            except Exception as e:
+                logging.error(f"[gDriveSync] Error during backup_path: {e}")
 
     def upload_to_gdrive(self, backup_path, gdrive_folder, root_folder_id, pwnagotchi_folder_id):
         try:
