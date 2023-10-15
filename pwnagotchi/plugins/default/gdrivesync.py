@@ -227,11 +227,11 @@ class GdriveSync(plugins.Plugin):
         except Exception as e:
             logging.error(f"[gDriveSync] Error during upload_to_gdrive: {e}")
 
-    def handle_upload_error(self, api_error, backup_path, gdrive_folder, root_folder_id, pwnagotchi_folder_id):
+    def handle_upload_error(self, api_error, backup_path, gdrive_folder):
         if 'Rate Limit Exceeded' in str(api_error):
             logging.warning("[gDriveSync] Rate limit exceeded. Waiting for some time before retrying...")
             # We set to 100 seconds, because there is a limit 20k requests per 100s per user
             time.sleep(100)  # You can adjust the sleep duration based on your needs
-            self.upload_to_gdrive(backup_path, gdrive_folder, root_folder_id, pwnagotchi_folder_id)
+            self.upload_to_gdrive(backup_path, gdrive_folder)
         else:
             logging.error(f"[gDriveSync] API Request Error: {api_error}")
