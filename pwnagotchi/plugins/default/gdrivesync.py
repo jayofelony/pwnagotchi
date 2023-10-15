@@ -227,7 +227,7 @@ class GdriveSync(plugins.Plugin):
             zip_file = self.drive.CreateFile({'title': 'backup.zip', 'parents': [{'id': gdrive_folder}]})
 
             # Set the content of the file to the zip file
-            zip_file.SetContentFile(os.path.join(backup_path, 'backup.zip'))
+            zip_file.SetContentFile(backup_path)
 
             # Upload the file to Google Drive
             zip_file.Upload()
