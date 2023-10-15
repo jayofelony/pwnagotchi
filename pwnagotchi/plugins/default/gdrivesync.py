@@ -167,11 +167,11 @@ class GdriveSync(plugins.Plugin):
         self.internet = True
 
     def on_handshake(self, agent):
+        if not self.ready and not self.internet:
+            return
         if self.lock.locked():
             return
         with self.lock:
-            if not self.ready and not self.internet:
-                return
             if self.status.newer_then_hours(self.options['interval']):
                 logging.debug("[update] last check happened less than %d hours ago" % self.options['interval'])
                 return
