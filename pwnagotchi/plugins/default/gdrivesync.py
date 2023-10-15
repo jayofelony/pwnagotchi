@@ -203,7 +203,10 @@ class GdriveSync(plugins.Plugin):
                     if os.path.isfile(src_path):
                         # If it's a file, copy it to the destination preserving the directory structure
                         os.makedirs(os.path.dirname(dest), exist_ok=True)
-                        shutil.copy2(src_path, dest)
+                        # Check if the destination file already exists
+                        if os.path.exists(dest):
+                            # If it exists, remove it to overwrite
+                            os.remove(dest)
                     elif os.path.isdir(src_path):
                         # If it's a directory, copy the entire directory to the destination
                         shutil.copytree(src_path, dest)
@@ -217,7 +220,7 @@ class GdriveSync(plugins.Plugin):
             zip_file = self.drive.CreateFile({'title': 'backup.zip', 'parents': [{'id': gdrive_folder}]})
 
             # Set the content of the file to the zip file
-            zip_file.SetContentFile(os.path.join(backup_path, 'backup.zip'))
+            zip_file.SetContentFile(backup_path)
 
             # Upload the file to Google Drive
             zip_file.Upload()
