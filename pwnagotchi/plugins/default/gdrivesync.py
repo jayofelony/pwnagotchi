@@ -84,9 +84,6 @@ class GdriveSync(plugins.Plugin):
                     # Specify the local backup path
                     local_backup_path = '/'
 
-                    # Create the local backup directory if it doesn't exist
-                    os.makedirs(local_backup_path, exist_ok=True)
-
                     # Download the zip archive from Google Drive
                     zip_file_id = self.get_latest_backup_file_id(self.options['backup_folder'])
                     if zip_file_id:
