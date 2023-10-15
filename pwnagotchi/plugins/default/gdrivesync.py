@@ -70,7 +70,7 @@ class GdriveSync(plugins.Plugin):
                 backup_folder = self.create_folder_if_not_exists(self.options['backup_folder'])
 
                 # Continue with the rest of the code using backup_folder_id
-                backup_folder_file_list = self.drive.ListFile({'q': f"'{backup_folder}' and mimeType = 'application/vnd.google-apps.folder' and trashed=false"}).GetList()
+                backup_folder_file_list = self.drive.ListFile({'q': f"'{backup_folder}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed=false"}).GetList()
                 if not backup_folder_file_list:
                     # Handle the case where no files were found
                     # logging.warning(f"[gDriveSync] No files found in the folder with ID {root_file_list} and {pwnagotchi_file_list}")
@@ -144,21 +144,6 @@ class GdriveSync(plugins.Plugin):
             logging.info(f"[gDriveSync] Created folder '{backup_folder_name}' with ID: {backup_folder_id}")
 
         return backup_folder_id
-
-    def get_or_create_subfolder(self, subfolder_name, parent_folder_id):
-        # Try to retrieve the subfolder
-        subfolder_id = self.get_folder_id_by_name(self.drive, subfolder_name, parent_folder_id)
-
-        if subfolder_id is None:
-            # If not found, create the subfolder
-            subfolder = self.drive.CreateFile(
-                {'title': subfolder_name, 'mimeType': 'application/vnd.google-apps.folder',
-                 'parents': [{'id': parent_folder_id}]})
-            subfolder.Upload()
-            subfolder_id = subfolder['id']
-            logging.info(f"[gDriveSync] Created folder '{subfolder_name}' with ID: {subfolder_id}")
-
-        return subfolder_id
 
     def on_unload(self, ui):
         """
