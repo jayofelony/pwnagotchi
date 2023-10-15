@@ -91,27 +91,27 @@ class GdriveSync(plugins.Plugin):
                     self.upload_to_gdrive(zip_file_path, self.get_folder_id_by_name(self.drive, self.options['backup_folder']))
                     self.backup = True
 
-                    # Specify the local backup path
-                    local_backup_path = '/'
+                # Specify the local backup path
+                local_backup_path = '/'
 
-                    # Download the zip archive from Google Drive
-                    zip_file_id = self.get_latest_backup_file_id(self.options['backup_folder'])
-                    if zip_file_id:
-                        zip_file = self.drive.CreateFile({'id': zip_file_id})
-                        zip_file.GetContentFile(os.path.join(local_backup_path, 'backup.zip'))
-                        logging.info("[gDriveSync] Downloaded backup.zip from Google Drive")
+                # Download the zip archive from Google Drive
+                zip_file_id = self.get_latest_backup_file_id(self.options['backup_folder'])
+                if zip_file_id:
+                    zip_file = self.drive.CreateFile({'id': zip_file_id})
+                    zip_file.GetContentFile(os.path.join(local_backup_path, 'backup.zip'))
+                    logging.info("[gDriveSync] Downloaded backup.zip from Google Drive")
 
-                        # Extract the zip archive to the root directory
-                        with zipfile.ZipFile(os.path.join(local_backup_path, 'backup.zip'), 'r') as zip_ref:
-                            zip_ref.extractall('/')
+                    # Extract the zip archive to the root directory
+                    with zipfile.ZipFile(os.path.join(local_backup_path, 'backup.zip'), 'r') as zip_ref:
+                        zip_ref.extractall('/')
 
-                        self.status.update()
-                        # Reboot so we can start opwngrid with the backup id
-                        pwnagotchi.reboot()
+                    self.status.update()
+                    # Reboot so we can start opwngrid with the backup id
+                    pwnagotchi.reboot()
 
-                    # all set, gdriveSync is ready to run
-                self.ready = True
-                logging.info("[gdrivesync] loaded")
+                # all set, gdriveSync is ready to run
+            self.ready = True
+            logging.info("[gdrivesync] loaded")
         except Exception as e:
             logging.error(f"Error: {e}")
             self.ready = False
