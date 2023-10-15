@@ -90,6 +90,7 @@ class GdriveSync(plugins.Plugin):
                     # Upload the zip archive to Google Drive
                     self.upload_to_gdrive(zip_file_path, self.get_folder_id_by_name(self.drive, self.options['backup_folder']))
                     self.backup = True
+                    self.status.update()
 
                 # Specify the local backup path
                 local_backup_path = '/'
