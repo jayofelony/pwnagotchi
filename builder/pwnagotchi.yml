@@ -633,9 +633,19 @@
     when: removed.changed
 
   - name: apt clean
-    shell: "apt clean"
+    shell: "apt-get clean"
     args:
       executable: /bin/bash
+
+  - name: remove /root/go folder
+    file:
+      state: absent
+      path: /root/go
+
+  - name: remove /usr/local/go folder
+    file:
+      state: absent
+      path: /usr/local/go
 
   - name: remove dependencies that are no longer required
     apt:
