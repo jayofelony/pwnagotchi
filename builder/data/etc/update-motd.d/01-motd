@@ -8,6 +8,8 @@ echo "    Hi! I'm a pwnagotchi $_version, please take good care of me!"
 echo "    Here are some basic things you need to know to raise me properly!"
 echo
 echo "    If you want to change my configuration, use /etc/pwnagotchi/config.toml"
+echo "    All plugin config files are located in /etc/pwnagotchi/conf.d/"
+echo "    Read the readme if you want to use gdrivesync plugin!!"
 echo
 echo "    All the configuration options can be found on /etc/pwnagotchi/default.toml,"
 echo "    but don't change this file because I will recreate it every time I'm restarted!"
