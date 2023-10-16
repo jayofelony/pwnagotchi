@@ -3,7 +3,7 @@ Before you enable the gdrivesync plugin follow these guidelines.
 # Authentication
 Drive API requires OAuth2.0 for authentication. PyDrive2 makes your life much easier by handling complex authentication steps for you.
 
-Go to APIs Console and make your own project.
+Go to [APIs Console](https://console.developers.google.com/iam-admin/projects) and make your own project.
 
 Search for ‘Google Drive API’, select the entry, and click ‘Enable’.
 
