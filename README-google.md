@@ -17,6 +17,11 @@ Enter an appropriate name.
 
 Input http://localhost:8080/ for ‘Authorized redirect URIs’.
 
+Select the correct oauth scope:
+
+    - drive
+    - drive.install
+
 Click ‘Create’.
 
 Click ‘Download JSON’ and copy the contents to /root/client_secrets.json.
