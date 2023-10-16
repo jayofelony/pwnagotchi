@@ -35,3 +35,10 @@ When you have done this please run the following command in your ssh shell:
 `sudo pwnagotchi google login`
 
 And follow the steps, after which you can enable the plugin and let the magic begin.
+
+# Functionality
+Set a backup folder in config file
+
+It will then upload a zip file there of all your backup files.
+
+If you have a new device you only need to login with google and enable the plugin, it will then download the previously made backup and reboot.
