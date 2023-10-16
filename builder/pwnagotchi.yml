@@ -647,6 +647,11 @@
       state: absent
       path: /usr/local/go
 
+  - name: remove pip cache
+    file:
+      state: absent
+      path: /root/.cache/pip
+
   - name: remove dependencies that are no longer required
     apt:
       autoremove: yes
