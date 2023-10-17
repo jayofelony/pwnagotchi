@@ -92,7 +92,8 @@ def cpu_load(tag=None):
         parts0 = _cpu_stat()
         time.sleep(0.1)     # only need to sleep when no tag
     parts1 = _cpu_stat()
-    if tag: _cpu_stats[tag] = parts1
+    if tag:
+        _cpu_stats[tag] = parts1
 
     parts_diff = [p1 - p0 for (p0, p1) in zip(parts0, parts1)]
     user, nice, sys, idle, iowait, irq, softirq, steal, _guest, _guest_nice = parts_diff
