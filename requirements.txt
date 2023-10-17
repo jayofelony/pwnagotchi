@@ -1,4 +1,4 @@
-gymnasium
+gym
 shimmy
 pycryptodome
 requests
@@ -18,7 +18,8 @@ dbus-python
 toml
 python-dateutil
 websockets
-tensorflow
+torch==2.0.1
+torchvision==0.15.2
 stable_baselines3
 RPi.GPIO
 pydrive2
