@@ -529,12 +529,6 @@
       path: /boot/ssh
       state: touch
 
-  - name: disable wlan0 in dhcpcd.conf
-    lineinfile:
-      dest: /etc/dhcpcd.conf
-      insertafter: EOF
-      line: "denyinterfaces wlan0"
-
   - name: adjust /boot/config.txt
     lineinfile:
       dest: /boot/config.txt
