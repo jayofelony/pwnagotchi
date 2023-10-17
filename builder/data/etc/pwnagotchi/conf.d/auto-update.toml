@@ -1,3 +1,0 @@
-main.plugins.auto-update.enabled = true
-main.plugins.auto-update.install = true
-main.plugins.auto-update.interval = 1

@@ -1,5 +1,0 @@
-main.plugins.grid.enabled = true
-main.plugins.grid.report = true
-main.plugins.grid.exclude = [
-    "YourHomeNetworkHere"
-]

@@ -1,2 +1,0 @@
-main.plugins.logtail.enabled = false
-main.plugins.logtail.max-lines = 10000
