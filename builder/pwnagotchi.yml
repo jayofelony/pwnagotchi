@@ -551,6 +551,11 @@
       autoremove: yes
     when: removed.changed
 
+  - name: rfkill unblock all
+    shell: "rfkill unblock all"
+    args:
+      executable: /bin/bash
+
   handlers:
   - name: reload systemd services
     systemd:
