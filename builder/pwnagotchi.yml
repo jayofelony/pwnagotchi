@@ -27,7 +27,6 @@
         - fstrim.timer
         - pwnagotchi.service
         - pwngrid-peer.service
-        - rfkill-unblock@all
       disable:
         - apt-daily-upgrade.service
         - apt-daily-upgrade.timer
