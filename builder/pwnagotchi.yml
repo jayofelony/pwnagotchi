@@ -460,6 +460,12 @@
       regexp: '(.*)$'
       line: '\1 modules-load=dwc2,g_ether'
 
+  - name: rfkill unblock all at boot
+    lineinfile:
+      dest: /boot/cmdline.txt
+      insertafter: EOF
+      line: "systemd.restore_state=0 rfkill.default_state=1"
+
   - name: Add pwnlog alias
     lineinfile:
       dest: /home/pi/.bashrc
