@@ -120,7 +120,7 @@
           - libsqlite3-dev
           - libssl-dev
           - libswscale5
-          - libtiff5
+          - libtiff6
           - libtool
           - libusb-1.0-0-dev
           - lsof
