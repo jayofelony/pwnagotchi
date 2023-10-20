@@ -85,8 +85,6 @@
           - gcc-arm-none-eabi
           - git
           - libatlas-base-dev
-          - libavcodec58
-          - libavformat58
           - libblas-dev
           - libbluetooth3
           - libbz2-dev
