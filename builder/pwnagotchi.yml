@@ -6,7 +6,7 @@
   vars:
     kernel:
       min: "6.1"
-      full: "6.1.21-v8+"
+      full: "6.1.0-rpi4-rpi-v8"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
@@ -27,7 +27,6 @@
         - fstrim.timer
         - pwnagotchi.service
         - pwngrid-peer.service
-        - rfkill-unblock@all
       disable:
         - apt-daily-upgrade.service
         - apt-daily-upgrade.timer
@@ -71,6 +70,7 @@
           - bluez
           - build-essential
           - curl
+          - dhcpcd5
           - dkms
           - dphys-swapfile
           - fbi
@@ -84,8 +84,6 @@
           - gcc-arm-none-eabi
           - git
           - libatlas-base-dev
-          - libavcodec58
-          - libavformat58
           - libblas-dev
           - libbz2-dev
           - libc-ares-dev
@@ -118,7 +116,7 @@
           - libsqlite3-dev
           - libssl-dev
           - libswscale5
-          - libtiff5
+          - libtiff6
           - libtool
           - libusb-1.0-0-dev
           - lsof
