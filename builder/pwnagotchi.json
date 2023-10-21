@@ -51,26 +51,6 @@
     },
     {
       "type": "file",
-      "source": "../builder/data/etc/network/interfaces.d/lo-cfg",
-      "destination": "/etc/network/interfaces.d/lo-cfg"
-    },
-    {
-      "type": "file",
-      "source": "../builder/data/etc/network/interfaces.d/wlan0-cfg",
-      "destination": "/etc/network/interfaces.d/wlan0-cfg"
-    },
-    {
-      "type": "file",
-      "source": "../builder/data/etc/network/interfaces.d/usb0-cfg",
-      "destination": "/etc/network/interfaces.d/usb0-cfg"
-    },
-    {
-      "type": "file",
-      "source": "../builder/data/etc/network/interfaces.d/eth0-cfg",
-      "destination": "/etc/network/interfaces.d/eth0-cfg"
-    },
-    {
-      "type": "file",
       "source": "../builder/data/etc/systemd/system/pwngrid-peer.service",
       "destination": "/etc/systemd/system/pwngrid-peer.service"
     },

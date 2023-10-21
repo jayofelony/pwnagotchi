@@ -223,13 +223,13 @@ def load_config(args):
         if user_config:
             config = merge_config(user_config, config)
     except Exception as ex:
-        logging.error("There was an error processing the configuration file:\n%s ",ex)
+        logging.error("There was an error processing the configuration file:\n%s ", ex)
         sys.exit(1)
 
     # dropins
     dropin = config['main']['confd']
     if dropin and os.path.isdir(dropin):
-        dropin += '*.toml' if dropin.endswith('/') else '/*.toml' # only toml here; yaml is no more
+        dropin += '*.toml' if dropin.endswith('/') else '/*.toml'  # only toml here; yaml is no more
         for conf in glob.glob(dropin):
             with open(conf) as toml_file:
                 additional_config = toml.load(toml_file)

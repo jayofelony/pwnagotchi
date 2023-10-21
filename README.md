@@ -17,6 +17,7 @@ Default SSH credentials are pi/raspberry
 
   Nope I will not help with these 'issues'. Read the manual/readme for your specific device, if that doesn't help -> **[GOOGLE](https://www.google.com)**
 
+- If you want to use the gdrivesync plugin >> [README](README-google.md)
 # Patreon: 
 
 [Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
