@@ -6,7 +6,7 @@
   vars:
     kernel:
       min: "6.1"
-      full: "6.1.21-v8+"
+      full: "6.1.0-rpi4-rpi-v8"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
@@ -70,6 +70,7 @@
           - bluez
           - build-essential
           - curl
+          - dhcpcd5
           - dkms
           - dphys-swapfile
           - fbi
@@ -83,8 +84,6 @@
           - gcc-arm-none-eabi
           - git
           - libatlas-base-dev
-          - libavcodec58
-          - libavformat58
           - libblas-dev
           - libbz2-dev
           - libc-ares-dev
@@ -117,11 +116,12 @@
           - libsqlite3-dev
           - libssl-dev
           - libswscale5
-          - libtiff5
+          - libtiff6
           - libtool
           - libusb-1.0-0-dev
           - lsof
           - make
+          - pipx
           - python3-dbus
           - python3-flask
           - python3-flask-cors
@@ -193,7 +193,7 @@
 # Install nexmon to fix wireless scanning (takes 2.5G of space)
   - name: clone nexmon repository
     git:
-      repo: https://github.com/jayofelony/nexmon.git
+      repo: 'https://github.com/jayofelony/nexmon.git'
       dest: /usr/local/src/nexmon
     register: nexmongit
 
@@ -289,7 +289,7 @@
 
   - name: clone pwnagotchi repository
     git:
-      repo: https://github.com/jayofelony/pwnagotchi.git
+      repo: 'https://github.com/jayofelony/pwnagotchi.git'
       dest: /usr/local/src/pwnagotchi
     register: pwnagotchigit
 
@@ -300,9 +300,7 @@
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: install pwnagotchi wheel and dependencies
-    pip:
-      name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
-      extra_args: "--no-cache-dir"
+    command: "pipx install /usr/local/src/pwnagotchi/dist/pwnagotchi-{{ pwnagotchi.version }}-py3-none-any.whl"
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: remove pwnagotchi folder
@@ -333,7 +331,7 @@
 
   - name: download pwngrid 1.10.4
     git:
-      repo: https://github.com/jayofelony/pwngrid.git
+      repo: 'https://github.com/jayofelony/pwngrid.git'
       dest: /usr/local/src/pwngrid
     register: pwngrid
 
@@ -351,7 +349,7 @@
 
   - name: download bettercap v2.32.1
     git:
-      repo: https://github.com/jayofelony/bettercap.git
+      repo: 'https://github.com/jayofelony/bettercap.git'
       dest: /usr/local/src/bettercap
     register: bettercap
 
