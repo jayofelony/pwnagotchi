@@ -193,7 +193,7 @@
 # Install nexmon to fix wireless scanning (takes 2.5G of space)
   - name: clone nexmon repository
     git:
-      repo: 'https://github.com/jayofelony/nexmon.git'
+      repo: https://github.com/jayofelony/nexmon.git
       dest: /usr/local/src/nexmon
     register: nexmongit
 
@@ -289,7 +289,7 @@
 
   - name: clone pwnagotchi repository
     git:
-      repo: 'https://github.com/jayofelony/pwnagotchi.git'
+      repo: https://github.com/jayofelony/pwnagotchi.git
       dest: /usr/local/src/pwnagotchi
     register: pwnagotchigit
 
@@ -331,7 +331,7 @@
 
   - name: download pwngrid 1.10.4
     git:
-      repo: 'https://github.com/jayofelony/pwngrid.git'
+      repo: https://github.com/jayofelony/pwngrid.git
       dest: /usr/local/src/pwngrid
     register: pwngrid
 
@@ -349,7 +349,7 @@
 
   - name: download bettercap v2.32.1
     git:
-      repo: 'https://github.com/jayofelony/bettercap.git'
+      repo: https://github.com/jayofelony/bettercap.git
       dest: /usr/local/src/bettercap
     register: bettercap
 
