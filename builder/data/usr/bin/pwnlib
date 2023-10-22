@@ -39,7 +39,12 @@ reload_brcm() {
 start_monitor_interface() {
   ifconfig wlan0 up
   iw dev wlan0 set power_save off
-  airmon-ng start wlan0
+  airmon-ng check kill
+  iw phy "$(iw phy | head -1 | cut -d" " -f2)" interface add wlan0mon type monitor && ifconfig wlan0mon up
+
+  # If wlan0 is NOT taken down after bringing up mon0, then when switching to AUTO you will get:
+  # error 400: error while initializing wlan0mon to channel 1: iw: out=command failed: Device or resource busy (-16) err=exit status 240
+  ifconfig wlan0 down
 }
 
 # stops mon0
