@@ -300,7 +300,7 @@
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: install pwnagotchi wheel and dependencies
-    command: "pipx install /usr/local/src/pwnagotchi/dist/pwnagotchi*.whl"
+    command: "pipx install /usr/local/src/pwnagotchi/dist/pwnagotchi-{{ pwnagotchi.version }}-py3-none-any.whl"
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: remove pwnagotchi folder
