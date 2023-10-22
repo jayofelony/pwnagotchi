@@ -121,7 +121,6 @@
           - libusb-1.0-0-dev
           - lsof
           - make
-          - pipx
           - python3-dbus
           - python3-flask
           - python3-flask-cors
@@ -300,9 +299,9 @@
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: install pwnagotchi wheel and dependencies
-    command: "pipx install dist/pwnagotchi*.whl"
-    args:
-      chdir: /usr/local/src/pwnagotchi
+    pip:
+      name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
+      extra_args: "--no-cache-dir"
     when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: remove pwnagotchi folder

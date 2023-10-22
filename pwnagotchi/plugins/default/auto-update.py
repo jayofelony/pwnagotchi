@@ -126,7 +126,7 @@ def install(display, update):
             source_path = "%s-%s" % (source_path, update['available'])
 
         # setup.py is going to install data files for us
-        os.system("cd %s && pipx install ." % source_path)
+        os.system("cd %s && pip3 install ." % source_path)
     return True
 
 
