@@ -193,7 +193,7 @@
 # Install nexmon to fix wireless scanning (takes 2.5G of space)
   - name: clone nexmon repository
     git:
-      repo: https://github.com/jayofelony/nexmon.git
+      repo: https://github.com/DrSchottky/nexmon.git
       dest: /usr/local/src/nexmon
     register: nexmongit
 
@@ -260,6 +260,26 @@
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
 
+  - name: Delete the RPi02w firmware blob to avoid it crashing
+    file:
+      state: absent
+      path: /usr/lib/firmware/brcm/brcmfmac43430b0-sdio.raspberrypi,model-zero-2-w.clm_blob
+
+  - name: Delete the RPi02w firmware blob to avoid it crashing
+    file:
+      state: absent
+      path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.clm_blob
+
+  - name: Delete the RPi302w firmware blob to avoid it crashing
+    file:
+      state: absent
+      path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
+
+  - name: Delete the RPi02w firmware blob to avoid it crashing
+    file:
+      state: absent
+      path: /usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blob
+
   - name: backup original driver
     command: "mv /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
 
@@ -287,23 +307,10 @@
       path: /etc/pwnagotchi/conf.d/
       state: directory
 
-  - name: clone pwnagotchi repository
-    git:
-      repo: https://github.com/jayofelony/pwnagotchi.git
-      dest: /usr/local/src/pwnagotchi
-    register: pwnagotchigit
-
-  - name: build pwnagotchi wheel
-    command: "python3 setup.py sdist bdist_wheel"
-    args:
-      chdir: /usr/local/src/pwnagotchi
-    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
-
-  - name: install pwnagotchi wheel and dependencies
+  - name: Install pwnagotchi from source archive
     pip:
-      name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
-      extra_args: "--no-cache-dir"
-    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
+      name: /usr/local/src/pwnagotchi/pwnagotchi-{{ pwnagotchi.version }}.tar.gz
+      extra_args: --verbose --prefer-binary --ignore-installed
 
   - name: remove pwnagotchi folder
     file:
@@ -315,57 +322,57 @@
       path: /usr/local/share/pwnagotchi/
       state: directory
 
-  - name: Install go-1.21
-    unarchive:
-      src: https://go.dev/dl/go1.21.3.linux-arm64.tar.gz
-      dest: /usr/local
-      remote_src: yes
-    register: golang
+  #- name: Install go-1.21
+  #  unarchive:
+  #    src: https://go.dev/dl/go1.21.3.linux-arm64.tar.gz
+  #    dest: /usr/local
+  #    remote_src: yes
+  #  register: golang
 
-  - name: Update .bashrc for go-1.21
-    blockinfile:
-      dest: /home/pi/.bashrc
-      state: present
-      block: |
-        export GOPATH=$HOME/go
-        export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
-    when: golang.changed
+  #- name: Update .bashrc for go-1.21
+  #  blockinfile:
+  #    dest: /home/pi/.bashrc
+  #    state: present
+  #    block: |
+  #      export GOPATH=$HOME/go
+  #      export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+  #  when: golang.changed
 
-  - name: download pwngrid 1.10.4
-    git:
-      repo: https://github.com/jayofelony/pwngrid.git
-      dest: /usr/local/src/pwngrid
-    register: pwngrid
+  #- name: download pwngrid 1.10.4
+  #  git:
+  #    repo: https://github.com/jayofelony/pwngrid.git
+  #    dest: /usr/local/src/pwngrid
+  #  register: pwngrid
 
-  - name: install pwngrid 1.10.4
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/pwngrid
-    when: pwngrid.changed
+  #- name: install pwngrid 1.10.4
+  #  shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+  #  args:
+  #    executable: /bin/bash
+  #    chdir: /usr/local/src/pwngrid
+  #  when: pwngrid.changed
 
-  - name: remove pwngrid folder
-    file:
-      state: absent
-      path: /usr/local/src/pwngrid
+  #- name: remove pwngrid folder
+  #  file:
+  #    state: absent
+  #    path: /usr/local/src/pwngrid
 
-  - name: download bettercap v2.32.1
-    git:
-      repo: https://github.com/jayofelony/bettercap.git
-      dest: /usr/local/src/bettercap
-    register: bettercap
+  #- name: download bettercap v2.32.1
+  #  git:
+  #    repo: https://github.com/jayofelony/bettercap.git
+  #    dest: /usr/local/src/bettercap
+  #  register: bettercap
 
-  - name: Install bettercap v2.32.1
-    shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
-    args:
-      executable: /bin/bash
-      chdir: /usr/local/src/bettercap
-    when: bettercap.changed
+  #- name: Install bettercap v2.32.1
+  #  shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+  #  args:
+  #    executable: /bin/bash
+  #   chdir: /usr/local/src/bettercap
+  #  when: bettercap.changed
 
-  - name: remove bettercap folder
-    file:
-      state: absent
-      path: /usr/local/src/bettercap
+  #- name: remove bettercap folder
+  #  file:
+  #    state: absent
+  #    path: /usr/local/src/bettercap
 
   - name: clone bettercap caplets
     git:
@@ -533,16 +540,6 @@
     args:
       executable: /bin/bash
 
-  - name: remove /root/go folder
-    file:
-      state: absent
-      path: /root/go
-
-  - name: remove /usr/local/go folder
-    file:
-      state: absent
-      path: /usr/local/go
-
   - name: remove pip cache
     file:
       state: absent
@@ -552,6 +549,12 @@
     apt:
       autoremove: yes
     when: removed.changed
+
+  - name: set permissions
+    command: "chmod +x /usr/bin/*"
+
+  - name: set permissions
+    command: "chmod +x /usr/local/bin/*"
 
   handlers:
   - name: reload systemd services
