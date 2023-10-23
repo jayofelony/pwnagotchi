@@ -122,6 +122,7 @@
           - libusb-1.0-0-dev
           - lsof
           - make
+          - ntp
           - python3-dbus
           - python3-flask
           - python3-flask-cors
