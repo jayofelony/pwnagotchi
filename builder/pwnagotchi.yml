@@ -122,7 +122,6 @@
           - libusb-1.0-0-dev
           - lsof
           - make
-          - ntp
           - python3-dbus
           - python3-flask
           - python3-flask-cors
@@ -194,7 +193,7 @@
 # Install nexmon to fix wireless scanning (takes 2.5G of space)
   - name: clone nexmon repository
     git:
-      repo: https://github.com/DrSchottky/nexmon.git
+      repo: https://github.com/jayofelony/nexmon.git
       dest: /usr/local/src/nexmon
     register: nexmongit
 
@@ -308,10 +307,23 @@
       path: /etc/pwnagotchi/conf.d/
       state: directory
 
-  - name: Install pwnagotchi from source archive
+  - name: clone pwnagotchi repository
+    git:
+      repo: https://github.com/jayofelony/pwnagotchi.git
+      dest: /usr/local/src/pwnagotchi
+    register: pwnagotchigit
+
+  - name: build pwnagotchi wheel
+    command: "python3 setup.py sdist bdist_wheel"
+    args:
+      chdir: /usr/local/src/pwnagotchi
+    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
+
+  - name: install pwnagotchi wheel and dependencies
     pip:
-      name: /usr/local/src/pwnagotchi/pwnagotchi-{{ pwnagotchi.version }}.tar.gz
-      extra_args: --verbose --prefer-binary --ignore-installed
+      name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
+      extra_args: "--no-cache-dir"
+    when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
   - name: remove pwnagotchi folder
     file:
@@ -541,6 +553,16 @@
     args:
       executable: /bin/bash
 
+  - name: remove /root/go folder
+    file:
+      state: absent
+      path: /root/go
+
+  - name: remove /usr/local/go folder
+    file:
+      state: absent
+      path: /usr/local/go
+
   - name: remove pip cache
     file:
       state: absent
@@ -550,12 +572,6 @@
     apt:
       autoremove: yes
     when: removed.changed
-
-  - name: set permissions
-    command: "chmod +x /usr/bin/*"
-
-  - name: set permissions
-    command: "chmod +x /usr/local/bin/*"
 
   handlers:
   - name: reload systemd services

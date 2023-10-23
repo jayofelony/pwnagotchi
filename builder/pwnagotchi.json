@@ -15,17 +15,87 @@
   ],
   "provisioners": [
     {
+      "type": "file",
+      "source": "../builder/data/usr/local/bin/bettercap",
+      "destination": "/usr/local/bin/bettercap"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/local/bin/pwngrid",
+      "destination": "/usr/local/bin/pwngrid"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/bin/pwnlib",
+      "destination": "/usr/bin/pwnlib"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/bin/bettercap-launcher",
+      "destination": "/usr/bin/bettercap-launcher"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/bin/pwnagotchi-launcher",
+      "destination": "/usr/bin/pwnagotchi-launcher"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/bin/monstop",
+      "destination": "/usr/bin/monstop"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/bin/monstart",
+      "destination": "/usr/bin/monstart"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/bin/hdmion",
+      "destination": "/usr/bin/hdmion"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/usr/bin/hdmioff",
+      "destination": "/usr/bin/hdmioff"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/etc/systemd/system/pwngrid-peer.service",
+      "destination": "/etc/systemd/system/pwngrid-peer.service"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/etc/systemd/system/pwnagotchi.service",
+      "destination": "/etc/systemd/system/pwnagotchi.service"
+    },
+    {
+      "type": "file",
+      "source": "../builder/data/etc/systemd/system/bettercap.service",
+      "destination": "/etc/systemd/system/bettercap.service"
+    },
+    {
       "type": "shell",
       "inline": [
-        "mkdir -p /usr/local/src/pwnagotchi"
+        "chmod +x /usr/bin/*"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "chmod +x /usr/local/bin/*"
       ]
     },
     {
       "type": "file",
-      "sources": [
-        "../dist/pwnagotchi-{{user `pwn_version`}}.tar.gz"
-      ],
-      "destination": "/usr/local/src/pwnagotchi/"
+      "source": "../builder/data/etc/update-motd.d/01-motd",
+      "destination": "/etc/update-motd.d/01-motd"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "chmod +x /etc/update-motd.d/*"
+      ]
     },
     {
       "type": "shell",
