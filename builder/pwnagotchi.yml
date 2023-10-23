@@ -193,7 +193,7 @@
 # Install nexmon to fix wireless scanning (takes 2.5G of space)
   - name: clone nexmon repository
     git:
-      repo: https://github.com/jayofelony/nexmon.git
+      repo: https://github.com/DrSchottky/nexmon.git
       dest: /usr/local/src/nexmon
     register: nexmongit
 
