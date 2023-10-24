@@ -57,8 +57,7 @@ class View(object):
             'face': Text(value=faces.SLEEP, position=self._layout['face'], color=BLACK, font=fonts.Huge),
 
             'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=BLACK),
-            'friend_name': Text(value=None, position=self._layout['friend_name'], font=fonts.BoldSmall,
-                                color=BLACK),
+            'friend_name': Text(value=None, position=self._layout['friend_name'], font=fonts.BoldSmall, color=BLACK),
 
             'name': Text(value='%s>' % 'pwnagotchi', position=self._layout['name'], color=BLACK, font=fonts.Bold),
 
