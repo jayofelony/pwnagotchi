@@ -571,6 +571,20 @@
       autoremove: yes
     when: removed.changed
 
+  - name: set permissions to /usr/bin/pwnlib
+    file:
+      path: /usr/bin/
+      mode: 0755
+      recurse: yes
+
+  - name: set permission to /usr/local/bin/bettercap
+    file:
+      path: /usr/local/bin/
+      mode: 0755
+      recurse: yes
+
+  - name:
+
   handlers:
   - name: reload systemd services
     systemd:

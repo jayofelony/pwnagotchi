@@ -18,7 +18,7 @@ def add_parsers(subparsers):
     """
     Adds the plugins subcommand to a given argparse.ArgumentParser
     """
-    #subparsers = parser.add_subparsers()
+    # subparsers = parser.add_subparsers()
     # pwnagotchi plugins
     parser_plugins = subparsers.add_parser('plugins')
     plugin_subparsers = parser_plugins.add_subparsers(dest='plugincmd')
