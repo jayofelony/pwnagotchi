@@ -583,8 +583,6 @@
       mode: 0755
       recurse: yes
 
-  - name:
-
   handlers:
   - name: reload systemd services
     systemd:
