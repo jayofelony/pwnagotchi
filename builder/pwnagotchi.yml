@@ -414,8 +414,6 @@
         if ! /opt/vc/bin/tvservice -s | egrep 'HDMI|DVI'; then
           /opt/vc/bin/tvservice -o
         fi
-        
-        rfkill unblock all
 
   - name: create /etc/pwnagotchi folder
     file:

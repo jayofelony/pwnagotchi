@@ -71,12 +71,10 @@ def mem_usage():
         kb_mem_used = kb_mem_total - kb_mem_free - kb_main_cached - kb_main_buffers
         return round(kb_mem_used / kb_mem_total, 1)
 
-    return 0
-
 
 def _cpu_stat():
     """
-    Returns the splitted first line of the /proc/stat file
+    Returns the split first line of the /proc/stat file
     """
     with open('/proc/stat', 'rt') as fp:
         return list(map(int, fp.readline().split()[1:]))
