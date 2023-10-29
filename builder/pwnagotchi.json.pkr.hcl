@@ -29,8 +29,8 @@ source "arm-image" "rpi-pwnagotchi" {
   image_type        = "raspberrypi"
 }
 source "arm-image" "opi-pwnagotchi" {
-  iso_checksum      = "file:https://raw.githubusercontent.com/jayofelony/Tensorflow/main/Orangepizero2w_1.0.0_ubuntu_jammy_server_linux6.1.31.img.sha256"
-  iso_url           = "https://drive.usercontent.google.com/download?id=1XOQyxjSWYtxQJsOA7eUmGUOV_Ox9geHB&export=download&authuser=0&confirm=t&uuid=10dfc5bc-2ec4-4acd-aa22-f1d29713f172&at=APZUnTVVEQZzSjcAewSvuJaOGWh4:1698621030319"
+  iso_checksum      = "6f029cdef48db255fd9fafb2e8ba1f75097ef099f03bf0ab18cd097a0181c77f"
+  iso_url           = "https://drive.usercontent.google.com/download?id=13w2L3aJo5kBrJ0obTnYlQsqFWzfEV-F7&export=download&authuser=0&confirm=t&uuid=6a1eb3ff-1e9a-4997-9619-2c679c8a01b2&at=APZUnTUGEUCWVIdOrYTV2-WLEfNb:1698622087626"
   output_filename   = "../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
   qemu_binary       = "qemu-aarch64-static"
   target_image_size = 9368709120
