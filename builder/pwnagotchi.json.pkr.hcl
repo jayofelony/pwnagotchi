@@ -27,14 +27,14 @@ source "arm-image" "rpi-pwnagotchi" {
   target_image_size = 9368709120
   qemu_args         = ["-r", "6.1.21-v8+"]
 }
-# "arm-image" "opi-pwnagotchi" {
-#  iso_checksum      = ""
-#  iso_url           = "https://drive.usercontent.google.com/download?id=12DgsOXXgpDTQLRBsh8cKqVGD2FUUMZDk&export=download&authuser=0&confirm=t&uuid=d97afcec-3979-44e2-838a-f17c576a87fb&at=APZUnTWoYAa6oVoxrZWwPP7o8Hn9:1698613336721"
-#  output_file       ="../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
-#  qemu_binary       = "qemu-aarch64-static"
-#  target_image_size = 9368709120
-#  qemu_args         = ["-r", "6.1.21-v8+"]
-#}
+source "arm-image" "opi-pwnagotchi" {
+  iso_checksum      = ""
+  iso_url           = "https://drive.usercontent.google.com/download?id=1AJ_rrLAtCwurEB61VevSRKQwDOBF9GHN&export=download&authuser=0&confirm=t&uuid=ae4b66d9-adca-4fe1-9c4c-bf54bfc9d2ce&at=APZUnTV50dgaDoFFE0NnKqszShSm:1698614532340"
+  output_file       ="../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
+  qemu_binary       = "qemu-aarch64-static"
+  target_image_size = 9368709120
+  qemu_args         = ["-r", "6.1.31-sun50iw9"]
+}
 
 # a build block invokes sources and runs provisioning steps on them. The
 # documentation for build blocks can be found here:
@@ -43,7 +43,7 @@ build {
   name = "Pwnagotchi Torch 64bit"
   sources = [
     "source.arm-image.rpi-pwnagotchi",
-    # "source.arm-image.opi-pwnagotchi",
+    "source.arm-image.opi-pwnagotchi",
   ]
 
   provisioner "file" {
