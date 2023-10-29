@@ -34,7 +34,7 @@ source "arm-image" "opi-pwnagotchi" {
   qemu_binary       = "qemu-aarch64-static"
   target_image_size = 9368709120
   qemu_args         = ["-r", "6.1.31-sun50iw9"]
-  image_mounts      = ["/boot/firmware","/"]
+  image_mounts      = ["/boot","/"]
 }
 
 # a build block invokes sources and runs provisioning steps on them. The
