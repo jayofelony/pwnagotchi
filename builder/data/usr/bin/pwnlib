@@ -45,7 +45,7 @@ start_monitor_interface() {
 
 # stops mon0
 stop_monitor_interface() {
-  ifconfig wlan0mon down && iw dev wlan0mon del
+  airmon-ng stop wlan0mon
   ifconfig wlan0 up
 }
 
