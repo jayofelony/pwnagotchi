@@ -46,6 +46,7 @@ start_monitor_interface() {
 # stops mon0
 stop_monitor_interface() {
   airmon-ng stop wlan0mon
+  reload_brcm
   ifconfig wlan0 up
 }
 
