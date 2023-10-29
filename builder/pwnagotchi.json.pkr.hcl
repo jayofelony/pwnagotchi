@@ -19,7 +19,7 @@ variable "pwn_version" {
   type = string
 }
 
-source "arm-image" "rpi-pwnagotchi" {
+source "rpi-pwnagotchi" {
   iso_checksum      = "file:https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
   iso_url           = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"
   output_filename   = "../../../pwnagotchi-raspios-bullseye-${var.pwn_version}-arm64.img"
@@ -28,10 +28,10 @@ source "arm-image" "rpi-pwnagotchi" {
   qemu_args         = ["-r", "6.1.21-v8+"]
   image_type        = "raspberrypi"
 }
-source "arm-image" "opi-pwnagotchi" {
-  iso_checksum      = "fd6557fdf037e464fc822b8ebf657d52d408ef83b7d8910b82ec70a5689a2c2d"
-  iso_url           = "https://drive.google.com/u/0/uc?id=1tQEQVqpOO7LqbiRNlsK65KDrDG1LOW-u&export=download&confirm=t&uuid=1fe132c7-01ef-4662-8ba9-631928a70876&at=AB6BwCB7iyuxBaZ-5gF8eLpdMrLx:1698618935111"
-  output_filename   = "../../../pwnagotchi-orangepi-bullseye-${var.pwn_version}-arm64.img"
+source "opi-pwnagotchi" {
+  iso_checksum      = "5d04108012535f9158c414df65ae011f76fced8b49b58edef330d06650326683"
+  iso_url           = "https://drive.usercontent.google.com/download?id=13w2L3aJo5kBrJ0obTnYlQsqFWzfEV-F7&export=download&authuser=0&confirm=t&uuid=577e6671-3b0a-4a29-8172-6ee16bbd7247&at=APZUnTVwVS-jUEVayHulBfPkzWkp:1698620550044"
+  output_filename   = "../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
   qemu_binary       = "qemu-aarch64-static"
   target_image_size = 9368709120
   qemu_args         = ["-r", "6.1.31-sun50iw9"]
@@ -44,8 +44,8 @@ source "arm-image" "opi-pwnagotchi" {
 build {
   name = "Pwnagotchi Torch 64bit"
   sources = [
-    "source.arm-image.opi-pwnagotchi",
-    "source.arm-image.rpi-pwnagotchi",
+    "source.rpi-pwnagotchi",
+    "source.opi-pwnagotchi",
   ]
 
   provisioner "file" {
