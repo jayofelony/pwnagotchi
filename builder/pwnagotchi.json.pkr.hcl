@@ -26,6 +26,7 @@ source "arm-image" "rpi-pwnagotchi" {
   qemu_binary       = "qemu-aarch64-static"
   target_image_size = 9368709120
   qemu_args         = ["-r", "6.1.21-v8+"]
+  image_type        = "raspberrypi"
 }
 source "arm-image" "opi-pwnagotchi" {
   iso_checksum      = "fd6557fdf037e464fc822b8ebf657d52d408ef83b7d8910b82ec70a5689a2c2d"
