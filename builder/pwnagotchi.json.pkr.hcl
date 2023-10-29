@@ -29,7 +29,7 @@ source "arm-image" "rpi-pwnagotchi" {
   image_type        = "raspberrypi"
 }
 source "arm-image" "opi-pwnagotchi" {
-  iso_checksum      = "file:https://drive.usercontent.google.com/download?id=12JYGWRpkBFunIjjHIJ0CbtMZWLLABwsP&export=download&authuser=0&confirm=t&uuid=044295ca-a271-412d-9c70-5f2259f80670&at=APZUnTVzlx3xL-mmk0RH_Pm1cLIR:1698621437059"
+  iso_checksum      = "5d04108012535f9158c414df65ae011f76fced8b49b58edef330d06650326683"
   iso_url           = "https://drive.usercontent.google.com/download?id=1XOQyxjSWYtxQJsOA7eUmGUOV_Ox9geHB&export=download&authuser=0&confirm=t&uuid=10dfc5bc-2ec4-4acd-aa22-f1d29713f172&at=APZUnTVVEQZzSjcAewSvuJaOGWh4:1698621030319"
   output_filename   = "../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
   qemu_binary       = "qemu-aarch64-static"
