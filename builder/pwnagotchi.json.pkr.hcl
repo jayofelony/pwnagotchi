@@ -30,7 +30,7 @@ source "arm-image" "rpi-pwnagotchi" {
 }
 source "arm-image" "opi-pwnagotchi" {
   iso_checksum      = "5d04108012535f9158c414df65ae011f76fced8b49b58edef330d06650326683"
-  iso_url           = "https://drive.usercontent.google.com/download?id=13w2L3aJo5kBrJ0obTnYlQsqFWzfEV-F7&export=download&authuser=0&confirm=t&uuid=577e6671-3b0a-4a29-8172-6ee16bbd7247&at=APZUnTVwVS-jUEVayHulBfPkzWkp:1698620550044"
+  iso_url           = "https://drive.usercontent.google.com/download?id=1XOQyxjSWYtxQJsOA7eUmGUOV_Ox9geHB&export=download&authuser=0&confirm=t&uuid=10dfc5bc-2ec4-4acd-aa22-f1d29713f172&at=APZUnTVVEQZzSjcAewSvuJaOGWh4:1698621030319"
   output_filename   = "../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
   qemu_binary       = "qemu-aarch64-static"
   target_image_size = 9368709120
