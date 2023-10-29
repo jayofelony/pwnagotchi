@@ -40,7 +40,7 @@ class Automata(object):
         support_factor = total_encounters / bond_factor
         return support_factor >= factor
 
-    # triggered when it's a sad/bad day but you have good friends around ^_^
+    # triggered when it's a sad/bad day, but you have good friends around ^_^
     def set_grateful(self):
         self._view.on_grateful()
         plugins.on('grateful', self)

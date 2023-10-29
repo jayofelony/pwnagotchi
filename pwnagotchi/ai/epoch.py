@@ -44,7 +44,7 @@ class Epoch(object):
         # number of peers seen during this epoch
         self.num_peers = 0
         # cumulative bond factor
-        self.tot_bond_factor = 0.0  # cum_bond_factor sounded really bad ...
+        self.tot_bond_factor = 0.0  # cum_bond_factor sounded worse ...
         # average bond factor
         self.avg_bond_factor = 0.0
         # any activity at all during this epoch?

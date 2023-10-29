@@ -79,7 +79,7 @@ def do_auto_mode(agent):
             # From Pwnagotchi's perspective, the more new access points
             # and / or client stations nearby, the longer one epoch of
             # its relative time will take ... basically, in Pwnagotchi's universe,
-            # WiFi electromagnetic fields affect time like gravitational fields
+            # Wi-Fi electromagnetic fields affect time like gravitational fields
             # affect ours ... neat ^_^
             agent.next_epoch()
 

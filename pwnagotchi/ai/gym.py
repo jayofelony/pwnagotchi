@@ -99,7 +99,7 @@ class Environment(gym.Env):
 
     def step(self, policy):
         # create the parameters from the policy and update
-        # update them in the algorithm
+        # them in the algorithm
         self._apply_policy(policy)
         self._epoch_num += 1
 

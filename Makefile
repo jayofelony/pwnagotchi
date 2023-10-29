@@ -51,9 +51,11 @@ $(SDIST): setup.py pwnagotchi
 $(PWN_RELEASE).img: | $(PACKER)
 
 # If the packer or ansible files are updated, rebuild the image.
-$(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json builder/pwnagotchi.yml $(shell find builder/data -type f)
-	sudo $(PACKER) plugins install github.com/solo-io/arm-image
-	cd builder && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json
+$(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/pwnagotchi.yml $(shell find builder/data -type f)
+
+	# sudo $(PACKER) plugins install github.com/solo-io/arm-image
+	# sudo $(PACKER) plugins install github.com/hashicorp/ansible
+	cd builder && packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
 # If any of these files are updated, rebuild the checksums.
 $(PWN_RELEASE).sha256: $(PWN_RELEASE).img

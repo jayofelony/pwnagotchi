@@ -166,8 +166,8 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
     def _filter_included(self, ap):
         return self._filter is None or \
-               self._filter.match(ap['hostname']) is not None or \
-               self._filter.match(ap['mac']) is not None
+            self._filter.match(ap['hostname']) is not None or \
+            self._filter.match(ap['mac']) is not None
 
     def set_access_points(self, aps):
         self._access_points = aps
@@ -346,7 +346,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
         # give plugins access to the events
         try:
-            plugins.on('bcap_%s' % re.sub(r"[^a-z0-9_]+", "_",  jmsg['tag'].lower()), self, jmsg)
+            plugins.on('bcap_%s' % re.sub(r"[^a-z0-9_]+", "_", jmsg['tag'].lower()), self, jmsg)
         except Exception as err:
             logging.error("Processing event: %s" % err)
 
@@ -369,10 +369,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                         'hostname'] != '<hidden>' else ap_mac
                     logging.warning(
                         "!!! captured new handshake on channel %d, %d dBm: %s (%s) -> %s [%s (%s)] !!!",
-                            ap['channel'],
-                            ap['rssi'],
-                            sta['mac'], sta['vendor'],
-                            ap['hostname'], ap['mac'], ap['vendor'])
+                        ap['channel'], ap['rssi'], sta['mac'], sta['vendor'], ap['hostname'], ap['mac'], ap['vendor'])
                     plugins.on('handshake', self, filename, ap, sta)
                 found_handshake = True
             self._update_handshakes(1 if found_handshake else 0)
@@ -436,7 +433,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
             try:
                 logging.info("sending association frame to %s (%s %s) on channel %d [%d clients], %d dBm...",
-                    ap['hostname'], ap['mac'], ap['vendor'], ap['channel'], len(ap['clients']), ap['rssi'])
+                             ap['hostname'], ap['mac'], ap['vendor'], ap['channel'], len(ap['clients']), ap['rssi'])
                 self.run('wifi.assoc %s' % ap['mac'])
                 self._epoch.track(assoc=True)
             except Exception as e:
@@ -457,7 +454,8 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
             try:
                 logging.info("deauthing %s (%s) from %s (%s %s) on channel %d, %d dBm ...",
-                    sta['mac'], sta['vendor'], ap['hostname'], ap['mac'], ap['vendor'], ap['channel'], ap['rssi'])
+                             sta['mac'], sta['vendor'], ap['hostname'], ap['mac'], ap['vendor'], ap['channel'],
+                             ap['rssi'])
                 self.run('wifi.deauth %s' % sta['mac'])
                 self._epoch.track(deauth=True)
             except Exception as e:
