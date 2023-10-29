@@ -28,15 +28,15 @@ source "arm-image" "rpi-pwnagotchi" {
   qemu_args         = ["-r", "6.1.21-v8+"]
   image_type        = "raspberrypi"
 }
-source "arm-image" "opi-pwnagotchi" {
-  iso_checksum      = "6f029cdef48db255fd9fafb2e8ba1f75097ef099f03bf0ab18cd097a0181c77f"
-  iso_url           = "https://drive.usercontent.google.com/download?id=13w2L3aJo5kBrJ0obTnYlQsqFWzfEV-F7&export=download&authuser=0&confirm=t&uuid=6a1eb3ff-1e9a-4997-9619-2c679c8a01b2&at=APZUnTUGEUCWVIdOrYTV2-WLEfNb:1698622087626"
-  output_filename   = "../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
-  qemu_binary       = "qemu-aarch64-static"
-  target_image_size = 9368709120
-  qemu_args         = ["-r", "6.1.31-sun50iw9"]
-  image_type        = "ubuntu"
-}
+#source "arm-image" "opi-pwnagotchi" {
+#  iso_checksum      = "6f029cdef48db255fd9fafb2e8ba1f75097ef099f03bf0ab18cd097a0181c77f"
+#  iso_url           = "https://drive.usercontent.google.com/download?id=13w2L3aJo5kBrJ0obTnYlQsqFWzfEV-F7&export=download&authuser=0&confirm=t&uuid=6a1eb3ff-1e9a-4997-9619-2c679c8a01b2&at=APZUnTUGEUCWVIdOrYTV2-WLEfNb:1698622087626"
+#  output_filename   = "../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
+#  qemu_binary       = "qemu-aarch64-static"
+#  target_image_size = 9368709120
+#  qemu_args         = ["-r", "6.1.31-sun50iw9"]
+#  image_type        = "ubuntu"
+#}
 
 # a build block invokes sources and runs provisioning steps on them. The
 # documentation for build blocks can be found here:
@@ -45,7 +45,7 @@ build {
   name = "Pwnagotchi Torch 64bit"
   sources = [
     "source.arm-image.rpi-pwnagotchi",
-    "source.arm-image.opi-pwnagotchi",
+    #"source.arm-image.opi-pwnagotchi",
   ]
 
   provisioner "file" {
