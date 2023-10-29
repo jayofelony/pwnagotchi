@@ -28,7 +28,7 @@ source "arm-image" "rpi-pwnagotchi" {
   qemu_args         = ["-r", "6.1.21-v8+"]
 }
 source "arm-image" "opi-pwnagotchi" {
-  iso_checksum      = "file:https://drive.usercontent.google.com/download?id=16RJKx0pGdr4AHBgnZbx63y9mtR8qxAzX&export=download&authuser=0&confirm=t&uuid=1cdf8080-b9f4-4344-881d-1266de61be08&at=APZUnTV2TQhTyun3GOEPQLpsMbNb:1698619190196"
+  iso_checksum      = "fd6557fdf037e464fc822b8ebf657d52d408ef83b7d8910b82ec70a5689a2c2d"
   iso_url           = "https://drive.google.com/u/0/uc?id=1tQEQVqpOO7LqbiRNlsK65KDrDG1LOW-u&export=download&confirm=t&uuid=1fe132c7-01ef-4662-8ba9-631928a70876&at=AB6BwCB7iyuxBaZ-5gF8eLpdMrLx:1698618935111"
   output_filename   = "../../../pwnagotchi-orangepi-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary       = "qemu-aarch64-static"
