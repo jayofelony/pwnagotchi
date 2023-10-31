@@ -18,6 +18,7 @@ variable "pwn_version" {
 }
 
 source "arm" "rpi-pwnagotchi" {
+  name                          = "Raspberry Pi Pwnagotchi"
   file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
   file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
   file_checksum_type            = "sha256"
@@ -47,6 +48,7 @@ source "arm" "rpi-pwnagotchi" {
   }
 }
 source "arm" "opi-pwnagotchi" {
+  name                          = "Orange Pi Pwnagotchi"
   file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
   file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
   file_checksum_type            = "sha256"
@@ -72,12 +74,6 @@ source "arm" "opi-pwnagotchi" {
 # documentation for build blocks can be found here:
 # https://www.packer.io/docs/from-1.5/blocks/build
 build {
-  name = "Pwnagotchi Torch 64bit"
-  sources = [
-    "source.arm.rpi-pwnagotchi",
-    "source.arm.opi-pwnagotchi",
-  ]
-
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
