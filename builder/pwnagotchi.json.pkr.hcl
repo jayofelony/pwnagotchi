@@ -24,7 +24,7 @@ source "arm" "rpi-pwnagotchi" {
   image_path                    = "../../../pwnagotchi-raspios-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
   qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
-  image_build_method            = "reuse"
+  image_build_method            = "resize"
   image_size                    = "9G"
   image_type                    = "dos"
   image_partitions {
@@ -53,7 +53,7 @@ source "arm" "opi-pwnagotchi" {
   image_path                    = "../../../pwnagotchi-orangepi-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
   qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
-  image_build_method            = "reuse"
+  image_build_method            = "resize"
   image_size                    = "9G"
   image_type                    = "dos"
   image_partitions {
