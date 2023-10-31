@@ -204,20 +204,20 @@
 
   - name: choose the right kernel version (bcm43436b0)
     replace:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
       backup: no
       regexp: "KERNEL_VERSION = .*$"
       replace: "KERNEL_VERSION = {{ kernel.min }}"
 
   - name: choose the right kernel release (variable) (bcm43436b0)
     lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
       insertafter: "DRIVER_FOLDER_NAME = .*$"
       line: "KERNEL_RELEASE = {{ kernel.full }}"
 
   - name: choose the right kernel release (replace string) (bcm43436b0)
     replace:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      dest: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/Makefile
       backup: no
       regexp: "shell uname -r"
       replace: "KERNEL_RELEASE"
@@ -268,20 +268,20 @@
 
   - name: choose the right kernel version (bcm43436b0)
     replace:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
       backup: no
       regexp: "KERNEL_VERSION = .*$"
       replace: "KERNEL_VERSION = {{ kernel.min }}"
 
   - name: choose the right kernel release (variable) (bcm43436b0)
     lineinfile:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
       insertafter: "DRIVER_FOLDER_NAME = .*$"
       line: "KERNEL_RELEASE = {{ kernel.full }}"
 
   - name: choose the right kernel release (replace string) (bcm43436b0)
     replace:
-      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      dest: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/Makefile
       backup: no
       regexp: "shell uname -r"
       replace: "KERNEL_RELEASE"
