@@ -21,7 +21,7 @@ variable "pwn_version" {
 # documentation for build blocks can be found here:
 # https://www.packer.io/docs/from-1.5/blocks/build
 build {
-  source "arm" {
+  source "arm" "rpi-pwnagotchi" {
     name                          = "Raspberry Pi Pwnagotchi"
     file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
     file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
@@ -51,7 +51,49 @@ build {
       mountpoint   = "/"
     }
   }
-  source "arm" {
+
+  provisioner "file" {
+    destination = "/usr/bin/"
+    sources     = [
+      "../builder/data/usr/bin/pwnlib",
+      "../builder/data/usr/bin/bettercap-launcher",
+      "../builder/data/usr/bin/pwnagotchi-launcher",
+      "../builder/data/usr/bin/monstop",
+      "../builder/data/usr/bin/monstart",
+      "../builder/data/usr/bin/hdmion",
+      "../builder/data/usr/bin/hdmioff",
+    ]
+  }
+  provisioner "shell" {
+    inline = ["chmod +x /usr/bin/*"]
+  }
+
+  provisioner "file" {
+    destination = "/etc/systemd/system/"
+    sources     = [
+      "../builder/data/etc/systemd/system/pwngrid-peer.service",
+      "../builder/data/etc/systemd/system/pwnagotchi.service",
+      "../builder/data/etc/systemd/system/bettercap.service",
+    ]
+  }
+  provisioner "file" {
+    destination = "/etc/update-motd.d/01-motd"
+    source      = "../builder/data/etc/update-motd.d/01-motd"
+  }
+  provisioner "shell" {
+    inline = ["chmod +x /etc/update-motd.d/*"]
+  }
+  provisioner "shell" {
+    inline = ["apt-get -y --allow-releaseinfo-change update", "apt-get -y dist-upgrade", "apt-get install -y --no-install-recommends ansible"]
+  }
+  provisioner "ansible-local" {
+    command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
+    extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
+    playbook_file   = "../builder/pwnagotchi.yml"
+  }
+}
+build {
+  source "arm" "opi-pwnagotchi" {
     name                          = "Orange Pi Pwnagotchi"
     file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
     file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
