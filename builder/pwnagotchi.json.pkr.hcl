@@ -27,6 +27,7 @@ source "arm" "rpi-pwnagotchi" {
   image_build_method            = "resize"
   image_size                    = "9G"
   image_type                    = "dos"
+  qemu_args                     = ["uname -r", "6.1.21-v8+"]
   image_partitions {
     name         = "boot"
     type         = "c"
