@@ -1,12 +1,3 @@
-packer {
-  required_plugins {
-    arm = {
-      version = ">= 1.0.0"
-      source  = "github.com/cdecoux/builder-arm"
-    }
-  }
-}
-
 variable "pwn_hostname" {
   type = string
 }
