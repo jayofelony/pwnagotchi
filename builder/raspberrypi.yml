@@ -32,6 +32,8 @@
         - apt-daily-upgrade.timer
         - apt-daily.service
         - apt-daily.timer
+        - avahi-daemon.service
+        - avahi-daemon.socket
         - bluetooth.service
         - ifup@wlan0.service
         - triggerhappy.service
@@ -58,8 +60,8 @@
           - libpcap0.8
           - libpcap0.8-dev
         remove:
+          - avahi-daemon
           - nfs-common
-          - raspberrypi-net-mods
           - triggerhappy
           - wpasupplicant
         install:
