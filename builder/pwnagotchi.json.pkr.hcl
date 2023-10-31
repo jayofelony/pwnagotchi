@@ -1,6 +1,6 @@
 packer {
   required_plugins {
-    ansible = {
+    arm = {
       version = ">= 1.0.0"
       source  = "github.com/cdecoux/builder-arm"
     }
