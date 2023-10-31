@@ -1,3 +1,4 @@
+# This is not working quite yet
 #packer {
 #  required_plugins {
 #    arm = {
