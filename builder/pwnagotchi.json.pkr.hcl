@@ -17,40 +17,63 @@ variable "pwn_version" {
   type = string
 }
 
+source "arm" "rpi-pwnagotchi" {
+  file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
+  file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
+  file_checksum_type            = "sha256"
+  file_target_extension         = "xz"
+  file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
+  image_path                    = "../../../pwnagotchi-rpi-bullseye-${var.pwn_version}-arm64.img"
+  qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
+  qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
+  image_build_method            = "resize"
+  image_size                    = "9G"
+  image_type                    = "dos"
+  image_partitions {
+    name         = "boot"
+    type         = "c"
+    start_sector = "8192"
+    filesystem   = "fat"
+    size         = "256M"
+    mountpoint   = "/boot"
+  }
+  image_partitions {
+    name         = "root"
+    type         = "83"
+    start_sector = "532480"
+    filesystem   = "ext4"
+    size         = "0"
+    mountpoint   = "/"
+  }
+}
+source "arm" "opi-pwnagotchi" {
+  file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
+  file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
+  file_checksum_type            = "sha256"
+  file_target_extension         = "xz"
+  file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
+  image_path                    = "../../../pwnagotchi-opi-bullseye-${var.pwn_version}-arm64.img"
+  qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
+  qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
+  image_build_method            = "resize"
+  image_size                    = "9G"
+  image_type                    = "dos"
+  image_partitions {
+    name         = "root"
+    type         = "83"
+    start_sector = "8192"
+    filesystem   = "ext4"
+    size         = "0"
+    mountpoint   = "/"
+  }
+}
+
 # a build block invokes sources and runs provisioning steps on them. The
 # documentation for build blocks can be found here:
 # https://www.packer.io/docs/from-1.5/blocks/build
 build {
-  source "arm" "rpi-pwnagotchi" {
-    name                          = "Raspberry Pi Pwnagotchi"
-    file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
-    file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
-    file_checksum_type            = "sha256"
-    file_target_extension         = "xz"
-    file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-    image_path                    = "../../../pwnagotchi-rpi-bullseye-${var.pwn_version}-arm64.img"
-    qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
-    qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
-    image_build_method            = "resize"
-    image_size                    = "9G"
-    image_type                    = "dos"
-    image_partitions {
-      name         = "boot"
-      type         = "c"
-      start_sector = "8192"
-      filesystem   = "fat"
-      size         = "256M"
-      mountpoint   = "/boot"
-    }
-    image_partitions {
-      name         = "root"
-      type         = "83"
-      start_sector = "532480"
-      filesystem   = "ext4"
-      size         = "0"
-      mountpoint   = "/"
-    }
-  }
+  name = "Raspberry Pi Pwnagotchi"
+  sources = ["source.arm.rpi-pwnagotchi"]
 
   provisioner "file" {
     destination = "/usr/bin/"
@@ -92,29 +115,10 @@ build {
     playbook_file   = "../builder/pwnagotchi.yml"
   }
 }
+
 build {
-  source "arm" "opi-pwnagotchi" {
-    name                          = "Orange Pi Pwnagotchi"
-    file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
-    file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
-    file_checksum_type            = "sha256"
-    file_target_extension         = "xz"
-    file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-    image_path                    = "../../../pwnagotchi-opi-bullseye-${var.pwn_version}-arm64.img"
-    qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
-    qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
-    image_build_method            = "resize"
-    image_size                    = "9G"
-    image_type                    = "dos"
-    image_partitions {
-      name         = "root"
-      type         = "83"
-      start_sector = "8192"
-      filesystem   = "ext4"
-      size         = "0"
-      mountpoint   = "/"
-    }
-  }
+  name = "Orange Pi Pwnagotchi"
+  sources = ["source.arm.opi-pwnagotchi"]
 
   provisioner "file" {
     destination = "/usr/bin/"
