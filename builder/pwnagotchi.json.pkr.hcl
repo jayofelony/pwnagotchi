@@ -27,6 +27,22 @@ source "arm" "rpi-pwnagotchi" {
   image_build_method            = "reuse"
   image_size                    = "9G"
   image_type                    = "dos"
+  image_partitions {
+    name         = "boot"
+    type         = "c"
+    start_sector = "8192"
+    filesystem   = "fat32"
+    size         = "256M"
+    mountpoint   = "/boot/firmware"
+  }
+  image_partitions {
+    name         = "root"
+    type         = "83"
+    start_sector = "532480"
+    filesystem   = "ext4"
+    size         = "1.7G"
+    mountpoint   = "/"
+  }
 }
 source "arm" "opi-pwnagotchi" {
   file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
@@ -45,7 +61,7 @@ source "arm" "opi-pwnagotchi" {
     type         = "83"
     start_sector = "8192"
     filesystem   = "ext4"
-    size         = "0"
+    size         = "1.6G"
     mountpoint   = "/"
   }
 }
