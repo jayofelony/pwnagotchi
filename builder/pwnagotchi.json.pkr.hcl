@@ -1,9 +1,5 @@
 packer {
   required_plugins {
-    arm-image = {
-      version = ">= 0.2.7"
-      source  = "github.com/solo-io/arm-image"
-    }
     ansible = {
       version = ">= 1.1.0"
       source  = "github.com/hashicorp/ansible"
@@ -19,24 +15,37 @@ variable "pwn_version" {
   type = string
 }
 
-source "arm-image" "rpi-pwnagotchi" {
-  iso_checksum      = "file:https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
-  iso_url           = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"
-  output_filename   = "../../../pwnagotchi-raspios-bullseye-${var.pwn_version}-arm64.img"
-  qemu_binary       = "qemu-aarch64-static"
-  target_image_size = 9368709120
-  qemu_args         = ["-r", "6.1.21-v8+"]
-  image_type        = "raspberrypi"
+source "arm" "rpi-pwnagotchi" {
+  file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
+  file_url                      = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"
+  file_checksum_type            = "sha256"
+  img_path                      = "../../../pwnagotchi-raspios-bullseye-${var.pwn_version}-arm64.img"
+  qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
+  qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
+  image_build_method            = "reuse"
+  image_size                    = "9G"
+  qemu_args                     = ["-r", "6.1.21-v8+"]
+  image_type                    = "dos"
 }
-#source "arm-image" "opi-pwnagotchi" {
-#  iso_checksum      = "6f029cdef48db255fd9fafb2e8ba1f75097ef099f03bf0ab18cd097a0181c77f"
-#  iso_url           = "https://drive.usercontent.google.com/download?id=13w2L3aJo5kBrJ0obTnYlQsqFWzfEV-F7&export=download&authuser=0&confirm=t&uuid=6a1eb3ff-1e9a-4997-9619-2c679c8a01b2&at=APZUnTUGEUCWVIdOrYTV2-WLEfNb:1698622087626"
-#  output_filename   = "../../../pwnagotchi-orangepi-jammy-${var.pwn_version}-arm64.img"
-#  qemu_binary       = "qemu-aarch64-static"
-#  target_image_size = 9368709120
-#  qemu_args         = ["-r", "6.1.31-sun50iw9"]
-#  image_type        = "ubuntu"
-#}
+source "arm" "opi-pwnagotchi" {
+  iso_checksum                  = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
+  iso_url                       = "../../images/pwnagotchi-orangepi-raspios.img.xz"
+  file_checksum_type            = "sha256"
+  img_path                      = "../../../pwnagotchi-orangepi-bullseye-${var.pwn_version}-arm64.img"
+  qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
+  qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
+  qemu_args                     = ["-r", "6.1.31-sun50iw9"]
+  image_size                    = "9G"
+  image_type                    = "dos"
+  image_partitions {
+    name         = "root"
+    type         = "83"
+    start_sector = "8192"
+    filesystem   = "ext4"
+    size         = "0"
+    mountpoint   = "/"
+  }
+}
 
 # a build block invokes sources and runs provisioning steps on them. The
 # documentation for build blocks can be found here:
@@ -44,8 +53,8 @@ source "arm-image" "rpi-pwnagotchi" {
 build {
   name = "Pwnagotchi Torch 64bit"
   sources = [
-    "source.arm-image.rpi-pwnagotchi",
-    #"source.arm-image.opi-pwnagotchi",
+    "source.arm.rpi-pwnagotchi",
+    "source.arm.opi-pwnagotchi",
   ]
 
   provisioner "file" {
