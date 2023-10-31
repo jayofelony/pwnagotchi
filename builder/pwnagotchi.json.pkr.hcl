@@ -19,6 +19,8 @@ source "arm" "rpi-pwnagotchi" {
   file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
   file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
   file_checksum_type            = "sha256"
+  file_target_extension         = "xz"
+  file_unarchive_cmd            = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_path                    = "../../../pwnagotchi-raspios-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
   qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
@@ -27,9 +29,11 @@ source "arm" "rpi-pwnagotchi" {
   image_type                    = "dos"
 }
 source "arm" "opi-pwnagotchi" {
-  file_checksum_url             = "../../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
-  file_urls                     = ["../../../images/pwnagotchi-orangepi-raspios.img.xz"]
+  file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
+  file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
   file_checksum_type            = "sha256"
+  file_target_extension         = "xz"
+  file_unarchive_cmd            = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_path                    = "../../../pwnagotchi-orangepi-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
   qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
