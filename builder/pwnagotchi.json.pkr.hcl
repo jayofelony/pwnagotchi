@@ -1,8 +1,8 @@
 packer {
   required_plugins {
     ansible = {
-      version = ">= 1.1.0"
-      source  = "github.com/hashicorp/ansible"
+      version = ">= 1.0.0"
+      source  = "github.com/cdecoux/packer-plugin-builder-arm"
     }
   }
 }
@@ -27,7 +27,6 @@ source "arm" "rpi-pwnagotchi" {
   image_build_method            = "resize"
   image_size                    = "9G"
   image_type                    = "dos"
-  qemu_args                     = ["uname -r", "6.1.21-v8+"]
   image_partitions {
     name         = "boot"
     type         = "c"
