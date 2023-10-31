@@ -21,7 +21,7 @@ variable "pwn_version" {
 # documentation for build blocks can be found here:
 # https://www.packer.io/docs/from-1.5/blocks/build
 build {
-  source "arm" "rpi-pwnagotchi" {
+  source "arm" {
     name                          = "Raspberry Pi Pwnagotchi"
     file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
     file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
@@ -51,7 +51,7 @@ build {
       mountpoint   = "/"
     }
   }
-  source "arm" "opi-pwnagotchi" {
+  source "arm" {
     name                          = "Orange Pi Pwnagotchi"
     file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
     file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
