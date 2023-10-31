@@ -150,6 +150,7 @@
   - name: set kernel fact
     set_fact:
       kernel: "{{ kernel.full }}"
+
   - name: Create pi user
     copy:
       dest: /boot/userconf
