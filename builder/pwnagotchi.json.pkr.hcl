@@ -23,7 +23,7 @@ source "arm" "rpi-pwnagotchi" {
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-  image_path                    = "../../../pwnagotchi-raspios-bullseye-${var.pwn_version}-arm64.img"
+  image_path                    = "../../../pwnagotchi-rpi-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
   qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
   image_build_method            = "resize"
@@ -52,7 +52,7 @@ source "arm" "opi-pwnagotchi" {
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-  image_path                    = "../../../pwnagotchi-orangepi-bullseye-${var.pwn_version}-arm64.img"
+  image_path                    = "../../../pwnagotchi-opi-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
   qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
   image_build_method            = "resize"
