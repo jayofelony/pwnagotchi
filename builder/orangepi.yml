@@ -147,10 +147,6 @@
     ARCHFLAGS: "-arch aarch64"
 
   tasks:
-    - name: get ansible facts
-      debug:
-        var: ansible_facts
-
     - name: Create pi user
       copy:
         dest: /boot/userconf
