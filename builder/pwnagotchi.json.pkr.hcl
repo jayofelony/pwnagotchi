@@ -31,7 +31,7 @@ source "arm" "rpi-pwnagotchi" {
     name         = "boot"
     type         = "c"
     start_sector = "8192"
-    filesystem   = "fat32"
+    filesystem   = "fat"
     size         = "256M"
     mountpoint   = "/boot/firmware"
   }
