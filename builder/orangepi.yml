@@ -20,6 +20,7 @@
         - "gpu_mem=16"
       modules:
         - "i2c-dev"
+        - "g_ether"
     services:
       enable:
         - bettercap.service
