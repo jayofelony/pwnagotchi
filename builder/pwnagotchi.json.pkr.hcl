@@ -40,7 +40,7 @@ source "arm" "rpi-pwnagotchi" {
     type         = "83"
     start_sector = "532480"
     filesystem   = "ext4"
-    size         = "1.7G"
+    size         = "0"
     mountpoint   = "/"
   }
 }
@@ -61,7 +61,7 @@ source "arm" "opi-pwnagotchi" {
     type         = "83"
     start_sector = "8192"
     filesystem   = "ext4"
-    size         = "1.6G"
+    size         = "0"
     mountpoint   = "/"
   }
 }
