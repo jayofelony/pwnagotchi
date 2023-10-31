@@ -2,7 +2,7 @@ packer {
   required_plugins {
     ansible = {
       version = ">= 1.0.0"
-      source  = "github.com/cdecoux/packer-plugin-builder-arm"
+      source  = "github.com/cdecoux/builder-arm"
     }
   }
 }
