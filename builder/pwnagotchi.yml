@@ -634,7 +634,7 @@
         autoremove: yes
       when: removed.changed
 
-    handlers:
+  handlers:
     - name: reload systemd services
       systemd:
         daemon_reload: yes
