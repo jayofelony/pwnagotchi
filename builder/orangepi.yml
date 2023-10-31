@@ -299,15 +299,6 @@
         remote_src: yes
         mode: 0755
 
-    - name: add HDMI powersave to rc.local
-      blockinfile:
-        path: /etc/rc.local
-        insertbefore: "exit 0"
-        block: |
-          if ! /opt/vc/bin/tvservice -s | egrep 'HDMI|DVI'; then
-            /opt/vc/bin/tvservice -o
-          fi
-
     - name: create /etc/pwnagotchi folder
       file:
         path: /etc/pwnagotchi
