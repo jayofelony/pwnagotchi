@@ -27,8 +27,8 @@ source "arm" "rpi-pwnagotchi" {
   image_type                    = "dos"
 }
 source "arm" "opi-pwnagotchi" {
-  file_checksum_url             = "../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
-  file_urls                     = ["../images/pwnagotchi-orangepi-raspios.img.xz"]
+  file_checksum_url             = "../../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
+  file_urls                     = ["../../../images/pwnagotchi-orangepi-raspios.img.xz"]
   file_checksum_type            = "sha256"
   image_path                    = "../../../pwnagotchi-orangepi-bullseye-${var.pwn_version}-arm64.img"
   qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
