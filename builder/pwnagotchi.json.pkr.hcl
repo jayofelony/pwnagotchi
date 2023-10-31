@@ -17,7 +17,7 @@ variable "pwn_version" {
 
 source "arm" "rpi-pwnagotchi" {
   file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
-  file_urls                     = ["../../2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
+  file_urls                     = ["../../images/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["xz", "--decompress", "$ARCHIVE_PATH"]
