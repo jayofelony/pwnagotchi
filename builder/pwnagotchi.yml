@@ -195,126 +195,166 @@
     git:
       repo: https://github.com/DrSchottky/nexmon.git
       dest: /usr/local/src/nexmon
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: make firmware
     shell: "source ./setup_env.sh && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
+
+  - name: choose the right kernel version (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "KERNEL_VERSION = .*$"
+      replace: "KERNEL_VERSION = {{ kernel.min }}"
+
+  - name: choose the right kernel release (variable) (bcm43436b0)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      insertafter: "DRIVER_FOLDER_NAME = .*$"
+      line: "KERNEL_RELEASE = {{ kernel.full }}"
+
+  - name: choose the right kernel release (replace string) (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -r"
+      replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43455c0)
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: install new firmware (bcm43455c0)
     copy:
       src: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/brcmfmac43455-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43455-sdio.bin
       follow: true
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
+
+  - name: choose the right kernel version (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "KERNEL_VERSION = .*$"
+      replace: "KERNEL_VERSION = {{ kernel.min }}"
+
+  - name: choose the right kernel release (variable) (bcm43436b0)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      insertafter: "DRIVER_FOLDER_NAME = .*$"
+      line: "KERNEL_RELEASE = {{ kernel.full }}"
+
+  - name: choose the right kernel release (replace string) (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -r"
+      replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43436b0)
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: install new firmware (bcm43436b0)
     copy:
       src: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/brcmfmac43436-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43436-sdio.bin
       follow: true
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
+
+  - name: choose the right kernel version (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "KERNEL_VERSION = .*$"
+      replace: "KERNEL_VERSION = {{ kernel.min }}"
+
+  - name: choose the right kernel release (variable) (bcm43436b0)
+    lineinfile:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      insertafter: "DRIVER_FOLDER_NAME = .*$"
+      line: "KERNEL_RELEASE = {{ kernel.full }}"
+
+  - name: choose the right kernel release (replace string) (bcm43436b0)
+    replace:
+      dest: /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/Makefile
+      backup: no
+      regexp: "shell uname -r"
+      replace: "KERNEL_RELEASE"
 
   - name: make firmware patch (bcm43430a1)
     shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/ && make"
     args:
       executable: /bin/bash
       chdir: /usr/local/src/nexmon/
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: install new firmware (bcm43430a1)
     copy:
       src: /usr/local/src/nexmon/patches/bcm43430a1/7_45_41_46/nexmon/brcmfmac43430-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
       follow: true
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: copy 43430-sdio as 43436s-sdio for the special 43430/1 /2
     copy:
       src: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
       dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
       follow: true
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Delete the firmware blob to avoid it crashing
     file:
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Delete the RPiZW firmware blob to avoid it crashing
     file:
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Delete the RPi3 firmware blob to avoid it crashing
     file:
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Delete the RPi02w firmware blob to avoid it crashing
     file:
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43430b0-sdio.raspberrypi,model-zero-2-w.clm_blob
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Delete the RPi02w firmware blob to avoid it crashing
     file:
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.clm_blob
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Delete the RPi302w firmware blob to avoid it crashing
     file:
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Delete the RPi02w firmware blob to avoid it crashing
     file:
       state: absent
       path: /usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blo
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: backup original driver
     command: "mv /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: copy modified driver
     copy:
       src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
       dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name : load brcmfmac drivers
-    command: "/sbin/depmod -a"
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
+    command: "/sbin/depmod -a {{ kernel.full }}"
 
   # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
   - name: Delete nexmon content & directory
     file:
       state: absent
       path: /usr/local/src/nexmon/
-    when: ansible_facts["kernel"] == "6.1.21-v8+"
 
   - name: Create custom plugin directory
     file:
