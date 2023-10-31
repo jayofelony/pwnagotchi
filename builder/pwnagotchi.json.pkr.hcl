@@ -1,4 +1,5 @@
 # This is not working quite yet
+# https://github.com/mkaczanowski/packer-builder-arm/pull/172
 #packer {
 #  required_plugins {
 #    arm = {
