@@ -45,8 +45,8 @@ source "arm" "rpi-pwnagotchi" {
   }
 }
 source "arm" "opi-pwnagotchi" {
-  file_checksum_url             = "73bc16dc685a28a709e6a2f79a1bb79e6fec14ac203ddb12cf5ff1d615b6b536"
-  file_urls                     = ["https://drive.google.com/uc?export=download&id=1BOPrgnxtCK3RE669ZKwHvSTV1MJkNNhJ&confirm=t&uuid=88c79668-2e26-49ac-8a09-8976f151df22&at=AB6BwCAyMaSAXpiydSrYbxOKDX8o:1698743188617"]
+  file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
+  file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["xz", "--decompress", "$ARCHIVE_PATH"]
