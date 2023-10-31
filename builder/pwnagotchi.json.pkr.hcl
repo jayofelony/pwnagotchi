@@ -17,7 +17,7 @@ variable "pwn_version" {
 
 source "arm" "rpi-pwnagotchi" {
   file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz.sha256"
-  file_urls                     = ["../../images/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
+  file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-05-03/2023-05-03-raspios-bullseye-arm64-lite.img.xz"]
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["xz", "--decompress", "$ARCHIVE_PATH"]
@@ -45,8 +45,8 @@ source "arm" "rpi-pwnagotchi" {
   }
 }
 source "arm" "opi-pwnagotchi" {
-  file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
-  file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
+  file_checksum_url             = "https://drive.usercontent.google.com/download?id=1tUmUaov0MH2f0NEYK1H7X6WJHXbJp0Z3&export=download&authuser=0&confirm=t&uuid=c7930824-4188-4dd7-850e-10b7d7425fe7&at=APZUnTUrKQ7ecdtD6AxwIHR5sGJA:1698742860876"
+  file_urls                     = ["https://drive.usercontent.google.com/download?id=1BOPrgnxtCK3RE669ZKwHvSTV1MJkNNhJ&export=download&authuser=0&confirm=t&uuid=4ed0d2c0-6d16-435c-96c4-10c461b07a26&at=APZUnTV8SuRGIj6rzYv42x8RWtrT:1698742896665"]
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["xz", "--decompress", "$ARCHIVE_PATH"]
