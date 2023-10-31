@@ -296,21 +296,21 @@
         line: '{{ item }}'
       with_items: "{{system.modules}}"
 
-    - name: change root partition
-      replace:
-        dest: /boot/cmdline.txt
-        backup: no
-        regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
-        replace: "root=/dev/mmcblk0p2"
+    #- name: change root partition
+    #  replace:
+    #    dest: /boot/cmdline.txt
+    #    backup: no
+    #    regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
+    #    replace: "root=/dev/mmcblk0p2"
 
-    - name: configure /boot/cmdline.txt
-      lineinfile:
-        path: /boot/cmdline.txt
-        backrefs: True
-        state: present
-        backup: no
-        regexp: '(.*)$'
-        line: '\1 modules-load=dwc2,g_ether'
+    #- name: configure /boot/cmdline.txt
+    #  lineinfile:
+    #    path: /boot/cmdline.txt
+    #    backrefs: True
+    #    state: present
+    #    backup: no
+    #    regexp: '(.*)$'
+    #    line: '\1 modules-load=dwc2,g_ether'
 
     - name: Add pwnlog alias
       lineinfile:
