@@ -152,20 +152,11 @@
     ARCHFLAGS: "-arch aarch64"
 
   tasks:
-    - name: "Read a file content"
-      shell: |
-        cat /boot/boot.cmd
-      register: file_content
-
-    - name: "Print the file content to a console"
-      debug:
-        msg: "{{ file_content.stdout }}"
-
-    - name: Create pi user
+    - name: Create user=pi, pass=orange
       copy:
         dest: /boot/userconf
         content: |
-          pi:$6$3jNr0GA9KIyt4hmM$efeVIopdMQ8DGgEPCWWlbx3mJJNAYci1lEXGdlky0xPyjqwKNbwTL5SrCcpb4144C4IvzWjn7Iv.QjqmU7iyT/
+          pi:$6$2f51RQqfvzZaVljt$zNBftBn3LDVjJckR0cA/RdGA3iCshbUvuUUhIOD2uVLnaBazoxHmgiD1a0xAz6gQO4i3rGLzme931bJeNwNyx.
 
     - name: change hostname
       lineinfile:
@@ -406,6 +397,13 @@
       apt:
         autoremove: yes
       when: removed.changed
+
+    - name: remove ssh keys
+      file:
+        state: absent
+        path: "{{ item }}"
+      with_fileglob:
+        - "/etc/ssh/ssh_host*_key*"
 
   handlers:
     - name: reload systemd services

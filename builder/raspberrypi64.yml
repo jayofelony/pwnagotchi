@@ -272,7 +272,7 @@
         state: absent
         path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.clm_blob
 
-    - name: Delete the RPi302w firmware blob to avoid it crashing
+    - name: Delete the RPi02w firmware blob to avoid it crashing
       file:
         state: absent
         path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
@@ -572,6 +572,13 @@
       apt:
         autoremove: yes
       when: removed.changed
+
+    - name: remove ssh keys
+      file:
+        state: absent
+        path: "{{ item }}"
+      with_fileglob:
+          - "/etc/ssh/ssh_host*_key*"
 
   handlers:
     - name: reload systemd services
