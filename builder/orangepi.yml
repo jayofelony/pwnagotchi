@@ -301,6 +301,13 @@
         line: '{{ item }}'
       with_items: "{{system.modules}}"
 
+    - name: change g_serial to g_ether
+      lineinfile:
+        dest: /etc/modules
+        regexp: '^g_serial'
+        line: "g_ether"
+        state: present
+
     #- name: change root partition
     #  replace:
     #    dest: /boot/cmdline.txt
