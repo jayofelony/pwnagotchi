@@ -154,7 +154,7 @@
   tasks:
     - name: "Read a file content"
       shell: |
-        cat /boot/orangepiEnv.txt
+        cat /boot/boot.cmd
       register: file_content
 
     - name: "Print the file content to a console"
