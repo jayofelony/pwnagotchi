@@ -580,6 +580,11 @@
       with_fileglob:
           - "/etc/ssh/ssh_host*_key*"
 
+    - name: regenerate ssh keys
+      shell: "dpkg-reconfigure openssh-server"
+      args:
+        executable: /bin/bash
+
   handlers:
     - name: reload systemd services
       systemd:
