@@ -18,8 +18,13 @@ dbus-python
 toml
 python-dateutil
 websockets
-torch==2.0.1
-torchvision==0.15.2
-stable_baselines3
-RPi.GPIO
+torch==2.0.1; platform_machine=="aarch64"
+torch>=2.0.1; platform_machine!="aarch64"
+torchvision==0.15.2; platform_machine=="aarch64"
+torchvision>=0.15.2; platform_machine!="aarch64"
+stable_baselines3==1.8.0; platform_machine=="armv6l"
+stable_baselines3; platform_machine!="armv6l"
+RPi.GPIO; platform_release!="*sunxi*"
+OPi.GPIO; platform_release=="*sunxi*"
+rpi_hardware_pwm; platform_release!="*sunxi*"
 pydrive2
