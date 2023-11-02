@@ -1,0 +1,164 @@
+#
+# Install nexmon brcmfmac firmware and drivers from source as needed
+#
+
+- name: "Check for /lib/modules/{{ item.kernel }}/build to see if we can"
+  stat: path="/lib/modules/{{item.kernel}}/build"
+  register: kernel_headers
+
+- name: "Kernel {{item.kernel}} exists; installing nexmon"
+  when:
+    - kernel_headers.stat.exists
+  block:
+    - name: "Check for staged firmware {{ item.firmware }}"
+      stat: path="{{ staging }}/firmware/{{ item.firmware }}"
+      register: firmware
+
+    - name: "Check for staged kernel module {{ item.kernel }}/brcmfmac.ko"
+      stat: path="{{ staging }}/modules/{{ item.kernel }}/brcmfmac.ko"
+      register: kmodule
+
+    - name: Build nexmon as needed
+      when:
+        - not firmware.stat.exists or not kmodule.stat.exists
+      block:
+
+        - name: Check for existence of nexmon repo
+          stat: path="/usr/local/src/nexmon"
+          register: nexmongit
+
+        - name: clone nexmon repository
+          when: not nexmongit.stat.exists
+          git:
+            repo: "https://github.com/DrSchottky/nexmon.git"
+            dest: /usr/local/src/nexmon
+          register: nexmongit
+
+        - name: prepare nexmon build tree
+          when: nexmongit.changed
+          shell: "source ./setup_env.sh && make"
+          args:
+            executable: /bin/bash
+            chdir: /usr/local/src/nexmon/
+
+        - name: Build firmware if needed
+          when: not firmware.stat.exists
+          environment:
+            QEMU_UNAME: "{{ item.kernel }}"
+            ARCHFLAGS: "{{ item.arch_flags }}"
+          block:
+            - name: "make firmware patch {{ item.patch }}"
+              shell: |
+                source ./setup_env.sh
+                cd patches/{{ item.patch }}/nexmon/
+                make clean
+                make
+              args:
+                executable: /bin/bash
+                chdir: /usr/local/src/nexmon/
+
+            - name: make firmware staging dir
+              file:
+                state: directory
+                path: "{{ staging }}/firmware"
+
+            - name: 'copy firmware {{ item.firmware }} to staging directory'
+              copy:
+                src: '/usr/local/src/nexmon/patches/{{ item.patch }}/nexmon/{{ item.firmware }}'
+                dest: '{{ staging }}/firmware/'
+                follow: true
+
+        - name: Build module as needed
+          when: not kmodule.stat.exists
+          environment:
+            QEMU_UNAME: "{{ item.kernel }}"
+            ARCHFLAGS: "{{ item.arch_flags }}"
+          block:
+            - name: "make brcmfmac.ko module {{ item.kernel }}"
+              when: firmware.stat.exists
+              # if not firmware.stat.exists, then module would have been installed above
+              shell: |
+                export QEMU_UNAME={{ item.kernel }}
+                uname -a
+                source ./setup_env.sh
+                cd patches/{{ item.patch }}/nexmon/
+                make clean
+                make brcmfmac.ko
+              args:
+                executable: /bin/bash
+                chdir: /usr/local/src/nexmon/
+              environment:
+                QEMU_UNAME: "{{ item.kernel }}"
+                ARCHFLAGS: "{{ item.arch_flags }}"
+
+            - name: make modules staging dir
+              file:
+                state: directory
+                path: "{{ staging }}/modules/{{ item.kernel }}"
+
+            - name: copy modified driver to staging
+              copy:
+                src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
+                dest: "{{ staging }}/modules/{{ item.kernel }}/brcmfmac.ko"
+                follow: true
+              register: brcmfmac_installed
+    # end of nexmon build block. products should now be in staging if they were not already
+
+    # check again, just to be sure
+    - name: "Check for staged firmware {{ item.firmware }}"
+      stat: path="{{ staging }}/firmware/{{ item.firmware }}"
+      register: firmware
+
+    # install nexmon firmware from staging directory
+    - name: 'install nexmon firmware {{ item.firmware }}'
+      when: firmware.stat.exists
+      block:
+        - name: "Install nexmon firware in /usr/lib/firmware/brcm"
+          copy:
+            src: '{{ staging }}/firmware/{{ item.firmware }}'
+            dest: '/usr/lib/firmware/brcm/{{ item.firmware }}'
+            follow: true
+
+    - name: "Check for staged kernel module {{ item.kernel }}/brcmfmac.ko"
+      stat: path="{{ staging }}/modules/{{ item.kernel }}/brcmfmac.ko"
+      register: kmodule
+
+    - name: "Install kernel module {{ item.kernel }}/brcmfmac.ko from staging"
+      when: kmodule.stat.exists
+      block:
+        # remove originals, and keep track
+        - name: "Remove old compressed kernel module (if there)"
+          file:
+            state: absent
+            path: "/usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz"
+          register: brcmfmac_ko_xz
+          ignore_errors: true
+
+        - name: "Remove old uncompressed kernel module (if there)"
+          file:
+            state: absent
+            path: "/usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+          register: brcmfmac_ko
+          ignore_errors: true
+
+        - name: "install nexmon kernel driver {{item.kernel}}"
+          copy:
+            src: "{{ staging }}/modules/{{ item.kernel }}/brcmfmac.ko"
+            dest: "/usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+            follow: true
+          register: brcmfmac_installed
+
+    - name: "xz compress driver: {{brcmfmac_ko_xz.changed}}"
+      when: brcmfmac_ko_xz.changed
+      command: xz -k brcmfmac.ko
+      args:
+        chdir: '/usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac'
+
+    - name: "remove uncompressed driver: {{brcmfmac_ko.changed}}"
+      when: not brcmfmac_ko.changed
+      file:
+        state: absent
+        path: "/usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+
+    - name: update module dependencies
+      command: "/sbin/depmod -a {{ item.kernel }}"

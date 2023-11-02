@@ -1,0 +1,64 @@
+#
+# expects to be called with
+#
+# item = { name: 'resulting_binary', url: 'https://github.com/foo/bar.git' }
+#
+
+  - name: Check for existance of Golang in /usr/local/go
+    stat: path=/usr/local/go
+    register: big_golang
+
+  - name: Download and install golang
+    when: not big_golang.stat.exists
+    unarchive:
+      src: https://go.dev/dl/go1.21.1.linux-armv6l.tar.gz
+      dest: /usr/local
+      remote_src: yes
+    register: big_golang
+
+  - name: 'download target {{ item.name }} from github'
+    git:
+      repo: "{{ item.url }}"
+      dest: '/usr/local/src/{{ item.name }}'
+    register: big_download
+
+  - name: go mod tidy
+    shell: "go mod tidy -x -v"
+    register: result
+    retries: 7
+    delay: 60
+    args:
+      executable: /bin/bash
+      chdir: '/usr/local/src/{{ item.name }}'
+    until: result is not failed
+    ignore_errors: true
+
+  - name: build package
+    shell: "make"
+    register: result
+    args:
+      executable: /bin/bash
+      chdir: '/usr/local/src/{{ item.name }}'
+
+  - name: install pwngrid 1.10.4
+    shell: "make install"
+    register: result
+    args:
+      executable: /bin/bash
+      chdir: '/usr/local/src/{{ item.name }}'
+
+  - name: make bin staging dir
+    file:
+      state: directory
+      path: "/root/staging/bin"
+
+  - name: copy built binary to staging directory
+    copy:
+      src: '/usr/local/bin/{{ item.name }}'
+      dest: "/root/staging/bin/"
+
+  - name: remove build folder
+    file:
+      state: absent
+      path: '/usr/local/src/{{ item.name }}'
+

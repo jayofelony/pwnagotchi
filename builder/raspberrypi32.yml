@@ -1,0 +1,805 @@
+---
+- hosts:
+    - 127.0.0.1
+  gather_facts: true
+  become: true
+  vars:
+    boards:
+      - {
+        kernel: "6.1.21+",
+        name: "PiZeroW",
+        firmware: "brcmfmac43430-sdio.bin",
+        patch: "bcm43430a1/7_45_41_46",
+        cpu: arm1176,
+        arch_flags: "-arch armv6l"
+        }
+      - {
+        kernel: "6.1.21-v7+",
+        name: "PiZero2W",
+        firmware: "brcmfmac43436-sdio.bin",
+        patch: "bcm43436b0/9_88_4_65",
+        cpu: cortex-a53,
+        arch_flags: "-arch armv7l"
+        }
+      - {
+        kernel: "6.1.21-v7l+",
+        name: "Pi4b_32",
+        firmware: "brcmfmac43455-sdio.bin",
+        patch: "bcm43455c0/7_45_206",
+        cpu: cortex-a72,
+        arch_flags: "-arch armv7l"
+        }
+    kernel:
+      min: "6.1"
+      full: "6.1.21+"
+      full_2w: "6.1.21-v7+"
+      full_4b: "6.1.21-v7l+"
+      arch: "v6l"
+    pwnagotchi:
+      hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
+      version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
+      custom_plugin_dir: "/usr/local/share/pwnagotchi/custom-plugins"
+    system:
+      boot_options:
+        - "#### pwnagotchi additions"
+        - "# this pwnagotchi image is 32-bit only no v8+ headers to build nexmon for 64 bit"
+        - "arm_64bit=0"
+        - "# dwc2 for RNDIS. comment out, and remove dwc2 and g_ether from cmdline.txt for X306 usb battery hat"
+        - "dtoverlay=dwc2"
+        - "dtoverlay=spi1-3cs"
+        - "dtparam=i2c1=on"
+        - "dtparam=i2c_arm=on"
+        - "dtparam=spi=on"
+        - "gpu_mem=16"
+        - "#### audio out on pins 18 and 19"
+        - "#dtoverlay=audremap,pins_18_19"
+        - "#### touchscreen on waveshare touch e-paper"
+        - "#dtoverlay=goodix,interrupt=27,reset=22"
+        - "#### for PWM backlighting on pimoroni displayhatmini"
+        - "dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4"
+      modules:
+        - "i2c-dev"
+    services:
+      enable:
+        - bettercap.service
+        - dphys-swapfile.service
+        - fstrim.timer
+        - pwnagotchi.service
+        - pwngrid-peer.service
+      disable:
+        - apt-daily-upgrade.service
+        - apt-daily-upgrade.timer
+        - apt-daily.service
+        - apt-daily.timer
+        - bluetooth.service
+        - ifup@wlan0.service
+        - triggerhappy.service
+        - wpa_supplicant.service
+    packages:
+      bettercap:
+        url: "https://github.com/jayofelony/bettercap.git"
+        ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
+      pwngrid:
+        url: "https://github.com/jayofelony/pwngrid.git"
+      torch:
+        wheel: "torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
+        url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
+      torchvision:
+        wheel: "torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
+        url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
+
+      apt:
+        downgrade:
+          # the kali .debs do not work on raspberry pi zero on raspiOS
+          # so install from source later. probably good idea on all platforms
+          #- libpcap-dev_1.9.1-4_armel.deb
+          #- libpcap0.8-dev_1.9.1-4_armel.deb
+          #- libpcap0.8_1.9.1-4_armel.deb
+        hold:
+          - firmware-atheros
+          - firmware-brcm80211
+          - firmware-libertas
+          - firmware-misc-nonfree
+          - firmware-realtek
+          # no longer need to be held. build from source goes in /usr/local
+          # Then bettercap and pwngrid are pointed at it at runtime with LD_LIBRARY_PATH
+          # and LD_PRELOAD
+          # - libpcap-dev
+          # - libpcap0.8
+          # - libpcap0.8-dev
+        remove:
+          - avahi-daemon
+          - nfs-common
+          - triggerhappy
+          - wpasupplicant
+        install:
+          - aircrack-ng
+          - autoconf
+          - bc
+          - bison
+          - bluez
+          - build-essential
+          - curl
+          - dkms
+          - dphys-swapfile
+          - espeak-ng
+          - evtest
+          - fbi
+          - flex
+          - fonts-dejavu
+          - fonts-dejavu-core
+          - fonts-dejavu-extra
+          - fonts-freefont-ttf
+          - g++
+          - gawk
+          - gcc-arm-none-eabi
+          - git
+          - libatlas-base-dev
+          - libavcodec58
+          - libavformat58
+          - libblas-dev
+          - libbz2-dev
+          - libc-ares-dev
+          - libc6-dev
+          - libcpuinfo-dev
+          - libdbus-1-dev
+          - libdbus-glib-1-dev
+          - libeigen3-dev
+          - libelf-dev
+          - libffi-dev
+          - libfl-dev
+          - libfuse-dev
+          - libgdbm-dev
+          - libgl1-mesa-glx
+          - libgmp3-dev
+          - libgstreamer1.0-0
+          - libhdf5-dev
+          - liblapack-dev
+          - libncursesw5-dev
+          - libnetfilter-queue-dev
+          - libopenblas-dev
+          - libopenjp2-7
+          - libopenmpi-dev
+          - libopenmpi3
+          - libpcap-dev
+          - libprotobuf-dev
+          - libraspberrypi-bin
+          - libraspberrypi-dev
+          - libraspberrypi-doc
+          - libraspberrypi0
+          - libsleef-dev
+          - libsqlite3-dev
+          - libssl-dev
+          - libswscale5
+          - libtiff5
+          - libtool
+          - libts-bin
+          - libusb-1.0-0-dev
+          - lsof
+          - make
+          - python3-flask
+          - python3-flask-cors
+          - python3-flaskext.wtf
+          - python3-pil
+          - python3-pip
+          - python3-protobuf
+          - python3-smbus
+          - qpdf
+          - raspberrypi-kernel-headers
+          - rsync
+          - screen
+          - tcpdump
+          - texinfo
+          - time
+          - tk-dev
+          - unzip
+          - vim
+          - wget
+          - wl
+          - xxd
+          - zlib1g-dev
+  environment:
+    #ARCHFLAGS: -arch armv6l
+    #QEMU_CPU: arm1176
+    QEMU_UNAME: "{{ kernel.full }}"
+
+  tasks:
+    - name: Create pi user
+      copy:
+        dest: /boot/userconf
+        content: |
+          pi:$6$3jNr0GA9KIyt4hmM$efeVIopdMQ8DGgEPCWWlbx3mJJNAYci1lEXGdlky0xPyjqwKNbwTL5SrCcpb4144C4IvzWjn7Iv.QjqmU7iyT/
+      tags:
+        - base
+        - config
+
+    - name: change hostname
+      lineinfile:
+        dest: /etc/hostname
+        regexp: '^raspberrypi'
+        line: "{{pwnagotchi.hostname}}"
+        state: present
+      when: lookup('file', '/etc/hostname') == "raspberrypi"
+      register: hostname
+      tags:
+        - base
+        - config
+
+    - name: add hostname to /etc/hosts
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '^127\.0\.1\.1[ \t]+raspberrypi'
+        line: "127.0.1.1\t{{pwnagotchi.hostname}}"
+        state: present
+      when: hostname.changed
+      tags:
+        - base
+        - config
+
+    - name: disable sap plugin for bluetooth.service
+      lineinfile:
+        dest: /lib/systemd/system/bluetooth.service
+        regexp: '^ExecStart=/usr/lib(exec)?/bluetooth/bluetoothd$'
+        line: 'ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap'
+        state: present
+      tags:
+        - config
+        - base
+
+    - name: configure dphys-swapfile
+      lineinfile:
+        path: /etc/dphys-swapfile
+        regexp: "^CONF_SWAPSIZE=.*$"
+        line: "CONF_SWAPSIZE=2048"
+      tags:
+        - config
+        - base
+
+    - name: Create custom plugin directory
+      file:
+        path: '{{ pwnagotchi.custom_plugin_dir }}'
+        state: directory
+      tags:
+        - pwnagotchi
+        - build
+
+    - name: update apt package cache
+      apt:
+        update_cache: yes
+
+    - name: install packages
+      apt:
+        name: "{{ packages.apt.install }}"
+        state: present
+
+    - name: update pip3, setuptools, wheel
+      shell: "python3 -m pip install --upgrade pip setuptools wheel"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src
+
+    ###########################################
+    #
+    # libpcap v1.9 - build from source
+    #
+    ###########################################
+
+    # check for presence, then it can re-run in later parts if needed
+    # use the "make" built in
+
+    # install libpcap before bettercap and pwngrid, so they use it
+    - name: clone libpcap v1.9 from github
+      git:
+        repo: 'https://github.com/the-tcpdump-group/libpcap.git'
+        dest: /usr/local/src/libpcap
+        version: libpcap-1.9
+      tags:
+        - base
+
+    - name: build and install libpcap into /usr/local/lib
+      shell: "./configure && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/libpcap
+      tags:
+        - base
+
+    - name: remove libpcap build folder
+      file:
+        state: absent
+        path: /usr/local/src/libpcap
+      tags:
+        - base
+
+    ###############################################################
+    # Install nexmon to fix wireless scanning (takes 2.5G of space)
+    ###############################################################
+
+    # Install nexmon for all boards
+    - name: build and install nexmon as needed
+      include_tasks: nexmon.yml
+      loop: "{{ boards }}"
+      tags:
+        - base
+        - build_nexmon
+
+    # some pizero2w have the pizeroW wifi chip
+    # could this be a link instead of a copy? and force, only if not a link?
+    - name: copy 43430-sdio as 43436s-sdio for the special 43430/1 /2
+      copy:
+        src: /usr/lib/firmware/brcm/brcmfmac43430-sdio.bin
+        dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
+        follow: true
+
+    # delete blob files that make nexmon sad
+    - name: Delete the firmware blob files to avoid some nexmon crashing
+      file:
+        state: absent
+        path: '{{ item }}'
+      loop:
+        - /usr/lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43430b0-sdio.raspberrypi,model-zero-2-w.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
+
+    # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
+    - name: Delete nexmon content & directory
+      file:
+        state: absent
+        path: /usr/local/src/nexmon/
+
+    - name: make wheel staging dir
+      file:
+        state: directory
+        path: "{{ staging }}/wheels"
+
+    - name: clone pwnagotchi repository
+      git:
+        repo: https://github.com/Sniffleupagus/pwnagotchi-snflpgs.git
+        dest: /usr/local/src/pwnagotchi
+      register: pwnagotchigit
+      tags: pwnagotchi
+
+    # is this even necessary? Can't we just link from /home/pi/pwnagotchi to /usr/local/{bin,lib,etc}
+    # then just git update in the home dir and encourage hacking?
+    # make owned by pi.pi, and custom plugins.
+    - name: build pwnagotchi wheel
+      command: "python3 setup.py sdist bdist_wheel"
+      args:
+        chdir: /usr/local/src/pwnagotchi
+      when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
+      tags: pwnagotchi
+
+    - name: install 32-bit pwnagotchi wheel and dependencies with 32-bit torch wheels
+      pip:
+        name:
+          - "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
+          - "{{ staging }}/wheels/{{ packages.torch.url | basename }}"
+          - "{{ staging }}/wheels/{{ packages.torchvision.url | basename }}"
+          - "stable-baselines3==1.8.0"
+        extra_args: "--no-cache-dir"
+      environment:
+        #QEMU_CPU: arm1176
+        QEMU_UNAME: "{{ kernel.full }}"
+      when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
+      tags:
+        - pwnagotchi
+
+    - name: copy pwnagotchi wheel to staging dir
+      ansible.builtin.copy:
+        src: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
+        dest: "{{ staging }}/wheels"
+      tags: pwnagotchi
+
+    - name: create /usr/local/share/pwnagotchi/ folder
+      file:
+        path: /usr/local/share/pwnagotchi/
+        state: directory
+      tags: pwnagotchi
+
+    - name: remove pwnagotchi folder
+      file:
+        state: absent
+        path: /usr/local/src/pwnagotchi
+      tags: pwnagotchi
+
+    ##########################################
+    #
+    # pwngrid, bettercap
+    #
+    ##########################################
+
+    - name: check for /usr/local/bin/bettercap
+      stat: path=/usr/local/bin/bettercap
+      register: bettercap
+
+    - block:
+        - name: install bettercap if missing
+          when: not bettercap.stat.exists
+          include_tasks: build_install_gopkg.yml
+          vars:
+            item:
+              name: bettercap
+              url: '{{ packages.bettercap.url }}'
+      environment:
+        GOPATH: "{{ lookup('env', 'HOME') }}/go"
+        PATH: "/usr/local/go/bin:{{ lookup('env', 'PATH') }}"
+        GOSUMDB: off
+
+    - name: check for /usr/local/bin/pwngrid
+      stat: path=/usr/local/bin/pwngrid
+      register: pwngrid
+
+    - block:
+        - name: install pwngrid if missing
+          when: not pwngrid.stat.exists
+          include_tasks: build_install_gopkg.yml
+          vars:
+            item:
+              name: pwngrid
+              url: '{{ packages.pwngrid.url }}'
+      environment:
+        GOPATH: "{{ lookup('env', 'HOME') }}/go"
+        PATH: "/usr/local/go/bin:{{ lookup('env', 'PATH') }}"
+        GOSUMDB: off
+
+    - name: clone bettercap caplets
+      git:
+        repo: https://github.com/jayofelony/caplets.git
+        dest: /tmp/caplets
+      register: capletsgit
+
+    - name: install bettercap caplets
+      make:
+        chdir: /tmp/caplets
+        target: install
+      when: capletsgit.changed
+
+    - name: download and install bettercap ui
+      unarchive:
+        src: "{{ packages.bettercap.ui }}"
+        dest: /usr/local/share/bettercap/
+        remote_src: yes
+        mode: 0755
+
+    # to always have the bettercap webui available (because why not?)
+    - name: copy pwnagotchi-manual over pwnagotchi-auto caplet
+      ansible.builtin.copy:
+        src: /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap
+        dest: /usr/local/share/bettercap/caplets/pwnagotchi-auto.cap
+        force: true
+      ignore_errors: true
+
+    - name: add HDMI powersave to rc.local
+      blockinfile:
+        path: /etc/rc.local
+        insertbefore: "exit 0"
+        block: |
+          if ! /opt/vc/bin/tvservice -s | egrep 'HDMI|DVI'; then
+            /opt/vc/bin/tvservice -o
+          fi
+
+    - name: create /etc/pwnagotchi folder
+      file:
+        path: /etc/pwnagotchi
+        state: directory
+      tags: pwnagotchi
+
+    - name: check if user configuration exists
+      stat:
+        path: /etc/pwnagotchi/config.toml
+      register: user_config
+      tags: pwnagotchi
+
+    - name: create /etc/pwnagotchi/config.toml
+      tags: pwnagotchi
+      copy:
+        dest: /etc/pwnagotchi/config.toml
+        content: |
+          # Add your configuration overrides on this file any configuration changes done to default.toml will be lost!
+          # Example:
+          #
+          # use these to log into the web UI
+          ui.web.username = "changeme"
+          ui.web.password = "changeme"
+          ui.display.enabled = true
+          ui.display.type = "displayhatmini"
+          main.custom_plugins = "{{ pwnagotchi.custom_plugin_dir }}"
+          main.plugins.led.enabled = false
+          main.plugins.morse_code.enabled = true
+          personality.deauth = false
+          ui.backgroundcolor="#000000"
+          ui.foregroundcolor="#ffffff"
+          ui.colormode="RGB"
+          main.whitelist = [
+            "EXAMPLE_NETWORK",
+            "ANOTHER_EXAMPLE_NETWORK",
+            "fo:od:ba:be:fo:od",
+            "fo:od:ba",
+          ]
+          main.plugins.rss_voice.enabled = true
+          main.plugins.rss_voice.path = "/root/voice_rss"
+          main.plugins.rss_voice.feed.wait.url = "https://www.reddit.com/r/pwnagotchi/comments.rss"
+          main.plugins.rss_voice.feed.bored.url = "https://www.reddit.com/r/pwnagotchi.rss"
+          main.plugins.rss_voice.feed.sad.url = "https://www.reddit.com/r/showerthoughts.rss"
+      when: not user_config.stat.exists
+
+    - name: set up pi user crontab to kick wifi.recon on bettercap
+      tags: pwnagotchi
+      copy:
+        dest: /tmp/pi-crontab
+        content: |
+          # Edit this file to introduce tasks to be run by cron.
+          #
+          # Each task to run has to be defined through a single line
+          # indicating with different fields when the task will be run
+          # and what command to run for the task
+          #
+          # To define the time you can provide concrete values for
+          # minute (m), hour (h), day of month (dom), month (mon),
+          # and day of week (dow) or use '*' in these fields (for 'any').
+          #
+          # Notice that tasks will be started based on the cron's system
+          # daemon's notion of time and timezones.
+          #
+          # Output of the crontab jobs (including errors) is sent through
+          # email to the user the crontab file belongs to (unless redirected).
+          #
+          # For example, you can run a backup of all your user accounts
+          # at 5 a.m every week with:
+          # 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+          #
+          # For more information see the manual pages of crontab(5) and cron(8)
+          #
+          # m h  dom mon dow   command
+          */5 *  *   *   *     /home/pi/bin/bcinfo.py -qw >/dev/null 2>&1
+
+    - name: install pi crontab
+      tags: pwnagotchi
+      command: "crontab -u pi /tmp/pi-crontab"
+      args:
+        chdir: /tmp
+      register: pi-crontab
+      ignore_errors: true
+
+    - name: delete /tmp/pi-crontab
+      tags: pwnagotchi
+      file:
+        state: absent
+        path: /tmp/pi-crontab
+
+    - name: Delete motd 10-uname
+      file:
+        state: absent
+        path: /etc/update-motd.d/10-uname
+
+    - name: enable ssh on boot
+      file:
+        path: /boot/ssh
+        state: touch
+      tags: base
+
+    - name: disable wlan0 in dhcpcd.conf
+      lineinfile:
+        dest: /etc/dhcpcd.conf
+        insertafter: EOF
+        line: "denyinterfaces wlan0"
+      tags: base
+
+    - name: adjust /boot/config.txt
+      lineinfile:
+        dest: /boot/config.txt
+        insertafter: EOF
+        line: '{{ item }}'
+      with_items: "{{system.boot_options}}"
+      tags: pwnagotchi
+
+    - name: adjust /etc/modules
+      lineinfile:
+        dest: /etc/modules
+        insertafter: EOF
+        line: '{{ item }}'
+      with_items: "{{system.modules}}"
+      tags: pwnagotchi
+
+    - name: change root partition
+      replace:
+        dest: /boot/cmdline.txt
+        backup: no
+        regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
+        replace: "root=/dev/mmcblk0p2"
+      tags: base
+
+    - name: configure /boot/cmdline.txt
+      lineinfile:
+        path: /boot/cmdline.txt
+        backrefs: True
+        state: present
+        backup: no
+        regexp: '(.*)$'
+        line: '\1 modules-load=dwc2,g_ether'
+      tags: pwnagotchi
+
+    - name: clone Sniffleupagus pwny utils
+      git:
+        repo: https://github.com/Sniffleupagus/pwnagotchi-utils.git
+        dest: /home/pi/git/pwnagotchi-utils
+      register: sniffleupagus_utils_fetched
+      tags: pwnagotchi
+
+    - name: grab list of utils
+      ansible.builtin.find:
+        paths: /home/pi/git/pwnagotchi-utils
+        patterns: '*.py'
+        recurse: no
+      register: sniffleupagus_utils
+      tags: pwnagotchi
+
+    - name: Create home bin directory
+      file:
+        path: /home/pi/bin
+        mode: '755'
+        owner: 'pi'
+        group: 'pi'
+        state: directory
+      tags: pwnagotchi
+
+    - name: copy to /home/pi/bin
+      ansible.builtin.copy:
+        src: '{{ item.path }}'
+        dest: '/home/pi/bin/'
+        follow: yes
+        mode: '755'
+        owner: 'pi'
+        group: 'pi'
+      with_items: '{{ sniffleupagus_utils.files }}'
+      tags: pwnagotchi
+
+    # evil socket plugins
+    - name: clone pwnagotchi community plugin repository
+      git:
+        repo: https://github.com/evilsocket/pwnagotchi-plugins-contrib.git
+        dest: /usr/local/src/pwnagotchi-plugins-contrib
+      register: evilsocket_plugins_fetched
+      tags: pwnagotchi
+
+    - name: grab list of plugins
+      ansible.builtin.find:
+        paths: /usr/local/src/pwnagotchi-plugins-contrib
+        patterns: '*.py'
+        recurse: no
+      register: evilsocket_plugins
+      tags: pwnagotchi
+
+    - name: copy to custom plugins
+      ansible.builtin.copy:
+        src: '{{ item.path }}'
+        dest: '{{ pwnagotchi.custom_plugin_dir }}'
+        follow: yes
+      with_items: '{{ evilsocket_plugins.files }}'
+      ignore_errors: true
+      tags: pwnagotchi
+
+    # MORE plugins
+    - name: clone Sniffleupagus plugins
+      git:
+        repo: https://github.com/Sniffleupagus/pwnagotchi_plugins.git
+        dest: /home/pi/git/pwnagotchi_plugins
+      register: sniffleupagus_plugins_fetched
+      tags: pwnagotchi
+
+    - name: grab list of plugins
+      ansible.builtin.find:
+        paths: /home/pi/git/pwnagotchi_plugins
+        patterns: '*.py'
+        recurse: no
+      register: sniffleupagus_plugins
+      tags: pwnagotchi
+
+    - name: copy to custom plugins
+      ansible.builtin.copy:
+        src: '{{ item.path }}'
+        dest: '{{ pwnagotchi.custom_plugin_dir }}'
+        follow: yes
+      with_items: '{{ sniffleupagus_plugins.files }}'
+      tags: pwnagotchi
+
+    - name: Add pwnlog alias
+      lineinfile:
+        dest: /home/pi/.bashrc
+        line: "\nalias pwnlog='tail -f -n300 /var/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'"
+        insertafter: EOF
+      tags: pwnagotchi
+
+    - name: Add pwnver alias
+      lineinfile:
+        dest: /home/pi/.bashrc
+        line: "\nalias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'"
+        insertafter: EOF
+      tags: pwnagotchi
+
+    - name: Add pwnkill alias to restart pwnagotchi with a signal
+      lineinfile:
+        dest: /home/pi/.bashrc
+        line: "\nalias pwnkill='sudo killall -USR1 pwnagotchi'"
+        insertafter: EOF
+      tags: pwnagotchi
+
+    - name: add firmware packages to hold
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      with_items: "{{ packages.apt.hold }}"
+
+    - name: disable unnecessary services
+      systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      with_items: "{{ services.disable }}"
+
+    - name: enable services
+      systemd:
+        name: "{{ item }}"
+        enabled: true
+        state: stopped
+      with_items: "{{ services.enable }}"
+      tags: pwnagotchi
+
+    - name: remove golang build libraries
+      file:
+        state: absent
+        path: /root/go
+
+    - name: remove pre-collected packages zip
+      file:
+        path: /root/go_pkgs.tgz
+        state: absent
+
+    - name: remove golang
+      file:
+        state: absent
+        path: /usr/local/go
+
+    - name: make /root readable, becauase that's where all the files are
+      file:
+        path: /root
+        mode: '755'
+
+    - name: fix permissions on /home/pi
+      file:
+        path: /home/pi
+        owner: pi
+        group: pi
+        recurse: true
+
+    - name: remove unnecessary apt packages
+      apt:
+        name: "{{ packages.apt.remove }}"
+        state: absent
+        purge: yes
+
+    - name: remove dependencies that are no longer required
+      apt:
+        autoremove: yes
+
+    - name: clean apt cache
+      apt:
+        autoclean: true
+
+    - name: remove apt package cache
+      shell: "apt clean"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src
+
+    - name: remove /root/.cache (pip cache)
+      file:
+        state: absent
+        path: /root/.cache
+
+  handlers:
+    - name: reload systemd services
+      systemd:
+        daemon_reload: yes
