@@ -288,43 +288,6 @@
         path: /boot/ssh
         state: touch
 
-    #- name: adjust /boot/config.txt
-    #  lineinfile:
-    #    dest: /boot/config.txt
-    #    insertafter: EOF
-    #    line: '{{ item }}'
-    #  with_items: "{{system.boot_options}}"
-
-    - name: adjust /etc/modules
-      lineinfile:
-        dest: /etc/modules
-        insertafter: EOF
-        line: '{{ item }}'
-      with_items: "{{system.modules}}"
-
-    - name: change g_serial to g_ether
-      lineinfile:
-        dest: /etc/modules
-        regexp: '^g_serial'
-        line: "g_ether"
-        state: present
-
-    #- name: change root partition
-    #  replace:
-    #    dest: /boot/cmdline.txt
-    #    backup: no
-    #    regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
-    #    replace: "root=/dev/mmcblk0p2"
-
-    #- name: configure /boot/cmdline.txt
-    #  lineinfile:
-    #    path: /boot/cmdline.txt
-    #    backrefs: True
-    #    state: present
-    #    backup: no
-    #    regexp: '(.*)$'
-    #    line: '\1 modules-load=dwc2,g_ether'
-
     - name: Add pwnlog alias
       lineinfile:
         dest: /home/pi/.bashrc
