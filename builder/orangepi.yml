@@ -288,6 +288,13 @@
         path: /boot/ssh
         state: touch
 
+    - name: adjust /etc/modules
+      lineinfile:
+        dest: /etc/modules
+        insertafter: EOF
+        line: '{{ item }}'
+      with_items: "{{system.modules}}"
+
     - name: Add pwnlog alias
       lineinfile:
         dest: /home/pi/.bashrc
