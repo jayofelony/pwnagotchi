@@ -209,9 +209,6 @@
         dest: /boot/userconf
         content: |
           pi:$6$3jNr0GA9KIyt4hmM$efeVIopdMQ8DGgEPCWWlbx3mJJNAYci1lEXGdlky0xPyjqwKNbwTL5SrCcpb4144C4IvzWjn7Iv.QjqmU7iyT/
-      tags:
-        - base
-        - config
 
     - name: change hostname
       lineinfile:
@@ -221,9 +218,6 @@
         state: present
       when: lookup('file', '/etc/hostname') == "raspberrypi"
       register: hostname
-      tags:
-        - base
-        - config
 
     - name: add hostname to /etc/hosts
       lineinfile:
@@ -232,9 +226,6 @@
         line: "127.0.1.1\t{{pwnagotchi.hostname}}"
         state: present
       when: hostname.changed
-      tags:
-        - base
-        - config
 
     - name: disable sap plugin for bluetooth.service
       lineinfile:
@@ -242,26 +233,17 @@
         regexp: '^ExecStart=/usr/lib(exec)?/bluetooth/bluetoothd$'
         line: 'ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap'
         state: present
-      tags:
-        - config
-        - base
 
     - name: configure dphys-swapfile
       lineinfile:
         path: /etc/dphys-swapfile
         regexp: "^CONF_SWAPSIZE=.*$"
         line: "CONF_SWAPSIZE=2048"
-      tags:
-        - config
-        - base
 
     - name: Create custom plugin directory
       file:
         path: '{{ pwnagotchi.custom_plugin_dir }}'
         state: directory
-      tags:
-        - pwnagotchi
-        - build
 
     - name: update apt package cache
       apt:
@@ -293,23 +275,17 @@
         repo: 'https://github.com/the-tcpdump-group/libpcap.git'
         dest: /usr/local/src/libpcap
         version: libpcap-1.9
-      tags:
-        - base
 
     - name: build and install libpcap into /usr/local/lib
       shell: "./configure && make && make install"
       args:
         executable: /bin/bash
         chdir: /usr/local/src/libpcap
-      tags:
-        - base
 
     - name: remove libpcap build folder
       file:
         state: absent
         path: /usr/local/src/libpcap
-      tags:
-        - base
 
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
@@ -319,9 +295,6 @@
     - name: build and install nexmon as needed
       include_tasks: nexmon.yml
       loop: "{{ boards }}"
-      tags:
-        - base
-        - build_nexmon
 
     # some pizero2w have the pizeroW wifi chip
     # could this be a link instead of a copy? and force, only if not a link?
@@ -359,7 +332,6 @@
         repo: https://github.com/Sniffleupagus/pwnagotchi-snflpgs.git
         dest: /usr/local/src/pwnagotchi
       register: pwnagotchigit
-      tags: pwnagotchi
 
     # is this even necessary? Can't we just link from /home/pi/pwnagotchi to /usr/local/{bin,lib,etc}
     # then just git update in the home dir and encourage hacking?
@@ -369,7 +341,6 @@
       args:
         chdir: /usr/local/src/pwnagotchi
       when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
-      tags: pwnagotchi
 
     - name: install 32-bit pwnagotchi wheel and dependencies with 32-bit torch wheels
       pip:
@@ -383,26 +354,21 @@
         #QEMU_CPU: arm1176
         QEMU_UNAME: "{{ kernel.full }}"
       when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
-      tags:
-        - pwnagotchi
 
     - name: copy pwnagotchi wheel to staging dir
       ansible.builtin.copy:
         src: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
         dest: "{{ staging }}/wheels"
-      tags: pwnagotchi
 
     - name: create /usr/local/share/pwnagotchi/ folder
       file:
         path: /usr/local/share/pwnagotchi/
         state: directory
-      tags: pwnagotchi
 
     - name: remove pwnagotchi folder
       file:
         state: absent
         path: /usr/local/src/pwnagotchi
-      tags: pwnagotchi
 
     ##########################################
     #
@@ -484,16 +450,13 @@
       file:
         path: /etc/pwnagotchi
         state: directory
-      tags: pwnagotchi
 
     - name: check if user configuration exists
       stat:
         path: /etc/pwnagotchi/config.toml
       register: user_config
-      tags: pwnagotchi
 
     - name: create /etc/pwnagotchi/config.toml
-      tags: pwnagotchi
       copy:
         dest: /etc/pwnagotchi/config.toml
         content: |
@@ -526,7 +489,6 @@
       when: not user_config.stat.exists
 
     - name: set up pi user crontab to kick wifi.recon on bettercap
-      tags: pwnagotchi
       copy:
         dest: /tmp/pi-crontab
         content: |
@@ -556,7 +518,6 @@
           */5 *  *   *   *     /home/pi/bin/bcinfo.py -qw >/dev/null 2>&1
 
     - name: install pi crontab
-      tags: pwnagotchi
       command: "crontab -u pi /tmp/pi-crontab"
       args:
         chdir: /tmp
@@ -564,7 +525,6 @@
       ignore_errors: true
 
     - name: delete /tmp/pi-crontab
-      tags: pwnagotchi
       file:
         state: absent
         path: /tmp/pi-crontab
@@ -578,14 +538,6 @@
       file:
         path: /boot/ssh
         state: touch
-      tags: base
-
-    - name: disable wlan0 in dhcpcd.conf
-      lineinfile:
-        dest: /etc/dhcpcd.conf
-        insertafter: EOF
-        line: "denyinterfaces wlan0"
-      tags: base
 
     - name: adjust /boot/config.txt
       lineinfile:
@@ -593,7 +545,6 @@
         insertafter: EOF
         line: '{{ item }}'
       with_items: "{{system.boot_options}}"
-      tags: pwnagotchi
 
     - name: adjust /etc/modules
       lineinfile:
@@ -601,7 +552,6 @@
         insertafter: EOF
         line: '{{ item }}'
       with_items: "{{system.modules}}"
-      tags: pwnagotchi
 
     - name: change root partition
       replace:
@@ -609,7 +559,6 @@
         backup: no
         regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
         replace: "root=/dev/mmcblk0p2"
-      tags: base
 
     - name: configure /boot/cmdline.txt
       lineinfile:
@@ -619,14 +568,12 @@
         backup: no
         regexp: '(.*)$'
         line: '\1 modules-load=dwc2,g_ether'
-      tags: pwnagotchi
 
     - name: clone Sniffleupagus pwny utils
       git:
         repo: https://github.com/Sniffleupagus/pwnagotchi-utils.git
         dest: /home/pi/git/pwnagotchi-utils
       register: sniffleupagus_utils_fetched
-      tags: pwnagotchi
 
     - name: grab list of utils
       ansible.builtin.find:
@@ -634,7 +581,6 @@
         patterns: '*.py'
         recurse: no
       register: sniffleupagus_utils
-      tags: pwnagotchi
 
     - name: Create home bin directory
       file:
@@ -643,7 +589,6 @@
         owner: 'pi'
         group: 'pi'
         state: directory
-      tags: pwnagotchi
 
     - name: copy to /home/pi/bin
       ansible.builtin.copy:
@@ -654,7 +599,6 @@
         owner: 'pi'
         group: 'pi'
       with_items: '{{ sniffleupagus_utils.files }}'
-      tags: pwnagotchi
 
     # evil socket plugins
     - name: clone pwnagotchi community plugin repository
@@ -662,7 +606,6 @@
         repo: https://github.com/evilsocket/pwnagotchi-plugins-contrib.git
         dest: /usr/local/src/pwnagotchi-plugins-contrib
       register: evilsocket_plugins_fetched
-      tags: pwnagotchi
 
     - name: grab list of plugins
       ansible.builtin.find:
@@ -670,7 +613,6 @@
         patterns: '*.py'
         recurse: no
       register: evilsocket_plugins
-      tags: pwnagotchi
 
     - name: copy to custom plugins
       ansible.builtin.copy:
@@ -679,52 +621,24 @@
         follow: yes
       with_items: '{{ evilsocket_plugins.files }}'
       ignore_errors: true
-      tags: pwnagotchi
-
-    # MORE plugins
-    - name: clone Sniffleupagus plugins
-      git:
-        repo: https://github.com/Sniffleupagus/pwnagotchi_plugins.git
-        dest: /home/pi/git/pwnagotchi_plugins
-      register: sniffleupagus_plugins_fetched
-      tags: pwnagotchi
-
-    - name: grab list of plugins
-      ansible.builtin.find:
-        paths: /home/pi/git/pwnagotchi_plugins
-        patterns: '*.py'
-        recurse: no
-      register: sniffleupagus_plugins
-      tags: pwnagotchi
-
-    - name: copy to custom plugins
-      ansible.builtin.copy:
-        src: '{{ item.path }}'
-        dest: '{{ pwnagotchi.custom_plugin_dir }}'
-        follow: yes
-      with_items: '{{ sniffleupagus_plugins.files }}'
-      tags: pwnagotchi
 
     - name: Add pwnlog alias
       lineinfile:
         dest: /home/pi/.bashrc
         line: "\nalias pwnlog='tail -f -n300 /var/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'"
         insertafter: EOF
-      tags: pwnagotchi
 
     - name: Add pwnver alias
       lineinfile:
         dest: /home/pi/.bashrc
         line: "\nalias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'"
         insertafter: EOF
-      tags: pwnagotchi
 
     - name: Add pwnkill alias to restart pwnagotchi with a signal
       lineinfile:
         dest: /home/pi/.bashrc
         line: "\nalias pwnkill='sudo killall -USR1 pwnagotchi'"
         insertafter: EOF
-      tags: pwnagotchi
 
     - name: add firmware packages to hold
       dpkg_selections:
@@ -745,7 +659,6 @@
         enabled: true
         state: stopped
       with_items: "{{ services.enable }}"
-      tags: pwnagotchi
 
     - name: remove golang build libraries
       file:
@@ -798,6 +711,13 @@
       file:
         state: absent
         path: /root/.cache
+
+    - name: remove ssh keys
+      file:
+        state: absent
+        path: "{{ item }}"
+      with_fileglob:
+        - "/etc/ssh/ssh_host*_key*"
 
   handlers:
     - name: reload systemd services
