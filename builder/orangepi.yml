@@ -6,7 +6,7 @@
   vars:
     kernel:
       min: "6.1"
-      full: "6.1.21-v8+"
+      full: "6.1.31-sun50iw9"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
@@ -23,11 +23,11 @@
         - "g_ether"
     services:
       enable:
-        - bettercap.service
+        #- bettercap.service
         - dphys-swapfile.service
         - fstrim.timer
-        - pwnagotchi.service
-        - pwngrid-peer.service
+        #- pwnagotchi.service
+        #- pwngrid-peer.service
       disable:
         - apt-daily-upgrade.service
         - apt-daily-upgrade.timer
@@ -36,7 +36,7 @@
         - avahi-daemon.service
         - avahi-daemon.socket
         - bluetooth.service
-        - ifup@wlan0.service
+        #- ifup@wlan0.service
         - rpi-eeprom-update.service
         - triggerhappy.service
         - wpa_supplicant.service
@@ -150,6 +150,7 @@
           - zlib1g-dev
   environment:
     ARCHFLAGS: "-arch aarch64"
+    QEMU_UNAME: "{{ kernel.full }}"
 
   tasks:
     - name: Create user=pi, pass=orange
