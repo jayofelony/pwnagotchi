@@ -51,7 +51,7 @@ $(SDIST): setup.py pwnagotchi
 $(PWN_RELEASE).img: | $(PACKER)
 
 # If the packer or ansible files are updated, rebuild the image.
-$(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json.pkr.hcl raspberrypi32.yml raspberry64.yml orangepi.yml build_install_gopkg.yml nexmon.yml $(shell find builder/data -type f)
+$(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json.pkr.hcl $(shell find builder/data -type f)
 
 	# sudo $(PACKER) plugins install github.com/solo-io/arm-image
 	# sudo $(PACKER) plugins install github.com/hashicorp/ansible
