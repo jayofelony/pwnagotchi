@@ -350,8 +350,7 @@
     - name: install 32-bit pwnagotchi wheel and dependencies with 32-bit torch wheels
       pip:
         name:
-          - "{{ /usr/local/src/torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl }}"
-          - "{{ /usr/local/src/torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl }}"
+          - "{{ lookup('fileglob', '/usr/local/src/torch*.whl') }}"
           - "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
         extra_args: "--no-cache-dir"
       environment:
@@ -368,6 +367,11 @@
       file:
         state: absent
         path: /usr/local/src/pwnagotchi
+
+    - name: remove torch whls
+      file:
+        state: absent
+        path: "{{ lookup('fileglob', '/usr/local/src/torch*.whl') }}"
 
     ##########################################
     #
