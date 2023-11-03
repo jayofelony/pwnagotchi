@@ -324,7 +324,7 @@
 
     - name: clone pwnagotchi repository
       git:
-        repo: https://github.com/Sniffleupagus/pwnagotchi-snflpgs.git
+        repo: https://github.com/jayofelony/pwnagotchi-torch.git
         dest: /usr/local/src/pwnagotchi
       register: pwnagotchigit
 
@@ -337,12 +337,22 @@
         chdir: /usr/local/src/pwnagotchi
       when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
+    - name: download torch whl
+      get_url:
+        url: "{{ packages.torch.url }}"
+        dest: /usr/local/src/
+
+    - name: download torchvision whl
+      get_url:
+        url: "{{ packages.torchvision.url }}"
+        dest: /usr/local/src/
+
     - name: install 32-bit pwnagotchi wheel and dependencies with 32-bit torch wheels
       pip:
         name:
+          - "{{ /usr/local/src/packages.torch.url | basename }}"
+          - "{{ /usr/local/src/packages.torchvision.url | basename }}"
           - "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
-          - "{{ packages.torch.url | basename }}"
-          - "{{ packages.torchvision.url | basename }}"
         extra_args: "--no-cache-dir"
       environment:
         #QEMU_CPU: arm1176
