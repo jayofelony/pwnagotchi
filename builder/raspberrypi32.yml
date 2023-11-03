@@ -509,59 +509,6 @@
         regexp: '(.*)$'
         line: '\1 modules-load=dwc2,g_ether'
 
-    - name: clone Sniffleupagus pwny utils
-      git:
-        repo: https://github.com/Sniffleupagus/pwnagotchi-utils.git
-        dest: /home/pi/git/pwnagotchi-utils
-      register: sniffleupagus_utils_fetched
-
-    - name: grab list of utils
-      ansible.builtin.find:
-        paths: /home/pi/git/pwnagotchi-utils
-        patterns: '*.py'
-        recurse: no
-      register: sniffleupagus_utils
-
-    - name: Create home bin directory
-      file:
-        path: /home/pi/bin
-        mode: '755'
-        owner: 'pi'
-        group: 'pi'
-        state: directory
-
-    - name: copy to /home/pi/bin
-      ansible.builtin.copy:
-        src: '{{ item.path }}'
-        dest: '/home/pi/bin/'
-        follow: yes
-        mode: '755'
-        owner: 'pi'
-        group: 'pi'
-      with_items: '{{ sniffleupagus_utils.files }}'
-
-    # evil socket plugins
-    - name: clone pwnagotchi community plugin repository
-      git:
-        repo: https://github.com/evilsocket/pwnagotchi-plugins-contrib.git
-        dest: /usr/local/src/pwnagotchi-plugins-contrib
-      register: evilsocket_plugins_fetched
-
-    - name: grab list of plugins
-      ansible.builtin.find:
-        paths: /usr/local/src/pwnagotchi-plugins-contrib
-        patterns: '*.py'
-        recurse: no
-      register: evilsocket_plugins
-
-    - name: copy to custom plugins
-      ansible.builtin.copy:
-        src: '{{ item.path }}'
-        dest: '{{ pwnagotchi.custom_plugin_dir }}'
-        follow: yes
-      with_items: '{{ evilsocket_plugins.files }}'
-      ignore_errors: true
-
     - name: Add pwnlog alias
       lineinfile:
         dest: /home/pi/.bashrc

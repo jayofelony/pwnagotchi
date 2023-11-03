@@ -544,6 +544,18 @@
       with_items: "{{ services.enable }}"
       register: enabled
 
+    - name: make /root readable, becauase that's where all the files are
+      file:
+        path: /root
+        mode: '755'
+
+    - name: fix permissions on /home/pi
+      file:
+        path: /home/pi
+        owner: pi
+        group: pi
+        recurse: true
+
     - name: remove unnecessary apt packages
       apt:
         name: "{{ packages.apt.remove }}"
