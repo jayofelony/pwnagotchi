@@ -1,5 +1,5 @@
 gym
-shimmy
+shimmy; platform_machine!="armv6l"
 pycryptodome
 requests
 PyYAML
