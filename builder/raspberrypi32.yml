@@ -350,12 +350,13 @@
     - name: install 32-bit pwnagotchi wheel and dependencies with 32-bit torch wheels
       pip:
         name:
-          - "{{ lookup('fileglob', '/usr/local/src/torch*.whl') }}"
           - "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
+          - "{{ packages.torch.url }}"
+          - "{{ packages.torchvision.url }}"
         extra_args: "--no-cache-dir"
       environment:
         #QEMU_CPU: arm1176
-        QEMU_UNAME: "{{ kernel.full }}"
+        #QEMU_UNAME: "{{ kernel.full }}"
       when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
     - name: create /usr/local/share/pwnagotchi/ folder
@@ -367,11 +368,6 @@
       file:
         state: absent
         path: /usr/local/src/pwnagotchi
-
-    - name: remove torch whls
-      file:
-        state: absent
-        path: "{{ lookup('fileglob', '/usr/local/src/torch*.whl') }}"
 
     ##########################################
     #
