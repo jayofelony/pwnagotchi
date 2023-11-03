@@ -322,11 +322,6 @@
         state: absent
         path: /usr/local/src/nexmon/
 
-    - name: make wheel staging dir
-      file:
-        state: directory
-        path: "{{ staging }}/wheels"
-
     - name: clone pwnagotchi repository
       git:
         repo: https://github.com/Sniffleupagus/pwnagotchi-snflpgs.git
@@ -346,19 +341,13 @@
       pip:
         name:
           - "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
-          - "{{ staging }}/wheels/{{ packages.torch.url | basename }}"
-          - "{{ staging }}/wheels/{{ packages.torchvision.url | basename }}"
-          - "stable-baselines3==1.8.0"
+          - "{{ packages.torch.url | basename }}"
+          - "{{ packages.torchvision.url | basename }}"
         extra_args: "--no-cache-dir"
       environment:
         #QEMU_CPU: arm1176
         QEMU_UNAME: "{{ kernel.full }}"
       when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
-
-    - name: copy pwnagotchi wheel to staging dir
-      ansible.builtin.copy:
-        src: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
-        dest: "{{ staging }}/wheels"
 
     - name: create /usr/local/share/pwnagotchi/ folder
       file:
