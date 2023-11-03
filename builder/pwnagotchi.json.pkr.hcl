@@ -185,7 +185,7 @@ build {
   provisioner "ansible-local" {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
     extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
-    playbook_dir    = "../builder/"
+    playbook_dir    = "../builder/extras/"
     playbook_file   = "../builder/raspberrypi32.yml"
   }
 }

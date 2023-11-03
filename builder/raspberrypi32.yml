@@ -293,7 +293,7 @@
 
     # Install nexmon for all boards
     - name: build and install nexmon as needed
-      include_tasks: nexmon.yml
+      include_tasks: extras/nexmon.yml
       loop: "{{ boards }}"
 
     # some pizero2w have the pizeroW wifi chip
@@ -382,7 +382,7 @@
     - block:
         - name: install bettercap if missing
           when: not bettercap.stat.exists
-          include_tasks: build_install_gopkg.yml
+          include_tasks: extras/build_install_gopkg.yml
           vars:
             item:
               name: bettercap
@@ -399,7 +399,7 @@
     - block:
         - name: install pwngrid if missing
           when: not pwngrid.stat.exists
-          include_tasks: build_install_gopkg.yml
+          include_tasks: extras/build_install_gopkg.yml
           vars:
             item:
               name: pwngrid
