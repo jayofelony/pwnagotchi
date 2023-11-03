@@ -293,7 +293,7 @@
 
     # Install nexmon for all boards
     - name: build and install nexmon as needed
-      include_tasks: extras/nexmon.yml
+      include_tasks: nexmon.yml
       loop: "{{ boards }}"
 
     # some pizero2w have the pizeroW wifi chip
