@@ -375,39 +375,57 @@
     #
     ##########################################
 
-    - name: check for /usr/local/bin/bettercap
-      stat: path=/usr/local/bin/bettercap
-      register: bettercap
+    - name: Download and install golang
+      when: not big_golang.stat.exists
+      unarchive:
+        src: https://go.dev/dl/go1.21.1.linux-armv6l.tar.gz
+        dest: /usr/local
+        remote_src: yes
 
-    - block:
-        - name: install bettercap if missing
-          when: not bettercap.stat.exists
-          include_tasks: build_install_gopkg.yml
-          vars:
-            item:
-              name: bettercap
-              url: '{{ packages.bettercap.url }}'
-      environment:
-        GOPATH: "{{ lookup('env', 'HOME') }}/go"
-        PATH: "/usr/local/go/bin:{{ lookup('env', 'PATH') }}"
-        GOSUMDB: off
+    - name: Update .bashrc for go-1.21
+      blockinfile:
+        dest: /home/pi/.bashrc
+        state: present
+        block: |
+          export GOPATH=$HOME/go
+          export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+      when: golang.changed
 
-    - name: check for /usr/local/bin/pwngrid
-      stat: path=/usr/local/bin/pwngrid
+    - name: download pwngrid 1.10.4
+      git:
+        repo: https://github.com/jayofelony/pwngrid.git
+        dest: /usr/local/src/pwngrid
       register: pwngrid
 
-    - block:
-        - name: install pwngrid if missing
-          when: not pwngrid.stat.exists
-          include_tasks: build_install_gopkg.yml
-          vars:
-            item:
-              name: pwngrid
-              url: '{{ packages.pwngrid.url }}'
-      environment:
-        GOPATH: "{{ lookup('env', 'HOME') }}/go"
-        PATH: "/usr/local/go/bin:{{ lookup('env', 'PATH') }}"
-        GOSUMDB: off
+    - name: install pwngrid 1.10.4
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/pwngrid
+      when: pwngrid.changed
+
+    - name: remove pwngrid folder
+      file:
+        state: absent
+        path: /usr/local/src/pwngrid
+
+    - name: download bettercap v2.32.1
+      git:
+        repo: https://github.com/jayofelony/bettercap.git
+        dest: /usr/local/src/bettercap
+      register: bettercap
+
+    - name: Install bettercap v2.32.1
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/bettercap
+      when: bettercap.changed
+
+    - name: remove bettercap folder
+      file:
+        state: absent
+        path: /usr/local/src/bettercap
 
     - name: clone bettercap caplets
       git:
@@ -547,11 +565,6 @@
       file:
         state: absent
         path: /root/go
-
-    - name: remove pre-collected packages zip
-      file:
-        path: /root/go_pkgs.tgz
-        state: absent
 
     - name: remove golang
       file:
