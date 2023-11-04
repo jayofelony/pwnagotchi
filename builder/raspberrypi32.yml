@@ -416,7 +416,9 @@
       register: bettercap
 
     - name: Install bettercap v2.32.1
-      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy -x -v && make && make install"
+      retries: 7
+      delay: 60
       args:
         executable: /bin/bash
         chdir: /usr/local/src/bettercap
