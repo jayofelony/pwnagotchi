@@ -396,7 +396,7 @@
       register: pwngrid
 
     - name: install pwngrid 1.10.4
-      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy -x -v && make && make install"
+      shell: "export GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy -x -v && make && make install"
       retries: 7
       delay: 60
       args:
@@ -416,7 +416,7 @@
       register: bettercap
 
     - name: Install bettercap v2.32.1
-      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy -x -v && make && make install"
+      shell: "export GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy -x -v && make && make install"
       retries: 7
       delay: 60
       args:
