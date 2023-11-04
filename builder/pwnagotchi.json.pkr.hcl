@@ -107,13 +107,13 @@ build {
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
-      "../builder/data/usr/bin/pwnlib",
-      "../builder/data/usr/bin/bettercap-launcher",
-      "../builder/data/usr/bin/pwnagotchi-launcher",
-      "../builder/data/usr/bin/monstop",
-      "../builder/data/usr/bin/monstart",
-      "../builder/data/usr/bin/hdmion",
-      "../builder/data/usr/bin/hdmioff",
+      "data/usr/bin/pwnlib",
+      "data/usr/bin/bettercap-launcher",
+      "data/usr/bin/pwnagotchi-launcher",
+      "data/usr/bin/monstop",
+      "data/usr/bin/monstart",
+      "data/usr/bin/hdmion",
+      "data/usr/bin/hdmioff",
     ]
   }
   provisioner "shell" {
@@ -123,14 +123,14 @@ build {
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
-      "../builder/data/etc/systemd/system/pwngrid-peer.service",
-      "../builder/data/etc/systemd/system/pwnagotchi.service",
-      "../builder/data/etc/systemd/system/bettercap.service",
+      "data/etc/systemd/system/pwngrid-peer.service",
+      "data/etc/systemd/system/pwnagotchi.service",
+      "data/etc/systemd/system/bettercap.service",
     ]
   }
   provisioner "file" {
     destination = "/etc/update-motd.d/01-motd"
-    source      = "../builder/data/etc/update-motd.d/01-motd"
+    source      = "data/etc/update-motd.d/01-motd"
   }
   provisioner "shell" {
     inline = ["chmod +x /etc/update-motd.d/*"]
@@ -141,7 +141,7 @@ build {
   provisioner "ansible-local" {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
     extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
-    playbook_file   = "../builder/raspberrypi64.yml"
+    playbook_file   = "raspberrypi64.yml"
   }
 }
 
@@ -151,13 +151,13 @@ build {
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
-      "../builder/data/usr/bin/pwnlib",
-      "../builder/data/usr/bin/bettercap-launcher",
-      "../builder/data/usr/bin/pwnagotchi-launcher",
-      "../builder/data/usr/bin/monstop",
-      "../builder/data/usr/bin/monstart",
-      "../builder/data/usr/bin/hdmion",
-      "../builder/data/usr/bin/hdmioff",
+      "data/usr/bin/pwnlib",
+      "data/usr/bin/bettercap-launcher",
+      "data/usr/bin/pwnagotchi-launcher",
+      "data/usr/bin/monstop",
+      "data/usr/bin/monstart",
+      "data/usr/bin/hdmion",
+      "data/usr/bin/hdmioff",
     ]
   }
   provisioner "shell" {
@@ -167,14 +167,14 @@ build {
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
-      "../builder/data/etc/systemd/system/pwngrid-peer.service",
-      "../builder/data/etc/systemd/system/pwnagotchi.service",
-      "../builder/data/etc/systemd/system/bettercap.service",
+      "data/etc/systemd/system/pwngrid-peer.service",
+      "data/etc/systemd/system/pwnagotchi.service",
+      "data/etc/systemd/system/bettercap.service",
     ]
   }
   provisioner "file" {
     destination = "/etc/update-motd.d/01-motd"
-    source      = "../builder/data/etc/update-motd.d/01-motd"
+    source      = "data/etc/update-motd.d/01-motd"
   }
   provisioner "shell" {
     inline = ["chmod +x /etc/update-motd.d/*"]
@@ -185,8 +185,8 @@ build {
   provisioner "ansible-local" {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
     extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
-    playbook_dir    = "../builder/extras/"
-    playbook_file   = "../builder/raspberrypi32.yml"
+    playbook_dir    = "extras/"
+    playbook_file   = "raspberrypi32.yml"
   }
 }
 
@@ -197,13 +197,13 @@ build {
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
-      "../builder/data/usr/bin/pwnlib",
-      "../builder/data/usr/bin/bettercap-launcher",
-      "../builder/data/usr/bin/pwnagotchi-launcher",
-      "../builder/data/usr/bin/monstop",
-      "../builder/data/usr/bin/monstart",
-      "../builder/data/usr/bin/hdmion",
-      "../builder/data/usr/bin/hdmioff",
+      "data/usr/bin/pwnlib",
+      "data/usr/bin/bettercap-launcher",
+      "data/usr/bin/pwnagotchi-launcher",
+      "data/usr/bin/monstop",
+      "data/usr/bin/monstart",
+      "data/usr/bin/hdmion",
+      "data/usr/bin/hdmioff",
     ]
   }
   provisioner "shell" {
@@ -213,14 +213,14 @@ build {
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
-      "../builder/data/etc/systemd/system/pwngrid-peer.service",
-      "../builder/data/etc/systemd/system/pwnagotchi.service",
-      "../builder/data/etc/systemd/system/bettercap.service",
+      "data/etc/systemd/system/pwngrid-peer.service",
+      "data/etc/systemd/system/pwnagotchi.service",
+      "data/etc/systemd/system/bettercap.service",
     ]
   }
   provisioner "file" {
     destination = "/etc/update-motd.d/01-motd"
-    source      = "../builder/data/etc/update-motd.d/01-motd"
+    source      = "data/etc/update-motd.d/01-motd"
   }
   provisioner "shell" {
     inline = ["chmod +x /etc/update-motd.d/*"]
@@ -231,6 +231,6 @@ build {
   provisioner "ansible-local" {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
     extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
-    playbook_file   = "../builder/orangepi.yml"
+    playbook_file   = "orangepi.yml"
   }
 }

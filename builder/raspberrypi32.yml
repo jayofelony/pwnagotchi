@@ -199,7 +199,7 @@
           - xxd
           - zlib1g-dev
   environment:
-    #ARCHFLAGS: -arch armv6l
+    ARCHFLAGS: -arch armv6l
     #QEMU_CPU: arm1176
     QEMU_UNAME: "{{ kernel.full }}"
 

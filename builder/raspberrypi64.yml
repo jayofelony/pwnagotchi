@@ -465,14 +465,14 @@
         dest: /boot/config.txt
         insertafter: EOF
         line: '{{ item }}'
-      with_items: "{{system.boot_options}}"
+      with_items: "{{ system.boot_options }}"
 
     - name: adjust /etc/modules
       lineinfile:
         dest: /etc/modules
         insertafter: EOF
         line: '{{ item }}'
-      with_items: "{{system.modules}}"
+      with_items: "{{ system.modules }}"
 
     - name: change root partition
       replace:
