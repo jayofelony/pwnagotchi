@@ -356,7 +356,7 @@
         extra_args: "--no-cache-dir"
       environment:
         QEMU_CPU: arm1176
-        QEMU_UNAME: "{{ kernel.full }}"
+        QEMU_UNAME: "{{ kernel.full_2w }}"
       when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
     - name: create /usr/local/share/pwnagotchi/ folder
