@@ -259,7 +259,7 @@
         - /usr/lib/firmware/brcm/brcmfmac43430b0-sdio.raspberrypi,model-zero-2-w.clm_blob
         - /usr/lib/firmware/brcm/brcmfmac43436-sdio.clm_blob
         - /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
-        - /usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blo
+        - /usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blob
 
     - name: backup original driver
       command: "mv /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
