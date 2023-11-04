@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-sudo /opt/vc/bin/tvservice -o
+sudo /usr/bin/tvservice -o

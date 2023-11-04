@@ -230,8 +230,8 @@
     - name: disable sap plugin for bluetooth.service
       lineinfile:
         dest: /lib/systemd/system/bluetooth.service
-        regexp: '^ExecStart=/usr/lib(exec)?/bluetooth/bluetoothd$'
-        line: 'ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap'
+        regexp: '^ExecStart=/usr/libexec/bluetooth/bluetoothd$'
+        line: 'ExecStart=/usr/libexec/bluetooth/bluetoothd --noplugin=sap'
         state: present
 
     - name: configure dphys-swapfile

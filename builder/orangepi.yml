@@ -261,20 +261,6 @@
         force: true
       ignore_errors: true
 
-    - name: change hdmioff
-      lineinfile:
-        dest: /usr/bin/hdmioff
-        regexp: '^/opt/vc/'
-        line: "/usr/"
-        state: present
-
-    - name: change hdmion
-      lineinfile:
-        dest: /usr/bin/hdmion
-        regexp: '^/opt/vc/'
-        line: "/usr/"
-        state: present
-
     - name: add HDMI powersave to rc.local
       blockinfile:
         path: /etc/rc.local
