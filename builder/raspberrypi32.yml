@@ -376,7 +376,6 @@
     ##########################################
 
     - name: Download and install golang
-      when: not big_golang.stat.exists
       unarchive:
         src: https://go.dev/dl/go1.21.1.linux-armv6l.tar.gz
         dest: /usr/local
