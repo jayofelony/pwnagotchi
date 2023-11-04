@@ -247,40 +247,19 @@
         dest: /usr/lib/firmware/brcm/brcmfmac43436s-sdio.bin
         follow: true
 
-    - name: Delete the firmware blob to avoid it crashing
+    # delete blob files that make nexmon sad
+    - name: Delete the firmware blob files to avoid some nexmon crashing
       file:
         state: absent
-        path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
-
-    - name: Delete the RPiZW firmware blob to avoid it crashing
-      file:
-        state: absent
-        path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
-
-    - name: Delete the RPi3 firmware blob to avoid it crashing
-      file:
-        state: absent
-        path: /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
-
-    - name: Delete the RPi02w firmware blob to avoid it crashing
-      file:
-        state: absent
-        path: /usr/lib/firmware/brcm/brcmfmac43430b0-sdio.raspberrypi,model-zero-2-w.clm_blob
-
-    - name: Delete the RPi02w firmware blob to avoid it crashing
-      file:
-        state: absent
-        path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.clm_blob
-
-    - name: Delete the RPi02w firmware blob to avoid it crashing
-      file:
-        state: absent
-        path: /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
-
-    - name: Delete the RPi02w firmware blob to avoid it crashing
-      file:
-        state: absent
-        path: /usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blo
+        path: '{{ item }}'
+      loop:
+        - /usr/lib/firmware/brcm/brcmfmac43430-sdio.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,model-zero-w.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43430-sdio.raspberrypi,3-model-b.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43430b0-sdio.raspberrypi,model-zero-2-w.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43436-sdio.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
+        - /usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blo
 
     - name: backup original driver
       command: "mv /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
