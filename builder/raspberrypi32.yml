@@ -77,10 +77,10 @@
         - wpa_supplicant.service
     packages:
       bettercap:
-        url: "https://github.com/jayofelony/bettercap.git"
+        url: "https://github.com/bettercap/bettercap/releases/download/v2.31.0/bettercap_linux_armhf_v2.31.0.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
-        url: "https://github.com/jayofelony/pwngrid.git"
+        url: "https://github.com/rai68/opwngrid/releases/download/publish/pwngrid_linux_armhf_v1.10.3-1.zip"
       torch:
         wheel: "torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
@@ -375,66 +375,22 @@
     #
     ##########################################
 
-    - name: Download and install golang
+    - name: download and install pwngrid
       unarchive:
-        src: https://go.dev/dl/go1.21.1.linux-armv6l.tar.gz
-        dest: /usr/local
+        src: "{{ packages.pwngrid.url }}"
+        dest: /usr/bin
         remote_src: yes
+        mode: 0755
 
-    - name: Update .bashrc for go-1.21
-      blockinfile:
-        dest: /home/pi/.bashrc
-        state: present
-        block: |
-          export GOPATH=$HOME/go
-          export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
-
-    - name: download pwngrid 1.10.4
-      git:
-        repo: https://github.com/jayofelony/pwngrid.git
-        dest: /usr/local/src/pwngrid
-      register: pwngrid
-
-    - name: make pwngrid 1.10.4
-      shell: "export CGO_ENABLED=0 && GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make "
-      retries: 7
-      delay: 60
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src/pwngrid
-
-    - name: make install pwngrid 1.10.4
-      shell: "export CGO_ENABLED=0 && GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make install"
-      retries: 7
-      delay: 60
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src/pwngrid
-
-    - name: remove pwngrid folder
-      file:
-        state: absent
-        path: /usr/local/src/pwngrid
-
-    - name: download bettercap v2.32.1
-      git:
-        repo: https://github.com/jayofelony/bettercap.git
-        dest: /usr/local/src/bettercap
-      register: bettercap
-
-    - name: Install bettercap v2.32.1
-      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && make install"
-      retries: 7
-      delay: 60
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src/bettercap
-      when: bettercap.changed
-
-    - name: remove bettercap folder
-      file:
-        state: absent
-        path: /usr/local/src/bettercap
+    - name: download and install bettercap
+      unarchive:
+        src: "{{ packages.bettercap.url }}"
+        dest: /usr/bin
+        remote_src: yes
+        exclude:
+          - README.md
+          - LICENSE.md
+        mode: 0755
 
     - name: clone bettercap caplets
       git:
