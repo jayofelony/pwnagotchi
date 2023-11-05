@@ -395,7 +395,7 @@
         dest: /usr/local/src/pwngrid
       register: pwngrid
 
-    - name: install pwngrid 1.10.4
+    - name: make pwngrid 1.10.4
       shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make "
       retries: 7
       delay: 60
@@ -403,7 +403,7 @@
         executable: /bin/bash
         chdir: /usr/local/src/pwngrid
 
-    - name: install pwngrid 1.10.4
+    - name: make install pwngrid 1.10.4
       shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make install"
       retries: 7
       delay: 60
