@@ -353,7 +353,7 @@
     - name: download and install bettercap
       unarchive:
         src: "{{ packages.bettercap.url }}"
-        dest: /usr/bin
+        dest: /usr/local/bin
         remote_src: yes
         exclude:
           - README.md

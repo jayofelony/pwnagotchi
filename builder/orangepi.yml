@@ -43,7 +43,7 @@
     packages:
       bettercap:
         # We will install bettercap from source
-        url: "http://ports.ubuntu.com/pool/universe/b/bettercap/bettercap_2.32.0-2build1_arm64.deb"
+        url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
         url: "https://github.com/rai68/opwngrid/releases/download/publish/pwngrid_linux_aarch64_v1.10.3-1.zip"
@@ -271,7 +271,7 @@
     - name: download and install bettercap
       unarchive:
         src: "{{ packages.bettercap.url }}"
-        dest: /usr/bin
+        dest: /usr/local/bin
         remote_src: yes
         exclude:
           - README.md
