@@ -68,6 +68,7 @@
           - aircrack-ng
           - autoconf
           - bc
+          - bettercap
           - bison
           - bluez
           - build-essential
@@ -316,39 +317,39 @@
         path: /usr/local/share/pwnagotchi/
         state: directory
 
-    #- name: Install go-1.21
-    #  unarchive:
-    #    src: https://go.dev/dl/go1.21.3.linux-arm64.tar.gz
-    #    dest: /usr/local
-    #    remote_src: yes
-    #  register: golang
+    - name: Install go-1.21
+      unarchive:
+        src: https://go.dev/dl/go1.21.3.linux-arm64.tar.gz
+        dest: /usr/local
+        remote_src: yes
+      register: golang
 
-    #- name: Update .bashrc for go-1.21
-    #  blockinfile:
-    #    dest: /home/pi/.bashrc
-    #    state: present
-    #    block: |
-    #      export GOPATH=$HOME/go
-    #      export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
-    #  when: golang.changed
+    - name: Update .bashrc for go-1.21
+      blockinfile:
+        dest: /home/pi/.bashrc
+        state: present
+        block: |
+          export GOPATH=$HOME/go
+          export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+      when: golang.changed
 
-    #- name: download pwngrid 1.10.4
-    #  git:
-    #    repo: https://github.com/jayofelony/pwngrid.git
-    #    dest: /usr/local/src/pwngrid
-    #  register: pwngrid
+    - name: download pwngrid 1.10.4
+      git:
+        repo: https://github.com/jayofelony/pwngrid.git
+        dest: /usr/local/src/pwngrid
+      register: pwngrid
 
-    #- name: install pwngrid 1.10.4
-    #  shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
-    #  args:
-    #    executable: /bin/bash
-    #    chdir: /usr/local/src/pwngrid
-    #  when: pwngrid.changed
+    - name: install pwngrid 1.10.4
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/pwngrid
+      when: pwngrid.changed
 
-    #- name: remove pwngrid folder
-    #  file:
-    #    state: absent
-    #    path: /usr/local/src/pwngrid
+    - name: remove pwngrid folder
+      file:
+        state: absent
+        path: /usr/local/src/pwngrid
 
     #- name: download bettercap v2.32.1
     #  git:
