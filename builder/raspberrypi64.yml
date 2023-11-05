@@ -41,7 +41,7 @@
     packages:
       bettercap:
         # We will install bettercap from source
-        # url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
+        url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
         # url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"

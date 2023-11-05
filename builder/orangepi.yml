@@ -43,7 +43,7 @@
     packages:
       bettercap:
         # We will install bettercap from source
-        # url: "http://ports.ubuntu.com/pool/universe/b/bettercap/bettercap_2.32.0-2build1_arm64.deb"
+        url: "http://ports.ubuntu.com/pool/universe/b/bettercap/bettercap_2.32.0-2build1_arm64.deb"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
         # url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
