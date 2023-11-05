@@ -404,7 +404,7 @@
         chdir: /usr/local/src/pwngrid
 
     - name: make install pwngrid 1.10.4
-      shell: "export CGO_ENABLED=0 && && GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make install"
+      shell: "export CGO_ENABLED=0 && GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make install"
       retries: 7
       delay: 60
       args:
