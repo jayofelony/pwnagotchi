@@ -403,6 +403,7 @@
       args:
         executable: /bin/bash
         chdir: /usr/local/src/pwngrid
+      timeout: 3600
       when: pwngrid.changed
 
     - name: remove pwngrid folder
@@ -420,6 +421,7 @@
       args:
         executable: /bin/bash
         chdir: /usr/local/src/bettercap
+      timeout: 3600
 
     - name: remove bettercap folder
       file:
