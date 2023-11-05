@@ -396,13 +396,20 @@
       register: pwngrid
 
     - name: install pwngrid 1.10.4
-      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make && make install"
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make "
       retries: 7
       delay: 60
       args:
         executable: /bin/bash
         chdir: /usr/local/src/pwngrid
-      when: pwngrid.changed
+
+    - name: install pwngrid 1.10.4
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && make install"
+      retries: 7
+      delay: 60
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/pwngrid
 
     - name: remove pwngrid folder
       file:

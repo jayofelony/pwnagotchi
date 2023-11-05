@@ -10,7 +10,7 @@
     executable: /bin/bash
     chdir: /usr/local/src/nexmon/
 
-- name: make firmware patch
+- name: "make firmware patch ({{ item.patch }})"
   shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/{{ item.patch }}/nexmon/ && make"
   args:
     executable: /bin/bash
@@ -19,7 +19,7 @@
     QEMU_UNAME: "{{ item.kernel }}"
     ARCHFLAGS: "{{ item.arch_flags }}"
 
-- name: install new firmware (bcm43455c0)
+- name: install new firmware
   copy:
     src: "/usr/local/src/nexmon/patches/{{ item.patch }}/nexmon/{{ item.firmware }}"
     dest: "/usr/lib/firmware/brcm/{{ item.firmware }}"
@@ -37,4 +37,4 @@
     dest: "/usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
 - name : load brcmfmac drivers
-  command: "/sbin/depmod -a {{ item.kernel}}"
+  command: "/sbin/depmod -a {{ item.kernel }}"
