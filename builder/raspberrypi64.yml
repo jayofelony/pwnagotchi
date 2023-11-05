@@ -68,7 +68,6 @@
           - aircrack-ng
           - autoconf
           - bc
-          - bettercap
           - bison
           - bluez
           - build-essential
@@ -350,6 +349,22 @@
       file:
         state: absent
         path: /usr/local/src/pwngrid
+
+    - name: download bettercap deb
+      get_url:
+        url: "{{ bettercap.url }}"
+        dest: /usr/local/src/
+
+    - name: install bettercap deb
+      apt:
+        force: True
+        state: present
+        deb: "/usr/local/src/bettercap_2.32.0-2build1_arm64.deb"
+
+    - name: remove bettercap deb
+      file:
+        state: absent
+        path: "/usr/local/src/bettercap_2.32.0-2build1_arm64.deb"
 
     #- name: download bettercap v2.32.1
     #  git:

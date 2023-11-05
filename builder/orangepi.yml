@@ -43,7 +43,7 @@
     packages:
       bettercap:
         # We will install bettercap from source
-        # url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
+        # url: "http://ports.ubuntu.com/pool/universe/b/bettercap/bettercap_2.32.0-2build1_arm64.deb"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
         # url: "https://github.com/evilsocket/pwngrid/releases/download/v1.10.3/pwngrid_linux_aarch64_v1.10.3.zip"
@@ -71,7 +71,6 @@
           - aircrack-ng
           - autoconf
           - bc
-          - bettercap
           - bison
           - bluez
           - build-essential
@@ -268,6 +267,22 @@
       file:
         state: absent
         path: /usr/local/src/pwngrid
+
+    - name: download bettercap deb
+      get_url:
+        url: "{{ bettercap.url }}"
+        dest: /usr/local/src/
+
+    - name: install bettercap deb
+      apt:
+        force: True
+        state: present
+        deb: "/usr/local/src/bettercap_2.32.0-2build1_arm64.deb"
+
+    - name: remove bettercap deb
+      file:
+        state: absent
+        path: "/usr/local/src/bettercap_2.32.0-2build1_arm64.deb"
 
     - name: clone bettercap caplets
       git:
