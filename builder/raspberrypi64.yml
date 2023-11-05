@@ -352,7 +352,7 @@
 
     - name: download bettercap deb
       get_url:
-        url: "{{ bettercap.url }}"
+        url: "{{ packages.bettercap.url }}"
         dest: /usr/local/src/
 
     - name: install bettercap deb
