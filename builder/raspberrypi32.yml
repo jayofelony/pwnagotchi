@@ -80,6 +80,7 @@
         url: "https://github.com/bettercap/bettercap/releases/download/v2.31.0/bettercap_linux_armhf_v2.31.0.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
+        source: "https://github.com/jayofelony/pwngrid.git"
         url: "https://github.com/rai68/opwngrid/releases/download/publish/pwngrid_linux_armhf_v1.10.3-1.zip"
       torch:
         wheel: "torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
@@ -375,22 +376,55 @@
     #
     ##########################################
 
-    - name: download and install pwngrid
+    - name: Install go-1.21
       unarchive:
-        src: "{{ packages.pwngrid.url }}"
-        dest: /usr/bin
+        src: https://go.dev/dl/go1.21.3.linux-armv6l.tar.gz
+        dest: /usr/local
         remote_src: yes
-        mode: 0755
+      register: golang
 
-    - name: download and install bettercap
-      unarchive:
-        src: "{{ packages.bettercap.url }}"
-        dest: /usr/bin
-        remote_src: yes
-        exclude:
-          - README.md
-          - LICENSE.md
-        mode: 0755
+    - name: Update .bashrc for go-1.21
+      blockinfile:
+        dest: /home/pi/.bashrc
+        state: present
+        block: |
+          export GOPATH=$HOME/go
+          export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+      when: golang.changed
+
+    - name: download pwngrid 1.10.4
+      git:
+        repo: https://github.com/jayofelony/pwngrid.git
+        dest: /usr/local/src/pwngrid
+      register: pwngrid
+
+    - name: install pwngrid 1.10.4
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/pwngrid
+      when: pwngrid.changed
+
+    - name: remove pwngrid folder
+      file:
+        state: absent
+        path: /usr/local/src/pwngrid
+
+    - name: download bettercap
+      git:
+        repo: https://github.com/jayofelony/bettercap.git
+        dest: /usr/local/src/bettercap
+
+    - name: install bettercap 2.32.1
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/bettercap
+
+    - name: remove bettercap folder
+      file:
+        state: absent
+        path: /usr/local/src/bettercap
 
     - name: clone bettercap caplets
       git:

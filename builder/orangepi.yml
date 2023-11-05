@@ -46,6 +46,7 @@
         url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
+        source: "https://github.com/jayofelony/pwngrid.git"
         url: "https://github.com/rai68/opwngrid/releases/download/publish/pwngrid_linux_aarch64_v1.10.3-1.zip"
       apt:
         downgrade:
@@ -268,15 +269,31 @@
         state: absent
         path: /usr/local/src/pwngrid
 
-    - name: download and install bettercap
-      unarchive:
-        src: "{{ packages.bettercap.url }}"
-        dest: /usr/local/bin
-        remote_src: yes
-        exclude:
-          - README.md
-          - LICENSE.md
-        mode: 0755
+    - name: download bettercap
+      git:
+        repo: https://github.com/jayofelony/bettercap.git
+        dest: /usr/local/src/bettercap
+
+    - name: install bettercap 2.32.1
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/bettercap
+
+    - name: remove bettercap folder
+      file:
+        state: absent
+        path: /usr/local/src/bettercap
+
+    #- name: download and install bettercap
+    #  unarchive:
+    #    src: "{{ packages.bettercap.url }}"
+    #    dest: /usr/local/bin
+    #    remote_src: yes
+    #    exclude:
+    #      - README.md
+    #      - LICENSE.md
+    #    mode: 0755
 
     - name: clone bettercap caplets
       git:
