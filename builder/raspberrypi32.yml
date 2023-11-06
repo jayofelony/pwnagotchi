@@ -88,7 +88,6 @@
       torchvision:
         wheel: "torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
-
       apt:
         downgrade:
           # the kali .debs do not work on raspberry pi zero on raspiOS
@@ -403,7 +402,6 @@
       args:
         executable: /bin/bash
         chdir: /usr/local/src/pwngrid
-      timeout: 3600
       when: pwngrid.changed
 
     - name: remove pwngrid folder
@@ -421,7 +419,6 @@
       args:
         executable: /bin/bash
         chdir: /usr/local/src/bettercap
-      timeout: 3600
 
     - name: remove bettercap folder
       file:
