@@ -41,6 +41,8 @@
         - triggerhappy.service
         - wpa_supplicant.service
     packages:
+      caplets:
+        source: "https://github.com/jayofelony/caplets.git"
       bettercap:
         # We will install bettercap from source
         source: "https://github.com/jayofelony/bettercap.git"
