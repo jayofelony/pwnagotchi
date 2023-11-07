@@ -107,13 +107,14 @@ build {
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
-      "data/usr/bin/pwnlib",
       "data/usr/bin/bettercap-launcher",
-      "data/usr/bin/pwnagotchi-launcher",
-      "data/usr/bin/monstop",
-      "data/usr/bin/monstart",
-      "data/usr/bin/hdmion",
       "data/usr/bin/hdmioff",
+      "data/usr/bin/hdmion",
+      "data/usr/bin/monstart",
+      "data/usr/bin/monstop",
+      "data/usr/bin/pwnagotchi-launcher",
+      "data/usr/bin/pwngrid-launcher",
+      "data/usr/bin/pwnlib",
     ]
   }
   provisioner "shell" {
@@ -123,9 +124,9 @@ build {
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
-      "data/etc/systemd/system/pwngrid-peer.service",
-      "data/etc/systemd/system/pwnagotchi.service",
       "data/etc/systemd/system/bettercap.service",
+      "data/etc/systemd/system/pwnagotchi.service",
+      "data/etc/systemd/system/pwngrid-peer.service",
     ]
   }
   provisioner "file" {
@@ -151,13 +152,14 @@ build {
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
-      "data/usr/bin/pwnlib",
       "data/usr/bin/bettercap-launcher",
-      "data/usr/bin/pwnagotchi-launcher",
-      "data/usr/bin/monstop",
-      "data/usr/bin/monstart",
-      "data/usr/bin/hdmion",
       "data/usr/bin/hdmioff",
+      "data/usr/bin/hdmion",
+      "data/usr/bin/monstart",
+      "data/usr/bin/monstop",
+      "data/usr/bin/pwnagotchi-launcher",
+      "data/usr/bin/pwngrid-launcher",
+      "data/usr/bin/pwnlib",
     ]
   }
   provisioner "shell" {
@@ -167,9 +169,9 @@ build {
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
-      "data/etc/systemd/system/pwngrid-peer.service",
-      "data/etc/systemd/system/pwnagotchi.service",
       "data/etc/systemd/system/bettercap.service",
+      "data/etc/systemd/system/pwnagotchi.service",
+      "data/etc/systemd/system/pwngrid-peer.service",
     ]
   }
   provisioner "file" {
@@ -197,13 +199,14 @@ build {
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
-      "data/usr/bin/pwnlib",
       "data/usr/bin/bettercap-launcher",
-      "data/usr/bin/pwnagotchi-launcher",
-      "data/usr/bin/monstop",
-      "data/usr/bin/monstart",
-      "data/usr/bin/hdmion",
       "data/usr/bin/hdmioff",
+      "data/usr/bin/hdmion",
+      "data/usr/bin/monstart",
+      "data/usr/bin/monstop",
+      "data/usr/bin/pwnagotchi-launcher",
+      "data/usr/bin/pwngrid-launcher",
+      "data/usr/bin/pwnlib",
     ]
   }
   provisioner "shell" {
@@ -213,9 +216,9 @@ build {
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
-      "data/etc/systemd/system/pwngrid-peer.service",
-      "data/etc/systemd/system/pwnagotchi.service",
       "data/etc/systemd/system/bettercap.service",
+      "data/etc/systemd/system/pwnagotchi.service",
+      "data/etc/systemd/system/pwngrid-peer.service",
     ]
   }
   provisioner "file" {

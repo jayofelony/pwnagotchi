@@ -51,6 +51,7 @@
       apt:
         downgrade:
           - libpcap-dev_1.9.1-4_arm64.deb
+          - libpcap0.8-dbg_1.9.1-4_arm64.deb
           - libpcap0.8-dev_1.9.1-4_arm64.deb
           - libpcap0.8_1.9.1-4_arm64.deb
         hold:
@@ -518,25 +519,25 @@
         line: "\nalias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'"
         insertafter: EOF
 
-    - name: download old libpcap packages
-      get_url:
-        url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
-        dest: /usr/local/src/
-      with_items: "{{ packages.apt.downgrade }}"
+    #- name: download old libpcap packages
+    #  get_url:
+    #    url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
+    #    dest: /usr/local/src/
+    #  with_items: "{{ packages.apt.downgrade }}"
 
-    - name: install old libpcap packages
-      apt:
-        force: True
-        state: present
-        deb: "/usr/local/src/{{ item }}"
-      with_items: "{{ packages.apt.downgrade }}"
-      register: libpcap
+    #- name: install old libpcap packages
+    #  apt:
+    #    force: True
+    #    state: present
+    #    deb: "/usr/local/src/{{ item }}"
+    #  with_items: "{{ packages.apt.downgrade }}"
+    #  register: libpcap
 
-    - name: remove old libpcap files
-      file:
-        path: "/usr/local/src/{{ item }}"
-        state: absent
-      with_items: "{{ packages.apt.downgrade }}"
+    #- name: remove old libpcap files
+    #  file:
+    #    path: "/usr/local/src/{{ item }}"
+    #    state: absent
+    #  with_items: "{{ packages.apt.downgrade }}"
 
     - name: add firmware packages to hold
       dpkg_selections:
