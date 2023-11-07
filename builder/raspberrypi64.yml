@@ -39,12 +39,14 @@
         - triggerhappy.service
         - wpa_supplicant.service
     packages:
+      caplets:
+        source: "https://github.com/jayofelony/caplets.git"
       bettercap:
-        # We will install bettercap from source
+        source: "https://github.com/jayofelony/bettercap.git"
         url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
-      pwngrid:
-        source: "https://github.com/jayofelony/pwngrid.git"
+      opwngrid:
+        source: "https://github.com/jayofelony/opwngrid.git"
         url: "https://github.com/rai68/opwngrid/releases/download/publish/pwngrid_linux_aarch64_v1.10.3-1.zip"
       apt:
         downgrade:
@@ -333,25 +335,25 @@
           export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
       when: golang.changed
 
-    - name: download pwngrid 1.10.4
+    - name: download opwngrid 1.10.4
       git:
-        repo: https://github.com/jayofelony/pwngrid.git
-        dest: /usr/local/src/pwngrid
+        repo: "{{ packages.opwngrid.source }}"
+        dest: /usr/local/src/opwngrid
 
-    - name: install pwngrid 1.10.4
+    - name: install opwngrid 1.10.4
       shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
       args:
         executable: /bin/bash
-        chdir: /usr/local/src/pwngrid
+        chdir: /usr/local/src/opwngrid
 
-    - name: remove pwngrid folder
+    - name: remove opwngrid folder
       file:
         state: absent
-        path: /usr/local/src/pwngrid
+        path: /usr/local/src/opwngrid
 
     - name: download bettercap
       git:
-        repo: https://github.com/jayofelony/bettercap.git
+        repo: "{{ packages.bettercap.source }}"
         dest: /usr/local/src/bettercap
 
     - name: install bettercap 2.32.1
@@ -377,7 +379,7 @@
 
     - name: clone bettercap caplets
       git:
-        repo: https://github.com/jayofelony/caplets.git
+        repo: "{{ packages.caplets.source }}"
         dest: /tmp/caplets
       register: capletsgit
 
