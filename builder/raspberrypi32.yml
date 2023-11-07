@@ -141,6 +141,7 @@
           - libavcodec58
           - libavformat58
           - libblas-dev
+          - libbluetooth-dev
           - libbz2-dev
           - libc-ares-dev
           - libc6-dev
@@ -280,7 +281,7 @@
         version: libpcap-1.9
 
     - name: build and install libpcap into /usr/local/lib
-      shell: "./configure && make && make install"
+      shell: "./configure  && make && make install"
       args:
         executable: /bin/bash
         chdir: /usr/local/src/libpcap
