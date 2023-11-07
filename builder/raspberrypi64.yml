@@ -544,7 +544,6 @@
         name: "{{ item }}"
         selection: hold
       with_items: "{{ packages.apt.hold }}"
-      when: libpcap.changed
 
     - name: disable unnecessary services
       systemd:
