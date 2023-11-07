@@ -391,39 +391,21 @@
           export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
       when: golang.changed
 
-    - name: download pwngrid 1.10.4
-      git:
-        repo: https://github.com/jayofelony/pwngrid.git
-        dest: /usr/local/src/pwngrid
-      register: pwngrid
+    - name: download opwngrid 1.10.4
+      unarchive:
+        remote_src: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.4/opwngrid-1.10.4-armhf.zip"
+        dest: /usr/local/bin/
+        mode: 0755
 
-    - name: install pwngrid 1.10.4
-      shell: "export GOSUMDB=off && export GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src/pwngrid
-      when: pwngrid.changed
-
-    - name: remove pwngrid folder
-      file:
-        state: absent
-        path: /usr/local/src/pwngrid
-
-    - name: download bettercap
-      git:
-        repo: https://github.com/jayofelony/bettercap.git
-        dest: /usr/local/src/bettercap
-
-    - name: install bettercap 2.32.1
-      shell: "export GOSUMDB=off && export GOPROXY=direct && export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src/bettercap
-
-    - name: remove bettercap folder
-      file:
-        state: absent
-        path: /usr/local/src/bettercap
+    - name: download and install bettercap
+      unarchive:
+        src: "{{ packages.bettercap.url }}"
+        dest: /usr/bin
+        remote_src: yes
+        exclude:
+          - README.md
+          - LICENSE.md
+        mode: 0755
 
     - name: clone bettercap caplets
       git:
@@ -559,15 +541,15 @@
         state: stopped
       with_items: "{{ services.enable }}"
 
-    - name: remove golang build libraries
-      file:
-        state: absent
-        path: /root/go
+    #- name: remove golang build libraries
+    #  file:
+    #    state: absent
+    #    path: /root/go
 
-    - name: remove golang
-      file:
-        state: absent
-        path: /usr/local/go
+    #- name: remove golang
+    #  file:
+    #    state: absent
+    #    path: /usr/local/go
 
     - name: make /root readable, becauase that's where all the files are
       file:
