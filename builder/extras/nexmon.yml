@@ -16,6 +16,7 @@
     executable: /bin/bash
     chdir: /usr/local/src/nexmon/
   environment:
+    QEMU_CPU: "{{ item.cpu }}"
     QEMU_UNAME: "{{ item.kernel }}"
     ARCHFLAGS: "{{ item.arch_flags }}"
 
@@ -25,6 +26,7 @@
     dest: "/usr/lib/firmware/brcm/{{ item.firmware }}"
     follow: true
   environment:
+    QEMU_CPU: "{{ item.cpu }}"
     QEMU_UNAME: "{{ item.kernel }}"
     ARCHFLAGS: "{{ item.arch_flags }}"
 
