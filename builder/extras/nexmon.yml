@@ -10,23 +10,21 @@
     executable: /bin/bash
     chdir: /usr/local/src/nexmon/
 
-- name: "make firmware patch ({{ item.patch }})"
+- name: "make firmware patch ({{ item.name }})"
   shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/{{ item.patch }}/nexmon/ && make"
   args:
     executable: /bin/bash
     chdir: /usr/local/src/nexmon/
   environment:
-    QEMU_CPU: "{{ item.cpu }}"
     QEMU_UNAME: "{{ item.kernel }}"
     ARCHFLAGS: "{{ item.arch_flags }}"
 
-- name: install new firmware
+- name: "install new firmware ({{ item.name }})"
   copy:
     src: "/usr/local/src/nexmon/patches/{{ item.patch }}/nexmon/{{ item.firmware }}"
     dest: "/usr/lib/firmware/brcm/{{ item.firmware }}"
     follow: true
   environment:
-    QEMU_CPU: "{{ item.cpu }}"
     QEMU_UNAME: "{{ item.kernel }}"
     ARCHFLAGS: "{{ item.arch_flags }}"
 
