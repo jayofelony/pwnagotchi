@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-export LD_LIBRARY_PATH=/usr/local/lib
-export LD_PRELOAD=/usr/local/lib/libpcap.so.1
+#export LD_LIBRARY_PATH=/usr/local/lib
+#export LD_PRELOAD=/usr/local/lib/libpcap.so.1
 
 # well ... it blinks the led
 blink_led() {

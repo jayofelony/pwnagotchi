@@ -1,5 +1,0 @@
-#!/usr/bin/bash
-
-source /usr/bin/pwnlib
-
-/usr/local/bin/pwngrid -keys /etc/pwnagotchi -address 127.0.0.1:8666 -client-token /root/.api-enrollment.json -wait -log /var/log/pwngrid-peer.log -iface mon0
