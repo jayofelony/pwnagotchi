@@ -18,7 +18,7 @@
         name: "PiZero2W",
         firmware: "brcmfmac43436-sdio.bin",
         patch: "bcm43436b0/9_88_4_65",
-        cpu: "",
+        cpu: any,
         arch_flags: "-arch armv7l"
         }
       - {
@@ -26,7 +26,7 @@
         name: "Pi4b_32",
         firmware: "brcmfmac43455-sdio.bin",
         patch: "bcm43455c0/7_45_206",
-        cpu: "",
+        cpu: any,
         arch_flags: "-arch armv7l"
         }
     kernel:
