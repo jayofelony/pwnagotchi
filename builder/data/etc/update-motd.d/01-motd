@@ -28,6 +28,6 @@ echo "    If you want to know if I'm running, you can use"
 echo "    sudo systemctl status pwnagotchi"
 echo
 echo "    You can restart me using"
-echo "    sudo systemctl restart pwnagotchi"
+echo "    pwnkill"
 echo
 echo "    You learn more about me at https://pwnagotchi.ai/"
