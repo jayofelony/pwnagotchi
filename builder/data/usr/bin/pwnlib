@@ -41,13 +41,18 @@ reload_brcm() {
 start_monitor_interface() {
   rfkill unblock all
   ifconfig wlan0 up
+  sleep 3
   iw dev wlan0 set power_save off
-  airmon-ng start wlan0
+  iw phy "$(iw phy | head -1 | cut -d" " -f2)" interface add wlan0mon type monitor
+  sleep 2
+  rfkill unblock all
+  ifconfig wlan0 down
+  ifconfig wlan0mon up
 }
 
 # stops mon0
 stop_monitor_interface() {
-  airmon-ng stop wlan0mon
+  ifconfig wlan0mon down && iw dev wlan0mon del
   reload_brcm
   ifconfig wlan0 up
 }

@@ -70,7 +70,6 @@
           - triggerhappy
           - wpasupplicant
         install:
-          - aircrack-ng
           - autoconf
           - bc
           - bison
