@@ -283,6 +283,12 @@
         state: absent
         path: /usr/local/src/libpcap
 
+    - name: create symlink /usr/local/lib/libpcap.so.1.9.1
+      file:
+        src: /usr/local/lib/libpcap.so.1.9.1
+        dest: /usr/local/lib/libpcap.so.0.8
+        state: link
+
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
     ###############################################################
