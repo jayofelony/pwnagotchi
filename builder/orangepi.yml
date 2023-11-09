@@ -252,7 +252,7 @@
         version: libpcap-1.9
 
     - name: build and install libpcap into /usr/local/lib
-      shell: "./autogen.sh && ./configure && make && make install"
+      shell: "autogen.sh && ./configure && make && make install"
       args:
         executable: /bin/bash
         chdir: /usr/local/src/libpcap
