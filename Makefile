@@ -34,22 +34,22 @@ langs:
 	done
 
 image:
-PACKER := /tmp/pwnagotchi/packer
-PACKER_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_$(GOARCH).zip
-$(PACKER):
-	mkdir -p $(@D)
-	curl -L "$(PACKER_URL)" -o $(PACKER).zip
-	unzip $(PACKER).zip -d $(@D)
-	rm $(PACKER).zip
-	chmod +x $@
+	PACKER := /tmp/pwnagotchi/packer
+	PACKER_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_$(GOARCH).zip
+	$(PACKER):
+		mkdir -p $(@D)
+		curl -L "$(PACKER_URL)" -o $(PACKER).zip
+		unzip $(PACKER).zip -d $(@D)
+		rm $(PACKER).zip
+		chmod +x $@
 
-SDIST := dist/pwnagotchi-$(PWN_VERSION).tar.gz
-$(SDIST): setup.py pwnagotchi
-	python3 setup.py sdist
+	SDIST := dist/pwnagotchi-$(PWN_VERSION).tar.gz
+	$(SDIST): setup.py pwnagotchi
+		python3 setup.py sdist
 
-# Building the image requires packer, but don't rebuild the image just because packer updated.
-$(PWN_RELEASE).img: | $(PACKER)
-	cd builder && packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
+	# Building the image requires packer, but don't rebuild the image just because packer updated.
+	$(PWN_RELEASE).img: | $(PACKER)
+		cd builder && packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
 clean:
 	- python3 setup.py clean --all
