@@ -47,7 +47,7 @@ $(PWN_RELEASE).img: | $(PACKER)
 	cd builder && packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
 .PHONY: image
-image: $(PWN_RELEASE).zip
+image:
 
 clean:
 	- python3 setup.py clean --all
