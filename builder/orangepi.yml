@@ -235,6 +235,33 @@
         state: absent
         path: /usr/local/src/pwnagotchi
 
+    ###########################################
+    #
+    # libpcap v1.9 - build from source
+    #
+    ###########################################
+
+    # check for presence, then it can re-run in later parts if needed
+    # use the "make" built in
+
+    # install libpcap before bettercap and pwngrid, so they use it
+    - name: clone libpcap v1.9 from github
+      git:
+        repo: 'https://github.com/the-tcpdump-group/libpcap.git'
+        dest: /usr/local/src/libpcap
+        version: libpcap-1.9
+
+    - name: build and install libpcap into /usr/local/lib
+      shell: "./autogen.sh && ./configure && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/libpcap
+
+    - name: remove libpcap build folder
+      file:
+        state: absent
+        path: /usr/local/src/libpcap
+
     - name: Install go-1.21
       unarchive:
         src: https://go.dev/dl/go1.21.3.linux-arm64.tar.gz
