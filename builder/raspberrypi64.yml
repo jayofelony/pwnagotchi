@@ -60,9 +60,10 @@
           - firmware-libertas
           - firmware-misc-nonfree
           - firmware-realtek
-          #- libpcap-dev
-          #- libpcap0.8
-          #- libpcap0.8-dev
+          - libpcap-dev
+          - libpcap0.8
+          - libpcap0.8-dev
+          - libpcap0.8-dbg
         remove:
           - avahi-daemon
           - nfs-common

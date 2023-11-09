@@ -103,12 +103,10 @@
           - firmware-libertas
           - firmware-misc-nonfree
           - firmware-realtek
-          # no longer need to be held. build from source goes in /usr/local
-          # Then bettercap and pwngrid are pointed at it at runtime with LD_LIBRARY_PATH
-          # and LD_PRELOAD
-          # - libpcap-dev
-          # - libpcap0.8
-          # - libpcap0.8-dev
+          - libpcap-dev
+          - libpcap0.8
+          - libpcap0.8-dev
+          - libpcap0.8-dbg
         remove:
           - avahi-daemon
           - nfs-common
