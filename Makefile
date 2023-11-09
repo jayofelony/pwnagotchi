@@ -48,15 +48,15 @@ $(SDIST): setup.py pwnagotchi
 	python3 setup.py sdist
 
 # Building the image requires packer, but don't rebuild the image just because packer updated.
-$(PWN_RELEASE).img: | $(PACKER)
+$pwnagotchi: | $(PACKER)
 
 # If the packer or ansible files are updated, rebuild the image.
-$(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi32.yml builder/raspberrypi64.yml builder/orangepi.yml builder/extras/nexmon.yml $(shell find builder/data -type f)
+$pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi32.yml builder/raspberrypi64.yml builder/orangepi.yml builder/extras/nexmon.yml $(shell find builder/data -type f)
 
 	cd builder && packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
 .PHONY: image
-image: $(PWN_RELEASE).img
+image: $pwnagotchi
 
 clean:
 	- python3 setup.py clean --all
