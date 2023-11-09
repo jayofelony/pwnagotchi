@@ -113,7 +113,6 @@ build {
       "data/usr/bin/monstart",
       "data/usr/bin/monstop",
       "data/usr/bin/pwnagotchi-launcher",
-      "data/usr/bin/pwngrid-launcher",
       "data/usr/bin/pwnlib",
     ]
   }
@@ -158,7 +157,6 @@ build {
       "data/usr/bin/monstart",
       "data/usr/bin/monstop",
       "data/usr/bin/pwnagotchi-launcher",
-      "data/usr/bin/pwngrid-launcher",
       "data/usr/bin/pwnlib",
     ]
   }
@@ -205,7 +203,6 @@ build {
       "data/usr/bin/monstart",
       "data/usr/bin/monstop",
       "data/usr/bin/pwnagotchi-launcher",
-      "data/usr/bin/pwngrid-launcher",
       "data/usr/bin/pwnlib",
     ]
   }
