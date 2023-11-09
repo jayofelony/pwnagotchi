@@ -61,5 +61,4 @@ clean:
 	- python3 setup.py clean --all
 	- rm -rf dist pwnagotchi.egg-info
 	- rm -f $(PACKER)
-	- sudo rm -rf builder/output-pwnagotchi builder/packer_cache
 
