@@ -1,7 +1,6 @@
 PACKER_VERSION := 1.9.4
 PWN_HOSTNAME := pwnagotchi
 PWN_VERSION := $(shell cut -d"'" -f2 < pwnagotchi/_version.py)
-PWN_RELEASE := pwnagotchi-raspios-lite-$(PWN_VERSION)
 
 MACHINE_TYPE := $(shell uname -m)
 ifneq (,$(filter x86_64,$(MACHINE_TYPE)))
@@ -62,6 +61,5 @@ clean:
 	- python3 setup.py clean --all
 	- rm -rf dist pwnagotchi.egg-info
 	- rm -f $(PACKER)
-	- rm -f $(PWN_RELEASE).*
 	- sudo rm -rf builder/output-pwnagotchi builder/packer_cache
 
