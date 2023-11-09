@@ -55,14 +55,6 @@ $(PWN_RELEASE).img: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi
 
 	cd builder && packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
-# If any of these files are updated, rebuild the checksums.
-$(PWN_RELEASE).sha256: $(PWN_RELEASE).img
-	sha256sum $^ > $@
-
-# If any of the input files are updated, rebuild the archive.
-$(PWN_RELEASE).zip: $(PWN_RELEASE).img $(PWN_RELEASE).sha256
-	zip $(PWN_RELEASE).zip $^
-
 .PHONY: image
 image: $(PWN_RELEASE).zip
 
