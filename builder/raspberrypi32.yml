@@ -289,7 +289,7 @@
         dest: /usr/local/lib/libpcap.so.0.8
         state: link
 
-    - name: adjust /boot/config.txt
+    - name: preload libpcap
       lineinfile:
         dest: /usr/bin/pwnlog
         insertbefore: "# well ... it blinks the led"
