@@ -582,12 +582,6 @@
       apt:
         autoclean: true
 
-    - name: remove apt package cache
-      shell: "apt clean"
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src
-
     - name: remove /root/.cache (pip cache)
       file:
         state: absent
