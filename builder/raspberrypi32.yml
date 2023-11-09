@@ -289,6 +289,13 @@
         dest: /usr/local/lib/libpcap.so.0.8
         state: link
 
+    - name: adjust /boot/config.txt
+      lineinfile:
+        dest: /usr/bin/pwnlog
+        insertbefore: "# well ... it blinks the led"
+        line: export LD_LIBRARY_PATH=/usr/local/lib
+              export LD_PRELOAD=/usr/local/lib/libpcap.so.1
+
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
     ###############################################################
