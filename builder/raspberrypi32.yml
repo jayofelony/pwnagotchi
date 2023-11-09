@@ -563,6 +563,26 @@
         group: pi
         recurse: true
 
+    - name: download old libpcap packages
+      get_url:
+        url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
+        dest: /usr/local/src/
+      with_items: "{{ packages.apt.downgrade }}"
+
+    - name: install old libpcap packages
+      apt:
+        force: True
+        state: present
+        deb: "/usr/local/src/{{ item }}"
+      with_items: "{{ packages.apt.downgrade }}"
+      register: libpcap
+
+    - name: remove old libpcap files
+      file:
+        path: "/usr/local/src/{{ item }}"
+        state: absent
+      with_items: "{{ packages.apt.downgrade }}"
+
     - name: remove unnecessary apt packages
       apt:
         name: "{{ packages.apt.remove }}"

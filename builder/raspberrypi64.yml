@@ -198,34 +198,7 @@
         update_cache: yes
         install_recommends: false
 
-    ###########################################
-    #
-    # libpcap v1.9 - build from source
-    #
-    ###########################################
-
-    # check for presence, then it can re-run in later parts if needed
-    # use the "make" built in
-
-    # install libpcap before bettercap and pwngrid, so they use it
-    - name: clone libpcap v1.9 from github
-      git:
-        repo: 'https://github.com/the-tcpdump-group/libpcap.git'
-        dest: /usr/local/src/libpcap
-        version: libpcap-1.9
-
-    - name: build and install libpcap into /usr/local/lib
-      shell: "autoreconf -f && ./configure && make && make install"
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src/libpcap
-
-    - name: remove libpcap build folder
-      file:
-        state: absent
-        path: /usr/local/src/libpcap
-
-  # Install nexmon to fix wireless scanning (takes 2.5G of space)
+    # Install nexmon to fix wireless scanning (takes 2.5G of space)
     - name: clone nexmon repository
       git:
         repo: https://github.com/DrSchottky/nexmon.git
@@ -519,25 +492,25 @@
         line: "\nalias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'"
         insertafter: EOF
 
-    #- name: download old libpcap packages
-    #  get_url:
-    #    url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
-    #    dest: /usr/local/src/
-    #  with_items: "{{ packages.apt.downgrade }}"
+    - name: download old libpcap packages
+      get_url:
+        url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
+        dest: /usr/local/src/
+      with_items: "{{ packages.apt.downgrade }}"
 
-    #- name: install old libpcap packages
-    #  apt:
-    #    force: True
-    #    state: present
-    #    deb: "/usr/local/src/{{ item }}"
-    #  with_items: "{{ packages.apt.downgrade }}"
-    #  register: libpcap
+    - name: install old libpcap packages
+      apt:
+        force: True
+        state: present
+        deb: "/usr/local/src/{{ item }}"
+      with_items: "{{ packages.apt.downgrade }}"
+      register: libpcap
 
-    #- name: remove old libpcap files
-    #  file:
-    #    path: "/usr/local/src/{{ item }}"
-    #    state: absent
-    #  with_items: "{{ packages.apt.downgrade }}"
+    - name: remove old libpcap files
+      file:
+        path: "/usr/local/src/{{ item }}"
+        state: absent
+      with_items: "{{ packages.apt.downgrade }}"
 
     - name: add firmware packages to hold
       dpkg_selections:
