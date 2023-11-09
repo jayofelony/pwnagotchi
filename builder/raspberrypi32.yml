@@ -92,11 +92,6 @@
         wheel: "torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
       apt:
-        downgrade:
-          - libpcap-dev_1.9.1-4_armhf.deb
-          - libpcap0.8-dbg_1.9.1-4_armhf.deb
-          - libpcap0.8-dev_1.9.1-4_armhf.deb
-          - libpcap0.8_1.9.1-4_armhf.deb
         hold:
           - firmware-atheros
           - firmware-brcm80211
@@ -572,26 +567,6 @@
         owner: pi
         group: pi
         recurse: true
-
-    - name: download old libpcap packages
-      get_url:
-        url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
-        dest: /usr/local/src/
-      with_items: "{{ packages.apt.downgrade }}"
-
-    - name: install old libpcap packages
-      apt:
-        force: True
-        state: present
-        deb: "/usr/local/src/{{ item }}"
-      with_items: "{{ packages.apt.downgrade }}"
-      register: libpcap
-
-    - name: remove old libpcap files
-      file:
-        path: "/usr/local/src/{{ item }}"
-        state: absent
-      with_items: "{{ packages.apt.downgrade }}"
 
     - name: remove unnecessary apt packages
       apt:
