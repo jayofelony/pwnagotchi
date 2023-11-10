@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-export LD_PRELOAD=/usr/local/lib/libpcap.so.1
-export LD_LIBRARY_PATH=/usr/local/lib
+
 # well ... it blinks the led
 blink_led() {
   # shellcheck disable=SC2034
