@@ -92,6 +92,11 @@
         wheel: "torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torchvision-0.16.0a0-cp39-cp39-linux_armv6l.whl"
       apt:
+        downgrade:
+          - libpcap-dev_1.9.1-4_armhf.deb
+          - libpcap0.8-dbg_1.9.1-4_armhf.deb
+          - libpcap0.8-dev_1.9.1-4_armhf.deb
+          - libpcap0.8_1.9.1-4_armhf.deb
         hold:
           - firmware-atheros
           - firmware-brcm80211
@@ -183,7 +188,6 @@
           - raspberrypi-kernel-headers
           - rsync
           - screen
-          - tcpdump
           - texinfo
           - time
           - tk-dev
@@ -268,7 +272,7 @@
         version: libpcap-1.9
 
     - name: build and install libpcap into /usr/local/lib
-      shell: "autoreconf -f && ./configure && make && make install"
+      shell: "./configure && make && make install"
       args:
         executable: /bin/bash
         chdir: /usr/local/src/libpcap
@@ -290,6 +294,13 @@
         insertbefore: "# well ... it blinks the led"
         line: export LD_LIBRARY_PATH=/usr/local/lib
               export LD_PRELOAD=/usr/local/lib/libpcap.so.1
+
+    - name: preload libpcap in pwngrid-peer.service
+      lineinfile:
+        dest: /usr/bin/pwnlib
+        insertafter: "Type=simple"
+        line: Environment=LD_PRELOAD=/usr/local/lib/libpcap.so.1
+              Environment=LD_LIBRARY_PATH=/usr/local/lib
 
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
@@ -405,7 +416,7 @@
     - name: download and install bettercap
       unarchive:
         src: "{{ packages.bettercap.url }}"
-        dest: /usr/bin
+        dest: /usr/local/bin
         remote_src: yes
         exclude:
           - README.md

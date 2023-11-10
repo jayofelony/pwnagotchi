@@ -144,7 +144,6 @@
           - raspberrypi-kernel-headers
           - rsync
           - screen
-          - tcpdump
           - texinfo
           - time
           - tk-dev
