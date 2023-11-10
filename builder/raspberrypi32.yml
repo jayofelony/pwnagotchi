@@ -288,20 +288,6 @@
         dest: /usr/local/lib/libpcap.so.0.8
         state: link
 
-    - name: preload libpcap
-      lineinfile:
-        dest: /usr/bin/pwnlib
-        insertbefore: "# well ... it blinks the led"
-        line: export LD_LIBRARY_PATH=/usr/local/lib
-              export LD_PRELOAD=/usr/local/lib/libpcap.so.1
-
-    - name: preload libpcap in pwngrid-peer.service
-      lineinfile:
-        dest: /usr/bin/pwnlib
-        insertafter: "Type=simple"
-        line: Environment=LD_PRELOAD=/usr/local/lib/libpcap.so.1
-              Environment=LD_LIBRARY_PATH=/usr/local/lib
-
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
     ###############################################################

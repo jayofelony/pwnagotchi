@@ -197,6 +197,39 @@
         update_cache: yes
         install_recommends: false
 
+    ###########################################
+    #
+    # libpcap v1.9 - build from source
+    #
+    ###########################################
+
+    # check for presence, then it can re-run in later parts if needed
+    # use the "make" built in
+
+    # install libpcap before bettercap and pwngrid, so they use it
+    - name: clone libpcap v1.9 from github
+      git:
+        repo: 'https://github.com/the-tcpdump-group/libpcap.git'
+        dest: /usr/local/src/libpcap
+        version: libpcap-1.9
+
+    - name: build and install libpcap into /usr/local/lib
+      shell: "./configure && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/libpcap
+
+    - name: remove libpcap build folder
+      file:
+        state: absent
+        path: /usr/local/src/libpcap
+
+    - name: create symlink /usr/local/lib/libpcap.so.1.9.1
+      file:
+        src: /usr/local/lib/libpcap.so.1.9.1
+        dest: /usr/local/lib/libpcap.so.0.8
+        state: link
+
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
     - name: clone nexmon repository
       git:
@@ -496,26 +529,6 @@
         dest: /home/pi/.bashrc
         line: "\nalias pwnkill='sudo killall -USR1 pwnagotchi'"
         insertafter: EOF
-
-    - name: download old libpcap packages
-      get_url:
-        url: "https://old.kali.org/kali/pool/main/libp/libpcap/{{ item }}"
-        dest: /usr/local/src/
-      with_items: "{{ packages.apt.downgrade }}"
-
-    - name: install old libpcap packages
-      apt:
-        force: True
-        state: present
-        deb: "/usr/local/src/{{ item }}"
-      with_items: "{{ packages.apt.downgrade }}"
-      register: libpcap
-
-    - name: remove old libpcap files
-      file:
-        path: "/usr/local/src/{{ item }}"
-        state: absent
-      with_items: "{{ packages.apt.downgrade }}"
 
     - name: add firmware packages to hold
       dpkg_selections:
