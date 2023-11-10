@@ -562,11 +562,6 @@
         autoclean: true
       when: removed.changed
 
-    - name: apt clean
-      shell: "apt-get clean"
-      args:
-        executable: /bin/bash
-
     - name: remove /root/go folder
       file:
         state: absent
