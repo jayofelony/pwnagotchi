@@ -5,16 +5,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Pwnagotchi Belarusian translation v 0.0.1\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
-"POT-Creation-Date: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-13 23:26+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: <https://github.com/andreifinski>\n"
 "Language-Team: \n"
-"MIME-Version: 1.0\n"
 "Language: by_BY\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 2.2.4\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
@@ -94,13 +95,13 @@ msgstr "Мне так весела!"
 msgid "My crime is that of curiosity ..."
 msgstr "Маё злачынства - гэта цікаўнасць…"
 
-#, python-brace-format
-msgid "Hello {name}! Nice to meet you. {name}"
+#, fuzzy, python-brace-format
+msgid "Hello {name}! Nice to meet you."
 msgstr "Вітаю, {name}! Рад сустрэчы з табой!"
 
 #, python-brace-format
-msgid "Unit {name} is nearby! {name}"
-msgstr "Мэта {name} побач!"
+msgid "Yo {name}! Sup?"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey {name} how are you doing?"
@@ -197,12 +198,24 @@ msgstr "Пінаю {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Крута, мы атрымалі {num} новы поціск рукі!"
 
+#, fuzzy, python-brace-format
+msgid "You have {count} new message{plural}!"
+msgstr "Крута, мы атрымалі {num} новы поціск рукі!"
+
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ой, нешта пайшло не так … Перазагружаюся …"
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Пнуў {num} станцыю\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Атрымаў {num} новых сяброў\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -232,11 +245,21 @@ msgstr ""
 msgid "hours"
 msgstr "гадзін"
 
-msgid "hour"
-msgstr "гадзіна"
-
 msgid "minutes"
 msgstr "хвілін"
 
+msgid "seconds"
+msgstr ""
+
+msgid "hour"
+msgstr "гадзіна"
+
 msgid "minute"
 msgstr "хвіліну"
+
+msgid "second"
+msgstr ""
+
+#, python-brace-format
+#~ msgid "Unit {name} is nearby! {name}"
+#~ msgstr "Мэта {name} побач!"

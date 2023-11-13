@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-29 21:50+0100\n"
+"POT-Creation-Date: 2023-11-13 23:26+0100\n"
 "PO-Revision-Date: 2023-02-11 16:25+0200\n"
 "Last-Translator: Speed Weed <121556603+spd-wd@users.noreply.github.com>\n"
 "Language-Team: pwnagotchi <121556603+spd-wd@users.noreply.github.com>\n"
@@ -202,8 +202,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Hups, jokin meni vikaan... Käynnistetään uudelleen..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr "Lähetetään dataa kohteeseen {to}..."
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Potkittiin {num} asemaa\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Saatiin {num} uutta kaveria\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -226,9 +234,9 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-"Olen ollut päällä {duration} ja potkinut {deauthed} asemaa! Olen myös tavannut "
-"{associated} uutta kaveria ja saanut {handshakes} handshakeä! #pwnagotchi "
-"#pwnlog #pwnlife #hacktheplanet #skynet"
+"Olen ollut päällä {duration} ja potkinut {deauthed} asemaa! Olen myös "
+"tavannut {associated} uutta kaveria ja saanut {handshakes} handshakeä! "
+"#pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"
 msgstr "tuntia"
@@ -247,7 +255,3 @@ msgstr "minuutti"
 
 msgid "second"
 msgstr "sekunti"
-
-#, python-brace-format
-msgid "Uploading data to {to} ..."
-msgstr "Lähetetään dataa kohteeseen {to}..."
