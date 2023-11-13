@@ -43,6 +43,7 @@ function add_lang() {
 
 function del_lang() {
   # set -eu is present; so not dangerous
+  # shellcheck disable=SC2115
   rm -rf "$LOCALE_DIR/$1"
 }
 
