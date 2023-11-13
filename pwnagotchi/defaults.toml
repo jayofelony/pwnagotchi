@@ -49,7 +49,7 @@ main.plugins.gpio_buttons.enabled = false
 
 main.plugins.gps.enabled = false
 main.plugins.gps.speed = 19200
-main.plugins.gps.device = "/dev/ttyUSB0"
+main.plugins.gps.device = "/dev/ttyUSB0" # for GPSD: "localhost:2947"
 
 main.plugins.grid.enabled = true
 main.plugins.grid.report = true
@@ -187,7 +187,7 @@ ui.faces.upload1 = "(1__1)"
 ui.faces.upload2 = "(0__1)"
 
 ui.web.enabled = true
-ui.web.address = "0.0.0.0"
+ui.web.address = "::" # listening on both ipv4 and ipv6 - switch to 0.0.0.0 to listen on just ipv4
 ui.web.username = "changeme"
 ui.web.password = "changeme"
 ui.web.origin = ""
