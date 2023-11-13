@@ -140,6 +140,7 @@
           - raspberrypi-kernel-headers
           - rsync
           - screen
+          - tcpdump
           - texinfo
           - time
           - tk-dev
@@ -355,7 +356,7 @@
 
     - name: Install go-1.21
       unarchive:
-        src: https://go.dev/dl/go1.21.3.linux-arm64.tar.gz
+        src: https://go.dev/dl/go1.21.4.linux-arm64.tar.gz
         dest: /usr/local
         remote_src: yes
       register: golang
