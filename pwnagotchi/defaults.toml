@@ -185,7 +185,7 @@ ui.faces.debug = "(#__#)"
 ui.faces.upload = "(1__0)"
 ui.faces.upload1 = "(1__1)"
 ui.faces.upload2 = "(0__1)"
-ui.faces.png = true
+ui.faces.png = false
 ui.faces.position_x = 58
 ui.faces.position_y = 41
 
