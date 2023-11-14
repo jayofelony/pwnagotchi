@@ -11,6 +11,7 @@ import warnings
 
 log = logging.getLogger(__name__)
 
+
 def install_file(source_filename, dest_filename):
     # do not overwrite network configuration if it exists already
     # https://github.com/evilsocket/pwnagotchi/issues/483
@@ -23,7 +24,7 @@ def install_file(source_filename, dest_filename):
     if not os.path.isdir(dest_folder):
         os.makedirs(dest_folder)
 
-    shutil.copyfile(source_filename, dest_filename)
+    shutil.copy2(source_filename, dest_filename)
     if dest_filename.startswith("/usr/bin/"):
         os.chmod(dest_filename, 0o755)
 
