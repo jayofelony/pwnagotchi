@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-04 12:57+0100\n"
+"POT-Creation-Date: 2023-11-14 07:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Angel Hernandez Segura <ahsec.7@gmail.com>\n"
 "Language-Team: Español <LL@li.org>\n"
@@ -202,8 +202,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oops, algo salio mal ... Reiniciando ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Bloquee {num} staciones\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Hice {num} nuevos amigos\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -225,9 +233,10 @@ msgid ""
 "I've been pwning for {duration} and kicked {deauthed} clients! I've also met "
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
-msgstr "He estado hackeando por {duration} y de-autenticando {deauthed} "
-"clientes! Tambien conoci {associated} nuevos amigos y comi {handshakes} "
-"handshakes! #pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
+msgstr ""
+"He estado hackeando por {duration} y de-autenticando {deauthed} clientes! "
+"Tambien conoci {associated} nuevos amigos y comi {handshakes} handshakes! "
+"#pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"
 msgstr "horas"

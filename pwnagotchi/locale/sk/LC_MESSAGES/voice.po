@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-8 17:55+0200\n"
+"POT-Creation-Date: 2023-11-14 07:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Milan Kyselica <mil.kyselica@gmail.com>\n"
 "Language-Team: SK\n"
@@ -42,6 +42,13 @@ msgstr "Generujú sa kľúče, nevypínaj ..."
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "Hej, kanál {channel} je voľný! Váš AP vám poďakuje."
 
+msgid "Reading last session logs ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Read {lines_so_far} log lines so far ..."
+msgstr ""
+
 msgid "I'm bored ..."
 msgstr "Nudím sa ..."
 
@@ -63,6 +70,13 @@ msgstr "Som veľmi smutný ..."
 msgid "I'm sad"
 msgstr "Som smutný"
 
+#, fuzzy
+msgid "Leave me alone ..."
+msgstr "Cítim sa tak sám ..."
+
+msgid "I'm mad at you!"
+msgstr ""
+
 msgid "I'm living the life!"
 msgstr "Žijem život!"
 
@@ -81,6 +95,14 @@ msgstr "Môj zločin je zvedavosť ..."
 #, python-brace-format
 msgid "Hello {name}! Nice to meet you."
 msgstr "Dobrý deň, {name}! Rád som ťa spoznal."
+
+#, python-brace-format
+msgid "Yo {name}! Sup?"
+msgstr ""
+
+#, python-brace-format
+msgid "Hey {name} how are you doing?"
+msgstr ""
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
@@ -181,8 +203,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ops, niečo sa pokazilo ... Reštartujem sa ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Kicknutá/ých {num} stanica/íc\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Získaní {num} noví kamaráti\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -204,9 +234,10 @@ msgid ""
 "I've been pwning for {duration} and kicked {deauthed} clients! I've also met "
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
-msgstr "Pwnoval som {duration} a kickol som {deauthed} klienta/ov! Tiež som"
-"stretol {associated} nového/ých kamaráta/ov a zjedol {handshakes} handshake/y!"
-" #pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
+msgstr ""
+"Pwnoval som {duration} a kickol som {deauthed} klienta/ov! Tiež somstretol "
+"{associated} nového/ých kamaráta/ov a zjedol {handshakes} handshake/y! "
+"#pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"
 msgstr "hodiny"

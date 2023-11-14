@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 06:15+0100\n"
+"POT-Creation-Date: 2023-11-14 07:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Czechball <czechball@users.noreply.github.com>\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
@@ -202,8 +202,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ups, něco se pokazilo ... Restartuju ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Vykopnuto {num} klientů\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Mám {num} nových kamarádů\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -226,9 +234,9 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-"Chytal jsem pakety po dobu {duration} a vykopnul jsem {deauthed} klientů! Taky jsem potkal "
-"{associated} nových kamarádů a snědl {handshakes} handshaků! #pwnagotchi "
-"#pwnlog #pwnlife #hacktheplanet #skynet"
+"Chytal jsem pakety po dobu {duration} a vykopnul jsem {deauthed} klientů! "
+"Taky jsem potkal {associated} nových kamarádů a snědl {handshakes} "
+"handshaků! #pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"
 msgstr "hodiny"

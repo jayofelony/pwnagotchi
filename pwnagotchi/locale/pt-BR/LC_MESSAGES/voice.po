@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-05 14:10+0200\n"
+"POT-Creation-Date: 2023-11-14 07:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Cassiano Aquino <cassianoaquino@me.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,9 +35,19 @@ msgstr "AI pronta."
 msgid "The neural network is ready."
 msgstr "A rede neural está pronta."
 
+msgid "Generating keys, do not turn off ..."
+msgstr ""
+
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "Ei, o canal {channel} está livre! Seu AP ira agradecer."
+
+msgid "Reading last session logs ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Read {lines_so_far} log lines so far ..."
+msgstr ""
 
 msgid "I'm bored ..."
 msgstr "Estou entediado ..."
@@ -60,6 +70,13 @@ msgstr "Estou muito triste ..."
 msgid "I'm sad"
 msgstr "Estou triste"
 
+#, fuzzy
+msgid "Leave me alone ..."
+msgstr "Estou tão sozinho ..."
+
+msgid "I'm mad at you!"
+msgstr ""
+
 msgid "I'm living the life!"
 msgstr "Estou aproveitando a vida!"
 
@@ -75,12 +92,20 @@ msgstr "Estou me divertindo muito!"
 msgid "My crime is that of curiosity ..."
 msgstr "Meu crime é ser curioso ..."
 
-#, python-brace-format
-msgid "Hello {name}! Nice to meet you. {name}"
+#, fuzzy, python-brace-format
+msgid "Hello {name}! Nice to meet you."
 msgstr "Olá {name}! Prazer em conhecê-lo. {name}"
 
 #, python-brace-format
-msgid "Unit {name} is nearby! {name}"
+msgid "Yo {name}! Sup?"
+msgstr ""
+
+#, python-brace-format
+msgid "Hey {name} how are you doing?"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Unit {name} is nearby!"
 msgstr "Unidade {name} está próxima! {name}"
 
 #, python-brace-format
@@ -102,6 +127,12 @@ msgstr "{name} perdido!"
 msgid "Missed!"
 msgstr "Perdido!"
 
+msgid "Good friends are a blessing!"
+msgstr ""
+
+msgid "I love my friends!"
+msgstr ""
+
 msgid "Nobody wants to play with me ..."
 msgstr "Ninguém quer brincar comigo ..."
 
@@ -121,6 +152,13 @@ msgstr "Zzzzz"
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr "ZzzZzzz ({secs}s)"
+
+msgid "Good night."
+msgstr ""
+
+#, fuzzy
+msgid "Zzz"
+msgstr "Zzzzz"
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -158,12 +196,24 @@ msgstr "Kickbanning {mac}"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Legal, nos capturamos {num} handshake{plural} novo{plural}!"
 
+#, fuzzy, python-brace-format
+msgid "You have {count} new message{plural}!"
+msgstr "Legal, nos capturamos {num} handshake{plural} novo{plural}!"
+
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ops, algo falhou ... Reiniciando ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Kickei {num} estações\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Fiz {num} novos amigos\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -186,9 +236,9 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-"Eu estou pwning fazem {duration} e kickei {deauthed} clientes! Eu também conheci "
-"{associated} novos amigos e comi {handshakes} handshakes! #pwnagotchi "
-"#pwnlog #pwnlife #hacktheplanet #skynet"
+"Eu estou pwning fazem {duration} e kickei {deauthed} clientes! Eu também "
+"conheci {associated} novos amigos e comi {handshakes} handshakes! "
+"#pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"
 msgstr "horas"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-04 06:37+0100\n"
+"POT-Creation-Date: 2023-11-14 07:52+0100\n"
 "PO-Revision-Date: 2019-10-21 10:55+0200\n"
 "Last-Translator: gkrs <457603+gkrs@users.noreply.github.com>\n"
 "Language-Team: PL <457603+gkrs@users.noreply.github.com>\n"
@@ -201,8 +201,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ups, coś poszło nie tak ... Restaruję ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Wyrzuciłem {num} stacji\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Zdobyłem {num} nowych przyjaciół\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

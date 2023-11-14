@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-05 14:10+0200\n"
+"POT-Creation-Date: 2023-11-14 07:51+0100\n"
 "PO-Revision-Date: 2019-10-03 08:00+0000\n"
 "Last-Translator: Periklis Fregkos <fregkos@gmail.com>\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
@@ -35,9 +35,19 @@ msgstr "ΤΝ έτοιμη."
 msgid "The neural network is ready."
 msgstr "Το νευρωνικό δίκτυο είναι έτοιμο."
 
+msgid "Generating keys, do not turn off ..."
+msgstr ""
+
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "Ε, το κανάλι {channel} είναιελεύθερο! Το AP σου θα είναι ευγνώμων."
+
+msgid "Reading last session logs ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Read {lines_so_far} log lines so far ..."
+msgstr ""
 
 msgid "I'm bored ..."
 msgstr "Βαριέμαι ..."
@@ -60,6 +70,13 @@ msgstr "Είμαι πολύ λυπημένο ..."
 msgid "I'm sad"
 msgstr "Είμαι λυπημένο"
 
+#, fuzzy
+msgid "Leave me alone ..."
+msgstr "Νιώθω μοναχός μου ..."
+
+msgid "I'm mad at you!"
+msgstr ""
+
 msgid "I'm living the life!"
 msgstr "Ζω την ζωή μου!"
 
@@ -75,12 +92,20 @@ msgstr "Περνάω τέλεια!"
 msgid "My crime is that of curiosity ..."
 msgstr "Η περιέργεια είναιτο μόνο έγκλημά μου ..."
 
-#, python-brace-format
-msgid "Hello {name}! Nice to meet you. {name}"
+#, fuzzy, python-brace-format
+msgid "Hello {name}! Nice to meet you."
 msgstr "Γειά {name}!Χάρηκα για τη γνωριμία. {name}"
 
 #, python-brace-format
-msgid "Unit {name} is nearby! {name}"
+msgid "Yo {name}! Sup?"
+msgstr ""
+
+#, python-brace-format
+msgid "Hey {name} how are you doing?"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Unit {name} is nearby!"
 msgstr "Η μονάδα {name} είναι κοντά! {name}"
 
 #, python-brace-format
@@ -102,6 +127,12 @@ msgstr "Έχασα το {name}!"
 msgid "Missed!"
 msgstr "Το έχασα!"
 
+msgid "Good friends are a blessing!"
+msgstr ""
+
+msgid "I love my friends!"
+msgstr ""
+
 msgid "Nobody wants to play with me ..."
 msgstr "Κανείς δε θέλει ναπαίξει μαζί μου ..."
 
@@ -120,6 +151,12 @@ msgstr ""
 
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
+msgstr ""
+
+msgid "Good night."
+msgstr ""
+
+msgid "Zzz"
 msgstr ""
 
 #, python-brace-format
@@ -158,12 +195,24 @@ msgstr "Μπανάρω την {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Τέλεια δικέ μου, πήραμε {num} νέες χειραψίες!"
 
+#, fuzzy, python-brace-format
+msgid "You have {count} new message{plural}!"
+msgstr "Τέλεια δικέ μου, πήραμε {num} νέες χειραψίες!"
+
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ουπς, κάτιπήγε λάθος ... Επανεκκινούμαι ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Έριξα {num} σταθμούς\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Έκανα {num} νέους φίλους\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

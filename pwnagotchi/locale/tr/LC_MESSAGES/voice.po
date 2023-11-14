@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-29 21:50+0100\n"
+"POT-Creation-Date: 2023-11-14 07:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Arda Barış Tonç <abtonc@icloud.com>\n"
 "Language-Team: \n"
@@ -201,8 +201,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Haydaa, bir şeyler ters gitti ... Yeniden başlatılıyor ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr "{to}'ye veri yükleniyor ..."
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "{num} İstasyon atıldı\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "{num} Yeni arkadaş edindim\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -226,8 +234,8 @@ msgid ""
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
 "{duration}'dır pwn'lıyorum ve {deauthed} kişiyi attım. Hem de {associated}"
-"yeni kişiyle tanıştım ve {handshakes} el sıkıştım! #pwnagotchi "
-"#pwnlog #pwnyaşam #dünyayıhackle #skynet"
+"yeni kişiyle tanıştım ve {handshakes} el sıkıştım! #pwnagotchi #pwnlog "
+"#pwnyaşam #dünyayıhackle #skynet"
 
 msgid "hours"
 msgstr "saat"
@@ -246,7 +254,3 @@ msgstr "dakika"
 
 msgid "second"
 msgstr "saniye"
-
-#, python-brace-format
-msgid "Uploading data to {to} ..."
-msgstr "{to}'ye veri yükleniyor ..."

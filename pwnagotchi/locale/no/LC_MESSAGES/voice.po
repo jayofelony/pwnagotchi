@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-04 12:57+0100\n"
+"POT-Creation-Date: 2023-11-14 07:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Edvard Botten <edvbot@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -202,8 +202,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oi, noe gikk helt skakk ... Rebooter ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Kicket {num} stasjoner\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Møtte {num} nye venner\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -225,8 +233,9 @@ msgid ""
 "I've been pwning for {duration} and kicked {deauthed} clients! I've also met "
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
-msgstr "Jeg har pwnet for {duration} og kicket {dauthed} klienter! Jeg har også "
-"møtt {associated} nye venner og spiste {handshakes} håndtrykk! #pwnagotchi "
+msgstr ""
+"Jeg har pwnet for {duration} og kicket {dauthed} klienter! Jeg har også møtt "
+"{associated} nye venner og spiste {handshakes} håndtrykk! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"

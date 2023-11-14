@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-23 20:56+0200\n"
+"POT-Creation-Date: 2023-11-14 07:53+0100\n"
 "PO-Revision-Date: 2019-11-02 16:20+0200\n"
 "Last-Translator: damoklov <mishanya@protonmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -42,6 +42,13 @@ msgstr "Генерую ключі, не вимикай живлення ..."
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "Агов, канал {channel} вільний! Ваша точка доступу буде вдячна."
 
+msgid "Reading last session logs ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Read {lines_so_far} log lines so far ..."
+msgstr ""
+
 msgid "I'm bored ..."
 msgstr "Мені сумно ..."
 
@@ -63,6 +70,13 @@ msgstr "Я дуже засмучений ..."
 msgid "I'm sad"
 msgstr "Я засмучений"
 
+#, fuzzy
+msgid "Leave me alone ..."
+msgstr "Я почуваюсь вкрай самотньо ..."
+
+msgid "I'm mad at you!"
+msgstr ""
+
 msgid "I'm living the life!"
 msgstr "Ось таке у мене життя!"
 
@@ -81,6 +95,14 @@ msgstr "Мій єдиний злочин - це допитливість ..."
 #, python-brace-format
 msgid "Hello {name}! Nice to meet you."
 msgstr "Привіт, {name}! Приємно познайомитись."
+
+#, python-brace-format
+msgid "Yo {name}! Sup?"
+msgstr ""
+
+#, python-brace-format
+msgid "Hey {name} how are you doing?"
+msgstr ""
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
@@ -181,8 +203,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ой, щось пішло не так ... Перезавантажуюсь ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Від'єднав {num} станцій\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Нових друзів у мене: {num}\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

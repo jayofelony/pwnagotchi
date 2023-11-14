@@ -3,16 +3,14 @@
 # This file is distributed under the same license as the pwnagotchi package.
 # FIRST AUTHOR <radu.ungureanu@techie.com>, 2019.
 #
-#,
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-04 12:57+0100\n"
+"POT-Creation-Date: 2023-11-14 07:52+0100\n"
 "PO-Revision-Date: 2019-11-20 00:18+594\n"
 "Last-Translator: Ungureanu Radu-Andrei <radu.ungureanu@techie.com>\n"
-"Language-Team: pwnagotchi <33197631+dadav@users.noreply.github."
-"com>\n"
+"Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -203,8 +201,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "OOps, ceva s-a întamplat... Îmi dau reboot...+"
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Am dat afară {num} de stații\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Am făcut {num} prieteni noi \n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -226,8 +232,9 @@ msgid ""
 "I've been pwning for {duration} and kicked {deauthed} clients! I've also met "
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
-msgstr "Eu am făcut pwning pentru {duration} și am dat afara {deauthed} clienți! "
-"De asemenea, am întalnit {associated} prieteni noi și am mancat {handshakes} de "
+msgstr ""
+"Eu am făcut pwning pentru {duration} și am dat afara {deauthed} clienți! De "
+"asemenea, am întalnit {associated} prieteni noi și am mancat {handshakes} de "
 "handshake-uri! #pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"

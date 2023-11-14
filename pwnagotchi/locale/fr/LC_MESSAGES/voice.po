@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-29 21:50+0100\n"
+"POT-Creation-Date: 2023-11-14 07:51+0100\n"
 "PO-Revision-Date: 2019-10-03 10:34+0200\n"
 "Last-Translator: quantumsheep <7271496+quantumsheep@users.noreply.github."
 "com>\n"
@@ -203,8 +203,16 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oups, quelque chose s'est mal passé... Redémarrage..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "{num} stations kick\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "A fait {num} nouve(l/aux) ami(s)\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
