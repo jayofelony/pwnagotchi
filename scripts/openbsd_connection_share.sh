@@ -3,13 +3,15 @@
 USB_IFACE=$(ifconfig urndis0 | grep urndis0 | awk '{print $1}' | tr -d ':')
 USB_IP=${2:-10.0.0.1}
 
+# shellcheck disable=SC2046
 if test $(whoami) != root; then
 	doas "$0" "$@"
 	exit $?
 fi
 
+# shellcheck disable=SC2039
 if [ "${USB_IFACE}" == "urndis0" ]; then
-	ifconfig ${USB_IFACE} ${USB_IP}
+	ifconfig "${USB_IFACE}" "${USB_IP}"
 	sysctl -w net.inet.ip.forwarding=1
 	echo "match out on egress inet from ${USB_IFACE}:network to any nat-to (egress:0)" | pfctl -f -
 	pfctl -f /etc/pf.conf
