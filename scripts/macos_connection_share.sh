@@ -5,7 +5,7 @@ USB_IFACE=''
 USB_IP=${2:-10.0.0.1}
 
 for i in $(ifconfig -lu); do
-  if ifconfig $i | grep -q "${USB_IP}" ; then USB_IFACE=$i; fi;
+  if ifconfig "$i" | grep -q "${USB_IP}" ; then USB_IFACE=$i; fi;
 done
 
 if [ -z "$USB_IFACE" ]

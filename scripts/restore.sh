@@ -27,15 +27,20 @@ done
 # name of the ethernet gadget interface on the host
 UNIT_HOSTNAME=${UNIT_HOSTNAME:-10.0.0.2}
 # output backup tgz file
+# shellcheck disable=SC2086
 if [ -z $BACKUP ]; then
-	BACKUP=$(ls -rt ${UNIT_HOSTNAME}-backup-*.tgz 2>/dev/null | tail -n1)
-	if [ -z $BACKUP ]; then
+	# shellcheck disable=SC2012
+	BACKUP=$(ls -rt "${UNIT_HOSTNAME}"-backup-*.tgz 2>/dev/null | tail -n1)
+	if [ -z "$BACKUP" ]; then
 		echo "@ Can't find backup file. Please specify one with '-b'"
 		exit 1
 	fi
 	echo "@ Found backup file:"
+	# shellcheck disable=SC2028
 	echo "\t${BACKUP}"
+	# shellcheck disable=SC2039
 	echo -n "@ continue restroring this file? (y/n) "
+	# shellcheck disable=SC2162
 	read CONTINUE
 	CONTINUE=$(echo "${CONTINUE}" | tr "[:upper:]" "[:lower:]")
 	if [ "${CONTINUE}" != "y" ]; then
@@ -51,4 +56,5 @@ ping -c 1 "${UNIT_HOSTNAME}" > /dev/null 2>&1 || {
 }
 
 echo "@ restoring $BACKUP to $UNIT_HOSTNAME ..."
-cat ${BACKUP} | ssh "${UNIT_USERNAME}@${UNIT_HOSTNAME}" "sudo tar xzv -C /"
+# shellcheck disable=SC2002
+cat "${BACKUP}" | ssh "${UNIT_USERNAME}@${UNIT_HOSTNAME}" "sudo tar xzv -C /"

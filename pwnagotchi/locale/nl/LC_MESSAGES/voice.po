@@ -35,18 +35,18 @@ msgid "The neural network is ready."
 msgstr "Neuronen netwerk is klaar."
 
 msgid "Generating keys, do not turn off ..."
-msgstr ""
+msgstr "Sleutel genereren, niet afsluiten ..."
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "Hey, kanaal {channel} is vrij! Je AP zal je bedanken."
 
 msgid "Reading last session logs ..."
-msgstr ""
+msgstr "Logs laatste sessie lezen ..."
 
 #, python-brace-format
 msgid "Read {lines_so_far} log lines so far ..."
-msgstr ""
+msgstr "{lines_so_far} log regels gelezer tot nu toe ..."
 
 msgid "I'm bored ..."
 msgstr "Ik verveel me ..."
@@ -74,7 +74,7 @@ msgid "Leave me alone ..."
 msgstr "Ik voel me zo alleen ..."
 
 msgid "I'm mad at you!"
-msgstr ""
+msgstr "Ik ben boos op jou!"
 
 msgid "I'm living the life!"
 msgstr "Beter kan het leven niet worden!"
@@ -97,11 +97,11 @@ msgstr "Hallo {name}! Leuk je te ontmoeten. {name}"
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
-msgstr ""
+msgstr "Hey {name}! Hoe gaatie?"
 
 #, python-brace-format
 msgid "Hey {name} how are you doing?"
-msgstr ""
+msgstr "Hey {name}, hoe gaat het met je?"
 
 #, fuzzy, python-brace-format
 msgid "Unit {name} is nearby!"
@@ -127,10 +127,10 @@ msgid "Missed!"
 msgstr "Gemist!"
 
 msgid "Good friends are a blessing!"
-msgstr ""
+msgstr "Goede vrienden zijn een geschenk!"
 
 msgid "I love my friends!"
-msgstr ""
+msgstr "Ik houd van mijn vrienden!"
 
 msgid "Nobody wants to play with me ..."
 msgstr "Niemand wil met mij spelen ..."
@@ -153,7 +153,7 @@ msgid "ZzzZzzz ({secs}s)"
 msgstr "ZzzZzzz ({secs}s)"
 
 msgid "Good night."
-msgstr ""
+msgstr "Goede nacht."
 
 #, fuzzy
 msgid "Zzz"
@@ -200,11 +200,11 @@ msgid "You have {count} new message{plural}!"
 msgstr "Cool, we hebben {num} nieuwe handshake{plural}!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
-msgstr "Oops, er ging iets fout ...Rebooting ..."
+msgstr "Oops, er ging iets fout ...Opnieuw opstarten ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
-msgstr ""
+msgstr "Data uploaden naar {to}"
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
