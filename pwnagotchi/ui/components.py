@@ -40,21 +40,37 @@ class FilledRect(Widget):
 
 
 class Text(Widget):
-    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0):
+    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False):
         super().__init__(position, color)
         self.value = value
         self.font = font
         self.wrap = wrap
         self.max_length = max_length
         self.wrapper = TextWrapper(width=self.max_length, replace_whitespace=False) if wrap else None
+        self.png = png
 
     def draw(self, canvas, drawer):
         if self.value is not None:
-            if self.wrap:
-                text = '\n'.join(self.wrapper.wrap(self.value))
+            if not self.png:
+                if self.wrap:
+                    text = '\n'.join(self.wrapper.wrap(self.value))
+                else:
+                    text = self.value
+                drawer.text(self.xy, text, font=self.font, fill=self.color)
             else:
-                text = self.value
-            drawer.text(self.xy, text, font=self.font, fill=self.color)
+                self.image = Image.open(self.value)
+                self.image = self.image.convert('RGBA')
+                self.pixels = self.image.load()
+                for y in range(self.image.size[1]):
+                    for x in range(self.image.size[0]):
+                        if self.pixels[x,y][3] < 255:    # check alpha
+                            self.pixels[x,y] = (255, 255, 255, 255)
+                if self.color == 255:
+                    self._image = ImageOps.colorize(self.image.convert('L'), black = "black", white = "yellow")
+                else:
+                    self._image = self.image
+                self.image = self._image.convert('1')
+                canvas.paste(self.image, self.xy)
 
 
 class LabeledValue(Widget):
