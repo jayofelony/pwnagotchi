@@ -69,9 +69,8 @@ msgstr "Ik ben erg verdrietig ..."
 msgid "I'm sad"
 msgstr "Ik ben verdrietig"
 
-#, fuzzy
 msgid "Leave me alone ..."
-msgstr "Ik voel me zo alleen ..."
+msgstr "Laat me met rust ..."
 
 msgid "I'm mad at you!"
 msgstr "Ik ben boos op jou!"
@@ -155,9 +154,8 @@ msgstr "ZzzZzzz ({secs}s)"
 msgid "Good night."
 msgstr "Goede nacht."
 
-#, fuzzy
 msgid "Zzz"
-msgstr "Zzzzz"
+msgstr "Zzz"
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -210,9 +208,8 @@ msgstr "Data uploaden naar {to}"
 msgid "Kicked {num} stations\n"
 msgstr "{num} stations gekicked\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "{num} nieuwe vrienden gemaakt.\n"
+msgstr ">999 nieuwe vrienden gemaakt.\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
