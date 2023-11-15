@@ -33,7 +33,7 @@ langs:
 		./scripts/language.sh compile $$(basename $$lang); \
 	done
 
-PACKER := /tmp/pwnagotchi/packer
+PACKER := ~/pwnagotchi/packer
 PACKER_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_$(GOARCH).zip
 $(PACKER):
 	mkdir -p $(@D)
@@ -58,6 +58,5 @@ pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi32.yml b
 image: pwnagotchi
 
 clean:
-	- python3 setup.py clean --all
 	- rm -rf dist pwnagotchi.egg-info
 	- rm -f $(PACKER)
