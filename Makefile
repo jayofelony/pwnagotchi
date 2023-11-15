@@ -25,7 +25,7 @@ ifneq (,$(UNSHARE))
 UNSHARE := $(UNSHARE) --uts
 endif
 
-all: clean image
+all: clean image clean
 
 langs:
 	@for lang in pwnagotchi/locale/*/; do\
