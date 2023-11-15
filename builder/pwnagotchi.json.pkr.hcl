@@ -1,13 +1,17 @@
 # This is not working quite yet
 # https://github.com/mkaczanowski/packer-builder-arm/pull/172
-#packer {
-#  required_plugins {
-#    arm = {
-#      version = ">= 1.0.0"
-#      source  = "github.com/cdecoux/builder-arm"
-#    }
-#  }
-#}
+packer {
+  required_plugins {
+    #arm = {
+    #  version = ">= 1.0.0"
+    #  source  = "github.com/cdecoux/builder-arm"
+    #}
+    ansible = {
+      source  = "github.com/hashicorp/ansible"
+      version = "~> 1"
+    }
+  }
+}
 
 variable "pwn_hostname" {
   type = string
