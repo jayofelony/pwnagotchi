@@ -46,6 +46,7 @@ start_monitor_interface() {
   rfkill unblock all
   ifconfig wlan0 down
   ifconfig wlan0mon up
+  iw dev wlan0mon set power_save off
 }
 
 # stops mon0
