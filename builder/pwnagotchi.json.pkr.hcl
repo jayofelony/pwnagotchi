@@ -80,8 +80,8 @@ source "arm" "rpi32-pwnagotchi" {
   }
 }
 source "arm" "opi-pwnagotchi" {
-  file_checksum_url             = "../../images/pwnagotchi-orangepi-raspios.img.xz.sha256"
-  file_urls                     = ["../../images/pwnagotchi-orangepi-raspios.img.xz"]
+  file_checksum_url             = "https://github.com/jayofelony/orangepi/releases/download/v1.0/pwnagotchi-orangepi-raspios.img.xz.sha256"
+  file_urls                     = ["https://github.com/jayofelony/orangepi/releases/download/v1.0/pwnagotchi-orangepi-raspios.img.xz"]
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
