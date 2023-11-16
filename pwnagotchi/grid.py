@@ -69,6 +69,7 @@ def update_data(last_session):
         pass
     enabled = [name for name, options in pwnagotchi.config['main']['plugins'].items() if
                'enabled' in options and options['enabled']]
+    language = pwnagotchi.config['main']['lang']
 
     data = {
         'session': {
@@ -87,7 +88,8 @@ def update_data(last_session):
         'brain': brain,
         'version': pwnagotchi.__version__,
         'build': "Pwnagotchi-Torch by Jayofelony",
-        'plugins': enabled
+        'plugins': enabled,
+        'language': language
     }
 
     logging.debug("updating grid data: %s" % data)
