@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:52+0100\n"
+"POT-Creation-Date: 2023-11-16 20:32+0100\n"
 "PO-Revision-Date: 2019-09-29 14:00+0200\n"
 "Last-Translator: Justin-P <justin-p@users.noreply.github.com>\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
@@ -203,6 +203,10 @@ msgstr "Oops, er ging iets fout ...Opnieuw opstarten ..."
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr "Data uploaden naar {to}"
+
+#, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "Downloaden van {name}"
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
