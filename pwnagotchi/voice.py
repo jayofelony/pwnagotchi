@@ -162,6 +162,9 @@ class Voice:
     def on_uploading(self, to):
         return self._("Uploading data to {to} ...").format(to=to)
 
+    def on_downloading(self, name):
+        return self._("Downloading from {name} ...").format(name=name)
+
     def on_last_session_data(self, last_session):
         status = self._('Kicked {num} stations\n').format(num=last_session.deauthed)
         if last_session.associated > 999:

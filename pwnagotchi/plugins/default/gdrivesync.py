@@ -22,6 +22,7 @@ class GdriveSync(plugins.Plugin):
     }
 
     def __init__(self):
+        self.options = dict()
         self.lock = Lock()
         self.internet = False
         self.ready = False
@@ -37,11 +38,12 @@ class GdriveSync(plugins.Plugin):
             '/etc/pwnagotchi'
         ]
 
-    def on_loaded(self):
+    def on_loaded(self, agent):
         """
             Called when the plugin is loaded
         """
         # client_secrets.json needs to be not empty
+        display = agent.view()
         if os.stat("/root/client_secrets.json").st_size == 0:
             logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
             return
@@ -89,6 +91,7 @@ class GdriveSync(plugins.Plugin):
 
                     # Upload the zip archive to Google Drive
                     self.upload_to_gdrive(zip_file_path, self.get_folder_id_by_name(self.drive, self.options['backup_folder']))
+                    display.on_uploading("Google Drive")
                     self.backup = True
                     self.status.update()
 
@@ -100,6 +103,8 @@ class GdriveSync(plugins.Plugin):
                 if zip_file_id:
                     zip_file = self.drive.CreateFile({'id': zip_file_id})
                     zip_file.GetContentFile(os.path.join(local_backup_path, 'backup.zip'))
+
+                    display.on_downloading("Google Drive")
                     logging.info("[gDriveSync] Downloaded backup.zip from Google Drive")
 
                     # Extract the zip archive to the root directory
@@ -168,6 +173,7 @@ class GdriveSync(plugins.Plugin):
         self.internet = True
 
     def on_handshake(self, agent):
+        display = agent.view()
         if not self.ready and not self.internet:
             return
         if self.lock.locked():
@@ -193,6 +199,7 @@ class GdriveSync(plugins.Plugin):
 
             # Upload the zip archive to Google Drive
             self.upload_to_gdrive(zip_file_path, self.get_folder_id_by_name(self.drive, self.options['backup_folder']))
+            display.on_uploading("Google Drive")
 
             # Cleanup the local zip file
             os.remove(zip_file_path)
