@@ -447,8 +447,8 @@
         path: /etc/rc.local
         insertbefore: "exit 0"
         block: |
-          if ! /opt/vc/bin/tvservice -s | egrep 'HDMI|DVI'; then
-            /opt/vc/bin/tvservice -o
+          if ! /usr/bin/tvservice -s | egrep 'HDMI|DVI'; then
+            /usr/bin/tvservice -o
           fi
 
     - name: create /etc/pwnagotchi folder

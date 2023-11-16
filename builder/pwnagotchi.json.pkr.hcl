@@ -3,7 +3,7 @@
 packer {
   required_plugins {
     #arm = {
-    #  version = ">= 1.0.0"
+    #  version = "1.0.0"
     #  source  = "github.com/cdecoux/builder-arm"
     #}
     ansible = {
