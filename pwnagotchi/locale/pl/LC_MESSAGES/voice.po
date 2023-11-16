@@ -202,7 +202,7 @@ msgstr "Ups, coś poszło nie tak ... Restaruję ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
-msgstr ""
+msgstr "Wysyłam dane do {to} ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
