@@ -69,9 +69,8 @@ msgstr "Ich bin sehr traurig..."
 msgid "I'm sad"
 msgstr "Ich bin traurig"
 
-#, fuzzy
 msgid "Leave me alone ..."
-msgstr "Lass mich in Ruhe..."
+msgstr "Lass mich in ruhe ..."
 
 msgid "I'm mad at you!"
 msgstr "Ich bin sauer auf Dich!"
@@ -209,9 +208,8 @@ msgstr ""
 msgid "Kicked {num} stations\n"
 msgstr "{num} Stationen gekickt\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "{num} neue Freunde gefunden\n"
+msgstr ">999 neue Freunde gefunden\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

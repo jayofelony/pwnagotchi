@@ -69,9 +69,8 @@ msgstr "Много съм тъжен ..."
 msgid "I'm sad"
 msgstr "Тъжен съм"
 
-#, fuzzy
 msgid "Leave me alone ..."
-msgstr "Чувствам се толкова самотен ..."
+msgstr "Остави ме на мира ..."
 
 msgid "I'm mad at you!"
 msgstr ""
@@ -209,9 +208,9 @@ msgstr ""
 msgid "Kicked {num} stations\n"
 msgstr "Отхвърлих {num} станции\n"
 
-#, fuzzy
+#
 msgid "Made >999 new friends\n"
-msgstr "Направих {num} нови приятели\n"
+msgstr "Направих >999 нови приятели\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

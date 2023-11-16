@@ -3,7 +3,6 @@
 # This file is distributed under the same license as the pwnagotchi package.
 # FIRST AUTHOR czechball@users.noreply.github.com, 2020.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
@@ -209,9 +208,8 @@ msgstr ""
 msgid "Kicked {num} stations\n"
 msgstr "Vykopnuto {num} klientů\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Mám {num} nových kamarádů\n"
+msgstr "Mám >999 nových kamarádů\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

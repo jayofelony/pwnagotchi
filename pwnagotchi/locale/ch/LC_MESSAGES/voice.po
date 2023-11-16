@@ -212,7 +212,7 @@ msgstr "限制了{num}个猎物\n"
 
 #, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "交了{num}新朋友\n"
+msgstr "交了>999新朋友\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

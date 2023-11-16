@@ -70,7 +70,6 @@ msgstr "Είμαι πολύ λυπημένο ..."
 msgid "I'm sad"
 msgstr "Είμαι λυπημένο"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "Νιώθω μοναχός μου ..."
 
@@ -92,9 +91,9 @@ msgstr "Περνάω τέλεια!"
 msgid "My crime is that of curiosity ..."
 msgstr "Η περιέργεια είναιτο μόνο έγκλημά μου ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr "Γειά {name}!Χάρηκα για τη γνωριμία. {name}"
+msgstr "Γειά {name}!Χάρηκα για τη γνωριμία."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
@@ -104,9 +103,9 @@ msgstr ""
 msgid "Hey {name} how are you doing?"
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "Η μονάδα {name} είναι κοντά! {name}"
+msgstr "Η μονάδα {name} είναι κοντά!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
@@ -195,9 +194,9 @@ msgstr "Μπανάρω την {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Τέλεια δικέ μου, πήραμε {num} νέες χειραψίες!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr "Τέλεια δικέ μου, πήραμε {num} νέες χειραψίες!"
+msgstr "Τέλεια δικέ μου, πήραμε {count} νέες χειραψίες{plural}!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ουπς, κάτιπήγε λάθος ... Επανεκκινούμαι ..."

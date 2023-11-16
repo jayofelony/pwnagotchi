@@ -33,7 +33,7 @@ class NetPos(plugins.Plugin):
             self.API_URL = self.options['api_url']
         self.ready = True
         logging.info("net-pos plugin loaded.")
-        logging.debug(f"net-pos: use api_url: {self.API_URL}");
+        logging.debug(f"net-pos: use api_url: {self.API_URL}")
 
     def _append_saved(self, path):
         to_save = list()
@@ -115,7 +115,6 @@ class NetPos(plugins.Plugin):
                 json.dump(netpos, net_pos_file)
         except OSError as os_e:
             logging.error("NET-POS: %s", os_e)
-
 
     def _get_netpos(self, agent):
         aps = agent.get_access_points()

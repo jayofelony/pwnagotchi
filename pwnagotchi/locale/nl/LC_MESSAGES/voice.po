@@ -90,9 +90,9 @@ msgstr "Ik heb zoveel plezier!"
 msgid "My crime is that of curiosity ..."
 msgstr "Mijn misdrijf is mijn nieuwsgierigheid ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr "Hallo {name}! Leuk je te ontmoeten. {name}"
+msgstr "Hallo {name}! Leuk je te ontmoeten."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
@@ -102,9 +102,9 @@ msgstr "Hey {name}! Hoe gaatie?"
 msgid "Hey {name} how are you doing?"
 msgstr "Hey {name}, hoe gaat het met je?"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "Unit {name} is dichtbij! {name}"
+msgstr "Unit {name} is dichtbij!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
@@ -193,9 +193,9 @@ msgstr "Kickbanning {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Cool, we hebben {num} nieuwe handshake{plural}!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr "Cool, we hebben {num} nieuwe handshake{plural}!"
+msgstr "Cool, we hebben {count} nieuwe handshake{plural}!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oops, er ging iets fout ...Opnieuw opstarten ..."

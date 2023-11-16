@@ -3,7 +3,6 @@
 # This file is distributed under the same license as the pwnagotchi package.
 # Dennis Kjær Jensen <signout@signout.dk>, 2020
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
@@ -198,7 +197,6 @@ msgstr "Fedt, vi har fået {num} nye handshake{plural}!"
 msgid "You have {count} new message{plural}!"
 msgstr "Du har {count} nye beskeder"
 
-#, fuzzy
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ups, noget gik galt ... Genstarter."
 
@@ -210,9 +208,8 @@ msgstr ""
 msgid "Kicked {num} stations\n"
 msgstr "Sparkede {num} af\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Har fået {num} nye venner\n"
+msgstr "Har fået >999 nye venner\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
