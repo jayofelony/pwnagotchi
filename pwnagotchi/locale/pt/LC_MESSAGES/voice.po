@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:52+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: David Sopas <email@aleatorio.xyz>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -205,6 +205,10 @@ msgstr "Ups, algo correu mal ... A reiniciar ..."
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "A fazer uma sesta durante {secs}s ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

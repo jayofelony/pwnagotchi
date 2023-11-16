@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:51+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: 2020-08-25 23:06+0200\n"
 "Last-Translator: Sergio Ruiz <serginator@gmail.com>\n"
 "Language-Team: \n"
@@ -205,6 +205,10 @@ msgstr "Oops, algo salió mal ... Reiniciando ..."
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "Descansando durante {secs}s ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

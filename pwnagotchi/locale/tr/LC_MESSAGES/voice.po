@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:52+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Arda Barış Tonç <abtonc@icloud.com>\n"
 "Language-Team: \n"
@@ -202,6 +202,10 @@ msgstr "Haydaa, bir şeyler ters gitti ... Yeniden başlatılıyor ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr "{to}'ye veri yükleniyor ..."
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
 msgstr "{to}'ye veri yükleniyor ..."
 
 #, python-brace-format

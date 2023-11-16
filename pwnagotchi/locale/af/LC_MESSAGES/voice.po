@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.5.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-11 13:22+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: MatthewNunu https://github.com/MatthewNunu\n"
 "Language-Team: \n"
@@ -204,11 +204,14 @@ msgstr "Oops, iets het verkeerd gegaan ... Herlaai ..."
 msgid "Uploading data to {to} ..."
 msgstr "Laai data op na {to} ..."
 
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "Laai data op na {to} ..."
+
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "{num} stasies geskop\n"
 
-#,
 msgid "Made >999 new friends\n"
 msgstr "Meer as >999 nuwe vriende gemaak\n"
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:53+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: 2019-11-02 16:20+0200\n"
 "Last-Translator: damoklov <mishanya@protonmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -205,6 +205,10 @@ msgstr "Ой, щось пішло не так ... Перезавантажуюс
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "Дрімаю {secs}с ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

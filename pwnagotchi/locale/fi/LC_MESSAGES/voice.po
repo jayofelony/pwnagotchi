@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 23:26+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: 2023-02-11 16:25+0200\n"
 "Last-Translator: Speed Weed <121556603+spd-wd@users.noreply.github.com>\n"
 "Language-Team: pwnagotchi <121556603+spd-wd@users.noreply.github.com>\n"
@@ -203,6 +203,10 @@ msgstr "Hups, jokin meni vikaan... Käynnistetään uudelleen..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr "Lähetetään dataa kohteeseen {to}..."
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
 msgstr "Lähetetään dataa kohteeseen {to}..."
 
 #, python-brace-format

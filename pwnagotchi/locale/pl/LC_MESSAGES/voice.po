@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:52+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: 2019-10-21 10:55+0200\n"
 "Last-Translator: gkrs <457603+gkrs@users.noreply.github.com>\n"
 "Language-Team: PL <457603+gkrs@users.noreply.github.com>\n"
@@ -202,6 +202,10 @@ msgstr "Ups, coś poszło nie tak ... Restaruję ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr "Wysyłam dane do {to} ..."
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
 msgstr "Wysyłam dane do {to} ..."
 
 #, python-brace-format

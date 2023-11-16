@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pwnagotchi Belarusian translation v 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-13 23:26+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: <https://github.com/andreifinski>\n"
 "Language-Team: \n"
@@ -208,6 +208,10 @@ msgstr "Ой, нешта пайшло не так … Перазагружаюс
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "Драмлю {secs}с …"
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

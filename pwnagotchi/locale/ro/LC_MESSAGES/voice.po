@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:52+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: 2019-11-20 00:18+594\n"
 "Last-Translator: Ungureanu Radu-Andrei <radu.ungureanu@techie.com>\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
@@ -203,6 +203,10 @@ msgstr "OOps, ceva s-a întamplat... Îmi dau reboot...+"
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "Dorm pentru {secs}s..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

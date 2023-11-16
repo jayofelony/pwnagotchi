@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 07:52+0100\n"
+"POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: 2021-07-16 00:20+0100\n"
 "Last-Translator: dbukovac <37124354+dbukovac@users.noreply.github.com>\n"
 "Language-Team: HR <37124354+dbukovac@users.noreply.github.com>\n"
@@ -203,6 +203,10 @@ msgstr "Ups, nešto je krepalo ... Rebooting ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr "Šaljem podatke na {to} ..."
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
 msgstr "Šaljem podatke na {to} ..."
 
 #, python-brace-format
