@@ -235,7 +235,6 @@ msgstr ""
 "おぉ、\n"
 "{count}個メッセージがあるよ！"
 
-#, fuzzy
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr ""
 "何か間違った。\n"
@@ -245,9 +244,9 @@ msgstr ""
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "{secs}秒 寝ます。"
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

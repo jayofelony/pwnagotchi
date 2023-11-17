@@ -70,7 +70,6 @@ msgstr "Je suis très triste..."
 msgid "I'm sad"
 msgstr "Je suis triste"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "Lache moi..."
 
@@ -206,17 +205,16 @@ msgstr "Oups, quelque chose s'est mal passé... Redémarrage..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Je fais la sieste pendant {secs}s..."
+msgstr "Je fais la sieste pendant {name}..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "{num} stations kick\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "A fait {num} nouve(l/aux) ami(s)\n"
+msgstr "A fait >999 nouve(l/aux) ami(s)\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

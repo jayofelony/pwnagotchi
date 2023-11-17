@@ -204,17 +204,16 @@ msgstr "OOps, ceva s-a întamplat... Îmi dau reboot...+"
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Dorm pentru {secs}s..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Am dat afară {num} de stații\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Am făcut {num} prieteni noi \n"
+msgstr "Am făcut >999 prieteni noi \n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

@@ -204,9 +204,9 @@ msgstr "Ups, něco se pokazilo ... Restartuju ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Spím {secs} sekund ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR untech <edvbot@gmail.com>, 2019.
 #
-#, fuzzy
+
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
@@ -205,17 +205,16 @@ msgstr "Oi, noe gikk helt skakk ... Rebooter ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Sover i {secs}s ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Kicket {num} stasjoner\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Møtte {num} nye venner\n"
+msgstr "Møtte >999 nye venner\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

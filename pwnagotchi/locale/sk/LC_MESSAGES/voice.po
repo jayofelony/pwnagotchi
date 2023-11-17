@@ -70,7 +70,6 @@ msgstr "Som veľmi smutný ..."
 msgid "I'm sad"
 msgstr "Som smutný"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "Cítim sa tak sám ..."
 
@@ -206,17 +205,16 @@ msgstr "Ops, niečo sa pokazilo ... Reštartujem sa ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Zdriemnem si na {secs}s ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Kicknutá/ých {num} stanica/íc\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Získaní {num} noví kamaráti\n"
+msgstr "Získaní >999 noví kamaráti\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

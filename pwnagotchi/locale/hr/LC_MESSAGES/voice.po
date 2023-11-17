@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the pwnagotchi package.
 # FIRST AUTHOR dbukovac <37124354+dbukovac@users.noreply.github.com>, 2021.
 #
-#, fuzzy
+
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
@@ -205,17 +205,16 @@ msgstr "Ups, nešto je krepalo ... Rebooting ..."
 msgid "Uploading data to {to} ..."
 msgstr "Šaljem podatke na {to} ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Šaljem podatke na {to} ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Šutnuo {num} stanica\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Upoznao {num} novih prijatelja\n"
+msgstr "Upoznao >999 novih prijatelja\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

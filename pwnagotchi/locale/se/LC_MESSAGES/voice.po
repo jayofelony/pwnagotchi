@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
+
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -70,7 +70,6 @@ msgstr "Jag är jätteledsen ..."
 msgid "I'm sad"
 msgstr "Jag är ledsen"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "Jag är så ensam ..."
 
@@ -92,9 +91,9 @@ msgstr "Fan vad skoj jag har!"
 msgid "My crime is that of curiosity ..."
 msgstr "Mitt brott är att vara nyfiken ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr "Hejsan {name}! Trevligt att träffas {name}"
+msgstr "Hejsan {name}! Trevligt att träffas."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
@@ -104,9 +103,9 @@ msgstr ""
 msgid "Hey {name} how are you doing?"
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "Enheten {name} är nära! {name}"
+msgstr "Enheten {name} är nära!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
@@ -195,9 +194,9 @@ msgstr ""
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Lysande, vi har {num} ny handskakningar{plural}!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr "Lysande, vi har {num} ny handskakningar{plural}!"
+msgstr ""
 
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Hoppsan, någpt gick fel ... Startar om ..."
@@ -206,17 +205,16 @@ msgstr "Hoppsan, någpt gick fel ... Startar om ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Sover för {secs}s ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Sparkade {num} stationer\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Har {num} nya vänner\n"
+msgstr "Har >999 nya vänner\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

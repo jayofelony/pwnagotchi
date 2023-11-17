@@ -204,9 +204,9 @@ msgstr "Ups, noget gik galt ... Genstarter."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Sover i {secs} sekunder"
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <121556603+spd-wd@users.noreply.github.com>, 2023.
 #
-#, fuzzy
+
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
@@ -205,17 +205,16 @@ msgstr "Hups, jokin meni vikaan... Käynnistetään uudelleen..."
 msgid "Uploading data to {to} ..."
 msgstr "Lähetetään dataa kohteeseen {to}..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Lähetetään dataa kohteeseen {to}..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Potkittiin {num} asemaa\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Saatiin {num} uutta kaveria\n"
+msgstr "Saatiin >999 uutta kaveria\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

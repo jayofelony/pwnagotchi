@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 # David Sopas <email@aleatorio.xyz>, 2019.
 #
-#, fuzzy
+
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -70,7 +70,6 @@ msgstr "Estou muito triste ..."
 msgid "I'm sad"
 msgstr "Estou triste"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "Sinto-me tão só ..."
 
@@ -92,9 +91,9 @@ msgstr "Estou a divertir-me tanto!"
 msgid "My crime is that of curiosity ..."
 msgstr "O meu crime é ser curioso ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr "Olá {name}! Prazer em conhecer-te. {name}"
+msgstr "Olá {name}! Prazer em conhecer-te."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
@@ -104,9 +103,9 @@ msgstr ""
 msgid "Hey {name} how are you doing?"
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "A unidade {name} está perto! {name}"
+msgstr "A unidade {name} está perto!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
@@ -195,9 +194,9 @@ msgstr "A chutar {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Porreiro, temos {num} novo handshake{plural}!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr "Porreiro, temos {num} novo handshake{plural}!"
+msgstr ""
 
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ups, algo correu mal ... A reiniciar ..."
@@ -206,17 +205,16 @@ msgstr "Ups, algo correu mal ... A reiniciar ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "A fazer uma sesta durante {secs}s ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Chutei {num} estações\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Fiz {num} novos amigos\n"
+msgstr "Fiz >999 novos amigos\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

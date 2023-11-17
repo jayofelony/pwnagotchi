@@ -204,9 +204,9 @@ msgstr "Ops, da ist was schief gelaufen... Starte neu..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Schlafe für {secs}s..."
+msgstr "Schlafe für {name} ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

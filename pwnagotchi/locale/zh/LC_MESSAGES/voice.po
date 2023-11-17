@@ -70,7 +70,6 @@ msgstr "我很伤心..."
 msgid "I'm sad"
 msgstr "我伤心了"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "我可能是天煞孤星..."
 
@@ -206,15 +205,14 @@ msgstr "行动,额等等有点小问题... 重启ing ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "小憩{secs}s ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "限制了{num}个猎物\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
 msgstr "交了>999新朋友\n"
 

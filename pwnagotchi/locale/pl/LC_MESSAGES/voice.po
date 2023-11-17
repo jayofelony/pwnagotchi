@@ -204,17 +204,16 @@ msgstr "Ups, coś poszło nie tak ... Restaruję ..."
 msgid "Uploading data to {to} ..."
 msgstr "Wysyłam dane do {to} ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Wysyłam dane do {to} ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Wyrzuciłem {num} stacji\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Zdobyłem {num} nowych przyjaciół\n"
+msgstr "Zdobyłem >999 nowych przyjaciół\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

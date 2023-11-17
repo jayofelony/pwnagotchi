@@ -96,7 +96,7 @@ msgstr "Мне так весело!"
 msgid "My crime is that of curiosity ..."
 msgstr "Моё преступление - это любопытство…"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Hello {name}! Nice to meet you."
 msgstr "Привет, {name}! Рад встрече с тобой!"
 
@@ -199,9 +199,9 @@ msgstr "Кикаю {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Круто, мы получили {num} новое рукопожатие!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr "Круто, мы получили {num} новое рукопожатие!"
+msgstr ""
 
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ой, что-то пошло не так … Перезагружаюсь …"
@@ -210,17 +210,16 @@ msgstr "Ой, что-то пошло не так … Перезагружаюс�
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Дремлет {secs}с …"
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Кикнул {num} станцию\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Заимел {num} новых друзей\n"
+msgstr "Заимел >999 новых друзей\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

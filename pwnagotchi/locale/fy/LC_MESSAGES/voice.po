@@ -205,9 +205,9 @@ msgstr "Oeps, der gie wat mis ... Op 'e nij opstarte ..."
 msgid "Uploading data to {to} ..."
 msgstr "Upload gegevens nei {to} ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Upload gegevens nei {to} ..."
+msgstr "Download gegevens fan {name} ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

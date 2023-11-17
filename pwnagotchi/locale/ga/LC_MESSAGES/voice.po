@@ -70,7 +70,6 @@ msgstr "Ta brón an domhain orm ..."
 msgid "I'm sad"
 msgstr "Tá brón orm"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "Tá uaigneas an domhain orm ..."
 
@@ -92,9 +91,9 @@ msgstr "Tá craic iontach agam!"
 msgid "My crime is that of curiosity ..."
 msgstr "Ní haon pheaca é bheith fiosrach ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr "Dia Duit {name}! Is deas bualadh leat. {name}"
+msgstr "Dia Duit {name}! Is deas bualadh leat."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
@@ -104,9 +103,9 @@ msgstr ""
 msgid "Hey {name} how are you doing?"
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "Aonad {name} in aice láimhe! {name}"
+msgstr "Aonad {name} in aice láimhe!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
@@ -195,9 +194,9 @@ msgstr "Chiceáil mé agus cosc mé ar {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "Go hiontach, fuaireamar {num} handshake{plural}!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr "Go hiontach, fuaireamar {num} handshake{plural}!"
+msgstr ""
 
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Hoips...Tháinig ainghléas éigin..."
@@ -206,17 +205,16 @@ msgstr "Hoips...Tháinig ainghléas éigin..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Néal a chodladh ar {secs}s ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "{num} stáisiún kick\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Rinne mé {num} cairde nua\n"
+msgstr "Rinne mé >999 cairde nua\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

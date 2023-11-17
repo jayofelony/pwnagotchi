@@ -204,17 +204,16 @@ msgstr "Haydaa, bir şeyler ters gitti ... Yeniden başlatılıyor ..."
 msgid "Uploading data to {to} ..."
 msgstr "{to}'ye veri yükleniyor ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "{to}'ye veri yükleniyor ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "{num} İstasyon atıldı\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "{num} Yeni arkadaş edindim\n"
+msgstr ">999 Yeni arkadaş edindim\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

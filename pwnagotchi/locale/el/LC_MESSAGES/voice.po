@@ -205,17 +205,16 @@ msgstr "Ουπς, κάτιπήγε λάθος ... Επανεκκινούμαι .
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Ξεκουράζομαι για {secs}s ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Έριξα {num} σταθμούς\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Έκανα {num} νέους φίλους\n"
+msgstr "Έκανα >999 νέους φίλους\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

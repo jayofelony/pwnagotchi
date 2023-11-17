@@ -204,19 +204,16 @@ msgstr "Ops, valami rosszul sikerült ... Újraindítás ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "{secs} másodpercig szundikálok ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Kirúgva {num} állomás\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
 msgstr ""
-"{num} új barátot\n"
-"találtam\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"

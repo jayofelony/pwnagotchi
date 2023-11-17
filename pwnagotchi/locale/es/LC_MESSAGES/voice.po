@@ -70,7 +70,6 @@ msgstr "Estoy muy triste ..."
 msgid "I'm sad"
 msgstr "Estoy triste"
 
-#, fuzzy
 msgid "Leave me alone ..."
 msgstr "Me siento tan solo ..."
 
@@ -92,9 +91,9 @@ msgstr "¡Me estoy divirtiendo mucho!"
 msgid "My crime is that of curiosity ..."
 msgstr "Mi crimen es la curiosidad ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr "¡Hola {name}! Encantado de conocerte. {name}"
+msgstr "¡Hola {name}! Encantado de conocerte."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
@@ -104,9 +103,9 @@ msgstr ""
 msgid "Hey {name} how are you doing?"
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "¡La unidad {name} está cerca! {name}"
+msgstr "¡La unidad {name} está cerca!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
@@ -195,9 +194,9 @@ msgstr "¡Expulsando y baneando a {mac}!"
 msgid "Cool, we got {num} new handshake{plural}!"
 msgstr "¡Genial, obtuvimos {num} nuevo{plural} handshake{plural}!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr "¡Genial, obtuvimos {num} nuevo{plural} handshake{plural}!"
+msgstr "¡Genial, obtuvimos {count} nuevo{plural} handshake{plural}!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oops, algo salió mal ... Reiniciando ..."
@@ -206,17 +205,16 @@ msgstr "Oops, algo salió mal ... Reiniciando ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Descansando durante {secs}s ..."
+msgstr "Descansando durante {name} ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Expulsamos {num} estaciones\n"
 
-#, fuzzy
 msgid "Made >999 new friends\n"
-msgstr "Hice {num} nuevos amigos\n"
+msgstr "Hice >999 nuevos amigos\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
