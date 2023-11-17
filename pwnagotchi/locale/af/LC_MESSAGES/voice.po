@@ -204,9 +204,9 @@ msgstr "Oops, iets het verkeerd gegaan ... Herlaai ..."
 msgid "Uploading data to {to} ..."
 msgstr "Laai data op na {to} ..."
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Laai data op na {to} ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"

@@ -204,9 +204,9 @@ msgstr "Упс, нещо се обърка ... Рестартиране ..."
 msgid "Uploading data to {to} ..."
 msgstr ""
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr "Заспивам за {secs} секунди ..."
+msgstr ""
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
