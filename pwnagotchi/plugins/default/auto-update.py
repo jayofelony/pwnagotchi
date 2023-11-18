@@ -183,14 +183,14 @@ class AutoUpdate(plugins.Plugin):
                 to_install = []
                 to_check = [
                     ('jayofelony/bettercap', parse_version('bettercap -version'), True, 'bettercap'),
-                    ('jayofelony/pwngrid', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
-                    ('jayofelony/pwnagotchi', pwnagotchi.__version__, False, 'pwnagotchi')
+                    ('jayofelony/opwngrid', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
+                    ('jayofelony/pwnagotchi-torch', pwnagotchi.__version__, False, 'pwnagotchi')
                 ]
 
                 for repo, local_version, is_native, svc_name in to_check:
                     info = check(local_version, repo, is_native)
                     if info['url'] is not None:
-                        # Turn of bettercap wifi recon while updating
+                        # Turn off bettercap wifi recon while updating
                         from pwnagotchi.bettercap import Client
                         agent = Client('localhost', port=8081, username="pwnagotchi", password="pwnagotchi")
                         agent.run("wifi.recon off")
