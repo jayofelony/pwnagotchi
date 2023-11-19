@@ -130,6 +130,7 @@ def install(display, update):
         logging.info("[update] stopping %s ..." % update['service'])
         os.system("service %s stop" % update['service'])
         os.system("mv %s %s" % (source_path, dest_path))
+        os.system("chmod +x %s/*" % dest_path)
         logging.info("[update] restarting %s ..." % update['service'])
         os.system("service %s start" % update['service'])
     else:
@@ -205,7 +206,6 @@ class AutoUpdate(plugins.Plugin):
                         logging.warning(
                             "update for %s available (local version is '%s'): %s" % (
                                 repo, info['current'], info['url']))
-                        logging.info("[update] turned off wifi recon ...")
                         info['service'] = svc_name
                         to_install.append(info)
 
