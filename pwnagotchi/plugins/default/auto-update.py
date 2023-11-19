@@ -112,11 +112,11 @@ def install(display, update):
 
     path = make_path_for(name)
 
-    source_path = os.path.join(path, name)
-    #if not verify(name, path, source_path, display, update):
-        #return False
-
     download_and_unzip(name, path, display, update)
+
+    source_path = os.path.join(path, name)
+    if not verify(name, path, source_path, display, update):
+        return False
 
     logging.info("[update] installing %s ..." % name)
     display.update(force=True, new_data={'status': 'Installing %s %s ...' % (name, update['available'])})
