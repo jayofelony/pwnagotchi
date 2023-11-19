@@ -84,7 +84,7 @@
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       opwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
-        url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.4/opwngrid-1.10.4-armhf.zip"
+        url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.5/opwngrid-1.10.5-armhf.zip"
       torch:
         wheel: "torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
@@ -584,6 +584,21 @@
     - name: clean apt cache
       apt:
         autoclean: true
+
+    - name: remove golang build libraries
+      file:
+        state: absent
+        path: /root/go
+
+    - name: remove pre-collected packages zip
+      file:
+        path: /root/go_pkgs.tgz
+        state: absent
+
+    - name: remove golang
+      file:
+        state: absent
+        path: /usr/local/go
 
     - name: remove /root/.cache (pip cache)
       file:

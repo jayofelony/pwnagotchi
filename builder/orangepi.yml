@@ -457,6 +457,21 @@
         autoclean: true
       when: removed.changed
 
+    - name: remove pre-collected packages zip
+      file:
+        path: /root/go_pkgs.tgz
+        state: absent
+
+    - name: remove /root/go folder
+      file:
+        state: absent
+        path: /root/go
+
+    - name: remove /usr/local/go folder
+      file:
+        state: absent
+        path: /usr/local/go
+
     - name: remove pip cache
       file:
         state: absent
