@@ -201,8 +201,6 @@ class AutoUpdate(plugins.Plugin):
                 for repo, local_version, is_native, svc_name in to_check:
                     info = check(local_version, repo, is_native)
                     if info['url'] is not None:
-                        # Turn off bettercap wifi recon while updating
-                        from pwnagotchi.bettercap import Client
 
                         logging.warning(
                             "update for %s available (local version is '%s'): %s" % (
