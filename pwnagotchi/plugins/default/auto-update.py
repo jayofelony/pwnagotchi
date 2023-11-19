@@ -204,7 +204,6 @@ class AutoUpdate(plugins.Plugin):
                         # Turn off bettercap wifi recon while updating
                         from pwnagotchi.bettercap import Client
                         agent = Client('localhost', port=8081, username="pwnagotchi", password="pwnagotchi")
-                        agent.run("wifi.recon off")
 
                         logging.warning(
                             "update for %s available (local version is '%s'): %s" % (
