@@ -203,7 +203,6 @@ class AutoUpdate(plugins.Plugin):
                     if info['url'] is not None:
                         # Turn off bettercap wifi recon while updating
                         from pwnagotchi.bettercap import Client
-                        agent = Client('localhost', port=8081, username="pwnagotchi", password="pwnagotchi")
 
                         logging.warning(
                             "update for %s available (local version is '%s'): %s" % (
