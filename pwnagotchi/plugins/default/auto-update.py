@@ -28,7 +28,7 @@ def check(version, repo, native=True):
     latest = resp.json()
     info['available'] = latest_ver = latest['tag_name'].replace('v', '')
     is_arm = info['arch'].startswith('arm')
-    is_arm64 = info['arch'].startwith('aarch')
+    is_arm64 = info['arch'].startswith('aarch')
 
     local = version_to_tuple(info['current'])
     remote = version_to_tuple(latest_ver)
