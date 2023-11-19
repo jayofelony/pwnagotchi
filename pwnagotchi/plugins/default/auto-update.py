@@ -129,12 +129,10 @@ def install(display, update):
 
         logging.info("[update] stopping %s ..." % update['service'])
         os.system("service %s stop" % update['service'])
-        os.system("service pwnagotchi stop")
         os.system("mv %s %s" % (source_path, dest_path))
-        os.system("chmod +x %s/*" % dest_path)
+        os.system("chmod +x /usr/local/bin/%s" % name)
         logging.info("[update] restarting %s ..." % update['service'])
         os.system("service %s start" % update['service'])
-        os.system("service pwnagotchi start")
     else:
         if not os.path.exists(source_path):
             source_path = "%s-%s" % (source_path, update['available'])
