@@ -113,8 +113,8 @@ def install(display, update):
     path = make_path_for(name)
 
     source_path = os.path.join(path, name)
-    if not verify(name, path, source_path, display, update):
-        return False
+    #if not verify(name, path, source_path, display, update):
+        #return False
 
     download_and_unzip(name, path, display, update)
 
@@ -128,7 +128,7 @@ def install(display, update):
             return False
 
         logging.info("[update] stopping %s ..." % update['service'])
-        os.system("service %s stop" % update['service'])
+        os.system("service" % update['service'])
         os.system("mv %s %s" % (source_path, dest_path))
         os.system("chmod +x %s/*" % dest_path)
         logging.info("[update] restarting %s ..." % update['service'])
