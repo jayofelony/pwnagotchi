@@ -70,8 +70,10 @@ def update_data(last_session):
     enabled = [name for name, options in pwnagotchi.config['main']['plugins'].items() if
                'enabled' in options and options['enabled']]
     language = pwnagotchi.config['main']['lang']
+    ai = pwnagotchi.config['ai']['enabled']
 
     data = {
+        'ai': ai,
         'session': {
             'duration': last_session.duration,
             'epochs': last_session.epochs,
