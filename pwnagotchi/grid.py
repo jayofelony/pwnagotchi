@@ -89,7 +89,9 @@ def update_data(last_session):
         'version': pwnagotchi.__version__,
         'build': "Pwnagotchi-Torch by Jayofelony",
         'plugins': enabled,
-        'language': language
+        'language': language,
+        'bettercap': subprocess.getoutput("bettercap -version"),
+        'opwngrid': subprocess.getoutput("pwngrid -version")
     }
 
     logging.debug("updating grid data: %s" % data)
