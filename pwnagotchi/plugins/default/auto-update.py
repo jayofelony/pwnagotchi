@@ -7,6 +7,7 @@ import platform
 import shutil
 import glob
 from threading import Lock
+import time
 
 import pwnagotchi
 import pwnagotchi.plugins as plugins
@@ -227,6 +228,7 @@ class AutoUpdate(plugins.Plugin):
 
                 if num_installed > 0:
                     display.update(force=True, new_data={'status': 'Rebooting ...'})
+                    time.sleep(3)
                     pwnagotchi.reboot()
 
             except Exception as e:
