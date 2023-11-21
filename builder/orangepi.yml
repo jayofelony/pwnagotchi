@@ -49,8 +49,8 @@
         url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       opwngrid:
-        source: "https://github.com/jayofelony/opwngrid.git"
-        url: "https://github.com/rai68/opwngrid/releases/download/publish/pwngrid_linux_aarch64_v1.10.3-1.zip"
+        source: "https://github.com/jayofelony/pwngrid.git"
+        url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.5/pwngrid-1.10.5-aarch64.zip"
       apt:
         downgrade:
           - libpcap-dev_1.9.1-4_arm64.deb

@@ -84,7 +84,7 @@
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       opwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
-        url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.5/opwngrid-1.10.5-armhf.zip"
+        url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.5/pwngrid-1.10.5-armhf.zip"
       torch:
         wheel: "torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/v1.0.0/torch-2.1.0a0+gitunknown-cp39-cp39-linux_armv6l.whl"
