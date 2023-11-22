@@ -1,26 +1,16 @@
 # Pwnagotchi-Torch
 <a href="https://github.com/jayofelony/pwnagotchi/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/jayofelony/pwnagotchi.svg"></a><br/>
-**This fork of [Pwnagotchi](https://www.pwnagotchi.ai) has been overhauled to work solely on 64-bit Raspberry Pi's, it uses PyTorch as its AI.**
+**This fork of [Pwnagotchi](https://www.pwnagotchi.ai) now works on **ALL** Raspberry Pi's that have built-in Wi-Fi.**
 
 **Use RPi imager to flash, if you want you can set a custom user/pass to ssh in.**
 
-Default SSH credentials are pi/raspberry
+Default SSH credentials are pi/raspberry and for Orange Pi pi/orange
 
-# FAQ:
-- Is the Raspberry Pi Zero W 2 working perfectly with this image?
-
-  No, sadly not. It will reboot and restart Wi-Fi as often as needed by fix_services plugin. So don't freak out by that. I hope it will be sorted in the future.
-- Will it go blind often?
-
-  Yes! But I have tried to make it automatically fix **most** errors that may occur.
-- Can you help me install an external antenna?
-
-  Nope I will not help with these 'issues'. Read the manual/readme for your specific device, if that doesn't help -> **[GOOGLE](https://www.google.com)**
-
-- If you want to use the gdrivesync plugin >> [README](README-google.md)
-# Patreon: 
+# Donations: 
 
 [Pwnagotchi-Torch](https://www.patreon.com/pwnagotchi_torch)
+
+[GH Sponsor](https://github.com/sponsors/jayofelony)
 
 ---
 

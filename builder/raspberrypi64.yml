@@ -370,12 +370,12 @@
           export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
       when: golang.changed
 
-    - name: download opwngrid 1.10.4
+    - name: download opwngrid
       git:
         repo: "{{ packages.opwngrid.source }}"
         dest: /usr/local/src/opwngrid
 
-    - name: install opwngrid 1.10.4
+    - name: install opwngrid
       shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
       args:
         executable: /bin/bash

@@ -99,7 +99,7 @@ def do_auto_mode(agent):
 if __name__ == '__main__':
     def add_parsers(parser):
         """
-        Adds the plugins and google subcommands to a given argparse.ArgumentParser
+        Adds the plugins and google subcommands
         """
         subparsers = parser.add_subparsers()
 

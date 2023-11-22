@@ -398,7 +398,7 @@
           export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
       when: golang.changed
 
-    - name: download opwngrid 1.10.4
+    - name: download opwngrid
       unarchive:
         remote_src: yes
         src: "{{ packages.opwngrid.url }}"
