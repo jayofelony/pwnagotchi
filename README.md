@@ -2,6 +2,8 @@
 <a href="https://github.com/jayofelony/pwnagotchi/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/jayofelony/pwnagotchi.svg"></a><br/>
 **This fork of [Pwnagotchi](https://www.pwnagotchi.ai) now works on **ALL** Raspberry Pi's that have built-in Wi-Fi.**
 
+Download last image files [here](https://github.com/jayofelony/pwnagotchi-torch/releases/tag/v2.5.4), and let it auto-update from here on out.
+
 **Use RPi imager to flash, if you want you can set a custom user/pass to ssh in.**
 
 Default SSH credentials are pi/raspberry and for Orange Pi pi/orange
