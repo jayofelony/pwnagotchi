@@ -131,7 +131,7 @@ def install(display, update):
         logging.info("[update] stopping %s ..." % update['service'])
         os.system("service %s stop" % update['service'])
         os.system("mv %s %s" % (source_path, dest_path))
-        os.system("chmod +x /usr/local/bin/%s" % name)
+        os.chmod("/usr/local/bin/%s" % name, 0o755)
         logging.info("[update] restarting %s ..." % update['service'])
         os.system("service %s start" % update['service'])
     else:
