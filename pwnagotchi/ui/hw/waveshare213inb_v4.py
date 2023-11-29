@@ -4,6 +4,7 @@ import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
 from PIL import Image
 
+
 class Waveshare213bV4(DisplayImpl):
     def __init__(self, config):
         super(Waveshare213bV4, self).__init__(config, 'waveshare213inb_v4')

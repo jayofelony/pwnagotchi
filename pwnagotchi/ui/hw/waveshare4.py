@@ -2,7 +2,7 @@ import logging
 
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
-from PIL import Image
+
 
 class WaveshareV4(DisplayImpl):
     def __init__(self, config):
@@ -31,8 +31,6 @@ class WaveshareV4(DisplayImpl):
         }
         return self._layout
 
-
-
     def initialize(self):
         logging.info("initializing waveshare v4 display")
         from pwnagotchi.ui.hw.libs.waveshare.v4.epd2in13_V4 import EPD
@@ -40,11 +38,9 @@ class WaveshareV4(DisplayImpl):
         self._display.init()
         self._display.Clear(0xFF)
 
-
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
         self._display.displayPartial(buf)
-
 
     def clear(self):
         self._display.Clear(0xFF)

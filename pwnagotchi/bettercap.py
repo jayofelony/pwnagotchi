@@ -9,7 +9,7 @@ from time import sleep
 
 import pwnagotchi
 
-requests.adapters.DEFAULT_RETRIES = 5 # increase retries number
+requests.adapters.DEFAULT_RETRIES = 5  # increase retries number
 
 ping_timeout = 180
 ping_interval = 15

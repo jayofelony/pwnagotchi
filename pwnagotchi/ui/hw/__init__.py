@@ -56,7 +56,7 @@ def display_for(config):
         return Waveshare27inch(config)
 
     elif config['ui']['display']['type'] == 'waveshare27inchv2':
-        return Waveshare27inchv2(config)
+        return Waveshare27inchV2(config)
 
     elif config['ui']['display']['type'] == 'waveshare29inch':
         return Waveshare29inch(config)
