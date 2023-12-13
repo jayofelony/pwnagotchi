@@ -423,10 +423,13 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
         return self._history[who] < self._config['personality']['max_interactions']
 
-    def associate(self, ap, throttle=0):
+    def associate(self, ap, throttle=-1):
         if self.is_stale():
             logging.debug("recon is stale, skipping assoc(%s)", ap['mac'])
             return
+
+        if throttle == -1 and "throttle_a" in self._config['personality']:
+            throttle = self._config['personality']['throttle_a']
 
         if self._config['personality']['associate'] and self._should_interact(ap['mac']):
             self._view.on_assoc(ap)
@@ -444,10 +447,13 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                 time.sleep(throttle)
             self._view.on_normal()
 
-    def deauth(self, ap, sta, throttle=0):
+    def deauth(self, ap, sta, throttle=-1):
         if self.is_stale():
             logging.debug("recon is stale, skipping deauth(%s)", sta['mac'])
             return
+
+        if throttle == -1 and "throttle_d" in self._config['personality']:
+            throttle = self._config['personality']['throttle_d']
 
         if self._config['personality']['deauth'] and self._should_interact(sta['mac']):
             self._view.on_deauth(sta)
