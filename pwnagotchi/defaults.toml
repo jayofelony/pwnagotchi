@@ -157,6 +157,8 @@ personality.excited_num_epochs = 10
 personality.bored_num_epochs = 15
 personality.sad_num_epochs = 25
 personality.bond_encounters_factor = 20000
+personality.throttle_a = 0.4
+personality.throttle_d = 0.9
 
 ui.fps = 0.0
 ui.font.name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
