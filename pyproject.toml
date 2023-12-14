@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.wheel"
+
+[project]
+name = "pwnagotchi"
+dynamic = ["version"]
+dependencies = [
+    "OPi.GPIO; platform_release==\"6.1.31-sun50iw9\"",
+    "Pillow",
+    "PyYAML",
+    "RPi.GPIO; platform_release!=\"6.1.31-sun50iw9\"",
+    "file-read-backwards",
+    "flask",
+    "flask-cors",
+    "flask-wtf",
+    "gast",
+    "gym",
+    "inky",
+    "pycryptodome",
+    "pydrive2",
+    "python-dateutil",
+    "requests",
+    "rpi_hardware_pwm; platform_release!=\"6.1.31-sun50iw9\"",
+    "scapy",
+    "shimmy; platform_machine!=\"armv6l\"",
+    "smbus2",
+    "spidev",
+    "stable_baselines3; platform_machine!=\"armv6l\"",
+    "stable_baselines3==1.8.0; platform_machine==\"armv6l\"",
+    "toml",
+    "torch==2.0.1",
+    "torchvision==0.15.2",
+    "tweepy",
+    "websockets"
+]
+requires-python = ">=3.9"
+authors = [
+  {name = "Evilsocket", email = "evilsocket@gmail.com"},
+  {name = "Jayofelony", email = "oudshoorn.jeroen@gmail.com"}
+]
+maintainers = [
+  {name = "Jayofelony", email = "oudshoorn.jeroen@gmail.com"}
+]
+description = "(⌐■_■) - Deep Reinforcement Learning instrumenting bettercap for WiFI pwning."
+readme = "README.md"
+license = {file = "LICENSE.md"}
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'Development Status :: 5 - Production/Stable',
+    'License :: OSI Approved :: GNU General Public License (GPL)',
+    'Environment :: Console',
+]
+
+[project.urls]
+Homepage = "https://pwnagotchi.ai/"
+Documentation = "https://pwnagotchi.ai/"
+Repository = "https://github.com/jayofelony/pwnagotchi-torch.git"
+"Bug Tracker" = "https://github.com/jayofelony/pwnagotchi-torch.git/issues"
+
+[project.scripts]
+pwnagotchi_cli = "bin.pwnagotchi"

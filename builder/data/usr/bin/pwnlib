@@ -82,7 +82,7 @@ is_auto_mode() {
 
   # if usb0 is up, we're in MANU
   if is_interface_up usb0; then
-    return 0
+    return 1
   fi
 
   # if eth0 is up (for other boards), we're in MANU
@@ -108,7 +108,7 @@ is_auto_mode_no_delete() {
 
   # if usb0 is up, we're in MANU
   if is_interface_up usb0; then
-    return 0
+    return 1
   fi
 
   # if eth0 is up (for other boards), we're in MANU

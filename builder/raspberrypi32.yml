@@ -6,7 +6,7 @@
   vars:
     boards:
       - {
-        kernel: "6.1.21+",
+        kernel: "6.1.0-rpi7-rpi-v6",
         name: "PiZeroW",
         firmware: "brcmfmac43430-sdio.bin",
         patch: "bcm43430a1/7_45_41_46",
@@ -14,7 +14,7 @@
         arch_flags: "-arch armv6l"
         }
       - {
-        kernel: "6.1.21-v7+",
+        kernel: "6.1.0-rpi7-rpi-v7",
         name: "PiZero2W",
         firmware: "brcmfmac43436-sdio.bin",
         patch: "bcm43436b0/9_88_4_65",
@@ -22,7 +22,7 @@
         arch_flags: "-arch armv7l"
         }
       - {
-        kernel: "6.1.21-v7l+",
+        kernel: "6.1.0-rpi7-rpi-v7",
         name: "Pi4b_32",
         firmware: "brcmfmac43455-sdio.bin",
         patch: "bcm43455c0/7_45_206",
@@ -80,7 +80,7 @@
         source: "https://github.com/jayofelony/caplets.git"
       bettercap:
         source: "https://github.com/jayofelony/bettercap.git"
-        url: "https://github.com/jayofelony/bettercap/releases/download/2.32.1/bettercap-2.32.1-armhf.zip"
+        url: "https://github.com/jayofelony/bettercap/releases/download/2.32.2/bettercap-2.32.2-armhf.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       opwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
@@ -98,11 +98,6 @@
           - libpcap0.8-dev_1.9.1-4_armhf.deb
           - libpcap0.8_1.9.1-4_armhf.deb
         hold:
-          - firmware-atheros
-          - firmware-brcm80211
-          - firmware-libertas
-          - firmware-misc-nonfree
-          - firmware-realtek
           - libpcap-dev
           - libpcap0.8
           - libpcap0.8-dev
@@ -292,7 +287,10 @@
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
     ###############################################################
-
+    - name: clone nexmon repository
+      git:
+        repo: https://github.com/DrSchottky/nexmon.git
+        dest: /usr/local/src/nexmon
     # Install nexmon for all boards
     - name: build and install nexmon as needed
       include_tasks: nexmon.yml
@@ -355,7 +353,7 @@
           - "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
           - "{{ packages.torch.url }}"
           - "{{ packages.torchvision.url }}"
-        extra_args: "--no-cache-dir"
+        extra_args: "--no-cache-dir --break-system-packages"
       environment:
         QEMU_CPU: arm1176
         QEMU_UNAME: "{{ kernel.full }}"
