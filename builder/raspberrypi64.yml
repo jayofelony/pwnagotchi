@@ -341,6 +341,11 @@
         repo: https://github.com/jayofelony/pwnagotchi-torch.git
         dest: /usr/local/src/pwnagotchi
 
+    - name: copy pwnagotchi to python3.11
+      copy:
+        src: /usr/local/src/pwnagotchi/pwnagotchi
+        dest: /usr/local/lib/python3.11/dist-packages/
+
     - name: build pwnagotchi wheel
       command: "pip install . --break-system-packages"
       args:
