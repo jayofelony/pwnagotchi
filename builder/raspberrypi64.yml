@@ -338,21 +338,13 @@
 
     - name: clone pwnagotchi repository
       git:
-        repo: https://github.com/jayofelony/pwnagotchi.git
+        repo: https://github.com/jayofelony/pwnagotchi-torch.git
         dest: /usr/local/src/pwnagotchi
-      register: pwnagotchigit
 
     - name: build pwnagotchi wheel
-      command: "python3 setup.py sdist bdist_wheel"
+      command: "pip install . --break-system-packages"
       args:
         chdir: /usr/local/src/pwnagotchi
-      when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
-
-    - name: install pwnagotchi wheel and dependencies
-      pip:
-        name: "{{ lookup('fileglob', '/usr/local/src/pwnagotchi/dist/pwnagotchi*.whl') }}"
-        extra_args: "--no-cache-dir --break-system-packages"
-      when: (pwnagotchigit.changed) or (pip_packages['pwnagotchi'] is undefined) or (pip_packages['pwnagotchi'] != pwnagotchi_version)
 
     - name: remove pwnagotchi folder
       file:
