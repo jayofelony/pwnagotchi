@@ -341,11 +341,6 @@
         repo: https://github.com/jayofelony/pwnagotchi-torch.git
         dest: /usr/local/src/pwnagotchi
 
-    - name: copy pwnagotchi to python3.11
-      copy:
-        src: /usr/local/src/pwnagotchi/pwnagotchi
-        dest: /usr/local/lib/python3.11/dist-packages/
-
     - name: build pwnagotchi wheel
       command: "pip install . --break-system-packages"
       args:
@@ -363,7 +358,7 @@
 
     - name: Install go-1.21
       unarchive:
-        src: https://go.dev/dl/go1.21.4.linux-arm64.tar.gz
+        src: https://go.dev/dl/go1.21.5.linux-arm64.tar.gz
         dest: /usr/local
         remote_src: yes
       register: golang
