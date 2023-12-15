@@ -116,8 +116,6 @@
           - curl
           - dkms
           - dphys-swapfile
-          - espeak-ng
-          - evtest
           - fbi
           - flex
           - fonts-dejavu
@@ -129,14 +127,14 @@
           - gcc-arm-none-eabi
           - git
           - libatlas-base-dev
-          - libavcodec58
-          - libavformat58
+          - libavcodec59
+          - libavformat59
           - libblas-dev
           - libbluetooth-dev
           - libbz2-dev
           - libc-ares-dev
           - libc6-dev
-          - libcpuinfo-dev
+          - libcap-dev
           - libdbus-1-dev
           - libdbus-glib-1-dev
           - libeigen3-dev
@@ -157,18 +155,15 @@
           - libopenmpi-dev
           - libopenmpi3
           - libpcap-dev
-          - libprotobuf-dev
           - libraspberrypi-bin
           - libraspberrypi-dev
           - libraspberrypi-doc
           - libraspberrypi0
-          - libsleef-dev
           - libsqlite3-dev
           - libssl-dev
           - libswscale5
-          - libtiff5
+          - libtiff6
           - libtool
-          - libts-bin
           - libusb-1.0-0-dev
           - lsof
           - make
