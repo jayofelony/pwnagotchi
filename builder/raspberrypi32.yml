@@ -22,18 +22,18 @@
         arch_flags: "-arch armv7l"
         }
       - {
-        kernel: "6.1.0-rpi7-rpi-v7",
+        kernel: "6.1.0-rpi7-rpi-v8",
         name: "Pi4b_32",
         firmware: "brcmfmac43455-sdio.bin",
         patch: "bcm43455c0/7_45_206",
         cpu: any, #cortex-a72
-        arch_flags: "-arch armv7l"
+        arch_flags: "-arch armv8"
         }
     kernel:
       min: "6.1"
-      full: "6.1.21+"
-      full_2w: "6.1.21-v7+"
-      full_4b: "6.1.21-v7l+"
+      full: "6.1.0-rpi7-rpi-v6"
+      full_2w: "6.1.0-rpi7-rpi-v7"
+      full_4b: "6.1.0-rpi7-rpi-v7"
       arch: "v6l"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
@@ -353,17 +353,11 @@
           - "{{ packages.torch.url }}"
           - "{{ packages.torchvision.url }}"
         extra_args: "--no-cache-dir --break-system-packages"
-      environment:
-        QEMU_CPU: arm1176
-        QEMU_UNAME: "{{ kernel.full }}"
 
     - name: build pwnagotchi wheel
       command: "pip install . --no-cache-dir --break-system-packages"
       args:
         chdir: /usr/local/src/pwnagotchi
-      environment:
-        QEMU_CPU: arm1176
-        QEMU_UNAME: "{{ kernel.full }}"
 
     - name: create /usr/local/share/pwnagotchi/ folder
       file:
