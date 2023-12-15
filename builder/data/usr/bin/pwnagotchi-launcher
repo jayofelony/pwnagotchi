@@ -9,9 +9,6 @@ if is_crypted_mode; then
   done
 fi
 
-# blink 10 times to signal ready state
-blink_led 10 &
-
 if is_auto_mode; then
   /usr/local/bin/pwnagotchi
 else

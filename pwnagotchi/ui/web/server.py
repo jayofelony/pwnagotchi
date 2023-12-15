@@ -10,7 +10,9 @@ from flask_wtf.csrf import CSRFProtect
 from pwnagotchi.ui.web.handler import Handler
 # https://stackoverflow.com/questions/14888799/disable-console-messages-in-flask-server
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
-os.environ['WERKZEUG_RUN_MAIN'] = 'true'
+
+# Commented this out, on bookworm it wouldnt load the flask server for webui
+# os.environ['WERKZEUG_RUN_MAIN'] = 'true'
 
 
 class Server:

@@ -133,12 +133,27 @@
           - libusb-1.0-0-dev
           - lsof
           - make
+          - python3-yaml
           - python3-dbus
           - python3-flask
           - python3-flask-cors
           - python3-flaskext.wtf
+          - python3-gast
           - python3-pil
+          - python3-pycryptodome
+          - python3-requests
+          - python3-scapy
+          - python3-smbus2
+          - python3-spidev
+          - python3-tweepy
+          - python3-werkzeug
+          - firmware-atheros
+          - firmware-brcm80211
+          - firmware-libertas
+          - firmware-misc-nonfree
+          - firmware-realtek
           - python3-pip
+          - python3-setuptools
           - python3-smbus
           - qpdf
           - raspberrypi-kernel-headers
