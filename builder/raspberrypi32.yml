@@ -382,7 +382,7 @@
 
     - name: Install go-1.21
       unarchive:
-        src: https://go.dev/dl/go1.21.4.linux-armv6l.tar.gz
+        src: https://go.dev/dl/go1.21.5.linux-armv6l.tar.gz
         dest: /usr/local
         remote_src: yes
       register: golang
