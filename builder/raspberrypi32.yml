@@ -22,12 +22,12 @@
         arch_flags: "-arch armv7l"
         }
       - {
-        kernel: "6.1.0-rpi7-rpi-v8",
+        kernel: "6.1.0-rpi7-rpi-v7l",
         name: "Pi4b_32",
         firmware: "brcmfmac43455-sdio.bin",
         patch: "bcm43455c0/7_45_206",
         cpu: any, #cortex-a72
-        arch_flags: "-arch armv8"
+        arch_flags: "-arch armv7l"
         }
     kernel:
       min: "6.1"
