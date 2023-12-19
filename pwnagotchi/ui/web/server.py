@@ -12,7 +12,7 @@ from pwnagotchi.ui.web.handler import Handler
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 # Commented this out, on bookworm it wouldnt load the flask server for webui
-# os.environ['WERKZEUG_RUN_MAIN'] = 'true'
+os.environ['WERKZEUG_RUN_MAIN'] = 'true'
 
 
 class Server:
