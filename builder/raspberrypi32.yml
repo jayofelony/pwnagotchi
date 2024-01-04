@@ -85,12 +85,6 @@
       opwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
         url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.5/pwngrid-1.10.5-armhf.zip"
-      torch:
-        wheel: "torch-2.1.0a0+gita8e7c98-cp311-cp311-linux_armv6l.whl"
-        url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/py0torch-bookworm/torch-2.1.0a0+gita8e7c98-cp311-cp311-linux_armv6l.whl"
-      torchvision:
-        wheel: "torchvision-0.16.0+fbb4cc5-cp311-cp311-linux_armv6l.whl"
-        url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/py0torch-bookworm/torchvision-0.16.0+fbb4cc5-cp311-cp311-linux_armv6l.whl"
       apt:
         downgrade:
           - libpcap-dev_1.9.1-4_armhf.deb
@@ -337,27 +331,12 @@
         repo: https://github.com/jayofelony/pwnagotchi-torch.git
         dest: /usr/local/src/pwnagotchi
 
-    - name: download torch whl
-      get_url:
-        url: "{{ packages.torch.url }}"
-        dest: /usr/local/src/
-
-    - name: download torchvision whl
-      get_url:
-        url: "{{ packages.torchvision.url }}"
-        dest: /usr/local/src/
-
-    - name: install 32-bit pwnagotchi wheel and dependencies with 32-bit torch wheels
-      pip:
-        name:
-          - "{{ packages.torch.url }}"
-          - "{{ packages.torchvision.url }}"
-        extra_args: "--no-cache-dir --break-system-packages"
-
     - name: build pwnagotchi wheel
       command: "pip install . --no-cache-dir --break-system-packages"
       args:
         chdir: /usr/local/src/pwnagotchi
+      environment:
+        ARCHFLAGS: "-arch armv6l"
 
     - name: create /usr/local/share/pwnagotchi/ folder
       file:

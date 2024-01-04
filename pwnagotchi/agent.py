@@ -14,12 +14,12 @@ from pwnagotchi.automata import Automata
 from pwnagotchi.log import LastSession
 from pwnagotchi.bettercap import Client
 from pwnagotchi.mesh.utils import AsyncAdvertiser
-from pwnagotchi.ai.train import AsyncTrainer
+# from pwnagotchi.ai.train import AsyncTrainer
 
 RECOVERY_DATA_FILE = '/root/.pwnagotchi-recovery'
 
 
-class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
+class Agent(Client, Automata, AsyncAdvertiser):
     def __init__(self, view, config, keypair):
         Client.__init__(self, config['bettercap']['hostname'],
                         config['bettercap']['scheme'],
@@ -28,7 +28,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                         config['bettercap']['password'])
         Automata.__init__(self, config, view)
         AsyncAdvertiser.__init__(self, config, view, keypair)
-        AsyncTrainer.__init__(self, config)
+        # AsyncTrainer.__init__(self, config)
 
         self._started_at = time.time()
         self._filter = None if not config['main']['filter'] else re.compile(config['main']['filter'])
@@ -129,7 +129,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                 time.sleep(1)
 
     def start(self):
-        self.start_ai()
+        # self.start_ai()
         self._wait_bettercap()
         self.setup_events()
         self.set_starting()
