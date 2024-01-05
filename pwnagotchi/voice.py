@@ -26,6 +26,11 @@ class Voice:
             self._('New day, new hunt, new pwns!'),
             self._('Hack the Planet!')])
 
+    def on_ai_ready(self):
+        return random.choice([
+            self._('AI ready.'),
+            self._('The neural network is ready.')])
+
     def on_keys_generation(self):
         return random.choice([
             self._('Generating keys, do not turn off ...')])
