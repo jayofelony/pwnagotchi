@@ -163,6 +163,7 @@ class AutoUpdate(plugins.Plugin):
         self.ready = False
         self.status = StatusFile('/root/.auto-update')
         self.lock = Lock()
+        self.options = dict()
 
     def on_loaded(self):
         if 'interval' not in self.options or ('interval' in self.options and not self.options['interval']):
