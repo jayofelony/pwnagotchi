@@ -342,7 +342,7 @@
         dest: /usr/local/src/pwnagotchi
 
     - name: build pwnagotchi wheel
-      command: "pip install . --no-cache-dir --break-system-packages"
+      command: "pip3 install . --no-cache-dir --break-system-packages"
       args:
         chdir: /usr/local/src/pwnagotchi
 
