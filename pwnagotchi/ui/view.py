@@ -36,9 +36,6 @@ class View(object):
             WHITE = 0x00
             BLACK = 0xFF
 
-        WHITE = 0xFF
-        BLACK = 0x00
-
         self._agent = None
         self._render_cbs = []
         self._config = config
