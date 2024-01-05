@@ -323,7 +323,7 @@ def iface_channels(ifname):
     output = subprocess.getoutput("/sbin/iw phy%s channels | grep ' MHz' | sed 's/^.*\[//g' | sed s/\].*\$//g" % phy)
     for line in output.split("\n"):
         line = line.strip()
-        channels.append(int(line.split()[1]))
+        channels.append(int(line))
     return channels
 
 
