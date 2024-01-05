@@ -24,17 +24,9 @@ ROOT = None
 class View(object):
     def __init__(self, config, impl, state=None):
         global ROOT
-        global WHITE
-        global BLACK
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
-
-        self._invert = config['ui']['invert']
-
-        if self._invert:
-            WHITE = 0x00
-            BLACK = 0xFF
 
         self._agent = None
         self._render_cbs = []
