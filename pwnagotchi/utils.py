@@ -1,4 +1,3 @@
-
 import logging
 import glob
 import os
@@ -385,7 +384,7 @@ def extract_from_pcap(path, fields):
         subtypes = set()
 
         if field == WifiInfo.BSSID:
-            from scapy.all import Dot11Beacon, Dot11ProbeResp, Dot11AssoReq, Dot11ReassoReq, Dot11, sniff
+            from scapy.layers.dot11 import Dot11Beacon, Dot11ProbeResp, Dot11AssoReq, Dot11ReassoReq, Dot11, sniff
             subtypes.add('beacon')
             bpf_filter = " or ".join([f"wlan type mgt subtype {subtype}" for subtype in subtypes])
             packets = sniff(offline=path, filter=bpf_filter)
@@ -400,7 +399,7 @@ def extract_from_pcap(path, fields):
             except Exception:
                 raise FieldNotFoundError("Could not find field [BSSID]")
         elif field == WifiInfo.ESSID:
-            from scapy.all import Dot11Beacon, Dot11ReassoReq, Dot11AssoReq, Dot11, sniff, Dot11Elt
+            from scapy.layers.dot11 import Dot11Beacon, Dot11ReassoReq, Dot11AssoReq, Dot11, sniff, Dot11Elt
             subtypes.add('beacon')
             subtypes.add('assoc-req')
             subtypes.add('reassoc-req')
@@ -416,7 +415,7 @@ def extract_from_pcap(path, fields):
             except Exception:
                 raise FieldNotFoundError("Could not find field [ESSID]")
         elif field == WifiInfo.ENCRYPTION:
-            from scapy.all import Dot11Beacon, sniff
+            from scapy.layers.dot11 import Dot11Beacon, sniff
             subtypes.add('beacon')
             bpf_filter = " or ".join([f"wlan type mgt subtype {subtype}" for subtype in subtypes])
             packets = sniff(offline=path, filter=bpf_filter)
@@ -432,7 +431,7 @@ def extract_from_pcap(path, fields):
             except Exception:
                 raise FieldNotFoundError("Could not find field [ENCRYPTION]")
         elif field == WifiInfo.CHANNEL:
-            from scapy.all import sniff, RadioTap
+            from scapy.layers.dot11 import sniff, RadioTap
             from pwnagotchi.mesh.wifi import freq_to_channel
             packets = sniff(offline=path, count=1)
             try:
@@ -440,7 +439,7 @@ def extract_from_pcap(path, fields):
             except Exception:
                 raise FieldNotFoundError("Could not find field [CHANNEL]")
         elif field == WifiInfo.RSSI:
-            from scapy.all import sniff, RadioTap
+            from scapy.layers.dot11 import sniff, RadioTap
             from pwnagotchi.mesh.wifi import freq_to_channel
             packets = sniff(offline=path, count=1)
             try:
