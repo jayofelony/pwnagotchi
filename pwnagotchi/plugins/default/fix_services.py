@@ -11,7 +11,7 @@ from pwnagotchi import plugins
 import pwnagotchi.ui.faces as faces
 from pwnagotchi.bettercap import Client
 
-from pwnagotchi.ui.components import Text
+from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
 import pwnagotchi.ui.fonts as fonts
 
@@ -399,7 +399,8 @@ class FixServices(plugins.Plugin):
                 pos = (ui.width() / 2 + 35, ui.height() - 11)
 
             logging.info("Got here")
-            ui.add_element('brcmfmac_status', Text(color=BLACK, value='--', position=pos, font=fonts.Small))
+            ui.add_element('brcmfmac_status', LabeledValue(color=BLACK, label='', value='--', position=pos,
+                                                           label_font=fonts.Small, text_font=fonts.Small))
 
     # called when the ui is updated
     def on_ui_update(self, ui):

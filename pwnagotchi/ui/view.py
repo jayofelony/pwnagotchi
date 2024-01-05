@@ -16,7 +16,7 @@ from pwnagotchi.ui.components import *
 from pwnagotchi.ui.state import State
 from pwnagotchi.voice import Voice
 
-WHITE = 0xff
+WHITE = 0xFF
 BLACK = 0x00
 ROOT = None
 
@@ -34,7 +34,10 @@ class View(object):
             global WHITE
             global BLACK
             WHITE = 0x00
-            BLACK = 0xff
+            BLACK = 0xFF
+
+        WHITE = 0xFF
+        BLACK = 0x00
 
         self._agent = None
         self._render_cbs = []
