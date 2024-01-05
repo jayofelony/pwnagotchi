@@ -5,36 +5,31 @@ import pwnagotchi.mesh.wifi as wifi
 MAX_EPOCH_DURATION = 1024
 
 
-def describe(extended=False):
-    if not extended:
-        histogram_size = wifi.NumChannels
-    else:
-        # see https://github.com/evilsocket/pwnagotchi/issues/583
-        histogram_size = wifi.NumChannelsExt
+histogram_size = wifi.NumChannels
 
-    return histogram_size, (1,
-                            # aps per channel
-                            histogram_size +
-                            # clients per channel
-                            histogram_size +
-                            # peers per channel
-                            histogram_size +
-                            # duration
-                            1 +
-                            # inactive
-                            1 +
-                            # active
-                            1 +
-                            # missed
-                            1 +
-                            # hops
-                            1 +
-                            # deauths
-                            1 +
-                            # assocs
-                            1 +
-                            # handshakes
-                            1)
+shape = (1,
+         # aps per channel
+         histogram_size +
+         # clients per channel
+         histogram_size +
+         # peers per channel
+         histogram_size +
+         # duration
+         1 +
+         # inactive
+         1 +
+         # active
+         1 +
+         # missed
+         1 +
+         # hops
+         1 +
+         # deauths
+         1 +
+         # assocs
+         1 +
+         # handshakes
+         1)
 
 
 def featurize(state, step):
