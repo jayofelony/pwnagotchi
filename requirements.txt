@@ -18,6 +18,10 @@ scapy
 shimmy; platform_machine!="armv6l"
 smbus2
 spidev
+stable_baselines3; platform_machine!="armv6l"
+stable_baselines3==1.8.0; platform_machine=="armv6l"
 toml
+torch==2.0.1
+torchvision==0.15.2
 tweepy
 websockets

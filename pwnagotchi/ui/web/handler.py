@@ -8,7 +8,9 @@ from functools import wraps
 
 # https://stackoverflow.com/questions/14888799/disable-console-messages-in-flask-server
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
-os.environ['WERKZEUG_RUN_MAIN'] = 'true'
+
+# Set to false, on bookworm it wouldn't load the flask server for webui
+os.environ['WERKZEUG_RUN_MAIN'] = 'false'
 
 import pwnagotchi
 import pwnagotchi.grid as grid
