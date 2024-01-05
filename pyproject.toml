@@ -55,8 +55,8 @@ classifiers = [
 [project.urls]
 Homepage = "https://pwnagotchi.ai/"
 Documentation = "https://pwnagotchi.ai/"
-Repository = "https://github.com/jayofelony/pwnagotchi-torch.git"
-"Bug Tracker" = "https://github.com/jayofelony/pwnagotchi-torch.git/issues"
+Repository = "https://github.com/jayofelony/pwnagotchi-bookworm.git"
+"Bug Tracker" = "https://github.com/jayofelony/pwnagotchi-bookworm.git/issues"
 
 [project.scripts]
 pwnagotchi_cli = "bin.pwnagotchi:pwnagotchi_cli"

@@ -348,11 +348,6 @@
         state: absent
         path: /usr/local/src/pwnagotchi
 
-    - name: remove torch whl
-      file:
-        state: absent
-        path: "{{ lookup('fileglob', '/usr/local/src/torch*.whl') }}"
-
     ##########################################
     #
     # pwngrid, bettercap
