@@ -6,10 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "pwnagotchi"
 dynamic = ["version"]
 dependencies = [
-    "OPi.GPIO; platform_release==\"6.1.31-sun50iw9\"",
     "Pillow",
     "PyYAML",
-    "RPi.GPIO; platform_release!=\"6.1.31-sun50iw9\"",
+    "RPi.GPIO",
     "file-read-backwards",
     "flask",
     "flask-cors",
@@ -21,13 +20,12 @@ dependencies = [
     "pydrive2",
     "python-dateutil",
     "requests",
-    "rpi_hardware_pwm; platform_release!=\"6.1.31-sun50iw9\"",
+    "rpi_hardware_pwm",
     "scapy",
-    "shimmy; platform_machine!=\"armv6l\"",
+    "shimmy",
     "smbus2",
     "spidev",
-    "stable_baselines3; platform_machine!=\"armv6l\"",
-    "stable_baselines3==1.8.0; platform_machine==\"armv6l\"",
+    "stable_baselines3",
     "toml",
     "torch==2.0.1",
     "torchvision==0.15.2",
