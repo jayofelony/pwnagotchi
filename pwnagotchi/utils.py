@@ -320,7 +320,7 @@ def total_unique_handshakes(path):
 def iface_channels(ifname):
     channels = []
     phy = subprocess.getoutput("/sbin/iw %s info | grep wiphy | cut -d ' ' -f 2" % ifname)
-    output = subprocess.getoutput("/sbin/iw phy%s channels | grep ' MHz' | sed 's/^.*\[//g' | sed s/\].*\$//g" % phy)
+    output = subprocess.getoutput("/sbin/iw phy%s channels | grep ' MHz' | grep -v disabled | sed 's/^.*\[//g' | sed s/\].*\$//g" % phy)
     for line in output.split("\n"):
         line = line.strip()
         channels.append(int(line))
