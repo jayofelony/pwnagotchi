@@ -6,7 +6,7 @@ Download last image files [here](https://github.com/jayofelony/pwnagotchi-torch/
 
 **Use RPi imager to flash, please don't flash a new user as this will mess with logs created.**
 
-SSH credentials are pi/raspberry and for Orange Pi pi/orange
+SSH credentials are `pi/raspberry` and for Orange Pi `pi/orange`
 
 Armhf is for 0w, arm64 is for 02w, 3 and 4.
 
