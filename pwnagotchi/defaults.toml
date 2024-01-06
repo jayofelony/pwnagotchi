@@ -122,11 +122,11 @@ main.whitelist = [
 ]
 main.filter = ""
 
-main.log.path = "/var/log/pwnagotchi.log"
+main.log.path = "/home/pi/logs/pwnagotchi.log"
 main.log.rotation.enabled = true
 main.log.rotation.size = "10M"
 
-ai.enabled = false
+ai.enabled = true
 ai.path = "/root/brain.nn"
 ai.laziness = 0.1
 ai.epochs_per_episode = 50
@@ -225,17 +225,17 @@ bettercap.silence = [
     "mod.started"
 ]
 
-fs.memory.enabled = false
-fs.memory.mounts.log.enabled = false
-fs.memory.mounts.log.mount = "/var/log"
+fs.memory.enabled = true
+fs.memory.mounts.log.enabled = true
+fs.memory.mounts.log.mount = "/home/pi/logs"
 fs.memory.mounts.log.size = "50M"
 fs.memory.mounts.log.sync = 60
 fs.memory.mounts.log.zram = true
 fs.memory.mounts.log.rsync = true
 
-fs.memory.mounts.data.enabled = false
+fs.memory.mounts.data.enabled = true
 fs.memory.mounts.data.mount = "/var/tmp/pwnagotchi"
 fs.memory.mounts.data.size = "10M"
 fs.memory.mounts.data.sync = 3600
-fs.memory.mounts.data.zram = false
+fs.memory.mounts.data.zram = true
 fs.memory.mounts.data.rsync = true

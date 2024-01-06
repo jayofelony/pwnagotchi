@@ -8,7 +8,7 @@ After=bettercap.service
 Environment=LD_PRELOAD=/usr/local/lib/libpcap.so.1
 Environment=LD_LIBRARY_PATH=/usr/local/lib
 Type=simple
-ExecStart=/usr/local/bin/pwngrid -keys /etc/pwnagotchi -peers /root/peers -address 127.0.0.1:8666 -client-token /root/.api-enrollment.json -wait -log /var/log/pwngrid-peer.log -iface wlan0mon
+ExecStart=/usr/local/bin/pwngrid -keys /etc/pwnagotchi -peers /root/peers -address 127.0.0.1:8666 -client-token /root/.api-enrollment.json -wait -log /home/pi/logs/pwngrid-peer.log -iface wlan0mon
 Restart=always
 RestartSec=30
 

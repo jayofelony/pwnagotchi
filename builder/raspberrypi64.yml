@@ -518,7 +518,7 @@
     - name: Add pwnlog alias
       lineinfile:
         dest: /home/pi/.bashrc
-        line: "\nalias pwnlog='tail -f -n300 /var/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'"
+        line: "\nalias pwnlog='tail -f -n300 /home/pi/logs/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'"
         insertafter: EOF
 
     - name: Add pwnver alias

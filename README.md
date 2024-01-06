@@ -4,9 +4,9 @@
 
 Download last image files [here](https://github.com/jayofelony/pwnagotchi-torch/releases/tag/v2.5.4), and let it auto-update from here on out.
 
-**Use RPi imager to flash, if you want you can set a custom user/pass to ssh in.**
+**Use RPi imager to flash, please don't flash a new user as this will mess with logs created.**
 
-Default SSH credentials are pi/raspberry and for Orange Pi pi/orange
+SSH credentials are pi/raspberry and for Orange Pi pi/orange
 
 Armhf is for 0w, arm64 is for 02w, 3 and 4.
 
