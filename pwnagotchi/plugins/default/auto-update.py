@@ -221,7 +221,7 @@ class AutoUpdate(plugins.Plugin):
                 if num_installed > 0:
                     display.update(force=True, new_data={'status': 'Rebooting ...'})
                     time.sleep(3)
-                    pwnagotchi.reboot()
+                    os.system("service pwnagotchi restart")
 
             except Exception as e:
                 logging.error("[update] %s" % e)
