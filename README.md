@@ -4,6 +4,7 @@
 
 If you are using an older 32-bit version Raspberry Pi, ZeroWH, use this [fork](https://github.com/jayofelony/pwnagotchi-torch/releases/tag/v2.5.4) and make sure you download the `armhf` version.
 
+---
 Download latest image file [here](https://github.com/jayofelony/pwnagotchi-bookworm/releases/tag/v2.6.2), and let it auto-update from here on out.
 
 **Use RPi imager to flash, please don't flash a new user as this will mess with logs created.**
