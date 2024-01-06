@@ -455,6 +455,11 @@
         path: /etc/pwnagotchi
         state: directory
 
+    - name: create log folder
+      file:
+        path: /home/pi/logs
+        state: directory
+
     - name: check if user configuration exists
       stat:
         path: /etc/pwnagotchi/config.toml
