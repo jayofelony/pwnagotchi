@@ -167,7 +167,7 @@
   tasks:
     - name: Create pi user
       copy:
-        dest: /boot/userconf
+        dest: /boot/firmware/userconf
         content: |
           pi:$6$3jNr0GA9KIyt4hmM$efeVIopdMQ8DGgEPCWWlbx3mJJNAYci1lEXGdlky0xPyjqwKNbwTL5SrCcpb4144C4IvzWjn7Iv.QjqmU7iyT/
 
@@ -478,12 +478,12 @@
 
     - name: enable ssh on boot
       file:
-        path: /boot/ssh
+        path: /boot/firmware/ssh
         state: touch
 
     - name: adjust /boot/config.txt
       lineinfile:
-        dest: /boot/config.txt
+        dest: /boot/firmware/config.txt
         insertafter: EOF
         line: '{{ item }}'
       with_items: "{{ system.boot_options }}"
@@ -497,7 +497,7 @@
 
     - name: change root partition
       replace:
-        dest: /boot/cmdline.txt
+        dest: /boot/firmware/cmdline.txt
         backup: no
         regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
         replace: "root=/dev/mmcblk0p2"
@@ -605,11 +605,6 @@
         path: "{{ item }}"
       with_fileglob:
           - "/etc/ssh/ssh_host*_key*"
-
-    - name: regenerate ssh keys
-      shell: "dpkg-reconfigure openssh-server"
-      args:
-        executable: /bin/bash
 
   handlers:
     - name: reload systemd services
