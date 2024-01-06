@@ -441,15 +441,6 @@
         force: true
       ignore_errors: true
 
-    - name: add HDMI powersave to rc.local
-      blockinfile:
-        path: /etc/rc.local
-        insertbefore: "exit 0"
-        block: |
-          if ! /usr/bin/tvservice -s | egrep 'HDMI|DVI'; then
-            /usr/bin/tvservice -o
-          fi
-
     - name: create /etc/pwnagotchi folder
       file:
         path: /etc/pwnagotchi
