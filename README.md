@@ -2,7 +2,7 @@
 <a href="https://github.com/jayofelony/pwnagotchi-bookworm/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/jayofelony/pwnagotchi-bookworm.svg"></a><br/>
 **This fork of [Pwnagotchi](https://www.pwnagotchi.ai) is only for 64-bit Raspberry Pi's. Such as the 02W, 3(b+) and 4(b).**
 
-Download latest image file [here](https://github.com/jayofelony/pwnagotchi-bookwormreleases/tag/v2.6.2), and let it auto-update from here on out.
+Download latest image file [here](https://github.com/jayofelony/pwnagotchi-bookworm/releases/tag/v2.6.2), and let it auto-update from here on out.
 
 **Use RPi imager to flash, please don't flash a new user as this will mess with logs created.**
 
