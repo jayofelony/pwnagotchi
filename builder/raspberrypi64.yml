@@ -71,6 +71,7 @@
           - bluez
           - build-essential
           - curl
+          - dhcpcd5
           - dkms
           - dphys-swapfile
           - fbi
