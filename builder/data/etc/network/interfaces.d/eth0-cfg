@@ -1,0 +1,4 @@
+allow-hotplug eth0
+iface eth0 inet dhcp
+  dns-nameservers 1.1.1.1 8.8.8.8
+  metric 201

@@ -61,7 +61,6 @@
           - libpcap0.8-dbg
         remove:
           - avahi-daemon
-          - network-manager
           - nfs-common
           - triggerhappy
           - wpasupplicant
@@ -73,7 +72,6 @@
           - bluez
           - build-essential
           - curl
-          - dhcpcd5
           - dkms
           - dphys-swapfile
           - fbi
