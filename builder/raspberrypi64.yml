@@ -61,6 +61,7 @@
           - libpcap0.8-dbg
         remove:
           - avahi-daemon
+          - network-manager
           - nfs-common
           - triggerhappy
           - wpasupplicant
