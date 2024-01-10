@@ -165,10 +165,12 @@ def load_config(args):
     ref_defaults_data = None
 
     # check for a config.yml file on /boot/firmware
-    for boot_conf in ['/boot/firmware/config.yml', '/boot/firmware/config.toml']:
+    for boot_conf in ['/boot/config.yml', '/boot/firmware/config.yml', '/boot/config.toml', '/boot/firmware/config.toml']:
         if os.path.exists(boot_conf):
+            if os.path.exists(args.user_config):
+                merge_config(boot_conf, args.user_config)
             # logging not configured here yet
-            print("installing %s to %s ...", boot_conf, args.user_config)
+            print("installing new %s to %s ...", boot_conf, args.user_config)
             # https://stackoverflow.com/questions/42392600/oserror-errno-18-invalid-cross-device-link
             shutil.move(boot_conf, args.user_config)
             break
