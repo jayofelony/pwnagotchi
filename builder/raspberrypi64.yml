@@ -193,7 +193,7 @@
       lineinfile:
         dest: /lib/systemd/system/bluetooth.service
         regexp: '^ExecStart=/usr/lib/bluetooth/bluetoothd$'
-        line: 'ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap'
+        line: 'ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap,a2dp'
         state: present
 
     - name: configure dphys-swapfile
