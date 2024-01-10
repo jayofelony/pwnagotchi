@@ -164,8 +164,8 @@ def load_config(args):
     ref_defaults_file = os.path.join(os.path.dirname(pwnagotchi.__file__), 'defaults.toml')
     ref_defaults_data = None
 
-    # check for a config.yml file on /boot/
-    for boot_conf in ['/boot/config.yml', '/boot/config.toml']:
+    # check for a config.yml file on /boot/firmware
+    for boot_conf in ['/boot/firmware/config.yml', '/boot/firmware/config.toml']:
         if os.path.exists(boot_conf):
             # logging not configured here yet
             print("installing %s to %s ...", boot_conf, args.user_config)
@@ -174,10 +174,10 @@ def load_config(args):
             break
 
     # check for an entire pwnagotchi folder on /boot/
-    if os.path.isdir('/boot/pwnagotchi'):
-        print("installing /boot/pwnagotchi to /etc/pwnagotchi ...")
+    if os.path.isdir('/boot/firmware/pwnagotchi'):
+        print("installing /boot/firmware/pwnagotchi to /etc/pwnagotchi ...")
         shutil.rmtree('/etc/pwnagotchi', ignore_errors=True)
-        shutil.move('/boot/pwnagotchi', '/etc/')
+        shutil.move('/boot/firmware/pwnagotchi', '/etc/')
 
     # if not config is found, copy the defaults
     if not os.path.exists(args.config):
