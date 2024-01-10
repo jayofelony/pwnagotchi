@@ -96,7 +96,6 @@ def pwnagotchi_cli():
                 else:
                     logging.exception("main loop exception (%s)", e)
 
-
     def add_parsers(parser):
         """
         Adds the plugins and google subcommands
