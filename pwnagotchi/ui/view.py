@@ -16,8 +16,8 @@ from pwnagotchi.ui.components import *
 from pwnagotchi.ui.state import State
 from pwnagotchi.voice import Voice
 
-WHITE = 0xFF
-BLACK = 0x00
+WHITE = 0x00
+BLACK = 0xFF
 ROOT = None
 
 
