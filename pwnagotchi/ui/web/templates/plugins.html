@@ -76,6 +76,11 @@ $(function(){
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="plugin" value="{{ name }}"/>
           </form>
+            <form method="POST" action="/plugins/upgrade">
+                <input type="submit" name="upgrade" value="Upgrade">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="plugin" value="{{ name }}"/>
+            </form>
         </div>
     {% endfor %}
 </div>
