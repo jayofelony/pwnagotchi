@@ -165,8 +165,7 @@ def load_config(args):
     ref_defaults_data = None
 
     # check for a config.yml file on /boot/firmware
-    for boot_conf in ['/boot/config.yml', '/boot/firmware/config.yml',
-                      '/boot/config.toml', '/boot/firmware/config.toml']:
+    for boot_conf in ['/boot/config.yml', '/boot/firmware/config.yml', '/boot/config.toml', '/boot/firmware/config.toml']:
         if os.path.exists(boot_conf):
             if os.path.exists(args.user_config):
                 # if /etc/pwnagotchi/config.toml already exists we just merge the new config
