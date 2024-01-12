@@ -1,7 +1,6 @@
-OPi.GPIO; platform_release=="6.1.31-sun50iw9"
 Pillow
 PyYAML
-RPi.GPIO; platform_release!="6.1.31-sun50iw9"
+RPi.GPIO
 file-read-backwards
 flask
 flask-cors
@@ -13,13 +12,12 @@ pycryptodome
 pydrive2
 python-dateutil
 requests
-rpi_hardware_pwm; platform_release!="6.1.31-sun50iw9"
+rpi_hardware_pwm
 scapy
-shimmy; platform_machine!="armv6l"
+shimmy
 smbus2
 spidev
-stable_baselines3; platform_machine!="armv6l"
-stable_baselines3==1.8.0; platform_machine=="armv6l"
+stable_baselines3
 toml
 torch
 torchvision

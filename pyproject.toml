@@ -27,8 +27,8 @@ dependencies = [
     "spidev",
     "stable_baselines3",
     "toml",
-    "torch==2.0.1",
-    "torchvision==0.15.2",
+    "torch",
+    "torchvision",
     "tweepy",
     "websockets"
 ]
