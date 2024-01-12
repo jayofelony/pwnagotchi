@@ -235,7 +235,7 @@ if os.path.exists('/sys/bus/platform/drivers/gpiomem-bcm2835'):
 elif os.path.exists('/sys/bus/platform/drivers/gpio-x3'):
     implementation = SunriseX3()
 else:
-    implementation = JetsonNano()
+    implementation = RaspberryPi()
 
 for func in [x for x in dir(implementation) if not x.startswith('_')]:
     setattr(sys.modules[__name__], func, getattr(implementation, func))
