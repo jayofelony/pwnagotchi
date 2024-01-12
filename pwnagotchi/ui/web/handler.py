@@ -10,7 +10,7 @@ import flask
 
 # https://stackoverflow.com/questions/14888799/disable-console-messages-in-flask-server
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
-os.environ['WERKZEUG_RUN_MAIN'] = 'true'
+os.environ['WERKZEUG_RUN_MAIN'] = 'false'
 
 import pwnagotchi
 import pwnagotchi.grid as grid
