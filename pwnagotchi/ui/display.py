@@ -25,11 +25,59 @@ class Display(View):
         )
         self._render_thread_instance.start()
 
-    def is_inky(self):
-        return self._implementation.name == 'inky'
+    def is_lcdhat(self):
+        return self._implementation.name == 'lcdhat'
 
-    def is_papirus(self):
-        return self._implementation.name == 'papirus'
+    def is_waveshare144lcd(self):
+        return self._implementation.name == 'waveshare144lcd'
+
+    def is_oledhat(self):
+        return self._implementation.name == 'oledhat'
+
+    def is_waveshare1in02(self):
+        return self._implementation.name == 'waveshare1in02'
+
+    def is_waveshare1in54(self):
+        return self._implementation.name == 'waveshare1in54'
+
+    def is_waveshare1in54V2(self):
+        return self._implementation.name == 'waveshare1in54_v2'
+
+    def is_waveshare1in54b(self):
+        return self._implementation.name == 'waveshare1in54b'
+
+    def is_waveshare1in54bV22(self):
+        return self._implementation.name == 'waveshare1in54b_v2'
+
+    def is_waveshare1in54c(self):
+        return self._implementation.name == 'waveshare1in54c'
+
+    def is_waveshare1in64g(self):
+        return self._implementation.name == 'waveshare1in64g'
+
+    def is_waveshare2in7(self):
+        return self._implementation.name == 'waveshare2in7'
+
+    def is_waveshare2in7V2(self):
+        return self._implementation.name == 'waveshare2in7_v2'
+
+    def is_waveshare2in9(self):
+        return self._implementation.name == 'waveshare2in9'
+
+    def is_waveshare2in9V2(self):
+        return self._implementation.name == 'waveshare2in9_v2'
+
+    def is_waveshare2in9bV3(self):
+        return self._implementation.name == 'waveshare2in9b_v3'
+
+    def is_waveshare2in9bV4(self):
+        return self._implementation.name == 'waveshare2in9b_v4'
+
+    def is_waveshare2in9bc(self):
+        return self._implementation.name == 'waveshare2in9bc'
+
+    def is_waveshare2in9d(self):
+        return self._implementation.name == 'waveshare2in9d'
 
     def is_waveshare_v1(self):
         return self._implementation.name == 'waveshare_1'
@@ -43,41 +91,113 @@ class Display(View):
     def is_waveshare_v4(self):
         return self._implementation.name == 'waveshare_4'
 
-    def is_waveshare27inch(self):
-        return self._implementation.name == 'waveshare27inch'
+    def is_waveshare2in13b_v3(self):
+        return self._implementation.name == 'waveshare2in13b_v3'
 
-    def is_waveshare27inchV2(self):
-        return self._implementation.name == 'waveshare27inchv2'
+    def is_waveshare2in13b_v4(self):
+        return self._implementation.name == 'waveshare2in13b_v4'
 
-    def is_waveshare29inch(self):
-        return self._implementation.name == 'waveshare29inch'
+    def is_waveshare2in13bc(self):
+        return self._implementation.name == 'waveshare2in13bc'
 
-    def is_oledhat(self):
-        return self._implementation.name == 'oledhat'
+    def is_waveshare2in13d(self):
+        return self._implementation.name == 'waveshare2in13d'
 
-    def is_lcdhat(self):
-        return self._implementation.name == 'lcdhat'
+    def is_waveshare2in23g(self):
+        return self._implementation.name == 'waveshare2in23g'
+
+    def is_waveshare2in36g(self):
+        return self._implementation.name == 'waveshare2in36g'
+
+    def is_waveshare2in66(self):
+        return self._implementation.name == 'waveshare2in66'
+
+    def is_waveshare2in66g(self):
+        return self._implementation.name == 'waveshare2in66g'
+
+    def is_waveshare3in0g(self):
+        return self._implementation.name == 'waveshare3in0g'
+
+    def is_waveshare3in7(self):
+        return self._implementation.name == 'waveshare3in7'
+
+    def is_waveshare3in52(self):
+        return self._implementation.name == 'waveshare3in52'
+
+    def is_waveshare4in01f(self):
+        return self._implementation.name == 'waveshare4in01f'
+
+    def is_waveshare4in2(self):
+        return self._implementation.name == 'waveshare4in2'
+
+    def is_waveshare4in2V2(self):
+        return self._implementation.name == 'waveshare4in2_v2'
+
+    def is_waveshare4in2bV2(self):
+        return self._implementation.name == 'waveshare4in2b_v2'
+
+    def is_waveshare4in2bc(self):
+        return self._implementation.name == 'waveshare4in2bc'
+
+    def is_waveshare4in26(self):
+        return self._implementation.name == 'waveshare4in26'
+
+    def is_waveshare4in37g(self):
+        return self._implementation.name == 'waveshare4in37g'
+
+    def is_waveshare5in65f(self):
+        return self._implementation.name == 'waveshare5in65f'
+
+    def is_waveshare5in83(self):
+        return self._implementation.name == 'waveshare5in83'
+
+    def is_waveshare5in83V2(self):
+        return self._implementation.name == 'waveshare5in83_v2'
+
+    def is_waveshare5in83bV2(self):
+        return self._implementation.name == 'waveshare5in83b_v2'
+
+    def is_waveshare5in83bc(self):
+        return self._implementation.name == 'waveshare5in83bc'
+
+    def is_waveshare7in3f(self):
+        return self._implementation.name == 'waveshare7in3f'
+
+    def is_waveshare7in3g(self):
+        return self._implementation.name == 'waveshare7in3g'
+
+    def is_waveshare7in5(self):
+        return self._implementation.name == 'waveshare7in5'
+
+    def is_waveshare7in5HD(self):
+        return self._implementation.name == 'waveshare7in5_HD'
+
+    def is_waveshare7in5V2(self):
+        return self._implementation.name == 'waveshare7in5_v2'
+
+    def is_waveshare7in5bHD(self):
+        return self._implementation.name == 'waveshare7in5b_HD'
+
+    def is_waveshare7in5bV2(self):
+        return self._implementation.name == 'waveshare7in5b_v2'
+
+    def is_waveshare7in5bc(self):
+        return self._implementation.name == 'waveshare7in5bc'
+
+    def is_waveshare13in3k(self):
+        return self._implementation.name == 'waveshare13in3k'
+
+    def is_inky(self):
+        return self._implementation.name == 'inky'
+
+    def is_papirus(self):
+        return self._implementation.name == 'papirus'
 
     def is_dfrobot_v1(self):
         return self._implementation.name == 'dfrobot_v1'
 
     def is_dfrobot_v2(self):
         return self._implementation.name == 'dfrobot_v2'
-
-    def is_waveshare144lcd(self):
-        return self._implementation.name == 'waveshare144lcd'
-
-    def is_waveshare154inch(self):
-        return self._implementation.name == 'waveshare154inch'
-
-    def is_waveshare213d(self):
-        return self._implementation.name == 'waveshare213d'
-
-    def is_waveshare213bc(self):
-        return self._implementation.name == 'waveshare213bc'
-    
-    def is_waveshare213inb_v4(self):
-        return self._implementation.name == 'waveshare213inb_v4'
 
     def is_spotpear24inch(self):
         return self._implementation.name == 'spotpear24inch'

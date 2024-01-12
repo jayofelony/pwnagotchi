@@ -7,9 +7,9 @@ Profile
 
 {% block script %}
 $(function(){
-    $('#qrcode').qrcode({
+    $('#qrcode').kjua({
         text: 'https://opwngrid.xyz/search/{{ fingerprint }}',
-        render: 'div',
+        render: 'svg',
         mode: 0,
         size: 400,
         fontname: 'sans',

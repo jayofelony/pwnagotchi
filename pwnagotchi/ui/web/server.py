@@ -3,17 +3,15 @@ import secrets
 import logging
 import os
 
+# https://stackoverflow.com/questions/14888799/disable-console-messages-in-flask-server
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+os.environ['WERKZEUG_RUN_MAIN'] = 'true'
+
 from flask import Flask
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 
 from pwnagotchi.ui.web.handler import Handler
-# https://stackoverflow.com/questions/14888799/disable-console-messages-in-flask-server
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
-
-# Set to false, on bookworm it wouldn't load the flask server for webui
-os.environ['WERKZEUG_RUN_MAIN'] = 'false'
-
 
 class Server:
     def __init__(self, agent, config):

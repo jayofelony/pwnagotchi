@@ -27,7 +27,7 @@ class View(object):
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
-
+            
         self._agent = None
         self._render_cbs = []
         self._config = config

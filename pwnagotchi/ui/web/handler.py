@@ -6,11 +6,11 @@ import secrets
 import json
 from functools import wraps
 
+import flask
+
 # https://stackoverflow.com/questions/14888799/disable-console-messages-in-flask-server
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
-
-# Set to false, on bookworm it wouldn't load the flask server for webui
-os.environ['WERKZEUG_RUN_MAIN'] = 'false'
+os.environ['WERKZEUG_RUN_MAIN'] = 'true'
 
 import pwnagotchi
 import pwnagotchi.grid as grid
