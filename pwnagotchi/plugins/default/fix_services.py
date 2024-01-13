@@ -11,10 +11,6 @@ from pwnagotchi import plugins
 import pwnagotchi.ui.faces as faces
 from pwnagotchi.bettercap import Client
 
-from pwnagotchi.ui.components import Text
-from pwnagotchi.ui.view import BLACK
-import pwnagotchi.ui.fonts as fonts
-
 
 class FixServices(plugins.Plugin):
     __author__ = 'jayofelony'
@@ -41,14 +37,12 @@ class FixServices(plugins.Plugin):
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
-        self._status = "--"
         self._count = 0
 
     def on_loaded(self):
         """
         Gets called when the plugin gets loaded
         """
-        self._status = "ld"
         logging.info("[Fix_Services] plugin loaded.")
 
     def on_ready(self, agent):
@@ -59,10 +53,8 @@ class FixServices(plugins.Plugin):
             logging.info("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
             if ",UP," in str(cmd_output):
                 logging.info("wlan0mon is up.")
-                self._status = "up"
 
             if len(self.pattern.findall(last_lines)) >= 3:
-                self._status = "XX"
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Blind-Bug detected. Restarting.')
@@ -75,12 +67,10 @@ class FixServices(plugins.Plugin):
 
             else:
                 logging.info("[Fix_Services] Logs look good!")
-                self._status = ""
 
         except Exception as err:
             logging.error("[Fix_Services ip link show wlan0mon]: %s" % repr(err))
             try:
-                self._status = "xx"
                 self._tryTurningItOffAndOnAgain(agent)
             except Exception as err:
                 logging.error("[Fix_Services OffNOn]: %s" % repr(err))
@@ -153,7 +143,6 @@ class FixServices(plugins.Plugin):
                         logging.info("[Fix_Services] wifi.recon flip: success!")
                         if display:
                             display.update(force=True, new_data={"status": "Wifi recon flipped!",
-                                                                 "brcmfmac_status": self._status,
                                                                  "face": faces.COOL})
                         else:
                             print("Wifi recon flipped\nthat was easy!")
@@ -223,12 +212,11 @@ class FixServices(plugins.Plugin):
             self.isReloadingMon = True
             self.LASTTRY = time.time()
 
-            self._status = "BL"
             if hasattr(connection, 'view'):
                 display = connection.view()
                 if display:
                     display.update(force=True, new_data={"status": "I'm blind! Try turning it off and on again",
-                                                         "brcmfmac_status": self._status, "face": faces.BORED})
+                                                         "face": faces.BORED})
             else:
                 display = None
 
@@ -271,7 +259,6 @@ class FixServices(plugins.Plugin):
 
             try:
                 cmd_output = subprocess.check_output("monstop", shell=True)
-                self._status = "dn"
                 self.logPrintView("info", "[Fix_Services] wlan0mon down and deleted: %s" % cmd_output,
                                   display, {"status": "wlan0mon d-d-d-down!", "face": faces.BORED})
             except Exception as nope:
@@ -291,7 +278,6 @@ class FixServices(plugins.Plugin):
                     cmd_output = subprocess.check_output("sudo modprobe -r brcmfmac", shell=True)
                     self.logPrintView("info", "[Fix_Services] unloaded brcmfmac", display,
                                       {"status": "Turning it off #%s" % tries, "face": faces.SMART})
-                    self._status = "ul"
                     time.sleep(1 + tries)
 
                     # reload the module
@@ -300,7 +286,6 @@ class FixServices(plugins.Plugin):
                         cmd_output = subprocess.check_output("sudo modprobe brcmfmac", shell=True)
 
                         self.logPrintView("info", "[Fix_Services] reloaded brcmfmac")
-                        self._status = "rl"
                         time.sleep(10 + 4 * tries)  # give it some time for wlan device to stabilize, or whatever
 
                         # success! now make the mon0
@@ -308,14 +293,12 @@ class FixServices(plugins.Plugin):
                             cmd_output = subprocess.check_output("monstart", shell=True)
                             self.logPrintView("info", "[Fix_Services interface add wlan0mon] worked #%s: %s"
                                               % (tries, cmd_output))
-                            self._status = "up"
                             time.sleep(tries + 5)
                             try:
                                 # try accessing mon0 in bettercap
                                 result = connection.run("set wifi.interface wlan0mon")
                                 if "success" in result:
                                     logging.info("[Fix_Services set wifi.interface wlan0mon] worked!")
-                                    self._status = ""
                                     self._count = self._count + 1
                                     time.sleep(1)
                                     # stop looping and get back to recon
@@ -354,7 +337,6 @@ class FixServices(plugins.Plugin):
             if tries < 3:
                 if display:
                     display.update(force=True, new_data={"status": "And back on again...",
-                                                         "brcmfmac_status": self._status,
                                                          "face": faces.INTENSE})
                 else:
                     print("And back on again...")
@@ -370,10 +352,8 @@ class FixServices(plugins.Plugin):
                 result = connection.run("wifi.clear; wifi.recon on")
 
                 if "success" in result:  # and result["success"] is True:
-                    self._status = ""
                     if display:
                         display.update(force=True, new_data={"status": "I can see again! (probably)",
-                                                             "brcmfmac_status": self._status,
                                                              "face": faces.HAPPY})
                     else:
                         print("I can see again")
@@ -388,31 +368,9 @@ class FixServices(plugins.Plugin):
                 logging.error("[Fix_Services wifi.recon on] %s" % repr(err))
                 pwnagotchi.reboot()
 
-    # called to setup the ui elements
-    def on_ui_setup(self, ui):
-        with ui._lock:
-            # add custom UI elements
-            if "position" in self.options:
-                pos = self.options['position'].split(',')
-                pos = [int(x.strip()) for x in pos]
-            else:
-                pos = (ui.width() / 2 + 35, ui.height() - 11)
-
-            logging.info("Got here")
-            ui.add_element('brcmfmac_status', Text(color=BLACK, value='--', position=pos, font=fonts.Small))
-
-    # called when the ui is updated
-    def on_ui_update(self, ui):
-        # update those elements
-        if self._status:
-            ui.set('brcmfmac_status', "wlan0mon %s" % self._status)
-        else:
-            ui.set('brcmfmac_status', "rst#%s" % self._count)
-
     def on_unload(self, ui):
         with ui._lock:
             try:
-                ui.remove_element('brcmfmac_status')
                 logging.info("[Fix_Services] unloaded")
             except Exception as err:
                 logging.info("[Fix_Services] unload err %s " % repr(err))
