@@ -444,7 +444,10 @@ def iface_channels(ifname):
     output = subprocess.getoutput("/sbin/iw phy%s channels | grep ' MHz' | grep -v disabled | sed 's/^.*\[//g' | sed s/\].*\$//g" % phy)
     for line in output.split("\n"):
         line = line.strip()
-        channels.append(int(line))
+        try:
+            channels.append(int(line))
+        except Exception as e:
+            pass
     return channels
 
 
