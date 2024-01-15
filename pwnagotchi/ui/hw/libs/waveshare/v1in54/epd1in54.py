@@ -169,7 +169,7 @@ class EPD:
         # self.ReadBusy()
 
     def init(self, lut):
-        if (epdconfig.module_init() != 0):
+        if epdconfig.module_init() != 0:
             return -1
         # EPD hardware init start
         self.reset()

@@ -42,5 +42,4 @@ class Waveshare144lcd(DisplayImpl):
         self._display.display(canvas)
 
     def clear(self):
-        pass
-        #self._display.clear()
+        self._display.clear()

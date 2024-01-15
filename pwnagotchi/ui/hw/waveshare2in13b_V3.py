@@ -5,9 +5,9 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 from PIL import Image
 
 
-class Waveshare213bV3(DisplayImpl):
+class Waveshare2in13bV3(DisplayImpl):
     def __init__(self, config):
-        super(Waveshare213bV3, self).__init__(config, 'waveshare2in13b_v3')
+        super(Waveshare2in13bV3, self).__init__(config, 'waveshare2in13b_v3')
         self._display = None
 
     def layout(self):

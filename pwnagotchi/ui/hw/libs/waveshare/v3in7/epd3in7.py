@@ -417,7 +417,7 @@ class EPD:
         self.send_command(0x20)
         self.ReadBusy()
 
-    def Clear(self, color, mode):
+    def Clear(self, mode):
         self.send_command(0x4E)
         self.send_data(0x00)
         self.send_data(0x00)
