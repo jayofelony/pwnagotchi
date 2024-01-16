@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-11-16 21:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: neo0oen \n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: Hebrew\n"
 "MIME-Version: 1.0\n"
@@ -18,240 +18,242 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "ZzzzZZzzzzZzzz"
-msgstr ""
+msgstr "ZzzzZZzzzzZzzz"
 
 msgid "Hi, I'm Pwnagotchi! Starting ..."
-msgstr ""
+msgstr "שלום, אני פוונגוטצ'י! מתחיל . . ."
 
 msgid "New day, new hunt, new pwns!"
-msgstr ""
+msgstr "יום חדש, ציד חדש, ניצחונות חדשים !"
 
 msgid "Hack the Planet!"
-msgstr ""
+msgstr "פרוץ לכדור הארץ !"
 
 msgid "AI ready."
-msgstr ""
+msgstr "הבינה המלאחות'ית מוכנה"
 
 msgid "The neural network is ready."
-msgstr ""
+msgstr "הרשת הניורולוגית העצבית מוכנה."
 
 msgid "Generating keys, do not turn off ..."
-msgstr ""
+msgstr "יוצר מפתחות, בבקשה אל תכבה אותי"
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
-msgstr ""
+msgstr "היי , הערוץ {channel}פנוי ,נקודת הגישה שלך אומרת תודה  "
 
 msgid "Reading last session logs ..."
-msgstr ""
+msgstr ". . . קורא לוגים מאז ההפעלה האחרונה"
 
 #, python-brace-format
 msgid "Read {lines_so_far} log lines so far ..."
-msgstr ""
+msgstr "קראתי {lines_so_far} שורות מהלוג עד עכשיו . . ."
 
 msgid "I'm bored ..."
-msgstr ""
+msgstr "אני משועמם . . ."
 
 msgid "Let's go for a walk!"
-msgstr ""
+msgstr "בוא ניצא לטיול! "
 
 msgid "This is the best day of my life!"
-msgstr ""
+msgstr "זה היום הכי טוב בחיי!"
 
 msgid "Shitty day :/"
-msgstr ""
+msgstr "יום מחורבן :/"
 
 msgid "I'm extremely bored ..."
-msgstr ""
+msgstr "אני משועמם בטירוף . . ."
 
 msgid "I'm very sad ..."
-msgstr ""
+msgstr "אני עצוב נורא . . ."
 
 msgid "I'm sad"
-msgstr ""
+msgstr "אני עצוב"
 
 msgid "Leave me alone ..."
-msgstr ""
+msgstr "עזוב אותי בשקט . . ."
 
 msgid "I'm mad at you!"
-msgstr ""
+msgstr "אני כועס עלייך!"
 
 msgid "I'm living the life!"
-msgstr ""
+msgstr "אני חי את החיים!"
 
 msgid "I pwn therefore I am."
-msgstr ""
+msgstr "אני שולט לכן אני כאן."
 
 msgid "So many networks!!!"
-msgstr ""
+msgstr "כל כך הרבה רשתות! ! !"
 
 msgid "I'm having so much fun!"
-msgstr ""
+msgstr "אני כל כך נהנה ועושה הרבה כיף!"
 
 msgid "My crime is that of curiosity ..."
-msgstr ""
+msgstr "הפשע שלי הוא הסקרנות . . ."
 
 #, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr ""
+msgstr "שלום {name}! נעים להכיר אותך."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
-msgstr ""
+msgstr "יו {name}! מה קורה?"
 
 #, python-brace-format
 msgid "Hey {name} how are you doing?"
-msgstr ""
+msgstr "היי {name} איך אתה מסתדר?"
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr ""
+msgstr "יחידה {name} בקרבת מקום!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
-msgstr ""
+msgstr "אוף ... להתראות {name}"
 
 #, python-brace-format
 msgid "{name} is gone ..."
-msgstr ""
+msgstr "{name}  נעלם ..."
 
 #, python-brace-format
 msgid "Whoops ... {name} is gone."
-msgstr ""
+msgstr "אופס  ... {name} נעלם ."
 
 #, python-brace-format
 msgid "{name} missed!"
-msgstr ""
+msgstr "{name} התפספס!"
 
 msgid "Missed!"
-msgstr ""
+msgstr "התפספס!"
 
 msgid "Good friends are a blessing!"
-msgstr ""
+msgstr "חברים טובים זאת ברכה!"
 
 msgid "I love my friends!"
-msgstr ""
+msgstr "אני אוהב את החברים שלי!"
 
 msgid "Nobody wants to play with me ..."
-msgstr ""
+msgstr "אף אחד לא רוצה לשחק אית . . ."
 
 msgid "I feel so alone ..."
-msgstr ""
+msgstr "אני מרגיש כל כך לבד . . ."
 
 msgid "Where's everybody?!"
-msgstr ""
+msgstr "לאיפה כולם נעלמו?!"
 
 #, python-brace-format
 msgid "Napping for {secs}s ..."
-msgstr ""
+msgstr "מנמנם למשך {secs}שניות ..."
 
 msgid "Zzzzz"
-msgstr ""
+msgstr "Zzzzz"
 
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
-msgstr ""
+msgstr "ZzzZzzz ({secs}s)"
 
 msgid "Good night."
-msgstr ""
+msgstr "לילה טוב"
 
 msgid "Zzz"
-msgstr ""
+msgstr "Zzz"
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
-msgstr ""
+msgstr "מחכה ל {secs}שניות ..."
 
 #, python-brace-format
 msgid "Looking around ({secs}s)"
-msgstr ""
+msgstr "מסתכל מסביב ({secs}שניות)"
 
 #, python-brace-format
 msgid "Hey {what} let's be friends!"
-msgstr ""
+msgstr "היי {what} בוא נהיה חברים!"
 
 #, python-brace-format
 msgid "Associating to {what}"
-msgstr ""
+msgstr "מקשר את עצמי אל {what}"
 
 #, python-brace-format
 msgid "Yo {what}!"
-msgstr ""
+msgstr "יו יו {what}!"
 
 #, python-brace-format
 msgid "Just decided that {mac} needs no WiFi!"
-msgstr ""
+msgstr "בדיוק החלטתי ש {mac} לא צריך חיבור אלחוטי"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
-msgstr ""
+msgstr "מסכל את האימות של {mac}"
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
-msgstr ""
+msgstr "מוציא איסור על/מעיף {mac}!"
 
 #, python-brace-format
 msgid "Cool, we got {num} new handshake{plural}!"
-msgstr ""
+msgstr "מגניב!, הצלחנו להשיג {num} לחיצות ידיים חדשות{plural}!"
 
 #, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr ""
+msgstr "יש לך  {count} הודעות חדשות{plural}!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
-msgstr ""
+msgstr "אופס!, משהו לא קרה כשורה  ... מאתחל ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
-msgstr ""
+msgstr "מעלה נתונים ל {to} ..."
 
 #, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr ""
+msgstr "מוריד נתונים מ {name} ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
-msgstr ""
+msgstr "העפתי {num} תחנות\n"
 
 msgid "Made >999 new friends\n"
-msgstr ""
+msgstr "הכרתי >999 חברים חדשים\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
-msgstr ""
+msgstr "הכרתי {num} חברים חדשים\n"
 
 #, python-brace-format
 msgid "Got {num} handshakes\n"
-msgstr ""
+msgstr "השגתי {num} לחיצות ידיים\n"
 
 msgid "Met 1 peer"
-msgstr ""
+msgstr "פגשתי שותף 1 "
 
 #, python-brace-format
 msgid "Met {num} peers"
-msgstr ""
+msgstr "פגשתי {num} שותפים"
 
 #, python-brace-format
 msgid ""
 "I've been pwning for {duration} and kicked {deauthed} clients! I've also met "
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
-msgstr ""
+msgstr "אני שלטתי במשך {duration} והצלחתי להעיף {deauthed} משתמשים! בדרך גם פגשתי "
+"{associated} חברים חדשים ואכלתי {handshakes} לחיצות ידיים #pwnagotchi "
+"#pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"
-msgstr ""
+msgstr "שעות"
 
 msgid "minutes"
-msgstr ""
+msgstr "דקות"
 
 msgid "seconds"
-msgstr ""
+msgstr "שניות"
 
 msgid "hour"
-msgstr ""
+msgstr "שעה"
 
 msgid "minute"
-msgstr ""
+msgstr "דקה"
 
 msgid "second"
-msgstr ""
+msgstr "שניה"
