@@ -184,7 +184,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
             for ap in s['wifi']['aps']:
                 if ap['encryption'] == '' or ap['encryption'] == 'OPEN':
                     continue
-                elif ap['hostname'] in whitelist or ap['mac'].lower() in whitelist:
+                elif ap['hostname'] in whitelist or ap['mac'][:13].lower() in whitelist:
                     continue
                 elif ap['hostname'] not in whitelist \
                         and ap['mac'].lower() not in whitelist \
