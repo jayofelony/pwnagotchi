@@ -32,12 +32,8 @@
         - apt-daily-upgrade.timer
         - apt-daily.service
         - apt-daily.timer
-        - avahi-daemon.service
-        - avahi-daemon.socket
         - bluetooth.service
         - ifup@wlan0.service
-        - triggerhappy.service
-        - wpa_supplicant.service
     packages:
       caplets:
         source: "https://github.com/jayofelony/caplets.git"
