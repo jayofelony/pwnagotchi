@@ -189,13 +189,6 @@
         content: |
           pi:$6$3jNr0GA9KIyt4hmM$efeVIopdMQ8DGgEPCWWlbx3mJJNAYci1lEXGdlky0xPyjqwKNbwTL5SrCcpb4144C4IvzWjn7Iv.QjqmU7iyT/
 
-    - name: change root filesystem
-      replace:
-        dest: /boot/firmware/cmdline.txt
-        backup: no
-        regexp: "rootfstype=ext4"
-        replace: "rootfstype=f2fs"
-
     - name: enable ssh on boot
       file:
         path: /boot/firmware/ssh
