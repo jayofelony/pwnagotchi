@@ -23,7 +23,6 @@
     services:
       enable:
         - bettercap.service
-        - dphys-swapfile.service
         - fstrim.timer
         - pwnagotchi.service
         - pwngrid-peer.service
@@ -61,6 +60,7 @@
           - libpcap0.8-dbg
         remove:
           - avahi-daemon
+          - dhpys-swapfile
           - nfs-common
           - triggerhappy
           - wpasupplicant
@@ -161,16 +161,68 @@
           - wl
           - xxd
           - zlib1g-dev
+          - zram-tools
   environment:
     ARCHFLAGS: "-arch aarch64"
     QEMU_UNAME: "{{ kernel.full }}"
 
   tasks:
+    # First we install and remove unnecessary packages
+    - name: install packages
+      apt:
+        name: "{{ packages.apt.install }}"
+        state: present
+        update_cache: yes
+        install_recommends: false
+
+    - name: remove unnecessary apt packages
+      apt:
+        name: "{{ packages.apt.remove }}"
+        state: absent
+        purge: yes
+      register: removed
+
+    # Now we set up /boot/firmware
     - name: Create pi user
       copy:
         dest: /boot/firmware/userconf
         content: |
           pi:$6$3jNr0GA9KIyt4hmM$efeVIopdMQ8DGgEPCWWlbx3mJJNAYci1lEXGdlky0xPyjqwKNbwTL5SrCcpb4144C4IvzWjn7Iv.QjqmU7iyT/
+
+    - name: change root filesystem
+      replace:
+        dest: /boot/firmware/cmdline.txt
+        backup: no
+        regexp: "rootfstype=ext4"
+        replace: "rootfstype=f2fs"
+
+    - name: enable ssh on boot
+      file:
+        path: /boot/firmware/ssh
+        state: touch
+
+    - name: adjust /boot/firmware/config.txt
+      lineinfile:
+        dest: /boot/firmware/config.txt
+        insertafter: EOF
+        line: '{{ item }}'
+      with_items: "{{ system.boot_options }}"
+
+    - name: change root partition
+      replace:
+        dest: /boot/firmware/cmdline.txt
+        backup: no
+        regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
+        replace: "root=/dev/mmcblk0p2"
+
+    - name: configure /boot/firmware/cmdline.txt
+      lineinfile:
+        path: /boot/firmware/cmdline.txt
+        backrefs: True
+        state: present
+        backup: no
+        regexp: '(.*)$'
+        line: '\1 modules-load=dwc2,g_ether'
 
     - name: change hostname
       lineinfile:
@@ -189,25 +241,13 @@
         state: present
       when: hostname.changed
 
+    # Now we disable sap and a2dp, we don't use them on rpi
     - name: disable sap plugin for bluetooth.service
       lineinfile:
         dest: /lib/systemd/system/bluetooth.service
         regexp: '^ExecStart=/usr/libexec/bluetooth/bluetoothd$'
         line: 'ExecStart=/usr/libexec/bluetooth/bluetoothd --noplugin=sap,a2dp'
         state: present
-
-    - name: configure dphys-swapfile
-      lineinfile:
-        path: /etc/dphys-swapfile
-        regexp: "^CONF_SWAPSIZE=.*$"
-        line: "CONF_SWAPSIZE=2048"
-
-    - name: install packages
-      apt:
-        name: "{{ packages.apt.install }}"
-        state: present
-        update_cache: yes
-        install_recommends: false
 
     ###########################################
     #
@@ -477,41 +517,6 @@
         state: absent
         path: /etc/update-motd.d/10-uname
 
-    - name: enable ssh on boot
-      file:
-        path: /boot/firmware/ssh
-        state: touch
-
-    - name: adjust /boot/config.txt
-      lineinfile:
-        dest: /boot/firmware/config.txt
-        insertafter: EOF
-        line: '{{ item }}'
-      with_items: "{{ system.boot_options }}"
-
-    - name: adjust /etc/modules
-      lineinfile:
-        dest: /etc/modules
-        insertafter: EOF
-        line: '{{ item }}'
-      with_items: "{{ system.modules }}"
-
-    - name: change root partition
-      replace:
-        dest: /boot/firmware/cmdline.txt
-        backup: no
-        regexp: "root=PARTUUID=[a-zA-Z0-9\\-]+"
-        replace: "root=/dev/mmcblk0p2"
-
-    - name: configure /boot/cmdline.txt
-      lineinfile:
-        path: /boot/cmdline.txt
-        backrefs: True
-        state: present
-        backup: no
-        regexp: '(.*)$'
-        line: '\1 modules-load=dwc2,g_ether'
-
     - name: Add pwnlog alias
       lineinfile:
         dest: /home/pi/.bashrc
@@ -562,13 +567,6 @@
         owner: pi
         group: pi
         recurse: true
-
-    - name: remove unnecessary apt packages
-      apt:
-        name: "{{ packages.apt.remove }}"
-        state: absent
-        purge: yes
-      register: removed
 
     - name: clean apt cache
       apt:

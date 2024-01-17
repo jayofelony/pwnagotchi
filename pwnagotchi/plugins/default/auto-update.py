@@ -212,7 +212,7 @@ class AutoUpdate(plugins.Plugin):
                             if install(display, update):
                                 num_installed += 1
                     else:
-                        prev_status = '%d new update%c available!' % (num_updates, 's' if num_updates > 1 else '')
+                        prev_status = '%d new update%s available!' % (num_updates, 's' if num_updates > 1 else '')
 
                 logging.info("[update] done")
 

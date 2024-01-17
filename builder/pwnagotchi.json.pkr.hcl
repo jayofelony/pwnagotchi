@@ -45,7 +45,7 @@ source "arm" "rpi64-pwnagotchi" {
     name         = "root"
     type         = "83"
     start_sector = "532480"
-    filesystem   = "ext4"
+    filesystem   = "f2fs"
     size         = "0"
     mountpoint   = "/"
   }
