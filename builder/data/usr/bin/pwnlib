@@ -39,8 +39,10 @@ reload_brcm() {
 start_monitor_interface() {
   rfkill unblock all
   ifconfig wlan0 up
+  sleep 3
   iw dev wlan0 set power_save off
   iw phy "$(iw phy | head -1 | cut -d" " -f2)" interface add wlan0mon type monitor
+  sleep 2
   rfkill unblock all
   ifconfig wlan0 down
   ifconfig wlan0mon up
@@ -54,7 +56,7 @@ stop_monitor_interface() {
   ifconfig wlan0 up
 }
 
-# returns 0 if the specificed network interface is up
+# returns 0 if the specified network interface is up
 is_interface_up() {
   if grep -qi 'up' /sys/class/net/"$1"/operstate; then
     return 0
