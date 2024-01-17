@@ -184,13 +184,15 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
             for ap in s['wifi']['aps']:
                 if ap['encryption'] == '' or ap['encryption'] == 'OPEN':
                     continue
+                elif ap['hostname'] in whitelist or ap['mac'].lower() in whitelist:
+                    continue
                 elif ap['hostname'] not in whitelist \
                         and ap['mac'].lower() not in whitelist \
                         and ap['mac'][:8].lower() not in whitelist:
                     if self._filter_included(ap):
                         aps.append(ap)
         except Exception as e:
-            logging.exception("Error while getting acces points (%s)", e)
+            logging.exception("Error while getting access points (%s)", e)
 
         aps.sort(key=lambda ap: ap['channel'])
         return self.set_access_points(aps)
