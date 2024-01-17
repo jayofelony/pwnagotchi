@@ -73,7 +73,6 @@
           - build-essential
           - curl
           - dkms
-          - dphys-swapfile
           - fbi
           - flex
           - fonts-dejavu
