@@ -2,10 +2,11 @@ from . import SH1106
 from . import config
 
 # Display resolution
-EPD_WIDTH       = 64
-EPD_HEIGHT      = 128
+EPD_WIDTH = 64
+EPD_HEIGHT = 128
 
 disp = SH1106.SH1106()
+
 
 class EPD(object):
 

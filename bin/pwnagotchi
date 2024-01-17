@@ -176,8 +176,12 @@ def pwnagotchi_cli():
                     os.system("rm /root/.auto-update && systemctl restart pwnagotchi")
                 os.system("systemctl restart pwnagotchi")
                 print("Okay, give me a couple minutes. Just watch pwnlog while you wait.")
-            print("Okay, guess not!")
-        print("You are currently on the latest release, v%s." % pwnagotchi.__version__)
+            elif user_input.lower() in ('n', 'no'):
+                print("Okay, guess not!")
+            else:
+                print("Invalid input.")
+        else:
+            print("You are currently on the latest release, v%s." % pwnagotchi.__version__)
         sys.exit(0)
 
     config = utils.load_config(args)
