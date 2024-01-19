@@ -348,6 +348,12 @@ def load_config(args):
     elif config['ui']['display']['type'] in 'waveshare2in66':
         config['ui']['display']['type'] = 'waveshare2in66'
 
+    elif config['ui']['display']['type'] in 'waveshare2in66b':
+        config['ui']['display']['type'] = 'waveshare2in66b'
+
+    elif config['ui']['display']['type'] in 'waveshare2in66g':
+        config['ui']['display']['type'] = 'waveshare2in66g'
+
     elif config['ui']['display']['type'] in 'waveshare3in0g':
         config['ui']['display']['type'] = 'waveshare3in0g'
 

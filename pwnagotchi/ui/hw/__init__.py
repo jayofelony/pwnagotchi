@@ -36,6 +36,8 @@ from pwnagotchi.ui.hw.waveshare2in9d import Waveshare2in9d
 from pwnagotchi.ui.hw.waveshare2in13b_V3 import Waveshare2in13bV3
 from pwnagotchi.ui.hw.waveshare2in36g import Waveshare2in36g
 from pwnagotchi.ui.hw.waveshare2in66 import Waveshare2in66
+from pwnagotchi.ui.hw.waveshare2in66b import Waveshare2in66b
+from pwnagotchi.ui.hw.waveshare2in66g import Waveshare2in66g
 from pwnagotchi.ui.hw.waveshare3in0g import Waveshare3in0g
 from pwnagotchi.ui.hw.waveshare3in7 import Waveshare3in7
 from pwnagotchi.ui.hw.waveshare3in52 import Waveshare3in52
@@ -172,14 +174,20 @@ def display_for(config):
     elif config['ui']['display']['type'] == 'waveshare2in13b_v3':
         return Waveshare2in13bV3
 
-    elif config['ui']['display']['type'] == 'waveshare2in23g':
-        return Waveshare2in23g
+    elif config['ui']['display']['type'] == 'waveshare2in13g':
+        return Waveshare2in13g
 
     elif config['ui']['display']['type'] == 'waveshare2in36g':
         return Waveshare2in36g
 
     elif config['ui']['display']['type'] == 'waveshare2in66':
         return Waveshare2in66
+
+    elif config['ui']['display']['type'] == 'waveshare2in66b':
+        return Waveshare2in66b
+
+    elif config['ui']['display']['type'] == 'waveshare2in66g':
+        return Waveshare2in66g
 
     elif config['ui']['display']['type'] == 'waveshare3in0g':
         return Waveshare3in0g
