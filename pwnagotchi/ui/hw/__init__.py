@@ -16,6 +16,7 @@ from pwnagotchi.ui.hw.waveshare1in44lcd import Waveshare144lcd
 from pwnagotchi.ui.hw.waveshare1in54b import Waveshare154inchb
 from pwnagotchi.ui.hw.waveshare2in13bc import Waveshare213bc
 from pwnagotchi.ui.hw.waveshare2in13d import Waveshare213d
+from pwnagotchi.ui.hw.waveshare2in13g import Waveshare2in13g
 from pwnagotchi.ui.hw.waveshare2in13b_V4 import Waveshare213bV4
 from pwnagotchi.ui.hw.waveshare3in5lcd import Waveshare35lcd
 from pwnagotchi.ui.hw.spotpear24in import Spotpear24inch
