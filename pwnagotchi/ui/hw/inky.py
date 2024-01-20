@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class Inky(DisplayImpl):
     def __init__(self, config):
         super(Inky, self).__init__(config, 'inky')
-        self._display = None
 
     def layout(self):
         fonts.setup(10, 8, 10, 28, 25, 9)

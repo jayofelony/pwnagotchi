@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class WaveshareV1(DisplayImpl):
     def __init__(self, config):
         super(WaveshareV1, self).__init__(config, 'waveshare_1')
-        self._display = None
 
     def layout(self):
         if self.config['color'] == 'black':

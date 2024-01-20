@@ -8,7 +8,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class Papirus(DisplayImpl):
     def __init__(self, config):
         super(Papirus, self).__init__(config, 'papirus')
-        self._display = None
 
     def layout(self):
         fonts.setup(10, 8, 10, 23, 25, 9)

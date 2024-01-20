@@ -3,6 +3,7 @@ import pwnagotchi.ui.fonts as fonts
 
 class DisplayImpl(object):
     def __init__(self, config, name):
+        self._display = None
         if fonts.Medium is None:
             fonts.init(config)
         self.name = name

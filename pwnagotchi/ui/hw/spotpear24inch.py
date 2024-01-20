@@ -3,12 +3,12 @@ import logging
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
 
-import os,time
+import time
+
 
 class Spotpear24inch(DisplayImpl):
     def __init__(self, config):
         super(Spotpear24inch, self).__init__(config, 'spotpear24inch')
-        self._display = None
 
     def layout(self):
         fonts.setup(12, 10, 12, 70, 25, 9)

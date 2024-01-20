@@ -9,7 +9,6 @@ import os, time
 class Waveshare35lcd(DisplayImpl):
     def __init__(self, config):
         super(Waveshare35lcd, self).__init__(config, 'waveshare35lcd')
-        self._display = None
 
     def layout(self):
         fonts.setup(12, 10, 12, 70, 25, 9)

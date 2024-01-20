@@ -8,7 +8,6 @@ from PIL import Image
 class Waveshare2in13bV3(DisplayImpl):
     def __init__(self, config):
         super(Waveshare2in13bV3, self).__init__(config, 'waveshare2in13b_v3')
-        self._display = None
 
     def layout(self):
         if self.config['color'] == 'black':

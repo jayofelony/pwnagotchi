@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class OledHat(DisplayImpl):
     def __init__(self, config):
         super(OledHat, self).__init__(config, 'oledhat')
-        self._display = None
 
     def layout(self):
         fonts.setup(8, 8, 8, 10, 10, 8)

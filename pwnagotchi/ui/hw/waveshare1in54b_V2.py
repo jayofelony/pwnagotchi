@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class Waveshare154bV2(DisplayImpl):
     def __init__(self, config):
         super(Waveshare154bV2, self).__init__(config, 'waveshare1in54b_v2')
-        self._display = None
 
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)

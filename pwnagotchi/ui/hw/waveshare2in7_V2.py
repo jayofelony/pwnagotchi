@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class Waveshare27inchV2(DisplayImpl):
     def __init__(self, config):
         super(Waveshare27inchV2, self).__init__(config, 'waveshare2in7_v2')
-        self._display = None
 
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)
@@ -42,7 +41,7 @@ class Waveshare27inchV2(DisplayImpl):
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
-        self._display.display_Partial(buf,0,0,176,264)
+        self._display.display_Partial(buf, 0, 0, 176, 264)
 
     def clear(self):
         # This line also removes the 0xFF

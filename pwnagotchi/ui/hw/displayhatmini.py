@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class DisplayHatMini(DisplayImpl):
     def __init__(self, config):
         super(DisplayHatMini, self).__init__(config, 'displayhatmini')
-        self._display = None
 
     def layout(self):
         fonts.setup(12, 10, 12, 70, 25, 9)

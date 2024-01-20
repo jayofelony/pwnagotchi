@@ -166,20 +166,21 @@ class EPD:
 
     def getbuffer(self, image):
         # Create a pallette with the 4 colors supported by the panel
+        global image_temp
         pal_image = Image.new("P", (1, 1))
         pal_image.putpalette((0, 0, 0, 255, 255, 255, 255, 255, 0, 255, 0, 0) + (0, 0, 0) * 252)
 
         # Check if we need to rotate the image
         imwidth, imheight = image.size
-        if (imwidth == self.width and imheight == self.height):
+        if imwidth == self.width and imheight == self.height:
             image_temp = image
-        elif (imwidth == self.height and imheight == self.width):
+        elif imwidth == self.height and imheight == self.width:
             image_temp = image.rotate(90, expand=True)
         else:
             logger.warning(
                 "Invalid image dimensions: %d x %d, expected %d x %d" % (imwidth, imheight, self.width, self.height))
 
-        # Convert the soruce image to the 4 colors, dithering if needed
+        # Convert the source image to the 4 colors, dithering if needed
         image_4color = image_temp.convert("RGB").quantize(palette=pal_image)
         buf_4color = bytearray(image_4color.tobytes('raw'))
 

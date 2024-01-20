@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class Waveshare144lcd(DisplayImpl):
     def __init__(self, config):
         super(Waveshare144lcd, self).__init__(config, 'waveshare144lcd')
-        self._display = None
 
     def layout(self):
         fonts.setup(10, 8, 10, 18, 25, 9)
@@ -42,5 +41,4 @@ class Waveshare144lcd(DisplayImpl):
         self._display.display(canvas)
 
     def clear(self):
-        pass
-        #self._display.clear()
+        self._display.clear()

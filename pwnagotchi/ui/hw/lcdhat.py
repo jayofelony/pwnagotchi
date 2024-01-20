@@ -7,7 +7,6 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class LcdHat(DisplayImpl):
     def __init__(self, config):
         super(LcdHat, self).__init__(config, 'lcdhat')
-        self._display = None
 
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)
