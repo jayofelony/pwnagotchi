@@ -11,7 +11,7 @@ Select ‘Credentials’ from the left menu, click ‘Create Credentials’, sel
 
 Now, the product name and consent screen need to be set -> click ‘Configure consent screen’ and follow the instructions. Once finished:
 
-Select ‘Application type’ to be Desktop application.
+Select ‘Application type’ to be Web application.
 
 Enter an appropriate name.
 
@@ -19,7 +19,7 @@ Input http://localhost/ for ‘Authorized redirect URIs’.
 
 Select the correct oauth scope:
 
-    - drive
+    - drive.file
     - drive.install
 
 Click ‘Create’.
