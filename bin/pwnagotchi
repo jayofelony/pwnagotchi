@@ -157,7 +157,7 @@ def pwnagotchi_cli():
         sys.exit(0)
 
     if args.donate:
-        print("Donations can made @ https://www.patreon.com/pwnagotchi_torch \n\nBut only if you really want to!")
+        print("Donations can made @ https://github.com/sponsors/jayofelony \n\nBut only if you really want to!")
         sys.exit(0)
 
     if args.check_update:
