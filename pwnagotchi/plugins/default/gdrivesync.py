@@ -14,19 +14,15 @@ import zipfile
 
 class GdriveSync(plugins.Plugin):
     __author__ = '@jayofelony'
-    __version__ = '1.0'
+    __version__ = '1.1'
     __license__ = 'GPL3'
     __description__ = 'A plugin to backup various pwnagotchi files and folders to Google Drive. Once every hour from loading plugin.'
-    __dependencies__ = {
-        'pip': ['pydrive2']
-    }
 
     def __init__(self):
         self.options = dict()
         self.lock = Lock()
         self.internet = False
         self.ready = False
-        self.drive = None
         self.status = StatusFile('/root/.gdrive-backup')
         self.backup = True
         self.backupfiles = [
@@ -43,7 +39,6 @@ class GdriveSync(plugins.Plugin):
             Called when the plugin is loaded
         """
         # client_secrets.json needs to be not empty
-        display = agent.view()
         if os.stat("/root/client_secrets.json").st_size == 0:
             logging.error("[gDriveSync] /root/client_secrets.json is empty. Please RTFM!")
             return
@@ -78,25 +73,24 @@ class GdriveSync(plugins.Plugin):
                     # logging.warning(f"[gDriveSync] No files found in the folder with ID {root_file_list} and {pwnagotchi_file_list}")
                     if self.options['backupfiles'] is not None:
                         self.backupfiles = self.backupfiles + self.options['backupfiles']
-                    self.backup_files(self.backupfiles, '/backup')
+                    self.backup_files(self.backupfiles, '/home/pi/backup')
 
                     # Create a zip archive of the /backup folder
                     zip_file_path = os.path.join('/home/pi', 'backup.zip')
                     with zipfile.ZipFile(zip_file_path, 'w') as zip_ref:
-                        for root, dirs, files in os.walk('/backup'):
+                        for root, dirs, files in os.walk('/home/pi/backup'):
                             for file in files:
                                 file_path = os.path.join(root, file)
-                                arcname = os.path.relpath(file_path, '/backup')
+                                arcname = os.path.relpath(file_path, '/home/pi/backup')
                                 zip_ref.write(file_path, arcname=arcname)
 
                     # Upload the zip archive to Google Drive
                     self.upload_to_gdrive(zip_file_path, self.get_folder_id_by_name(self.drive, self.options['backup_folder']))
-                    display.on_uploading("Google Drive")
                     self.backup = True
                     self.status.update()
 
                 # Specify the local backup path
-                local_backup_path = '/'
+                local_backup_path = '/home/pi/'
 
                 # Download the zip archive from Google Drive
                 zip_file_id = self.get_latest_backup_file_id(self.options['backup_folder'])
@@ -104,7 +98,6 @@ class GdriveSync(plugins.Plugin):
                     zip_file = self.drive.CreateFile({'id': zip_file_id})
                     zip_file.GetContentFile(os.path.join(local_backup_path, 'backup.zip'))
 
-                    display.on_downloading("Google Drive")
                     logging.info("[gDriveSync] Downloaded backup.zip from Google Drive")
 
                     # Extract the zip archive to the root directory
@@ -112,9 +105,12 @@ class GdriveSync(plugins.Plugin):
                         zip_ref.extractall('/')
 
                     self.status.update()
-                    os.remove("/backup")
-                    # Reboot so we can start opwngrid with the backup id
-                    pwnagotchi.reboot()
+                    shutil.rmtree("/home/pi/backup")
+                    os.remove("/home/pi/backup.zip")
+                    self.ready = True
+                    logging.info("[gdrivesync] loaded")
+                    # Restart so we can start opwngrid with the backup id
+                    pwnagotchi.restart("AUTO")
 
                 # all set, gdriveSync is ready to run
             self.ready = True
