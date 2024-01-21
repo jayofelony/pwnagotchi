@@ -14,7 +14,7 @@ import zipfile
 
 class GdriveSync(plugins.Plugin):
     __author__ = '@jayofelony'
-    __version__ = '1.1'
+    __version__ = '1.2'
     __license__ = 'GPL3'
     __description__ = 'A plugin to backup various pwnagotchi files and folders to Google Drive. Once every hour from loading plugin.'
 
@@ -34,7 +34,7 @@ class GdriveSync(plugins.Plugin):
             '/etc/pwnagotchi'
         ]
 
-    def on_loaded(self, agent):
+    def on_loaded(self):
         """
             Called when the plugin is loaded
         """
@@ -182,15 +182,15 @@ class GdriveSync(plugins.Plugin):
             logging.info("[gdrivesync] new handshake captured, backing up to gdrive")
             if self.options['backupfiles'] is not None:
                 self.backupfiles = self.backupfiles + self.options['backupfiles']
-            self.backup_files(self.backupfiles, '/backup')
+            self.backup_files(self.backupfiles, '/home/pi/backup')
 
             # Create a zip archive of the /backup folder
             zip_file_path = os.path.join('/home/pi', 'backup.zip')
             with zipfile.ZipFile(zip_file_path, 'w') as zip_ref:
-                for root, dirs, files in os.walk('/backup'):
+                for root, dirs, files in os.walk('/home/pi/backup'):
                     for file in files:
                         file_path = os.path.join(root, file)
-                        arcname = os.path.relpath(file_path, '/backup')
+                        arcname = os.path.relpath(file_path, '/home/pi/backup')
                         zip_ref.write(file_path, arcname=arcname)
 
             # Upload the zip archive to Google Drive
@@ -199,7 +199,7 @@ class GdriveSync(plugins.Plugin):
 
             # Cleanup the local zip file
             os.remove(zip_file_path)
-            os.remove("/backup")
+            shutil.rmtree("/home/pi/backup")
             self.status.update()
             display = agent.view()
             display.update(force=True, new_data={'Backing up to gdrive ...'})
