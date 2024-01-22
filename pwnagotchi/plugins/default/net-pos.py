@@ -24,6 +24,7 @@ class NetPos(plugins.Plugin):
         self.skip = list()
         self.ready = False
         self.lock = threading.Lock()
+        self.options = dict()
 
     def on_loaded(self):
         if 'api_key' not in self.options or ('api_key' in self.options and not self.options['api_key']):
@@ -115,6 +116,7 @@ class NetPos(plugins.Plugin):
                 json.dump(netpos, net_pos_file)
         except OSError as os_e:
             logging.error("NET-POS: %s", os_e)
+
 
     def _get_netpos(self, agent):
         aps = agent.get_access_points()
