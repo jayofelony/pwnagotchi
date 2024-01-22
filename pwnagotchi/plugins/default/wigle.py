@@ -3,6 +3,7 @@ import logging
 import json
 import csv
 import requests
+import pwnagotchi
 
 from io import StringIO
 from datetime import datetime
@@ -24,7 +25,11 @@ def _extract_gps_data(path):
             with open(path, 'r') as json_file:
                 tempJson = json.load(json_file)
                 d = datetime.utcfromtimestamp(int(tempJson["ts"]))
-                return {"Latitude": tempJson["location"]["lat"], "Longitude": tempJson["location"]["lng"], "Altitude": 10, "Updated": d.strftime('%Y-%m-%dT%H:%M:%S.%f')}
+                return {"Latitude": tempJson["location"]["lat"],
+                        "Longitude": tempJson["location"]["lng"],
+                        "Altitude": 10,
+                        "Accuracy": tempJson["accuracy"],
+                        "Updated": d.strftime('%Y-%m-%dT%H:%M:%S.%f')}
         else:
             with open(path, 'r') as json_file:
                 return json.load(json_file)
@@ -38,7 +43,7 @@ def _format_auth(data):
     out = ""
     for auth in data:
         out = f"{out}[{auth}]"
-    return out
+    return [f"{auth}" for auth in data]
 
 
 def _transform_wigle_entry(gps_data, pcap_data, plugin_version):
@@ -47,10 +52,10 @@ def _transform_wigle_entry(gps_data, pcap_data, plugin_version):
     """
     dummy = StringIO()
     # write kismet header
-    dummy.write(
-        "WigleWifi-1.4,appRelease={},model=pwnagotchi,release={},device=pwnagotchi,display=kismet,board=kismet,brand=pwnagotchi\n".format(plugin_version, __pwnagotchi_version__))
-    dummy.write(
-        "MAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,Type")
+    dummy.write(f"WigleWifi-1.4,appRelease={plugin_version},model=pwnagotchi,release={__pwnagotchi_version__},"
+                f"device={pwnagotchi.name()},display=kismet,board=RaspberryPi,brand=pwnagotchi\n")
+    dummy.write("MAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,"
+                "CurrentLongitude,AltitudeMeters,AccuracyMeters,Type\n")
 
     writer = csv.writer(dummy, delimiter=",", quoting=csv.QUOTE_NONE, escapechar="\\")
     writer.writerow([
@@ -64,7 +69,7 @@ def _transform_wigle_entry(gps_data, pcap_data, plugin_version):
         gps_data['Latitude'],
         gps_data['Longitude'],
         gps_data['Altitude'],
-        0,  # accuracy?
+        gps_data['Accuracy'],
         'WIFI'])
     return dummy.getvalue()
 
@@ -84,7 +89,7 @@ def _send_to_wigle(lines, api_key, donate=True, timeout=30):
     headers = {'Authorization': f"Basic {api_key}",
                'Accept': 'application/json'}
     data = {'donate': 'on' if donate else 'false'}
-    payload = {'file': dummy, 'type': 'text/csv'}
+    payload = {'file': (pwnagotchi.name()+".csv", dummy), 'type': 'multipart/form-data'}
     try:
         res = requests.post('https://api.wigle.net/api/v2/file/upload',
                             data=data,
@@ -99,8 +104,8 @@ def _send_to_wigle(lines, api_key, donate=True, timeout=30):
 
 
 class Wigle(plugins.Plugin):
-    __author__ = '33197631+dadav@users.noreply.github.com'
-    __version__ = '2.0.0'
+    __author__ = 'Dadav and fixed by Jayofelony'
+    __version__ = '3.0.0'
     __license__ = 'GPL3'
     __description__ = 'This plugin automatically uploads collected wifis to wigle.net'
 
@@ -109,6 +114,7 @@ class Wigle(plugins.Plugin):
         self.report = StatusFile('/root/.wigle_uploads', data_format='json')
         self.skip = list()
         self.lock = Lock()
+        self.options = dict()
 
     def on_loaded(self):
         if 'api_key' not in self.options or ('api_key' in self.options and self.options['api_key'] is None):
