@@ -58,8 +58,9 @@ class Grid(plugins.Plugin):
         self.total_messages = 0
         self.lock = Lock()
 
-    def is_excluded(self, what):
-        for skip in self.options['exclude']:
+    def is_excluded(self, what, agent):
+        config = agent.config()
+        for skip in config['main']['whitelist']:
             skip = skip.lower()
             what = what.lower()
             if skip in what or skip.replace(':', '') in what:
@@ -87,6 +88,7 @@ class Grid(plugins.Plugin):
 
     def check_handshakes(self, agent):
         logging.debug("checking pcaps")
+        config = agent.config()
 
         pcap_files = glob.glob(os.path.join(agent.config()['bettercap']['handshakes'], "*.pcap"))
         num_networks = len(pcap_files)
@@ -98,19 +100,19 @@ class Grid(plugins.Plugin):
             if self.options['report']:
                 logging.info("grid: %d new networks to report" % num_new)
                 logging.debug("self.options: %s" % self.options)
-                logging.debug("  exclude: %s" % self.options['exclude'])
+                logging.debug("  exclude: %s" % config['main']['whitelist'])
 
                 for pcap_file in pcap_files:
                     net_id = os.path.basename(pcap_file).replace('.pcap', '')
                     if net_id not in reported:
-                        if self.is_excluded(net_id):
+                        if self.is_excluded(net_id, agent):
                             logging.debug("skipping %s due to exclusion filter" % pcap_file)
                             self.set_reported(reported, net_id)
                             continue
 
                         essid, bssid = parse_pcap(pcap_file)
                         if bssid:
-                            if self.is_excluded(essid) or self.is_excluded(bssid):
+                            if self.is_excluded(essid, agent) or self.is_excluded(bssid, agent):
                                 logging.debug("not reporting %s due to exclusion filter" % pcap_file)
                                 self.set_reported(reported, net_id)
                             else:

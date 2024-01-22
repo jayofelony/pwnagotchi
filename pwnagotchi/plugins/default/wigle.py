@@ -121,9 +121,6 @@ class Wigle(plugins.Plugin):
             logging.debug("WIGLE: api_key isn't set. Can't upload to wigle.net")
             return
 
-        if not 'whitelist' in self.options:
-            self.options['whitelist'] = list()
-
         if not 'donate' in self.options:
             self.options['donate'] = True
 
@@ -148,7 +145,7 @@ class Wigle(plugins.Plugin):
                          for filename in all_files
                          if filename.endswith('.gps.json') or filename.endswith('.paw-gps.json') or filename.endswith('.geo.json')]
 
-        all_gps_files = remove_whitelisted(all_gps_files, self.options['whitelist'])
+        all_gps_files = remove_whitelisted(all_gps_files, config['main']['whitelist'])
         new_gps_files = set(all_gps_files) - set(reported) - set(self.skip)
         if new_gps_files:
             logging.info("WIGLE: Internet connectivity detected. Uploading new handshakes to wigle.net")

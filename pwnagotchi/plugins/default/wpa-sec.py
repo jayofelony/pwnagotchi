@@ -76,9 +76,6 @@ class WpaSec(plugins.Plugin):
             logging.error("WPA_SEC: API-URL isn't set. Can't upload, no endpoint configured.")
             return
 
-        if 'whitelist' not in self.options:
-            self.options['whitelist'] = list()
-
         self.ready = True
         logging.info("WPA_SEC: plugin loaded")
 
@@ -103,7 +100,7 @@ class WpaSec(plugins.Plugin):
             handshake_filenames = os.listdir(handshake_dir)
             handshake_paths = [os.path.join(handshake_dir, filename) for filename in handshake_filenames if
                                filename.endswith('.pcap')]
-            handshake_paths = remove_whitelisted(handshake_paths, self.options['whitelist'])
+            handshake_paths = remove_whitelisted(handshake_paths, config['main']['whitelist'])
             handshake_new = set(handshake_paths) - set(reported) - set(self.skip)
 
             if handshake_new:

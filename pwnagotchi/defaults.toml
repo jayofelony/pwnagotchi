@@ -1,5 +1,11 @@
 main.name = "pwnagotchi"
 main.lang = "en"
+main.whitelist = [
+    "EXAMPLE_NETWORK",
+    "ANOTHER_EXAMPLE_NETWORK",
+    "fo:od:ba:be:fo:od",
+    "fo:od:ba"
+]
 main.confd = "/etc/pwnagotchi/conf.d/"
 main.custom_plugin_repos = [
     "https://github.com/jayofelony/pwnagotchi-torch-plugins/archive/master.zip",
@@ -55,9 +61,6 @@ main.plugins.gps.device = "/dev/ttyUSB0" # for GPSD: "localhost:2947"
 
 main.plugins.grid.enabled = true
 main.plugins.grid.report = true
-main.plugins.grid.exclude = [
-    "YourHomeNetworkHere"
-]
 
 main.plugins.logtail.enabled = false
 main.plugins.logtail.max-lines = 10000
@@ -73,7 +76,6 @@ main.plugins.onlinehashcrack.enabled = false
 main.plugins.onlinehashcrack.email = ""
 main.plugins.onlinehashcrack.dashboard = ""
 main.plugins.onlinehashcrack.single_files = false
-main.plugins.onlinehashcrack.whitelist = []
 
 main.plugins.paw-gps.enabled = false
 main.plugins.paw-gps.ip = "192.168.44.1:8080"
@@ -100,26 +102,19 @@ main.plugins.webgpsmap.enabled = false
 
 main.plugins.wigle.enabled = false
 main.plugins.wigle.api_key = ""
-main.plugins.wigle.whitelist = []
-main.plugins.wigle.donate = true
+main.plugins.wigle.donate = false
 
 main.plugins.wpa-sec.enabled = false
 main.plugins.wpa-sec.api_key = ""
 main.plugins.wpa-sec.api_url = "https://wpa-sec.stanev.org"
 main.plugins.wpa-sec.download_results = false
-main.plugins.wpa-sec.whitelist = []
 
 main.iface = "wlan0mon"
 main.mon_start_cmd = "/usr/bin/monstart"
 main.mon_stop_cmd = "/usr/bin/monstop"
 main.mon_max_blind_epochs = 50
 main.no_restart = false
-main.whitelist = [
-    "EXAMPLE_NETWORK",
-    "ANOTHER_EXAMPLE_NETWORK",
-    "fo:od:ba:be:fo:od",
-    "fo:od:ba"
-]
+
 main.filter = ""
 
 main.log.path = "/home/pi/logs/pwnagotchi.log"

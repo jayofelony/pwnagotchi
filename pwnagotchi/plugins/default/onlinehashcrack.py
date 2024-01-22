@@ -25,6 +25,7 @@ class OnlineHashCrack(plugins.Plugin):
             self.report = StatusFile('/root/.ohc_uploads', data_format='json')
         self.skip = list()
         self.lock = Lock()
+        self.options = dict()
 
     def on_loaded(self):
         """
@@ -34,12 +35,8 @@ class OnlineHashCrack(plugins.Plugin):
             logging.error("OHC: Email isn't set. Can't upload to onlinehashcrack.com")
             return
 
-        if 'whitelist' not in self.options:
-            self.options['whitelist'] = list()
-
         self.ready = True
         logging.info("OHC: OnlineHashCrack plugin loaded.")
-
 
     def _upload_to_ohc(self, path, timeout=30):
         """
@@ -78,7 +75,6 @@ class OnlineHashCrack(plugins.Plugin):
         except OSError as os_e:
             raise os_e
 
-
     def on_webhook(self, path, request):
         import requests
         from flask import redirect
@@ -86,7 +82,6 @@ class OnlineHashCrack(plugins.Plugin):
         s.get('https://www.onlinehashcrack.com/dashboard')
         r = s.post('https://www.onlinehashcrack.com/dashboard', data={'emailTasks': self.options['email'], 'submit': ''})
         return redirect(r.url, code=302)
-
 
     def on_internet_available(self, agent):
         """
@@ -105,7 +100,7 @@ class OnlineHashCrack(plugins.Plugin):
             handshake_paths = [os.path.join(handshake_dir, filename) for filename in handshake_filenames if
                                filename.endswith('.pcap')]
             # pull out whitelisted APs
-            handshake_paths = remove_whitelisted(handshake_paths, self.options['whitelist'])
+            handshake_paths = remove_whitelisted(handshake_paths, config['main']['whitelist'])
             handshake_new = set(handshake_paths) - set(reported) - set(self.skip)
             if handshake_new:
                 logging.info("OHC: Internet connectivity detected. Uploading new handshakes to onlinehashcrack.com")
