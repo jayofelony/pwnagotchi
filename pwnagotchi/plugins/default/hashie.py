@@ -99,18 +99,16 @@ class Hashie(plugins.Plugin):
         if os.path.isfile(fullpathNoExt + '.22000'):
             logging.debug('[Hashie] [+] EAPOL Success: {}.22000 created'.format(filename))
             return True
-        else:
-            return False
+        return False
 
-    def _writePMKID(self, fullpath, apJSON):
+    def _writePMKID(self, fullpath):
         fullpathNoExt = fullpath.split('.')[0]
         filename = fullpath.split('/')[-1:][0].split('.')[0]
         subprocess.run('hcxpcapngtool -o {}.16800 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
         if os.path.isfile(fullpathNoExt + '.16800'):
             logging.debug('[Hashie] [+] PMKID Success: {}.16800 created'.format(filename))
             return True
-        else:  # make a raw dump
-            return False
+        return False
 
     def _process_stale_pcaps(self, handshake_dir):
         handshakes_list = [os.path.join(handshake_dir, filename) for filename in os.listdir(handshake_dir) if filename.endswith('.pcap')]
