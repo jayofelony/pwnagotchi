@@ -87,7 +87,10 @@ setup(name='pwnagotchi',
       author_email='evilsocket@gmail.com',
       url='https://pwnagotchi.ai/',
       license='GPL',
-      install_requires=required,
+      install_requires=[
+          required,
+          "hcxtools"
+      ],
       cmdclass={
           "install": CustomInstall,
       },
