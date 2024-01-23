@@ -86,7 +86,7 @@ class Hashie(plugins.Plugin):
 
             if os.path.isfile(fullpathNoExt + '.16800'):
                 handshake_status.append('Already have {}.16800 (PMKID)'.format(name))
-            elif self._writePMKID(filename, access_point):
+            elif self._writePMKID(filename):
                 handshake_status.append('Created {}.16800 (PMKID) from pcap'.format(name))
 
             if handshake_status:
