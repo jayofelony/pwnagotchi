@@ -20,7 +20,7 @@ main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
 main.plugins.aircrackonly.enabled = true
 
-main.plugins.hashie.enabled = false
+main.plugins.hashie.enabled = true
 main.plugins.hashie.interval = 1
 
 main.plugins.auto-update.enabled = true
