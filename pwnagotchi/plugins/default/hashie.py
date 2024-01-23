@@ -124,7 +124,7 @@ class Hashie(plugins.Plugin):
                 else:
                     failed_jobs.append('22000: ' + pcapFileName)
             if not os.path.isfile(fullpathNoExt + '.16800'):  # if no 16800, try
-                if self._writePMKID(handshake, ""):
+                if self._writePMKID(handshake):
                     successful_jobs.append('16800: ' + pcapFileName)
                 else:
                     failed_jobs.append('16800: ' + pcapFileName)
