@@ -30,6 +30,13 @@ def install_file(source_filename, dest_filename):
 
 
 def install_system_files():
+    f = open("apt_packages.txt", "r")
+    for x in f:
+        if x == "":
+            continue
+        os.system(f"apt-get install {x}")
+    f.close()
+
     setup_path = os.path.dirname(__file__)
     data_path = os.path.join(setup_path, "builder/data")
 
