@@ -89,7 +89,6 @@ setup(name='pwnagotchi',
       license='GPL',
       install_requires=[
           required,
-          "hcxtools"
       ],
       cmdclass={
           "install": CustomInstall,
