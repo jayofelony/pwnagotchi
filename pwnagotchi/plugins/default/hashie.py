@@ -95,7 +95,7 @@ class Hashie(plugins.Plugin):
     def _writeEAPOL(self, fullpath):
         fullpathNoExt = fullpath.split('.')[0]
         filename = fullpath.split('/')[-1:][0].split('.')[0]
-        subprocess.run('hcxpcapngtool -o {}.22000 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
+        subprocess.getoutput('hcxpcapngtool -o {}.22000 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
         if os.path.isfile(fullpathNoExt + '.22000'):
             logging.debug('[Hashie] [+] EAPOL Success: {}.22000 created'.format(filename))
             return True
@@ -104,7 +104,7 @@ class Hashie(plugins.Plugin):
     def _writePMKID(self, fullpath):
         fullpathNoExt = fullpath.split('.')[0]
         filename = fullpath.split('/')[-1:][0].split('.')[0]
-        subprocess.run('hcxpcapngtool -o {}.16800 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
+        subprocess.getoutput('hcxpcapngtool -o {}.16800 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
         if os.path.isfile(fullpathNoExt + '.16800'):
             logging.debug('[Hashie] [+] PMKID Success: {}.16800 created'.format(filename))
             return True
