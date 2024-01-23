@@ -16,8 +16,8 @@ hcxpcapngtool needed, to install:
 
 
 class Hashie(plugins.Plugin):
-    __author__ = 'junohea.mail@gmail.com'
-    __version__ = '1.0.3'
+    __author__ = 'Jayofelony'
+    __version__ = '1.0.4'
     __license__ = 'GPL3'
     __description__ = '''
                         Attempt to automatically convert pcaps to a crackable format.
@@ -55,18 +55,23 @@ class Hashie(plugins.Plugin):
                         '''
 
     def __init__(self):
-        logging.info("[hashie] plugin loaded")
         self.lock = Lock()
         self.options = dict()
 
+    def on_loaded(self):
+        logging.info("[Hashie] Plugin loaded")
+
+    def on_unloaded(self):
+        logging.info("[Hashie] Plugin unloaded")
+
     # called when everything is ready and the main loop is about to start
-    def on_config_changed(self, config):
+    def on_ready(self, agent):
+        config = agent.config()
         handshake_dir = config['bettercap']['handshakes']
 
-        if 'interval' not in self.options or not (self.status.newer_then_hours(self.options['interval'])):
-            logging.info('[hashie] Starting batch conversion of pcap files')
-            with self.lock:
-                self._process_stale_pcaps(handshake_dir)
+        logging.info('[Hashie] Starting batch conversion of pcap files')
+        with self.lock:
+            self._process_stale_pcaps(handshake_dir)
 
     def on_handshake(self, agent, filename, access_point, client_station):
         with self.lock:
@@ -85,14 +90,14 @@ class Hashie(plugins.Plugin):
                 handshake_status.append('Created {}.16800 (PMKID) from pcap'.format(name))
 
             if handshake_status:
-                logging.info('[hashie] Good news:\n\t' + '\n\t'.join(handshake_status))
+                logging.info('[Hashie] Good news:\n\t' + '\n\t'.join(handshake_status))
 
     def _writeEAPOL(self, fullpath):
         fullpathNoExt = fullpath.split('.')[0]
         filename = fullpath.split('/')[-1:][0].split('.')[0]
-        result = subprocess.getoutput('hcxpcapngtool -o {}.22000 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
+        subprocess.run('hcxpcapngtool -o {}.22000 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
         if os.path.isfile(fullpathNoExt + '.22000'):
-            logging.debug('[hashie] [+] EAPOL Success: {}.22000 created'.format(filename))
+            logging.debug('[Hashie] [+] EAPOL Success: {}.22000 created'.format(filename))
             return True
         else:
             return False
@@ -100,71 +105,15 @@ class Hashie(plugins.Plugin):
     def _writePMKID(self, fullpath, apJSON):
         fullpathNoExt = fullpath.split('.')[0]
         filename = fullpath.split('/')[-1:][0].split('.')[0]
-        result = subprocess.getoutput('hcxpcapngtool -k {}.16800 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
+        subprocess.run('hcxpcapngtool -o {}.16800 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
         if os.path.isfile(fullpathNoExt + '.16800'):
-            logging.debug('[hashie] [+] PMKID Success: {}.16800 created'.format(filename))
+            logging.debug('[Hashie] [+] PMKID Success: {}.16800 created'.format(filename))
             return True
         else:  # make a raw dump
-            result = subprocess.getoutput(
-                'hcxpcapngtool -K {}.16800 {} >/dev/null 2>&1'.format(fullpathNoExt, fullpath))
-            if os.path.isfile(fullpathNoExt + '.16800'):
-                if self._repairPMKID(fullpath, apJSON) == False:
-                    logging.debug('[hashie] [-] PMKID Fail: {}.16800 could not be repaired'.format(filename))
-                    return False
-                else:
-                    logging.debug('[hashie] [+] PMKID Success: {}.16800 repaired'.format(filename))
-                    return True
-            else:
-                logging.debug(
-                    '[hashie] [-] Could not attempt repair of {} as no raw PMKID file was created'.format(filename))
-                return False
-
-    def _repairPMKID(self, fullpath, apJSON):
-        hashString = ""
-        clientString = []
-        fullpathNoExt = fullpath.split('.')[0]
-        filename = fullpath.split('/')[-1:][0].split('.')[0]
-        logging.debug('[hashie] Repairing {}'.format(filename))
-        with open(fullpathNoExt + '.16800', 'r') as tempFileA:
-            hashString = tempFileA.read()
-        if apJSON != "":
-            clientString.append('{}:{}'.format(apJSON['mac'].replace(':', ''), apJSON['hostname'].encode('hex')))
-        else:
-            # attempt to extract the AP's name via hcxpcapngtool
-            result = subprocess.getoutput('hcxpcapngtool -X /tmp/{} {} >/dev/null 2>&1'.format(filename, fullpath))
-            if os.path.isfile('/tmp/' + filename):
-                with open('/tmp/' + filename, 'r') as tempFileB:
-                    temp = tempFileB.read().splitlines()
-                    for line in temp:
-                        clientString.append(line.split(':')[0] + ':' + line.split(':')[1].strip('\n').encode().hex())
-                os.remove('/tmp/{}'.format(filename))
-            # attempt to extract the AP's name via tcpdump
-            tcpCatOut = subprocess.check_output(
-                "tcpdump -ennr " + fullpath + " \"(type mgt subtype beacon) || (type mgt subtype probe-resp) || (type mgt subtype reassoc-resp) || (type mgt subtype assoc-req)\" 2>/dev/null | sed -E 's/.*BSSID:([0-9a-fA-F:]{17}).*\\((.*)\\).*/\\1\t\\2/g'",
-                shell=True).decode('utf-8')
-            if ":" in tcpCatOut:
-                for i in tcpCatOut.split('\n'):
-                    if ":" in i:
-                        clientString.append(
-                            i.split('\t')[0].replace(':', '') + ':' + i.split('\t')[1].strip('\n').encode().hex())
-        if clientString:
-            for line in clientString:
-                if line.split(':')[0] == hashString.split(':')[1]:  # if the AP MAC pulled from the JSON or tcpdump output matches the AP MAC in the raw 16800 output
-                    hashString = hashString.strip('\n') + ':' + (line.split(':')[1])
-                    if (len(hashString.split(':')) == 4) and not (hashString.endswith(':')):
-                        with open(fullpath.split('.')[0] + '.16800', 'w') as tempFileC:
-                            logging.debug('[hashie] Repaired: {} ({})'.format(filename, hashString))
-                            tempFileC.write(hashString + '\n')
-                        return True
-                    else:
-                        logging.debug('[hashie] Discarded: {} {}'.format(line, hashString))
-        else:
-            os.remove(fullpath.split('.')[0] + '.16800')
             return False
 
     def _process_stale_pcaps(self, handshake_dir):
-        handshakes_list = [os.path.join(handshake_dir, filename) for filename in os.listdir(handshake_dir) if
-                           filename.endswith('.pcap')]
+        handshakes_list = [os.path.join(handshake_dir, filename) for filename in os.listdir(handshake_dir) if filename.endswith('.pcap')]
         failed_jobs = []
         successful_jobs = []
         lonely_pcaps = []
@@ -185,13 +134,11 @@ class Hashie(plugins.Plugin):
                         lonely_pcaps.append(handshake)
                         logging.debug('[hashie] Batch job: added {} to lonely list'.format(pcapFileName))
             if ((num + 1) % 50 == 0) or (num + 1 == len(handshakes_list)):  # report progress every 50, or when done
-                logging.info('[hashie] Batch job: {}/{} done ({} fails)'.format(num + 1, len(handshakes_list),
-                                                                                len(lonely_pcaps)))
+                logging.info('[Hashie] Batch job: {}/{} done ({} fails)'.format(num + 1, len(handshakes_list), len(lonely_pcaps)))
         if successful_jobs:
-            logging.info('[hashie] Batch job: {} new handshake files created'.format(len(successful_jobs)))
+            logging.info('[Hashie] Batch job: {} new handshake files created'.format(len(successful_jobs)))
         if lonely_pcaps:
-            logging.info(
-                '[hashie] Batch job: {} networks without enough packets to create a hash'.format(len(lonely_pcaps)))
+            logging.info('[Hashie] Batch job: {} networks without enough packets to create a hash'.format(len(lonely_pcaps)))
             self._getLocations(lonely_pcaps)
 
     def _getLocations(self, lonely_pcaps):
@@ -202,19 +149,17 @@ class Hashie(plugins.Plugin):
                 filename = pcapFile.split('/')[-1:][0]  # keep extension
                 fullpathNoExt = pcapFile.split('.')[0]
                 isIncomplete.write(filename + '\n')
-                if os.path.isfile(fullpathNoExt + '.gps.json') or os.path.isfile(
-                        fullpathNoExt + '.geo.json') or os.path.isfile(fullpathNoExt + '.paw-gps.json'):
+                if os.path.isfile(fullpathNoExt + '.gps.json') or os.path.isfile(fullpathNoExt + '.geo.json'):
                     count += 1
             if count != 0:
-                logging.info(
-                    '[hashie] Used {} GPS/GEO/PAW-GPS files to find lonely networks, go check webgpsmap! ;)'.format(
-                        str(count)))
+                logging.info('[Hashie] Used {} GPS/GEO files to find lonely networks, '
+                             'go check webgpsmap! ;)'.format(str(count)))
             else:
-                logging.info(
-                    '[hashie] Could not find any GPS/GEO/PAW-GPS files for the lonely networks'.format(str(count)))
+                logging.info('[Hashie] Could not find any GPS/GEO files '
+                             'for the lonely networks'.format(str(count)))
 
     def _getLocationsCSV(self, lonely_pcaps):
-        # in case we need this later, export locations manually to CSV file, needs try/catch/paw-gps format/etc.
+        # in case we need this later, export locations manually to CSV file, needs try/catch format/etc.
         locations = []
         for pcapFile in lonely_pcaps:
             filename = pcapFile.split('/')[-1:][0].split('.')[0]
@@ -227,16 +172,10 @@ class Hashie(plugins.Plugin):
                 with open(fullpathNoExt + '.geo.json', 'r') as tempFileB:
                     data = json.load(tempFileB)
                     locations.append(
-                        filename + ',' + str(data['location']['lat']) + ',' + str(data['location']['lng']) + ',' + str(
-                            data['accuracy']))
-            elif os.path.isfile(fullpathNoExt + '.paw-gps.json'):
-                with open(fullpathNoExt + '.paw-gps.json', 'r') as tempFileC:
-                    data = json.load(tempFileC)
-                    locations.append(filename + ',' + str(data['lat']) + ',' + str(data['long']) + ',50')
+                        filename + ',' + str(data['location']['lat']) + ',' + str(data['location']['lng']) + ',' + str(data['accuracy']))
         if locations:
             with open('/root/locations.csv', 'w') as tempFileD:
                 for loc in locations:
                     tempFileD.write(loc + '\n')
-            logging.info(
-                '[hashie] Used {} GPS/GEO files to find lonely networks, load /root/locations.csv into a mapping app and go say hi!'.format(
-                    len(locations)))
+            logging.info('[Hashie] Used {} GPS/GEO files to find lonely networks, '
+                         'load /root/locations.csv into a mapping app and go say hi!'.format(len(locations)))
