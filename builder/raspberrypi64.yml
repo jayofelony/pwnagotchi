@@ -80,6 +80,7 @@
           - gawk
           - gcc-arm-none-eabi
           - git
+          - hcxtools
           - libatlas-base-dev
           - libavcodec59
           - libavformat59
