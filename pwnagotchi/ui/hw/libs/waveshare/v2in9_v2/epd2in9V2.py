@@ -28,7 +28,7 @@
 #
 
 import logging
-from .. import epdconfig
+from . import epdconfig
 
 # Display resolution
 EPD_WIDTH = 128
@@ -227,7 +227,7 @@ class EPD:
         self.send_data((y >> 8) & 0xFF)
 
     def init(self):
-        if epdconfig.module_init() != 0:
+        if (epdconfig.module_init() != 0):
             return -1
         # EPD hardware init start
         self.reset()

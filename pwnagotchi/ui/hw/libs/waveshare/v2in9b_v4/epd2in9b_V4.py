@@ -184,7 +184,7 @@ class EPD:
 
         self.send_command(0x01)  # Driver output control
         self.send_data((self.height - 1) % 256)
-        self.send_data((self.height - 1) / 256)
+        self.send_data((self.height - 1) // 256)
         self.send_data(0x00)
 
         self.send_command(0x11)  # data entry mode

@@ -484,7 +484,7 @@ class EPD:
             else:
                 Xend = Xend // 8 * 8 + 1
 
-        Width = (Xend - Xstart) / 8
+        Width = (Xend - Xstart) // 8
         Height = Yend - Ystart
 
         self.send_command(0x50)
