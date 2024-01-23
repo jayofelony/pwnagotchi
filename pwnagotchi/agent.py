@@ -277,6 +277,10 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         self._save_recovery_data()
         pwnagotchi.reboot()
 
+    def _restart(self):
+        self._save_recovery_data()
+        pwnagotchi.restart("AUTO")
+
     def _save_recovery_data(self):
         logging.warning("writing recovery data to %s ...", RECOVERY_DATA_FILE)
         with open(RECOVERY_DATA_FILE, 'w') as fp:
