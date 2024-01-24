@@ -162,7 +162,6 @@
           - zram-tools
   environment:
     ARCHFLAGS: "-arch aarch64"
-    QEMU_UNAME: "{{ kernel.full }}"
 
   tasks:
     # First we install and remove unnecessary packages
@@ -352,13 +351,33 @@
         src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
         dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
+    - name: clone nexmon repository
+      git:
+        repo: https://github.com/DrSchottky/nexmon.git
+        dest: /usr/local/src/nexmon
+
+    - name: make firmware
+      shell: "source ./setup_env.sh && make"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/nexmon/
+
+    - name: make firmware patch (bcm43455c0)
+      shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/nexmon/
+
     - name: copy modified driver, RPi5
       copy:
         src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
         dest: "/usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
 
-    - name : load brcmfmac drivers
-      command: "/sbin/depmod -a"
+    - name: load brcmfmac drivers
+      command: "/sbin/depmod {{ kernel.full }}"
+
+    - name: load brcmfmac drivers
+      command: "/sbin/depmod {{ kernel.full_pi5 }}"
 
     # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
     - name: Delete nexmon content & directory
