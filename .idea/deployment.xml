@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" filePermissions="493" folderPermissions="493" remoteFilesAllowedToDisappearOnAutoupload="false" />
+  <component name="PublishConfigData" serverName="pwnagotchi" filePermissions="493" folderPermissions="493" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+    <option name="confirmBeforeUploading" value="false" />
+    <serverData>
+      <paths name="pwnagotchi">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/usr/local/lib/python3.11/dist-packages/pwnagotchi" local="$PROJECT_DIR$/pwnagotchi" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/venv" />
+            <excludedPath local="true" path="$PROJECT_DIR$/pwnagotchi.egg-info" />
+            <excludedPath local="true" path="$PROJECT_DIR$/dist" />
+            <excludedPath local="true" path="$PROJECT_DIR$/builder/packer-builder-arm" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
 </project>
