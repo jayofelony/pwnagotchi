@@ -131,6 +131,7 @@ class Wigle(plugins.Plugin):
         """
         Called in manual mode when there's internet connectivity
         """
+        global pcap_filename
         if not self.ready or self.lock.locked():
             return
 
@@ -143,7 +144,7 @@ class Wigle(plugins.Plugin):
         all_files = os.listdir(handshake_dir)
         all_gps_files = [os.path.join(handshake_dir, filename)
                          for filename in all_files
-                         if filename.endswith('.gps.json') or filename.endswith('.paw-gps.json') or filename.endswith('.geo.json')]
+                         if filename.endswith('.gps.json') or filename.endswith('.geo.json')]
 
         all_gps_files = remove_whitelisted(all_gps_files, config['main']['whitelist'])
         new_gps_files = set(all_gps_files) - set(reported) - set(self.skip)
@@ -154,8 +155,6 @@ class Wigle(plugins.Plugin):
             for gps_file in new_gps_files:
                 if gps_file.endswith('.gps.json'):
                     pcap_filename = gps_file.replace('.gps.json', '.pcap')
-                if gps_file.endswith('.paw-gps.json'):
-                    pcap_filename = gps_file.replace('.paw-gps.json', '.pcap')
                 if gps_file.endswith('.geo.json'):
                     pcap_filename = gps_file.replace('.geo.json', '.pcap')
                 if not os.path.exists(pcap_filename):

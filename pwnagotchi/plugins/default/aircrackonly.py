@@ -19,6 +19,10 @@ class AircrackOnly(plugins.Plugin):
 
     def __init__(self):
         self.text_to_set = ""
+        self.options = dict()
+
+    def on_ready(self):
+        return
 
     def on_loaded(self):
         logging.info("aircrackonly plugin loaded")
