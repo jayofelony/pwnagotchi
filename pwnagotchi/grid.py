@@ -2,7 +2,6 @@ import subprocess
 import requests
 import json
 import logging
-from pwnagotchi.plugins.default.auto_update import parse_version
 
 import pwnagotchi
 
@@ -93,8 +92,8 @@ def update_data(last_session):
         'build': "Pwnagotchi-Torch by Jayofelony",
         'plugins': enabled,
         'language': language,
-        'bettercap': parse_version("bettercap -version"),
-        'opwngrid': parse_version("pwngrid -version")
+        'bettercap': subprocess.getoutput("bettercap -version").split(".\n\n")[1],
+        'opwngrid': subprocess.getoutput("pwngrid -version")
     }
 
     logging.debug("updating grid data: %s" % data)
