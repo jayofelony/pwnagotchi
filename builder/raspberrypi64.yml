@@ -625,11 +625,6 @@
         state: absent
         path: /root/.cache/pip
 
-    - name: remove dependencies that are no longer required
-      apt:
-        autoremove: yes
-      when: removed.changed
-
     - name: remove ssh keys
       file:
         state: absent
@@ -649,6 +644,11 @@
         state: absent
         purge: yes
       register: removed
+
+    - name: remove dependencies that are no longer required
+      apt:
+        autoremove: yes
+      when: removed.changed
 
     - name: clean apt cache
       apt:
