@@ -300,7 +300,7 @@
 
     # FIRST WE BUILD DRIVER FOR RPi5
 
-    - name: make firmware
+    - name: make firmware, RPi5
       shell: "source ./setup_env.sh && make"
       args:
         executable: /bin/bash
@@ -308,7 +308,7 @@
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
 
-    - name: make firmware patch (bcm43455c0) RPi 5
+    - name: make firmware patch (bcm43455c0), RPi5
       shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
       args:
         executable: /bin/bash
@@ -323,9 +323,10 @@
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
 
-    # NOW WE BUILD DRIVERS FOR RPiZero2W, RPi 3, RPi4
+    # NOW WE BUILD DRIVER FOR RPi4
+    # FINAL STEP IS TO COPY MODIFIED DRIVER FOR {{ kernel.full }} WITH ALL CHANGES
 
-    - name: make firmware
+    - name: make firmware, RPi4
       shell: "source ./setup_env.sh && make"
       args:
         executable: /bin/bash
@@ -333,7 +334,7 @@
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
 
-    - name: make firmware patch (bcm43455c0)
+    - name: make firmware patch (bcm43455c0), RPi4
       shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
       args:
         executable: /bin/bash
@@ -341,18 +342,13 @@
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
 
-    - name: copy modified driver
-      copy:
-        src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
-        dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
-      environment:
-        QEMU_UNAME: "{{ kernel.full }}"
-
-    - name: install new firmware (bcm43455c0)
+    - name: install new firmware (bcm43455c0), RPi4 RPi5
       copy:
         src: /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/brcmfmac43455-sdio.bin
         dest: /usr/lib/firmware/brcm/brcmfmac43455-sdio.bin
         follow: true
+
+    # NOW WE BUILD DRIVERS FOR RPiZero2W, RPi 3
 
     - name: make firmware patch (bcm43436b0)
       shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43436b0/9_88_4_65/nexmon/ && make"
@@ -373,6 +369,13 @@
       args:
         executable: /bin/bash
         chdir: /usr/local/src/nexmon/
+      environment:
+        QEMU_UNAME: "{{ kernel.full }}"
+
+    - name: copy modified driver, RPi4
+      copy:
+        src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
+        dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
 
