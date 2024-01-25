@@ -306,13 +306,43 @@
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
 
-    - name: make firmware patch (bcm43455c0)
+    - name: make firmware patch (bcm43455c0) RPi 5
       shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
       args:
         executable: /bin/bash
         chdir: /usr/local/src/nexmon/
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
+
+    - name: copy modified driver, RPi5
+      copy:
+        src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
+        dest: "/usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+      environment:
+        QEMU_UNAME: "{{ kernel.full_pi5 }}"
+
+    - name: make firmware
+      shell: "source ./setup_env.sh && make"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/nexmon/
+      environment:
+        QEMU_UNAME: "{{ kernel.full }}"
+
+    - name: make firmware patch (bcm43455c0)
+      shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/nexmon/
+      environment:
+        QEMU_UNAME: "{{ kernel.full }}"
+
+    - name: copy modified driver
+      copy:
+        src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
+        dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+      environment:
+        QEMU_UNAME: "{{ kernel.full }}"
 
     - name: install new firmware (bcm43455c0)
       copy:
@@ -326,7 +356,7 @@
         executable: /bin/bash
         chdir: /usr/local/src/nexmon/
       environment:
-        QEMU_UNAME: "{{ kernel.full_pi5 }}"
+        QEMU_UNAME: "{{ kernel.full }}"
 
     - name: install new firmware (bcm43436b0)
       copy:
@@ -340,7 +370,7 @@
         executable: /bin/bash
         chdir: /usr/local/src/nexmon/
       environment:
-        QEMU_UNAME: "{{ kernel.full_pi5 }}"
+        QEMU_UNAME: "{{ kernel.full }}"
 
     - name: install new firmware (bcm43430a1)
       copy:
@@ -373,20 +403,6 @@
 
     - name: backup original driver, RPi5
       command: "mv /usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
-
-    - name: copy modified driver
-      copy:
-        src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
-        dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
-      environment:
-        QEMU_UNAME: "{{ kernel.full }}"
-
-    - name: copy modified driver, RPi5
-      copy:
-        src: "/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko"
-        dest: "/usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
-      environment:
-        QEMU_UNAME: "{{ kernel.full_pi5 }}"
 
     - name: load brcmfmac drivers
       command: "/sbin/depmod {{ kernel.full }}"
