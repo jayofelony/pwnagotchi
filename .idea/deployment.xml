@@ -7,6 +7,8 @@
         <serverdata>
           <mappings>
             <mapping deploy="/usr/local/lib/python3.11/dist-packages/pwnagotchi" local="$PROJECT_DIR$/pwnagotchi" web="/" />
+            <mapping deploy="/usr/local/bin" local="$PROJECT_DIR$/bin" />
+            <mapping local="" />
           </mappings>
           <excludedPaths>
             <excludedPath local="true" path="$PROJECT_DIR$/venv" />
