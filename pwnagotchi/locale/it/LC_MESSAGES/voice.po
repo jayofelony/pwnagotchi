@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "ZzzzZZzzzzZzzz"
-msgstr ""
+msgstr "ZzzzZZzzzzZzzz"
 
 msgid "Hi, I'm Pwnagotchi! Starting ..."
 msgstr "Ciao! Piacere Pwnagotchi! Caricamento ..."
@@ -25,7 +25,7 @@ msgid "New day, new hunt, new pwns!"
 msgstr "Nuovo giorno...nuovi handshakes!!!"
 
 msgid "Hack the Planet!"
-msgstr ""
+msgstr "Hack il Pianeta"
 
 msgid "AI ready."
 msgstr "IA pronta."
@@ -34,18 +34,18 @@ msgid "The neural network is ready."
 msgstr "La rete neurale è pronta."
 
 msgid "Generating keys, do not turn off ..."
-msgstr ""
+msgstr "Generazione di chiavi, non spegnere"
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "Hey, il canale {channel} è libero! Il tuo AP ringrazia."
 
 msgid "Reading last session logs ..."
-msgstr ""
+msgstr "Lettura dei log dell'ultima sessione ..."
 
 #, python-brace-format
 msgid "Read {lines_so_far} log lines so far ..."
-msgstr ""
+msgstr "Leggi le righe di log {lines_so_far} finora ..."
 
 msgid "I'm bored ..."
 msgstr "Che noia ..."
@@ -54,7 +54,7 @@ msgid "Let's go for a walk!"
 msgstr "Andiamo a fare una passeggiata!"
 
 msgid "This is the best day of my life!"
-msgstr "Questo è il più bel giorno della mia vita!!!!"
+msgstr "Questo e il miglior giorno della mia vita!!!!"
 
 msgid "Shitty day :/"
 msgstr "Giorno di merda :/"
@@ -72,22 +72,22 @@ msgid "Leave me alone ..."
 msgstr "Mi sento così solo..."
 
 msgid "I'm mad at you!"
-msgstr ""
+msgstr "sono arabiata con te"
 
 msgid "I'm living the life!"
-msgstr "Mi sento vivo!"
+msgstr "sono viva la vita!"
 
 msgid "I pwn therefore I am."
 msgstr "Pwn ergo sum."
 
 msgid "So many networks!!!"
-msgstr "Qui è pieno di reti!"
+msgstr "Qui pieno di reti!"
 
 msgid "I'm having so much fun!"
 msgstr "Mi sto divertendo tantissimo!"
 
 msgid "My crime is that of curiosity ..."
-msgstr ""
+msgstr "Il mio crimine ? quello della curiosit?"
 
 #, python-brace-format
 msgid "Hello {name}! Nice to meet you."
@@ -95,15 +95,15 @@ msgstr "Ciao {name}! E' un piacere."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
-msgstr ""
+msgstr "Yo {name} Come va"
 
 #, python-brace-format
 msgid "Hey {name} how are you doing?"
-msgstr ""
+msgstr "Ehi {name} come stai?"
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "L'Unità {name} è vicina!"
+msgstr "L'Unit {name} e vicina!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
@@ -111,30 +111,30 @@ msgstr "Uhm ... addio {name}, mi mancherai..."
 
 #, python-brace-format
 msgid "{name} is gone ..."
-msgstr "{name} se n'è andato ..."
+msgstr "{name} se andato ..."
 
 #, python-brace-format
 msgid "Whoops ... {name} is gone."
-msgstr "Whoops ...{name} se n'è andato."
+msgstr "Whoops ...{name} se andato."
 
 #, python-brace-format
 msgid "{name} missed!"
-msgstr "{name} è scomparso..."
+msgstr "{name} scomparso..."
 
 msgid "Missed!"
 msgstr "Ehi! Dove sei andato!?"
 
 msgid "Good friends are a blessing!"
-msgstr ""
+msgstr "Buoni amici sono una benedizione"
 
 msgid "I love my friends!"
-msgstr ""
+msgstr "Amo i miei amici"
 
 msgid "Nobody wants to play with me ..."
 msgstr "Nessuno vuole giocare con me..."
 
 msgid "I feel so alone ..."
-msgstr "Mi sento così solo..."
+msgstr "Mi sento cos solo..."
 
 msgid "Where's everybody?!"
 msgstr "Dove sono tutti?!"
@@ -144,17 +144,17 @@ msgid "Napping for {secs}s ..."
 msgstr "Schiaccio un pisolino per {secs}s ..."
 
 msgid "Zzzzz"
-msgstr ""
+msgstr "Zzzzz"
 
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
-msgstr ""
+msgstr "ZzzZzzz ({secs}s)"
 
 msgid "Good night."
-msgstr ""
+msgstr "Buona notte"
 
 msgid "Zzz"
-msgstr ""
+msgstr "Zzz"
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -182,7 +182,7 @@ msgstr "Ho appena deciso che {mac} non necessita di WiFi!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
-msgstr ""
+msgstr "Annullamento dell'autenticazione {mac}"
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -201,11 +201,11 @@ msgstr "Ops, qualcosa è andato storto ... Riavvio ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
-msgstr ""
+msgstr "Caricamento dei dati in {to}"
 
 #, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr ""
+msgstr "Scaricamento da {name} ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
