@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR MADE THIS IN YEAR 2024.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:10+0100\n"
+"POT-Creation-Date: 2024-01-25 23:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,7 +40,6 @@ msgstr "Mi generas ŝlosilojn, ne malŝaltu min!"
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "Hej, kanalo {channel} disponeblas! Via alirpunkto dankos vin"
-
 
 msgid "Reading last session logs ..."
 msgstr "Legante protokolojn de antaŭa sesio…"
@@ -122,10 +120,10 @@ msgstr "Hups… {name} malaperis…"
 
 #, python-brace-format
 msgid "{name} missed!"
-msgstr "{name} mankis!" 
+msgstr "{name} mankis!"
 
 msgid "Missed!"
-msgstr "Maltrafis!" 
+msgstr "Maltrafis!"
 
 msgid "Good friends are a blessing!"
 msgstr "Bonaj amikoj estas beno!"
@@ -144,7 +142,7 @@ msgstr "KIE ĈIUJ ESTAS?!"
 
 #, python-brace-format
 msgid "Napping for {secs}s ..."
-msgstr "Dormeto por {sec}j…" 
+msgstr "Dormeto por {sec}j…"
 
 msgid "Zzzzz"
 msgstr "Zzzzz"
@@ -170,7 +168,6 @@ msgstr "Ĉirkaŭrigardante ({sec}j)"
 #, python-brace-format
 msgid "Hey {what} let's be friends!"
 msgstr "Hej {what}, ni estu amikoj!"
-
 
 #, python-brace-format
 msgid "Associating to {what}"
@@ -211,19 +208,20 @@ msgstr "alŝuti datumojn al {to}…"
 msgid "Downloading from {name} ..."
 msgstr "Elŝutu de {name}…"
 
-#, python-brace-format
-msgid "Kicked {num} stations"
+#, fuzzy, python-brace-format
+msgid "Kicked {num} stations\n"
 msgstr "Forigita de {num} stacioj"
 
-msgid "Made >999 new friends"
+#, fuzzy
+msgid "Made >999 new friends\n"
 msgstr "Faris pli ol 999 novajn amikojn!"
 
-#, python-brace-format
-msgid "Made {num} new friends"
+#, fuzzy, python-brace-format
+msgid "Made {num} new friends\n"
 msgstr "faris (nombro) novajn amikojn"
 
-#, python-brace-format
-msgid "Got {num} handshakes"
+#, fuzzy, python-brace-format
+msgid "Got {num} handshakes\n"
 msgstr "Ricevis {num} novajn manpremojn"
 
 msgid "Met 1 peer"
@@ -239,8 +237,8 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-"Mi pwning dum {duration} kaj piedbatis {deauthed} klientojn!"
-"Mi ankaŭ renkontis {associated} novajn amikojn kaj manĝis {handshakes} manpremojn!"
+"Mi pwning dum {duration} kaj piedbatis {deauthed} klientojn!Mi ankaŭ "
+"renkontis {associated} novajn amikojn kaj manĝis {handshakes} manpremojn!"
 "#pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
 
 msgid "hours"
