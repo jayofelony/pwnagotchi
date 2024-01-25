@@ -52,13 +52,20 @@
           - libpcap0.8-dev_1.9.1-4_arm64.deb
           - libpcap0.8_1.9.1-4_arm64.deb
         hold:
+          - firmware-atheros
+          - firmware-brcm80211
+          - firmware-libertas
+          - firmware-misc-nonfree
+          - firmware-realtek
           - libpcap-dev
           - libpcap0.8
-          - libpcap0.8-dev
           - libpcap0.8-dbg
+          - libpcap0.8-dev
         remove:
           - avahi-daemon
           - dhpys-swapfile
+          - libcurl-ocaml-dev
+          - libssl-ocaml-dev
           - nfs-common
           - triggerhappy
           - wpasupplicant
@@ -91,6 +98,8 @@
           - libc-ares-dev
           - libc6-dev
           - libcap-dev
+          - libcurl-ocaml-dev
+          - libssl-ocaml-dev
           - libdbus-1-dev
           - libdbus-glib-1-dev
           - libeigen3-dev
@@ -164,20 +173,13 @@
     ARCHFLAGS: "-arch aarch64"
 
   tasks:
-    # First we install and remove unnecessary packages
+    # First we install packages
     - name: install packages
       apt:
         name: "{{ packages.apt.install }}"
         state: present
         update_cache: yes
         install_recommends: false
-
-    - name: remove unnecessary apt packages
-      apt:
-        name: "{{ packages.apt.remove }}"
-        state: absent
-        purge: yes
-      register: removed
 
     # Now we set up /boot/firmware
     - name: Create pi user
@@ -271,6 +273,24 @@
         src: /usr/local/lib/libpcap.so.1.9.1
         dest: /usr/local/lib/libpcap.so.0.8
         state: link
+
+    # install latest hcxtools
+
+    - name: clone hcxtools
+      git:
+        repo: https://github.com/ZerBea/hcxtools.git
+        dest: /usr/local/src/hcxtools
+
+    - name: install hcxtools
+      shell: "make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/hcxtools
+
+    - name: remove hcxtools directory
+      file:
+        state: absent
+        path: /usr/local/src/hcxtools
 
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
     - name: clone nexmon repository
@@ -626,6 +646,14 @@
       shell: "dpkg-reconfigure openssh-server"
       args:
         executable: /bin/bash
+
+    # Now we remove packages
+    - name: remove unnecessary apt packages
+      apt:
+        name: "{{ packages.apt.remove }}"
+        state: absent
+        purge: yes
+      register: removed
 
   handlers:
     - name: reload systemd services

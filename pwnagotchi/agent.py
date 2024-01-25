@@ -31,7 +31,6 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         AsyncTrainer.__init__(self, config)
 
         self._started_at = time.time()
-        self._filter = None if not config['main']['filter'] else re.compile(config['main']['filter'])
         self._current_channel = 0
         self._tot_aps = 0
         self._aps_on_channel = 0
@@ -164,11 +163,6 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
         self.wait_for(recon_time, sleeping=False)
 
-    def _filter_included(self, ap):
-        return self._filter is None or \
-            self._filter.match(ap['hostname']) is not None or \
-            self._filter.match(ap['mac']) is not None
-
     def set_access_points(self, aps):
         self._access_points = aps
         plugins.on('wifi_update', self, aps)
@@ -184,13 +178,10 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
             for ap in s['wifi']['aps']:
                 if ap['encryption'] == '' or ap['encryption'] == 'OPEN':
                     continue
-                elif ap['hostname'] in whitelist or ap['mac'][:8].lower() in whitelist:
+                elif ap['hostname'] in whitelist or ap['mac'][:13].lower() in whitelist or ap['mac'].lower() in whitelist:
                     continue
-                elif ap['hostname'] not in whitelist \
-                        and ap['mac'].lower() not in whitelist \
-                        and ap['mac'][:8].lower() not in whitelist:
-                    if self._filter_included(ap):
-                        aps.append(ap)
+                else:
+                    aps.append(ap)
         except Exception as e:
             logging.exception("Error while getting access points (%s)", e)
 
@@ -371,8 +362,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                     plugins.on('handshake', self, filename, ap_mac, sta_mac)
                 else:
                     (ap, sta) = ap_and_station
-                    self._last_pwnd = ap['hostname'] if ap['hostname'] != '' and ap[
-                        'hostname'] != '<hidden>' else ap_mac
+                    self._last_pwnd = ap['hostname'] if ap['hostname'] != '' and ap['hostname'] != '<hidden>' else ap_mac
                     logging.warning(
                         "!!! captured new handshake on channel %d, %d dBm: %s (%s) -> %s [%s (%s)] !!!",
                         ap['channel'], ap['rssi'], sta['mac'], sta['vendor'], ap['hostname'], ap['mac'], ap['vendor'])
@@ -433,7 +423,6 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         if self.is_stale():
             logging.debug("recon is stale, skipping assoc(%s)", ap['mac'])
             return
-
         if throttle == -1 and "throttle_a" in self._config['personality']:
             throttle = self._config['personality']['throttle_a']
 

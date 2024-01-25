@@ -50,6 +50,7 @@ def pwnagotchi_cli():
 
         agent.mode = 'auto'
         agent.start()
+        config = agent.config()
 
         while True:
             try:
@@ -66,6 +67,9 @@ def pwnagotchi_cli():
 
                     # for each ap on this channel
                     for ap in aps:
+                        if ap['mac'][:13].lower in config['main']['whitelist'] or ap['hostname'] in config['main']['whitelist']:
+                            logging.info(f"Found your MAC address {ap['mac']} - {config['main']['whitelist']}")
+                            continue
                         # send an association frame in order to get for a PMKID
                         agent.associate(ap)
                         # deauth all client stations in order to get a full handshake
