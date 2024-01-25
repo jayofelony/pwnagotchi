@@ -298,6 +298,8 @@
         repo: https://github.com/DrSchottky/nexmon.git
         dest: /usr/local/src/nexmon
 
+    # FIRST WE BUILD DRIVER FOR RPi5
+
     - name: make firmware
       shell: "source ./setup_env.sh && make"
       args:
@@ -320,6 +322,8 @@
         dest: "/usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
+
+    # NOW WE BUILD DRIVERS FOR RPiZero2W, RPi 3, RPi4
 
     - name: make firmware
       shell: "source ./setup_env.sh && make"
