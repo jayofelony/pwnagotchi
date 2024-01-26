@@ -169,8 +169,6 @@
           - xxd
           - zlib1g-dev
           - zram-tools
-  environment:
-    ARCHFLAGS: "-arch aarch64"
 
   tasks:
     # First we install packages
@@ -307,6 +305,7 @@
         chdir: /usr/local/src/nexmon/
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: make firmware patch (bcm43455c0), RPi5
       shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
@@ -315,6 +314,7 @@
         chdir: /usr/local/src/nexmon/
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: copy modified driver, RPi5
       copy:
@@ -322,14 +322,32 @@
         dest: "/usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: Delete the modified driver, RPi5
       file:
         state: absent
         path: '/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko'
 
-    # NOW WE BUILD DRIVER FOR RPi4
-    # FINAL STEP IS TO COPY MODIFIED DRIVER FOR {{ kernel.full }} WITH ALL CHANGES
+    - name: backup original driver, RPi5
+      command: "mv /usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
+
+    - name: load brcmfmac drivers
+      command: "/sbin/depmod {{ kernel.full_pi5 }}"
+      environment:
+        QEMU_UNAME: "{{ kernel.full_pi5 }}"
+
+    - name: Delete nexmon content & directory
+      file:
+        state: absent
+        path: /usr/local/src/nexmon/
+
+    # NOW WE BUILD DRIVERS FOR RPi4, RPizero2w and RPi3
+
+    - name: clone nexmon repository
+      git:
+        repo: https://github.com/DrSchottky/nexmon.git
+        dest: /usr/local/src/nexmon
 
     - name: make firmware, RPi4
       shell: "source ./setup_env.sh && make"
@@ -338,6 +356,7 @@
         chdir: /usr/local/src/nexmon/
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: make firmware patch (bcm43455c0), RPi4
       shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
@@ -346,6 +365,7 @@
         chdir: /usr/local/src/nexmon/
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: install new firmware (bcm43455c0), RPi4 RPi5
       copy:
@@ -362,6 +382,7 @@
         chdir: /usr/local/src/nexmon/
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: install new firmware (bcm43436b0)
       copy:
@@ -376,6 +397,7 @@
         chdir: /usr/local/src/nexmon/
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: copy modified driver, RPi4
       copy:
@@ -383,6 +405,7 @@
         dest: "/usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
+        ARCHFLAGS: "-arch aarch64"
 
     - name: install new firmware (bcm43430a1)
       copy:
@@ -413,18 +436,10 @@
     - name: backup original driver
       command: "mv /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
 
-    - name: backup original driver, RPi5
-      command: "mv /usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full_pi5 }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
-
     - name: load brcmfmac drivers
       command: "/sbin/depmod {{ kernel.full }}"
       environment:
         QEMU_UNAME: "{{ kernel.full }}"
-
-    - name: load brcmfmac drivers
-      command: "/sbin/depmod {{ kernel.full_pi5 }}"
-      environment:
-        QEMU_UNAME: "{{ kernel.full_pi5 }}"
 
     # To shrink the final image, remove the nexmon directory (takes 2.5G of space) post build and installation
     - name: Delete nexmon content & directory
