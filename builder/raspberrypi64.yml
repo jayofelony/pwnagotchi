@@ -323,6 +323,11 @@
       environment:
         QEMU_UNAME: "{{ kernel.full_pi5 }}"
 
+    - name: Delete the modified driver, RPi5
+      file:
+        state: absent
+        path: '/usr/local/src/nexmon/patches/driver/brcmfmac_{{ kernel.min }}.y-nexmon/brcmfmac.ko'
+
     # NOW WE BUILD DRIVER FOR RPi4
     # FINAL STEP IS TO COPY MODIFIED DRIVER FOR {{ kernel.full }} WITH ALL CHANGES
 
