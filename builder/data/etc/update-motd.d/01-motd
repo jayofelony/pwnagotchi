@@ -1,8 +1,8 @@
 #!/bin/sh
 _hostname=$(hostname)
-_version=$(cut -d"'" -f2 < /usr/local/lib/python3.9/dist-packages/pwnagotchi/_version.py)
+_version=$(cut -d"'" -f2 < /usr/local/lib/python3.11/dist-packages/pwnagotchi/_version.py)
 echo
-echo "(◕‿‿◕) $_hostname"
+echo "(☉_☉ ) $_hostname"
 echo
 echo "    Hi! I'm a pwnagotchi $_version, please take good care of me!"
 echo "    Here are some basic things you need to know to raise me properly!"
