@@ -52,10 +52,10 @@ def _transform_wigle_entry(gps_data, pcap_data, plugin_version):
     """
     dummy = StringIO()
     # write kismet header
-    dummy.write(f"WigleWifi-1.4,appRelease={plugin_version},model=pwnagotchi,release={__pwnagotchi_version__},"
-                f"device={pwnagotchi.name()},display=kismet,board=RaspberryPi,brand=pwnagotchi\n")
-    dummy.write("MAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,"
-                "CurrentLongitude,AltitudeMeters,AccuracyMeters,Type\n")
+    dummy.write(f"WigleWifi-1.6,appRelease={plugin_version},model=pwnagotchi,release={__pwnagotchi_version__},"
+                f"device={pwnagotchi.name()},display=kismet,board=RaspberryPi,brand=pwnagotchi,star=Sol,body=3,subBody=0\n")
+    dummy.write(
+        "MAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,Type\n")
 
     writer = csv.writer(dummy, delimiter=",", quoting=csv.QUOTE_NONE, escapechar="\\")
     writer.writerow([
@@ -89,7 +89,7 @@ def _send_to_wigle(lines, api_key, donate=True, timeout=30):
     headers = {'Authorization': f"Basic {api_key}",
                'Accept': 'application/json'}
     data = {'donate': 'on' if donate else 'false'}
-    payload = {'file': (pwnagotchi.name()+".csv", dummy), 'type': 'multipart/form-data'}
+    payload = {'file': (pwnagotchi.name() + ".csv", dummy, 'multipart/form-data', {'Expires': '0'})}
     try:
         res = requests.post('https://api.wigle.net/api/v2/file/upload',
                             data=data,
@@ -104,10 +104,10 @@ def _send_to_wigle(lines, api_key, donate=True, timeout=30):
 
 
 class Wigle(plugins.Plugin):
-    __author__ = 'Dadav and fixed by Jayofelony'
-    __version__ = '3.0.0'
-    __license__ = 'GPL3'
-    __description__ = 'This plugin automatically uploads collected wifis to wigle.net'
+    __author__ = "Dadav and updated by Jayofelony"
+    __version__ = "3.0.1"
+    __license__ = "GPL3"
+    __description__ = "This plugin automatically uploads collected WiFi to wigle.net"
 
     def __init__(self):
         self.ready = False
@@ -121,17 +121,16 @@ class Wigle(plugins.Plugin):
             logging.debug("WIGLE: api_key isn't set. Can't upload to wigle.net")
             return
 
-        if not 'donate' in self.options:
-            self.options['donate'] = True
+        if 'donate' not in self.options:
+            self.options['donate'] = False
 
         self.ready = True
         logging.info("WIGLE: ready")
 
     def on_internet_available(self, agent):
         """
-        Called in manual mode when there's internet connectivity
+        Called when there's internet connectivity
         """
-        global pcap_filename
         if not self.ready or self.lock.locked():
             return
 
