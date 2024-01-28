@@ -5,22 +5,21 @@ import glob
 import re
 
 import pwnagotchi.grid as grid
-import pwnagotchi.plugins
 import pwnagotchi.plugins as plugins
-from pwnagotchi.utils import StatusFile, WifiInfo, extract_from_pcap
+from pwnagotchi.utils import StatusFile, WifiInfo, extract_from_pcapng
 from threading import Lock
 
 
 def parse_pcap(filename):
     logging.info("grid: parsing %s ..." % filename)
 
-    net_id = os.path.basename(filename).replace('.pcap', '')
+    net_id = os.path.basename(filename).replace('.pcapng', '')
 
     if '_' in net_id:
-        # /root/handshakes/ESSID_BSSID.pcap
+        # /root/handshakes/ESSID_BSSID.pcapng
         essid, bssid = net_id.split('_')
     else:
-        # /root/handshakes/BSSID.pcap
+        # /root/handshakes/BSSID.pcapng
         essid, bssid = '', net_id
 
     mac_re = re.compile('[0-9a-fA-F]{12}')
@@ -36,7 +35,7 @@ def parse_pcap(filename):
     }
 
     try:
-        info = extract_from_pcap(filename, [WifiInfo.BSSID, WifiInfo.ESSID])
+        info = extract_from_pcapng(filename, [WifiInfo.BSSID, WifiInfo.ESSID])
     except Exception as e:
         logging.error("grid: %s" % e)
 
@@ -87,10 +86,10 @@ class Grid(plugins.Plugin):
             agent.view().on_unread_messages(self.unread_messages, self.total_messages)
 
     def check_handshakes(self, agent):
-        logging.debug("checking pcaps")
+        logging.debug("checking pcapng's")
         config = agent.config()
 
-        pcap_files = glob.glob(os.path.join(agent.config()['bettercap']['handshakes'], "*.pcap"))
+        pcap_files = glob.glob(os.path.join(agent.config()['bettercap']['handshakes'], "*.pcapng"))
         num_networks = len(pcap_files)
         reported = self.report.data_field_or('reported', default=[])
         num_reported = len(reported)
@@ -103,7 +102,7 @@ class Grid(plugins.Plugin):
                 logging.debug("  exclude: %s" % config['main']['whitelist'])
 
                 for pcap_file in pcap_files:
-                    net_id = os.path.basename(pcap_file).replace('.pcap', '')
+                    net_id = os.path.basename(pcap_file).replace('.pcapng', '')
                     if net_id not in reported:
                         if self.is_excluded(net_id, agent):
                             logging.debug("skipping %s due to exclusion filter" % pcap_file)
