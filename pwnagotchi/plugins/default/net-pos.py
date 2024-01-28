@@ -117,7 +117,6 @@ class NetPos(plugins.Plugin):
         except OSError as os_e:
             logging.error("NET-POS: %s", os_e)
 
-
     def _get_netpos(self, agent):
         aps = agent.get_access_points()
         netpos = dict()

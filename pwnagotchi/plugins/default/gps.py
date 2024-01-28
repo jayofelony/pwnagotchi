@@ -20,6 +20,7 @@ class GPS(plugins.Plugin):
     def __init__(self):
         self.running = False
         self.coordinates = None
+        self.options = dict()
 
     def on_loaded(self):
         logging.info(f"gps plugin loaded for {self.options['device']}")
