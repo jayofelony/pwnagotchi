@@ -1,9 +1,10 @@
+import sys
+
 import pwnagotchi.plugins as plugins
 import logging
 import os
 import json
 import re
-import datetime
 from flask import Response
 from functools import lru_cache
 from dateutil.parser import parse
@@ -21,6 +22,7 @@ from dateutil.parser import parse
         you can save the html-map as one file for offline use or host on your own webspace with "/plugins/webgpsmap/offlinemap"
 
 '''
+
 
 class Webgpsmap(plugins.Plugin):
     __author__ = 'https://github.com/xenDE and https://github.com/dadav'
@@ -103,7 +105,7 @@ class Webgpsmap(plugins.Plugin):
                         response_status = 200
                         response_mimetype = "application/xhtml+xml"
                         response_header_contenttype = 'text/html'
-                        response_header_contentdisposition = 'attachment; filename=webgpsmap.html';
+                        response_header_contentdisposition = 'attachment; filename=webgpsmap.html'
                     except Exception as error:
                         logging.error(f"[webgpsmap] on_webhook offlinemap: error: {error}")
                         return
@@ -149,7 +151,6 @@ class Webgpsmap(plugins.Plugin):
     def _get_pos_from_file(self, path):
         return PositionFile(path)
 
-
     def load_gps_from_dir(self, gpsdir, newest_only=False):
         """
         Parses the gps-data from disk
@@ -160,13 +161,9 @@ class Webgpsmap(plugins.Plugin):
 
         logging.info(f"[webgpsmap] scanning {handshake_dir}")
 
-
         all_files = os.listdir(handshake_dir)
-        #print(all_files)
-        all_pcap_files = [os.path.join(handshake_dir, filename)
-                                for filename in all_files
-                                if filename.endswith('.pcap')
-                                ]
+        # print(all_files)
+        all_pcap_files = [os.path.join(handshake_dir, filename) for filename in all_files if filename.endswith('.pcap')]
         all_geo_or_gps_files = []
         for filename_pcap in all_pcap_files:
             filename_base = filename_pcap[:-5]  # remove ".pcap"
@@ -299,7 +296,6 @@ class PositionFile:
         if parsed_ssid:
             return parsed_ssid.groups()[0]
         return None
-
 
     def json(self):
         """
