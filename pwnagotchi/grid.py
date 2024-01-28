@@ -89,7 +89,7 @@ def update_data(last_session):
         'uname': subprocess.getoutput("uname -a"),
         'brain': brain,
         'version': pwnagotchi.__version__,
-        'build': "Pwnagotchi-Torch by Jayofelony",
+        'build': "Test version",
         'plugins': enabled,
         'language': language,
         'bettercap': subprocess.getoutput("bettercap -version").split(".\n\n")[1],
