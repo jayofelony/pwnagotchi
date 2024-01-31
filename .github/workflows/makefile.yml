@@ -22,7 +22,7 @@ jobs:
 
     - name: Install builder plugin
       run: |
-          wget git clone https://github.com/mkaczanowski/packer-builder-arm
+          git clone https://github.com/mkaczanowski/packer-builder-arm
           cd packer-builder-arm
           go mod download
           go build
