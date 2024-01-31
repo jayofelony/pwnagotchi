@@ -25,7 +25,8 @@ jobs:
 
 #     - name: Languages
 #       run: make langs
-
+    - name: Install builder plugin
+      run: packer install github.com/mkaczanowski/packer-builder-arm
     - name: Make
       run: make
 
