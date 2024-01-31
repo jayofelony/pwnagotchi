@@ -19,15 +19,19 @@ jobs:
         # temp-reserve-mb: 10240
 
     - uses: actions/checkout@v3
+    
+    - name: Install qemu-user-static
+      run: sudo apt-get install -y qemu-user-static
 
-    - name: Install builder plugin
+    - name: Install packer-builder-arm plugin and move to builder folder
       run: |
           git clone https://github.com/mkaczanowski/packer-builder-arm
           cd packer-builder-arm
           go mod download
           go build
           mv packer-builder-arm /home/runner/work/pwnagotchi-bookworm/pwnagotchi-bookworm/builder
-    - name: Make
+          
+    - name: Run make
       run: make
 
     - name: Run df
