@@ -1,0 +1,52 @@
+name: Makefile CI
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        remove-dotnet: true
+        remove-android: true
+        remove-haskell: true
+        remove-codeql: true
+        remove-docker-images: true
+        root-reserve-mb: 61440
+        # temp-reserve-mb: 10240
+
+    - uses: actions/checkout@v3
+
+    # - name: Install language dependencies
+    #   run: sudo apt-get install -y gettext
+
+#     - name: Languages
+#       run: make langs
+
+    - name: Make
+      run: make
+      continue-on-error: true
+
+    - name: Run df and du if Packer failed
+      if: ${{ failure() }}
+      run: |
+        # Run df and du commands
+        df -h
+        du -h /home/runner/work/pwnagotchi/pwnagotchi
+      
+    # - uses: actions/upload-artifact@v3
+    #   with:
+    #     name: pwnagotchi-raspios-lite.iso
+    #     path: pwnagotchi-raspios-lite-**.**.**.**
+
+#     - name: Image
+#       run: make image -e PWN_HOSTNAME=pwnagotchi PWN_VERSION=0.0.1
+
+    # - name: Release
+    #   uses: softprops/action-gh-release@v1
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     files: pwnagotchi-raspios-lite
