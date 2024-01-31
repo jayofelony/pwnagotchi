@@ -15,7 +15,7 @@ jobs:
         remove-haskell: true
         remove-codeql: true
         remove-docker-images: true
-        root-reserve-mb: 61440
+        root-reserve-mb: 81920
         # temp-reserve-mb: 10240
 
     - uses: actions/checkout@v3
@@ -28,14 +28,17 @@ jobs:
 
     - name: Make
       run: make
-      continue-on-error: true
 
-    - name: Run df and du if Packer failed
-      if: ${{ failure() }}
+    - name: Run df
       run: |
-        # Run df and du commands
-        df -h
-        du -h /home/runner/work/pwnagotchi/pwnagotchi
+          # Allow subsequent commands to run even if packer fails
+          set +e
+          
+          # Run df
+          df -h
+
+          # Revert to default behavior (exit on error)
+          set -e
       
     # - uses: actions/upload-artifact@v3
     #   with:
