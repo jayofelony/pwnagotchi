@@ -22,8 +22,8 @@ jobs:
     
     # - name: Set up QEMU
     #   uses: docker/setup-qemu-action@v3
-    - name: Install xmllint
-      run: sudo apt-get install -y qemu-user-static qemu-utils
+    - name: Install qemu
+      run: sudo apt-get update && sudo apt-get install -y qemu-user-static qemu-utils
 
 
     - name: Install packer-builder-arm plugin and move to builder folder
