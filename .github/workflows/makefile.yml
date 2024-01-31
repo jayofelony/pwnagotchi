@@ -20,8 +20,8 @@ jobs:
 
     - uses: actions/checkout@v3
     
-    - name: Install qemu-user-static
-      run: sudo apt-get install -y qemu-user-static
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
     - name: Install packer-builder-arm plugin and move to builder folder
       run: |
