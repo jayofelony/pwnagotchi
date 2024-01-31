@@ -15,7 +15,7 @@ jobs:
         remove-haskell: true
         remove-codeql: true
         remove-docker-images: true
-        root-reserve-mb: 20480
+        root-reserve-mb: 40960
         # temp-reserve-mb: 10240
 
     - uses: actions/checkout@v3
@@ -26,8 +26,7 @@ jobs:
           cd packer-builder-arm
           go mod download
           go build
-          ls -la
-
+          mv packer-builder-arm /home/runner/work/pwnagotchi-bookworm/pwnagotchi-bookworm/builder
     - name: Make
       run: make
 
