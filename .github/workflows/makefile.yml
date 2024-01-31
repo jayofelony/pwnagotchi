@@ -25,7 +25,7 @@ jobs:
 
     - name: Install packer-builder-arm plugin and move to builder folder
       run: |
-          git clone https://github.com/mkaczanowski/packer-builder-arm
+          git clone --depth 1 https://github.com/mkaczanowski/packer-builder-arm
           cd packer-builder-arm
           go mod download
           go build
