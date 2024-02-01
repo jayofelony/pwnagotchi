@@ -95,7 +95,11 @@ build {
     inline = ["chmod +x /etc/update-motd.d/*"]
   }
   provisioner "shell" {
-    inline = ["apt-get -y --allow-releaseinfo-change update", "apt-get -y dist-upgrade", "apt-get install -y --no-install-recommends ansible"]
+    inline = [
+      "apt-get -y --allow-releaseinfo-change update",
+      "apt-get -y dist-upgrade",
+      "apt-get install -y --no-install-recommends ansible"
+    ]
   }
   provisioner "ansible-local" {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"

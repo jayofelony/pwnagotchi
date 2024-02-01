@@ -298,13 +298,13 @@
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
     - name: symlink 1
       file:
-        src: "/usr/lib/arm-linux-gnueabihf/libisl.so.23.0.0"
+        src: "/usr/lib/arm-linux-gnueabihf/libisl.so.23.2.0"
         dest: "/usr/lib/arm-linux-gnueabihf/libisl.so.10"
         state: link
 
     - name: symlink 2
       file:
-        src: "/usr/lib/arm-linux-gnueabihf/libmpfr.so.6.1.0"
+        src: "/usr/lib/arm-linux-gnueabihf/libmpfr.so.6.2.0"
         dest: "/usr/lib/arm-linux-gnueabihf/libmpfr.so.4"
         state: link
 
