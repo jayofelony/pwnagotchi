@@ -363,7 +363,7 @@
 
     - name: clone nexmon repository
       git:
-        repo: https://github.com/DrSchottky/nexmon.git
+        repo: https://github.com/seemoo-lab/nexmon.git
         dest: /usr/local/src/nexmon
 
     - name: make firmware, RPi4
