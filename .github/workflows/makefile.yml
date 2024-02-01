@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Extract Version Number
-      run: echo "PWN_VERSION=$(shell cut -d"'" -f2 < pwnagotchi/_version.py)" >> $GITHUB_ENV
+      run: echo "PWN_VERSION=$(cut -d"'" -f2 < pwnagotchi/_version.py)" >> $GITHUB_ENV
       # if: startsWith(github.ref, 'refs/tags/')
       # run: echo "VERSION=$(echo ${GITHUB_REF#refs/tags/v})" >> $GITHUB_ENV
       
