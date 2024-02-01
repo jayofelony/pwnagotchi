@@ -36,16 +36,19 @@ jobs:
 
     - name: debug
       run: |
-          ls -la ../../../
           pwd
-          ls /home/runner/work/pwnagotchi-bookworm/pwnagotchi-bookworm/builder
+          ls -la ../../../
+          ls -la ../../
+          ls -la ../
+          ls -la
+
+          ls /home/
+          ls /home/runner
+
     - uses: actions/upload-artifact@v3
       with:
         name: pwnagotchi-raspios-bookworm-arm64.iso
         path: ../../../pwnagotchi-rpi-bookworm-**.**.**-arm64.img
-
-#     - name: Image
-#       run: make image -e PWN_HOSTNAME=pwnagotchi PWN_VERSION=0.0.1
 
     - name: Release
       uses: softprops/action-gh-release@v1
