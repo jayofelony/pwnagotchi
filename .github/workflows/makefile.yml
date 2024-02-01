@@ -34,21 +34,27 @@ jobs:
     - name: Run make
       run: make
 
-    - name: debug
+    - name: Run pishrink
       run: |
-          pwd
-          ls -la ../../../
-          ls -la ../../
-          ls -la ../
-          ls -la
+          wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
+          chmod +x pishrink.sh
+          sudo pishrink.sh -Z -a -v -d /home/runner/work/pwnagotchi-rpi-bookworm*.img
+      
+    # - name: debug
+    #   run: |
+    #       pwd
+    #       ls -la ../../../
+    #       ls -la ../../
+    #       ls -la ../
+    #       ls -la
 
-          ls -la /home/runner
-          ls -la /home/runner/work
+    #       ls -la /home/runner
+    #       ls -la /home/runner/work
 
     - uses: actions/upload-artifact@v3
       with:
-        name: pwnagotchi-raspios-bookworm-arm64.iso
-        path: /home/runner/work/pwnagotchi-rpi-bookworm-**.**.**-arm64.img
+        name: pwnagotchi-raspios-bookworm-arm64.img
+        path: /home/runner/work/pwnagotchi-rpi-bookworm-**.**.**-arm64.img.xz
 
     - name: Release
       uses: softprops/action-gh-release@v1
