@@ -5,7 +5,9 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    env:
+      VERSION: 'unknown' # Default value for VERSION
+      
     steps:
     - name: Maximize build space
       uses: easimon/maximize-build-space@master
@@ -19,7 +21,12 @@ jobs:
         # temp-reserve-mb: 10240
 
     - uses: actions/checkout@v4
-
+    
+    - name: Extract Version Number
+      run: echo "PWN_VERSION=$(shell cut -d"'" -f2 < pwnagotchi/_version.py)" >> $GITHUB_ENV
+      # if: startsWith(github.ref, 'refs/tags/')
+      # run: echo "VERSION=$(echo ${GITHUB_REF#refs/tags/v})" >> $GITHUB_ENV
+      
     - name: Install qemu
       run: sudo apt-get update && sudo apt-get install -y qemu-user-static qemu-utils
 
@@ -30,7 +37,7 @@ jobs:
           go mod download
           go build
           mv packer-builder-arm /home/runner/work/pwnagotchi-bookworm/pwnagotchi-bookworm/builder
-          
+
     - name: Run make
       run: make
 
@@ -39,17 +46,17 @@ jobs:
           wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
           chmod +x pishrink.sh
           sudo ./pishrink.sh -Z -a -v -d /home/runner/work/pwnagotchi-rpi-bookworm*.img
-      
+
     - uses: actions/upload-artifact@v4
       with:
-        name: pwnagotchi-raspios-bookworm-arm64.img
-        path: /home/runner/work/pwnagotchi-rpi-bookworm-**.**.**-arm64.img.xz
+        name: pwnagotchi-raspios-bookworm-${{ env.PWN_VERSION }}-arm64.img
+        path: /home/runner/work/pwnagotchi-rpi-bookworm-${{ env.PWN_VERSION }}-arm64.img.xz
 
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: pwnagotchi-raspios-bookworm-arm64.img
+        files: pwnagotchi-raspios-bookworm-${{ env.PWN_VERSION }}-arm64
 
 ### I see no benefits to separating them into two jobs but leave this as an example
   # release:
