@@ -42,13 +42,13 @@ jobs:
           ls -la ../
           ls -la
 
-          ls /home/
-          ls /home/runner
+          ls -la /home/runner
+          ls -la /home/runner/work
 
     - uses: actions/upload-artifact@v3
       with:
         name: pwnagotchi-raspios-bookworm-arm64.iso
-        path: ../../../pwnagotchi-rpi-bookworm-**.**.**-arm64.img
+        path: /home/runner/work/pwnagotchi-rpi-bookworm-**.**.**-arm64.img
 
     - name: Release
       uses: softprops/action-gh-release@v1
