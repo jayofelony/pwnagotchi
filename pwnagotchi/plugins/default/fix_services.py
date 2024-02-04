@@ -46,7 +46,7 @@ class FixServices(plugins.Plugin):
         last_lines = self.get_last_lines('journalctl', ['-n10', '-k'], 10)
         try:
             cmd_output = subprocess.check_output("ip link show wlan0mon", shell=True)
-            logging.info("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
+            logging.debug("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
             if ",UP," in str(cmd_output):
                 logging.info("wlan0mon is up.")
 
