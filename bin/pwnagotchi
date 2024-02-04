@@ -51,7 +51,6 @@ def pwnagotchi_cli():
         agent.mode = 'auto'
         agent.start()
         config = agent.config()
-        session = agent.session()
 
         while True:
             try:
