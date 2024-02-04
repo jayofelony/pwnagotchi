@@ -122,7 +122,7 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 1
             if len(self.pattern.findall(last_lines)) >= 3:
-                logging.info("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Blind-Bug detected. Restarting.')
@@ -135,7 +135,7 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 2
             elif len(self.pattern2.findall(other_last_lines)) >= 5:
-                logging.info("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
@@ -167,7 +167,7 @@ class FixServices(plugins.Plugin):
                 try:
                     # Run the monstart command to restart wlan0mon
                     cmd_output = subprocess.check_output("monstart", shell=True)
-                    logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
+                    logging.debug("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
@@ -181,7 +181,7 @@ class FixServices(plugins.Plugin):
                 try:
                     # Run the monstart command to restart wlan0mon
                     cmd_output = subprocess.check_output("monstart", shell=True)
-                    logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
+                    logging.debug("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
@@ -237,7 +237,7 @@ class FixServices(plugins.Plugin):
             # is it up?
             try:
                 cmd_output = subprocess.check_output("ip link show wlan0mon", shell=True)
-                logging.info("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
+                logging.debug("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
                 if ",UP," in str(cmd_output):
                     logging.info("wlan0mon is up. Skip reset?")
                     # not reliable, so don't skip just yet
@@ -309,11 +309,9 @@ class FixServices(plugins.Plugin):
                                     # stop looping and get back to recon
                                     break
                                 else:
-                                    logging.info(
-                                        "[Fix_Services set wifi.interfaceface wlan0mon] failed? %s" % repr(result))
+                                    logging.debug("[Fix_Services set wifi.interfaceface wlan0mon] failed? %s" % repr(result))
                             except Exception as err:
-                                logging.info(
-                                    "[Fix_Services set wifi.interface wlan0mon] except: %s" % repr(err))
+                                logging.debug("[Fix_Services set wifi.interface wlan0mon] except: %s" % repr(err))
                         except Exception as cerr:  #
                             if not display:
                                 print("failed loading wlan0mon attempt #%s: %s" % (tries, repr(cerr)))
@@ -362,7 +360,7 @@ class FixServices(plugins.Plugin):
                                                              "face": faces.HAPPY})
                     else:
                         print("I can see again")
-                    logging.info("[Fix_Services] wifi.recon on")
+                    logging.debug("[Fix_Services] wifi.recon on")
                     self.LASTTRY = time.time() + 120  # 2-minute pause until next time.
                 else:
                     logging.error("[Fix_Services] wifi.recon did not start up")
@@ -378,7 +376,7 @@ class FixServices(plugins.Plugin):
             try:
                 logging.info("[Fix_Services] unloaded")
             except Exception as err:
-                logging.info("[Fix_Services] unload err %s " % repr(err))
+                logging.error("[Fix_Services] unload err %s " % repr(err))
             pass
 
 
