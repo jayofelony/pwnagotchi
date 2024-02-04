@@ -6,8 +6,8 @@
   vars:
     kernel:
       min: "6.1"
-      full: "6.1.0-rpi7-rpi-v8"
-      full_pi5: "6.1.0-rpi7-rpi-2712"
+      full: "6.1.0-rpi8-rpi-v8"
+      full_pi5: "6.1.0-rpi8-rpi-2712"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
@@ -79,6 +79,11 @@
           - curl
           - dkms
           - fbi
+          - firmware-atheros
+          - firmware-brcm80211
+          - firmware-libertas
+          - firmware-misc-nonfree
+          - firmware-realtek
           - flex
           - fonts-dejavu
           - fonts-dejavu-core
@@ -97,9 +102,9 @@
           - libbz2-dev
           - libc-ares-dev
           - libc6-dev
+          - libc6:armhf
           - libcap-dev
           - libcurl-ocaml-dev
-          - libssl-ocaml-dev
           - libdbus-1-dev
           - libdbus-glib-1-dev
           - libeigen3-dev
@@ -112,7 +117,10 @@
           - libgmp3-dev
           - libgstreamer1.0-0
           - libhdf5-dev
+          - libisl23:armhf
           - liblapack-dev
+          - libmpc3:armhf
+          - libmpfr6:armhf
           - libncursesw5-dev
           - libnetfilter-queue-dev
           - libopenblas-dev
@@ -126,34 +134,31 @@
           - libraspberrypi0
           - libsqlite3-dev
           - libssl-dev
+          - libssl-ocaml-dev
+          - libstdc++6:armhf
           - libswscale5
           - libtiff6
           - libtool
           - libusb-1.0-0-dev
           - lsof
           - make
-          - python3-yaml
           - python3-dbus
           - python3-flask
           - python3-flask-cors
           - python3-flaskext.wtf
           - python3-gast
           - python3-pil
+          - python3-pip
           - python3-pycryptodome
           - python3-requests
           - python3-scapy
+          - python3-setuptools
+          - python3-smbus
           - python3-smbus2
           - python3-spidev
           - python3-tweepy
           - python3-werkzeug
-          - firmware-atheros
-          - firmware-brcm80211
-          - firmware-libertas
-          - firmware-misc-nonfree
-          - firmware-realtek
-          - python3-pip
-          - python3-setuptools
-          - python3-smbus
+          - python3-yaml
           - qpdf
           - raspberrypi-kernel-headers
           - rsync
@@ -291,9 +296,21 @@
         path: /usr/local/src/hcxtools
 
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
+    - name: symlink 1
+      file:
+        src: "/usr/lib/arm-linux-gnueabihf/libisl.so.23.2.0"
+        dest: "/usr/lib/arm-linux-gnueabihf/libisl.so.10"
+        state: link
+
+    - name: symlink 2
+      file:
+        src: "/usr/lib/arm-linux-gnueabihf/libmpfr.so.6.2.0"
+        dest: "/usr/lib/arm-linux-gnueabihf/libmpfr.so.4"
+        state: link
+
     - name: clone nexmon repository
       git:
-        repo: https://github.com/DrSchottky/nexmon.git
+        repo: https://github.com/seemoo-lab/nexmon.git
         dest: /usr/local/src/nexmon
 
     # FIRST WE BUILD DRIVER FOR RPi5
@@ -346,7 +363,7 @@
 
     - name: clone nexmon repository
       git:
-        repo: https://github.com/DrSchottky/nexmon.git
+        repo: https://github.com/seemoo-lab/nexmon.git
         dest: /usr/local/src/nexmon
 
     - name: make firmware, RPi4

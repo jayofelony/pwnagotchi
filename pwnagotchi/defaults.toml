@@ -198,11 +198,6 @@ ui.display.enabled = false
 ui.display.rotation = 180
 ui.display.type = "waveshare_4"
 
-bettercap.scheme = "http"
-bettercap.hostname = "localhost"
-bettercap.port = 8081
-bettercap.username = "pwnagotchi"
-bettercap.password = "pwnagotchi"
 bettercap.handshakes = "/root/handshakes"
 bettercap.silence = [
     "ble.device.new",

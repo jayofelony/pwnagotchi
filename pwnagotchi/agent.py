@@ -21,11 +21,12 @@ RECOVERY_DATA_FILE = '/root/.pwnagotchi-recovery'
 
 class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
     def __init__(self, view, config, keypair):
-        Client.__init__(self, config['bettercap']['hostname'],
-                        config['bettercap']['scheme'],
-                        config['bettercap']['port'],
-                        config['bettercap']['username'],
-                        config['bettercap']['password'])
+        Client.__init__(self,
+                        "127.0.0.1" if "hostname" not in config['bettercap'] else config['bettercap']['hostname'],
+                        "http" if "scheme" not in config['bettercap'] else config['bettercap']['scheme'],
+                        8081 if "port" not in config['bettercap'] else config['bettercap']['port'],
+                        "pwnagotchi" if "username" not in config['bettercap'] else config['bettercap']['username'],
+                        "pwnagotchi" if "password" not in config['bettercap'] else config['bettercap']['password'])
         Automata.__init__(self, config, view)
         AsyncAdvertiser.__init__(self, config, view, keypair)
         AsyncTrainer.__init__(self, config)
@@ -362,7 +363,8 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                     plugins.on('handshake', self, filename, ap_mac, sta_mac)
                 else:
                     (ap, sta) = ap_and_station
-                    self._last_pwnd = ap['hostname'] if ap['hostname'] != '' and ap['hostname'] != '<hidden>' else ap_mac
+                    self._last_pwnd = ap['hostname'] if ap['hostname'] != '' and ap[
+                        'hostname'] != '<hidden>' else ap_mac
                     logging.warning(
                         "!!! captured new handshake on channel %d, %d dBm: %s (%s) -> %s [%s (%s)] !!!",
                         ap['channel'], ap['rssi'], sta['mac'], sta['vendor'], ap['hostname'], ap['mac'], ap['vendor'])

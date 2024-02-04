@@ -153,8 +153,7 @@ class View(object):
         self.set('uptime', last_session.duration)
         self.set('channel', '-')
         self.set('aps', "%d" % last_session.associated)
-        self.set('shakes', '%d (%s)' % (last_session.handshakes, \
-                                        utils.total_unique_handshakes(self._config['bettercap']['handshakes'])))
+        self.set('shakes', '%d (%s)' % (last_session.handshakes, utils.total_unique_handshakes(self._config['bettercap']['handshakes'])))
         self.set_closest_peer(last_session.last_peer, last_session.peers)
         self.update()
 

@@ -60,6 +60,7 @@ def pwnagotchi_cli():
                 channels = agent.get_access_points_by_channel()
                 # for each channel
                 for ch, aps in channels:
+                    time.sleep(0.2)  # This is to make sure it doesn't error (https://github.com/seemoo-lab/nexmon/issues/596)
                     agent.set_channel(ch)
 
                     if not agent.is_stale() and agent.any_activity():
