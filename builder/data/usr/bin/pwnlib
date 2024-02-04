@@ -13,14 +13,6 @@ blink_led() {
   sleep 0.3
 }
 
-# check if brcm is stuck
-check_brcm() {
-  if [[ "$(journalctl -n10 -k --since -5m | grep -c 'brcmf_cfg80211_nexmon_set_channel.*Set Channel failed')" -ge 5 ]]; then
-    return 1
-  fi
-  return 0
-}
-
 # reload mod
 reload_brcm() {
   if ! modprobe -r brcmfmac; then
