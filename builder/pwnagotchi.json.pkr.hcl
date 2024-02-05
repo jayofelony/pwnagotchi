@@ -150,50 +150,6 @@ build {
   }
 }
 
-build {
-  name = "Raspberry Pi 32 Pwnagotchi"
-  sources = ["source.arm.rpi32-pwnagotchi"]
-  provisioner "file" {
-    destination = "/usr/bin/"
-    sources     = [
-      "data/usr/bin/bettercap-launcher",
-      "data/usr/bin/hdmioff",
-      "data/usr/bin/hdmion",
-      "data/usr/bin/monstart",
-      "data/usr/bin/monstop",
-      "data/usr/bin/pwnagotchi-launcher",
-      "data/usr/bin/pwnlib",
-    ]
-  }
-  provisioner "shell" {
-    inline = ["chmod +x /usr/bin/*"]
-  }
-
-  provisioner "file" {
-    destination = "/etc/systemd/system/"
-    sources     = [
-      "data/etc/systemd/system/bettercap.service",
-      "data/etc/systemd/system/pwnagotchi.service",
-      "data/etc/systemd/system/pwngrid-peer.service",
-    ]
-  }
-  provisioner "file" {
-    destination = "/etc/update-motd.d/01-motd"
-    source      = "data/etc/update-motd.d/01-motd"
-  }
-  provisioner "shell" {
-    inline = ["chmod +x /etc/update-motd.d/*"]
-  }
-  provisioner "shell" {
-    inline = ["apt-get -y --allow-releaseinfo-change update", "apt-get -y dist-upgrade", "apt-get install -y --no-install-recommends ansible"]
-  }
-  provisioner "ansible-local" {
-    command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
-    extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
-    playbook_dir    = "extras/"
-    playbook_file   = "raspberrypi32.yml"
-  }
-}
 
 #build {
 #  name = "Orange Pi Pwnagotchi"
