@@ -54,8 +54,8 @@ jobs:
             echo $(ls /usr/bin/qemu-aarch64-static)
             echo ':qemu-aarch64:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-aarch64-static:' | sudo tee /proc/sys/fs/binfmt_misc/register
 
-    # - name: Restart binfmt-support
-    #   run: sudo service binfmt-support restart
+    - name: Restart binfmt-support
+      run: sudo service binfmt-support restart
 
     - name: Mount binfmt_misc
       run: |
@@ -64,8 +64,8 @@ jobs:
           sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
         fi
 
-    # - name: Restart binfmt-support
-    #   run: sudo service binfmt-support restart
+    - name: Restart binfmt-support
+      run: sudo service binfmt-support restart
         
     - name: Update Languages
       run: make update_langs
@@ -75,7 +75,22 @@ jobs:
 
     - name: Check disk space
       run: df -BG
-      
+
+    - name: Check qemu-user-static package
+      run: |
+        echo "Checking qemu-user-static package..."
+        dpkg -s qemu-user-static && echo "qemu-user-static is installed." || echo "qemu-user-static is NOT installed."
+    
+    - name: Check binfmt-support service
+      run: |
+        echo "Checking binfmt-support service..."
+        service binfmt-support status && echo "binfmt-support service is running." || echo "binfmt-support service is NOT running."
+    
+    - name: Check binfmt_misc filesystem
+      run: |
+        echo "Checking binfmt_misc filesystem..."
+        mount | grep binfmt_misc && echo "binfmt_misc is mounted." || echo "binfmt_misc is NOT mounted."
+
     - name: Run Makefile
       run: make
       env: 
