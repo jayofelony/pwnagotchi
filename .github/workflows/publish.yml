@@ -89,6 +89,7 @@ jobs:
       run: |
         echo "Checking binfmt_misc filesystem..."
         mount | grep binfmt_misc && echo "binfmt_misc is mounted." || echo "binfmt_misc is NOT mounted."
+        echo $(ls /proc/sys/fs/binfmt_misc | grep qemu-aarch64)
 
     - name: Run Makefile
       run: make
