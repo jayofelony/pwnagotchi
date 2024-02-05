@@ -143,7 +143,7 @@ jobs:
           const path = require('path');
           const release_id = "${{ steps.create_release.outputs.result }}";
           const asset_content_type = 'application/octet-stream';
-          const distDir = '/home/runner/work/pwnagotchi-bookworm/';
+          const distDir = '/home/runner/work/';
           
           const uploadFile = async (filePath) => {
             if (fs.lstatSync(filePath).isDirectory()) {
