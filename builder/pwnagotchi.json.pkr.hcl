@@ -39,7 +39,7 @@ source "arm" "rpi64-pwnagotchi" {
     start_sector = "8192"
     filesystem   = "fat"
     size         = "256M"
-    mountpoint   = "/boot"
+    mountpoint   = "/boot/firmware"
   }
   image_partitions {
     name         = "root"
