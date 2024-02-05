@@ -4,7 +4,7 @@ packer {
   required_plugins {
     arm = {
       version = "~> 1"
-      source  = "github.com/cdecoux/builder-arm"
+      source  = "github.com/cdecoux/packer-plugin-builder-arm"
     }
     ansible = {
       source  = "github.com/hashicorp/ansible"
