@@ -97,7 +97,7 @@ jobs:
     #     PWN_VERSION: ${{ steps.tag-setter.outputs.TAG }}
     - name: Create .img file
       run: |
-        dd if=/dev/zero of=/home/runner/work/pwnagotchi/pwnagotchi/disk.img bs=1M count=1024
+        dd if=/dev/zero of=/home/runner/work/pwnagotchi-bookworm/pwnagotchi-bookworm/disk.img bs=1M count=1024
 
     - name: Compress .img files
       run: |
