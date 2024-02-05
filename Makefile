@@ -1,6 +1,6 @@
 PACKER_VERSION := 1.10.0
 PWN_HOSTNAME := pwnagotchi
-PWN_VERSION := $(shell cut -d"'" -f2 < pwnagotchi/_version.py)
+PWN_VERSION := ${PWN_VERSION}
 
 MACHINE_TYPE := $(shell uname -m)
 ifneq (,$(filter x86_64,$(MACHINE_TYPE)))
@@ -56,7 +56,7 @@ $(SDIST): setup.py pwnagotchi
 pwnagotchi: | $(PACKER)
 
 # If the packer or ansible files are updated, rebuild the image.
-pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi64.yml $(shell find builder/data -type f)
+pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi64.yml builder/extras/nexmon.yml $(shell find builder/data -type f)
 
 	cd builder && $(PACKER) init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
