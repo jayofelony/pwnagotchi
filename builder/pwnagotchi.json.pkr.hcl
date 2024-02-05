@@ -2,10 +2,10 @@
 # https://github.com/mkaczanowski/packer-builder-arm/pull/172
 packer {
   required_plugins {
-    #arm = {
-    #  version = "~> 1"
-    #  source  = "github.com/cdecoux/builder-arm"
-    #}
+    arm = {
+      version = "~> 1"
+      source  = "github.com/cdecoux/packer-plugin-builder-arm"
+    }
     ansible = {
       source  = "github.com/hashicorp/ansible"
       version = "~> 1"

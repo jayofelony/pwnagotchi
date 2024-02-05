@@ -64,5 +64,5 @@ pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi64.yml $
 image: pwnagotchi
 
 clean:
-	- rm -rf build dist pwnagotchi.egg-info
+	- rm -rf dist pwnagotchi.egg-info
 	- rm -f $(PACKER)
