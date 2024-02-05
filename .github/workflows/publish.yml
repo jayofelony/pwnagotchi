@@ -48,10 +48,10 @@ jobs:
            sudo apt-get update && sudo apt-get install -y libdbus-1-dev curl unzip gettext qemu-utils qemu qemu-user-static binfmt-support
            pip install -r requirements.txt
 
-    # - name: Update QEMU
-    #   run: |
-    #     sudo update-binfmts --enable qemu-arm
-    #     sudo update-binfmts --enable qemu-aarch64
+    - name: Update QEMU
+      run: |
+            sudo update-binfmts --enable qemu-aarch64
+            echo $(ls /usr/bin/qemu-aarch64-static)
 
     # - name: Restart binfmt-support
     #   run: sudo service binfmt-support restart
