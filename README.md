@@ -1,6 +1,6 @@
 # Pwnagotchi-Torch
 <a href="https://github.com/jayofelony/pwnagotchi-bookworm/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/jayofelony/pwnagotchi-bookworm.svg"></a><br/>
-**This fork of [Pwnagotchi](https://www.pwnagotchi.ai) is only for 64-bit Raspberry Pi's. Such as the 02W, 3(b+) and 4(b) ~~and the new Raspberry Pi 5~~!!.**
+**This fork of [Pwnagotchi](https://www.pwnagotchi.ai) is only for 64-bit Raspberry Pi's. Such as the 02W, 3(b+) and 4(b) and the new Raspberry Pi 5!!.**
 
 It seems the Pi 5 is unable to run in monitor mode, will keep you updated on this.
 
