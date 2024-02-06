@@ -76,6 +76,10 @@ build {
     inline = ["chmod +x /usr/bin/*"]
   }
 
+  provisioner "shell" {
+    inline = ["dpkg --add-architecture armhf"]
+  }
+
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
