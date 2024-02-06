@@ -95,9 +95,13 @@ jobs:
       run: make
       env: 
         PWN_VERSION: ${{ steps.tag-setter.outputs.TAG }}
-    # - name: Create .img file
-    #   run: |
-    #     dd if=/dev/zero of=/home/runner/work/pwnagotchi-bookworm/pwnagotchi-bookworm/disk.img bs=1M count=1024
+
+    - name: PiShrink
+      run: |
+        wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
+        chmod +x pishrink.sh
+        sudo mv pishrink.sh /usr/local/bin
+        find /home/runner/work/ -type f -name "*.img" -exec sudo pishrink.sh {} \;
 
     - name: Compress .img files
       run: |
