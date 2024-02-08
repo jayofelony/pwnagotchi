@@ -4,7 +4,6 @@
 
 The RPi5 can only be used headless currently. (without display.)
 
-It seems the Pi 5 is unable to run in monitor mode, will keep you updated on this.
 
 If you are using an older 32-bit version Raspberry Pi, ZeroWH, use this [fork](https://github.com/jayofelony/pwnagotchi-torch/releases/tag/v2.6.4) and make sure you download the `armhf` version.
 
