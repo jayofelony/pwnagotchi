@@ -40,11 +40,11 @@
         source: "https://github.com/jayofelony/caplets.git"
       bettercap:
         source: "https://github.com/jayofelony/bettercap.git"
-        url: "https://github.com/jayofelony/bettercap/releases/download/v2.32.4/bettercap-2.32.4-aarch64.zip"
+        url: "https://github.com/jayofelony/bettercap/releases/download/2.32.2/bettercap-2.32.2.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
-        url: "https://github.com/jayofelony/pwngrid/releases/download/v1.11.0/pwngrid-1.11.0-aarch64.zip"
+        url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.5/pwngrid-1.10.5-aarch64.zip"
       apt:
         downgrade:
           - libpcap-dev_1.9.1-4_arm64.deb
