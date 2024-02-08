@@ -1,6 +1,6 @@
 PACKER_VERSION := 1.10.0
 PWN_HOSTNAME := pwnagotchi
-PWN_VERSION := $(shell cut -d"'" -f2 < pwnagotchi/_version.py)
+PWN_VERSION := ${PWN_VERSION}
 
 MACHINE_TYPE := $(shell uname -m)
 ifneq (,$(filter x86_64,$(MACHINE_TYPE)))
@@ -48,15 +48,11 @@ $(PACKER):
 	rm $(PACKER).zip
 	chmod +x $@
 
-SDIST := dist/pwnagotchi-$(PWN_VERSION).tar.gz
-$(SDIST): setup.py pwnagotchi
-	python3 setup.py sdist
-
 # Building the image requires packer, but don't rebuild the image just because packer updated.
 pwnagotchi: | $(PACKER)
 
 # If the packer or ansible files are updated, rebuild the image.
-pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi64.yml $(shell find builder/data -type f)
+pwnagotchi: builder/pwnagotchi.json.pkr.hcl builder/raspberrypi64.yml $(shell find builder/data -type f)
 
 	cd builder && $(PACKER) init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
@@ -64,5 +60,5 @@ pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi64.yml $
 image: pwnagotchi
 
 clean:
-	- rm -rf build dist pwnagotchi.egg-info
+	- rm -rf dist pwnagotchi.egg-info
 	- rm -f $(PACKER)

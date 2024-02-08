@@ -1,11 +1,9 @@
-# This is not working quite yet
-# https://github.com/mkaczanowski/packer-builder-arm/pull/172
 packer {
   required_plugins {
-    #arm = {
-    #  version = "~> 1"
-    #  source  = "github.com/cdecoux/builder-arm"
-    #}
+    arm = {
+      version = "1.0.0"
+      source  = "github.com/cdecoux/builder-arm"
+    }
     ansible = {
       source  = "github.com/hashicorp/ansible"
       version = "~> 1"
@@ -28,8 +26,8 @@ source "arm" "rpi64-pwnagotchi" {
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
   image_path                    = "../../../pwnagotchi-rpi-bookworm-${var.pwn_version}-arm64.img"
-  qemu_binary_source_path       = "/usr/bin/qemu-aarch64-static"
-  qemu_binary_destination_path  = "/usr/bin/qemu-aarch64-static"
+  qemu_binary_source_path       = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
+  qemu_binary_destination_path  = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
   image_build_method            = "resize"
   image_size                    = "9G"
   image_type                    = "dos"
@@ -50,6 +48,8 @@ source "arm" "rpi64-pwnagotchi" {
     mountpoint   = "/"
   }
 }
+
+
 
 # a build block invokes sources and runs provisioning steps on them. The
 # documentation for build blocks can be found here:
@@ -86,7 +86,6 @@ build {
       "data/etc/systemd/system/pwngrid-peer.service",
     ]
   }
-
   provisioner "file" {
     destination = "/etc/update-motd.d/01-motd"
     source      = "data/etc/update-motd.d/01-motd"
@@ -95,11 +94,7 @@ build {
     inline = ["chmod +x /etc/update-motd.d/*"]
   }
   provisioner "shell" {
-    inline = [
-      "apt-get -y --allow-releaseinfo-change update",
-      "apt-get -y dist-upgrade",
-      "apt-get install -y --no-install-recommends ansible"
-    ]
+    inline = ["apt-get -y --allow-releaseinfo-change update", "apt-get -y dist-upgrade", "apt-get install -y --no-install-recommends ansible"]
   }
   provisioner "ansible-local" {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
