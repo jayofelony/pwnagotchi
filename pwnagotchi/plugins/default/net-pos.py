@@ -108,7 +108,7 @@ class NetPos(plugins.Plugin):
             return
 
         netpos["ts"] = int("%.0f" % time.time())
-        netpos_filename = filename.replace('.pcapng', '.net-pos.json')
+        netpos_filename = filename.replace('.pcap', '.net-pos.json')
         logging.debug("NET-POS: Saving net-location to %s", netpos_filename)
 
         try:

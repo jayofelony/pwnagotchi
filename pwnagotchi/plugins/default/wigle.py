@@ -7,7 +7,7 @@ import pwnagotchi
 
 from io import StringIO
 from datetime import datetime
-from pwnagotchi.utils import WifiInfo, FieldNotFoundError, extract_from_pcapng, StatusFile, remove_whitelisted
+from pwnagotchi.utils import WifiInfo, FieldNotFoundError, extract_from_pcap, StatusFile, remove_whitelisted
 from threading import Lock
 from pwnagotchi import plugins
 from pwnagotchi._version import __version__ as __pwnagotchi_version__
@@ -153,11 +153,11 @@ class Wigle(plugins.Plugin):
             no_err_entries = list()
             for gps_file in new_gps_files:
                 if gps_file.endswith('.gps.json'):
-                    pcap_filename = gps_file.replace('.gps.json', '.pcapng')
+                    pcap_filename = gps_file.replace('.gps.json', '.pcap')
                 if gps_file.endswith('.geo.json'):
-                    pcap_filename = gps_file.replace('.geo.json', '.pcapng')
+                    pcap_filename = gps_file.replace('.geo.json', '.pcap')
                 if not os.path.exists(pcap_filename):
-                    logging.debug("WIGLE: Can't find pcapng for %s", gps_file)
+                    logging.debug("WIGLE: Can't find pcap for %s", gps_file)
                     self.skip.append(gps_file)
                     continue
                 try:
@@ -175,7 +175,7 @@ class Wigle(plugins.Plugin):
                     self.skip.append(gps_file)
                     continue
                 try:
-                    pcap_data = extract_from_pcapng(pcap_filename, [WifiInfo.BSSID,
+                    pcap_data = extract_from_pcap(pcap_filename, [WifiInfo.BSSID,
                                                                   WifiInfo.ESSID,
                                                                   WifiInfo.ENCRYPTION,
                                                                   WifiInfo.CHANNEL,

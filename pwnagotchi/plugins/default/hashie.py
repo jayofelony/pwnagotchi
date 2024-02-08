@@ -82,12 +82,12 @@ class Hashie(plugins.Plugin):
             if os.path.isfile(fullpathNoExt + '.22000'):
                 handshake_status.append('Already have {}.22000 (EAPOL)'.format(name))
             elif self._writeEAPOL(filename):
-                handshake_status.append('Created {}.22000 (EAPOL) from pcapng'.format(name))
+                handshake_status.append('Created {}.22000 (EAPOL) from pcap'.format(name))
 
             if os.path.isfile(fullpathNoExt + '.16800'):
                 handshake_status.append('Already have {}.16800 (PMKID)'.format(name))
             elif self._writePMKID(filename):
-                handshake_status.append('Created {}.16800 (PMKID) from pcapng'.format(name))
+                handshake_status.append('Created {}.16800 (PMKID) from pcap'.format(name))
 
             if handshake_status:
                 logging.info('[Hashie] Good news:\n\t' + '\n\t'.join(handshake_status))
@@ -111,7 +111,7 @@ class Hashie(plugins.Plugin):
         return False
 
     def _process_stale_pcaps(self, handshake_dir):
-        handshakes_list = [os.path.join(handshake_dir, filename) for filename in os.listdir(handshake_dir) if filename.endswith('.pcapng')]
+        handshakes_list = [os.path.join(handshake_dir, filename) for filename in os.listdir(handshake_dir) if filename.endswith('.pcap')]
         failed_jobs = []
         successful_jobs = []
         lonely_pcaps = []
