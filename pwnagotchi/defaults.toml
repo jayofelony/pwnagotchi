@@ -156,6 +156,8 @@ personality.bond_encounters_factor = 20000
 personality.throttle_a = 0.4
 personality.throttle_d = 0.9
 
+personality.clear_on_exit = true # clear display when shutting down cleanly
+
 ui.fps = 0.0
 ui.font.name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
 ui.font.size_offset = 0 # will be added to the font size

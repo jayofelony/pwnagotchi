@@ -1,6 +1,6 @@
 [Unit]
 Description=pwnagotchi Deep Reinforcement Learning instrumenting bettercap for WiFI pwning.
-Documentation=https://pwnagotchi.ai
+Documentation=https://pwnagotchi.org
 Wants=network.target
 After=pwngrid-peer.service
 
@@ -8,6 +8,7 @@ After=pwngrid-peer.service
 Type=simple
 WorkingDirectory=~
 ExecStart=/usr/bin/pwnagotchi-launcher
+ExecStopPost=/usr/bin/bash -c "if egrep -qi  'personality.clear_on_exit[ =]*true' /etc/pwnagotchi/config.toml ; then /usr/local/bin/pwnagotchi --clear; fi"
 Restart=always
 RestartSec=30
 TasksMax=infinity
