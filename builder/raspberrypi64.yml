@@ -173,7 +173,6 @@
           - wl
           - xxd
           - zlib1g-dev
-          - zram-tools
   environment:
     ARCHFLAGS: "-arch aarch64"
     QEMU_UNAME: "{{ kernel.full }}"
