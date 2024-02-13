@@ -27,7 +27,6 @@
         - fstrim.timer
         - pwnagotchi.service
         - pwngrid-peer.service
-        - zramswap.service
       disable:
         - apt-daily-upgrade.service
         - apt-daily-upgrade.timer
