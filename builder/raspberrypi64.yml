@@ -77,6 +77,7 @@
           - build-essential
           - curl
           - dkms
+          - dphys-swapfile
           - fbi
           - firmware-atheros
           - firmware-brcm80211
