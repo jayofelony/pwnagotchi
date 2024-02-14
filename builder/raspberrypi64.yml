@@ -102,7 +102,6 @@
           - libbz2-dev
           - libc-ares-dev
           - libc6-dev
-          - libc6:armhf
           - libcap-dev
           - libcurl-ocaml-dev
           - libdbus-1-dev
@@ -117,10 +116,7 @@
           - libgmp3-dev
           - libgstreamer1.0-0
           - libhdf5-dev
-          - libisl23:armhf
           - liblapack-dev
-          - libmpc3:armhf
-          - libmpfr6:armhf
           - libncursesw5-dev
           - libnetfilter-queue-dev
           - libopenblas-dev
@@ -135,7 +131,6 @@
           - libsqlite3-dev
           - libssl-dev
           - libssl-ocaml-dev
-          - libstdc++6:armhf
           - libswscale5
           - libtiff6
           - libtool
@@ -296,22 +291,9 @@
         state: absent
         path: /usr/local/src/hcxtools
 
-    # Install nexmon to fix wireless scanning (takes 2.5G of space)
-    - name: symlink 1
-      file:
-        src: "/usr/lib/arm-linux-gnueabihf/libisl.so.23.2.0"
-        dest: "/usr/lib/arm-linux-gnueabihf/libisl.so.10"
-        state: link
-
-    - name: symlink 2
-      file:
-        src: "/usr/lib/arm-linux-gnueabihf/libmpfr.so.6.2.0"
-        dest: "/usr/lib/arm-linux-gnueabihf/libmpfr.so.4"
-        state: link
-
     - name: clone nexmon repository
       git:
-        repo: https://github.com/seemoo-lab/nexmon.git
+        repo: https://github.com/DrSchottky/nexmon.git
         dest: /usr/local/src/nexmon
 
     # FIRST WE BUILD DRIVER FOR RPi5
@@ -364,7 +346,7 @@
 
     - name: clone nexmon repository
       git:
-        repo: https://github.com/seemoo-lab/nexmon.git
+        repo: https://github.com/DrSchottky/nexmon.git
         dest: /usr/local/src/nexmon
 
     - name: make firmware, RPi4
