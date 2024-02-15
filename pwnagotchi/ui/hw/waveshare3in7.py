@@ -38,8 +38,8 @@ class Waveshare3in7(DisplayImpl):
         self._display.Clear(0)
 
     def render(self, canvas):
-        buf = self._display.getbuffer_4Gray(canvas)
-        self._display.display_4Gray(buf)
+        buf = self._display.getbuffer(canvas)
+        self._display.display_1Gray(buf)
 
     def clear(self):
         self._display.Clear(0)
