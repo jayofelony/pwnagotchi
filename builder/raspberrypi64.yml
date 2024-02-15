@@ -39,7 +39,7 @@
         source: "https://github.com/jayofelony/caplets.git"
       bettercap:
         source: "https://github.com/jayofelony/bettercap.git"
-        url: "https://github.com/jayofelony/bettercap/releases/download/2.32.2/bettercap-2.32.2.zip"
+        url: "https://github.com/jayofelony/bettercap/releases/download/2.32.4/bettercap-2.32.4.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
       pwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
@@ -514,7 +514,7 @@
         repo: "{{ packages.bettercap.source }}"
         dest: /usr/local/src/bettercap
 
-    - name: install bettercap 2.32.2
+    - name: install bettercap 2.32.4
       shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
       args:
         executable: /bin/bash
