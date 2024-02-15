@@ -35,7 +35,8 @@ class Waveshare3in7(DisplayImpl):
         from pwnagotchi.ui.hw.libs.waveshare.v3in7.epd3in7 import EPD
         self._display = EPD()
         self._display.init(0)
-        self._display.Clear(0)
+        self._display.Clear(0xFF)
+        self._display.init(1)  # 1Gray mode
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
