@@ -39,7 +39,7 @@ class Waveshare154(DisplayImpl):
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
-        self._display.display(buf, None)
+        self._display.display(buf)
 
     def clear(self):
         # pass
