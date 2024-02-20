@@ -6,7 +6,7 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 
 class DummyDisplay(DisplayImpl):
     def __init__(self, config):
-        super(DummyDisplay, self).__init__(config, 'inky')
+        super(DummyDisplay, self).__init__(config, 'DummyDisplay')
 
     def layout(self):
         width=480 if 'width' not in self.config else self.config['width']
