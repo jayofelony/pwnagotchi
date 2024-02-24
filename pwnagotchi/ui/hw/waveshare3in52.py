@@ -9,22 +9,22 @@ class Waveshare3in52(DisplayImpl):
         super(Waveshare3in52, self).__init__(config, 'waveshare3in52')
 
     def layout(self):
-        fonts.setup(16, 14, 16, 100, 31, 15)
+        fonts.setup(16, 14, 16, 50, 31, 15)
         self._layout['width'] = 360
         self._layout['height'] = 240
-        self._layout['face'] = (0, 40)
-        self._layout['name'] = (0, 0)
-        self._layout['channel'] = (300, 0)
-        self._layout['aps'] = (0, 220)
-        self._layout['uptime'] = (120, 0)
+        self._layout['face'] = (0, 85)
+        self._layout['name'] = (10, 30)
+        self._layout['channel'] = (1, 4)
+        self._layout['aps'] = (45, 4)
+        self._layout['uptime'] = (250, 4)
         self._layout['line1'] = [0, 24, 360, 24]
         self._layout['line2'] = [0, 220, 360, 220]
-        self._layout['friend_face'] = (0, 195)
-        self._layout['friend_name'] = (0, 185)
-        self._layout['shakes'] = (100, 220)
-        self._layout['mode'] = (0,200)
+        self._layout['friend_face'] = (0, 180)
+        self._layout['friend_name'] = (0, 170)
+        self._layout['shakes'] = (1, 223)
+        self._layout['mode'] = (320,222)
         self._layout['status'] = {
-            'pos': (3, 170),
+            'pos': (185, 50),
             'font': fonts.status_font(fonts.Small),
             'max': 100
         }
@@ -40,7 +40,6 @@ class Waveshare3in52(DisplayImpl):
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
         self._display.display(buf)
-        self._display.refresh()
 
 
     def clear(self):
