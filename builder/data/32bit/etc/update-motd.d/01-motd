@@ -1,0 +1,33 @@
+#!/bin/sh
+_hostname=$(hostname)
+_version=$(cut -d"'" -f2 < /usr/local/lib/python3.9/dist-packages/pwnagotchi/_version.py)
+echo
+echo "(◕‿‿◕) $_hostname"
+echo
+echo "    Hi! I'm a pwnagotchi $_version, please take good care of me!"
+echo "    Here are some basic things you need to know to raise me properly!"
+echo
+echo "    If you want to change my configuration, use /etc/pwnagotchi/config.toml"
+echo "    All plugin config files are located in /etc/pwnagotchi/conf.d/"
+echo "    Read the readme if you want to use gdrivesync plugin!!"
+echo
+echo "    All the configuration options can be found on /etc/pwnagotchi/default.toml,"
+echo "    but don't change this file because I will recreate it every time I'm restarted!"
+echo
+echo "    I use oPwnGrid as my main API, you can check stats at https://opwngrid.xyz"
+echo
+echo "    I'm managed by systemd. Here are some basic commands."
+echo
+echo "    If you want to know what I'm doing, you can check my logs with the command"
+echo "    - pwnlog"
+echo "    - sudo pwnagotchi --version, to check the current version"
+echo "    - sudo pwnagotchi --donate, to see how you can donate to this project"
+echo "    - sudo pwnagotchi --check-update, to see if there is a new version available"
+echo
+echo "    If you want to know if I'm running, you can use"
+echo "    sudo systemctl status pwnagotchi"
+echo
+echo "    You can restart me using"
+echo "    pwnkill"
+echo
+echo "    You learn more about me at https://pwnagotchi.ai/"

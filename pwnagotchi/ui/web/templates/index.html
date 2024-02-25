@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% set active_page = "home" %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block script %}
+window.onload = function() {
+    var image = document.getElementById("ui");
+    function updateImage() {
+        image.src = image.src.split("?")[0] + "?" + new Date().getTime();
+    }
+    setInterval(updateImage, 1000);
+}
+{% endblock %}
+
+{% block content %}
+<img class="ui-image pixelated" src="/ui" id="ui"/>
+<div data-role="navbar">
+	<ul>
+		<li>
+			<form class="action" method="post" action="/shutdown"
+          onsubmit="return confirm('this will halt the unit, continue?');">
+				<input type="submit" class="button ui-btn ui-corner-all" value="Shutdown"/>
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+			</form>
+		</li>
+		<li>
+			<form class="action" method="post" action="/reboot"
+          onsubmit="return confirm('this will reboot the unit, continue?');">
+				<input type="submit" class="button ui-btn ui-corner-all" value="Reboot"/>
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+			</form>
+		</li>
+		<li>
+			<form class="action" method="post" action="/restart"
+          onsubmit="return confirm('This will restart the service in {{ other_mode }} mode, continue?');">
+				<input type="submit" class="button ui-btn ui-corner-all" value="Restart in {{ other_mode }} mode"/>
+				<input type="hidden" name="mode" value="{{ other_mode }}"/>
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+			</form>
+		</li>
+	</ul>
+</div>
+{% endblock %}

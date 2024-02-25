@@ -1,0 +1,34 @@
+gym
+shimmy; platform_machine!="armv6l"
+pycryptodome
+requests
+PyYAML
+scapy
+tweepy
+file-read-backwards
+inky
+smbus2
+Pillow
+spidev
+gast
+flask
+flask-cors
+flask-wtf
+dbus-python
+toml
+python-dateutil
+websockets
+torch==2.0.1; platform_machine=="aarch64"
+torch>=2.0.1; platform_machine!="aarch64"
+
+torchvision==0.15.2; platform_machine=="aarch64"
+torchvision>=0.15.2; platform_machine!="aarch64"
+
+stable_baselines3==1.8.0; platform_machine=="armv6l"
+stable_baselines3; platform_machine!="armv6l"
+
+RPi.GPIO; platform_release!="6.1.31-sun50iw9"
+OPi.GPIO; platform_release=="6.1.31-sun50iw9"
+
+rpi_hardware_pwm; platform_release!="6.1.31-sun50iw9"
+pydrive2

@@ -1,0 +1,40 @@
+# Install nexmon to fix wireless scanning (takes 2.5G of space)
+- name: clone nexmon repository
+  git:
+    repo: https://github.com/DrSchottky/nexmon.git
+    dest: /usr/local/src/nexmon
+
+- name: make firmware
+  shell: "source ./setup_env.sh && make"
+  args:
+    executable: /bin/bash
+    chdir: /usr/local/src/nexmon/
+
+- name: "make firmware patch ({{ item.name }})"
+  shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/{{ item.patch }}/nexmon/ && make"
+  args:
+    executable: /bin/bash
+    chdir: /usr/local/src/nexmon/
+  environment:
+    QEMU_UNAME: "{{ item.kernel }}"
+    ARCHFLAGS: "{{ item.arch_flags }}"
+
+- name: "install new firmware ({{ item.name }})"
+  copy:
+    src: "/usr/local/src/nexmon/patches/{{ item.patch }}/nexmon/{{ item.firmware }}"
+    dest: "/usr/lib/firmware/brcm/{{ item.firmware }}"
+    follow: true
+  environment:
+    QEMU_UNAME: "{{ item.kernel }}"
+    ARCHFLAGS: "{{ item.arch_flags }}"
+
+- name: backup original driver
+  command: "mv /usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
+
+- name: copy modified driver
+  copy:
+    src: "/usr/local/src/nexmon/patches/driver/brcmfmac_6.1.y-nexmon/brcmfmac.ko"
+    dest: "/usr/lib/modules/{{ item.kernel }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko"
+
+- name : load brcmfmac drivers
+  command: "/sbin/depmod -a {{ item.kernel }}"
