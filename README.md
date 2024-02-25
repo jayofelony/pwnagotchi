@@ -1,6 +1,6 @@
 # Pwnagotchi
 This is the main source for all forks:
-- RPiZeroW only (32bit)
+- RPiZeroW (32bit)
 - RPiZero2W, RPi3, RPi4, RPi5 (64bit)
 
 [GH Sponsor](https://github.com/sponsors/jayofelony)
