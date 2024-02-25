@@ -25,7 +25,7 @@ jobs:
         run: |
           COMMITS=$(git log --merges --pretty=format:"* %s" $LAST_VERSION..$VERSION | sed 's/$/\\n/g')
           CONTRIBUTORS=$(git shortlog -sn $LAST_VERSION..$VERSION | awk '{print "* @" $2}' | sed 's/$/\\n/g')
-          RELEASE_BODY="## What's Changed\n$COMMITS\n\n## New Contributors\n$CONTRIBUTORS\n\n**Full Changelog**: https://github.com/jayofelony/pwnagotchi-torch/compare/$LAST_VERSION...$VERSION"
+          RELEASE_BODY="## What's Changed\n$COMMITS\n\n## New Contributors\n$CONTRIBUTORS\n\n**Full Changelog**: https://github.com/jayofelony/pwnagotchi/compare/$LAST_VERSION...$VERSION"
           echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
 
       - name: Install qemu dependencies
@@ -34,14 +34,23 @@ jobs:
       - name: Build img file
         run: ls -la .; pwd; make all
 
-      - name: Transfer .img to docker and give permissions
-        run: sudo chown runner:docker "pwnagotchi-rpi-bullseye-armhf.img"
+      - name: Transfer 32bit.img to docker and give permissions
+        run: sudo chown runner:docker "pwnagotchi-32bit.img"
 
-      - name: Compress .img file to an .img.xz
-        run: ls -la .; pwd; xz -z "pwnagotchi-rpi-bullseye-armhf.img"
+      - name: Transfer 64bit.img to docker and give permissions
+        run: sudo chown runner:docker "pwnagotchi-64bit.img"
 
-      - name: Change name of .img.xz to add version
-        run: mv "pwnagotchi-rpi-bullseye-armhf.img.xz" "pwnagotchi-rpi-bullseye-$VERSION-armhf.img.xz"
+      - name: Compress 32bit.img file to an .img.xz
+        run: ls -la .; pwd; xz -z "pwnagotchi-32bit.img"
+
+      - name: Compress 64bit.img file to an .img.xz
+        run: ls -la .; pwd; xz -z "pwnagotchi-64bit.img"
+
+      - name: Change name of 32.img.xz to add version
+        run: mv "pwnagotchi-32bit.img.xz" "pwnagotchi-$VERSION-32bit.img.xz"
+
+      - name: Change name of 64.img.xz to add version
+        run: mv "pwnagotchi-64bit.img.xz" "pwnagotchi-$VERSION-64bit.img.xz"
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -49,5 +58,5 @@ jobs:
           tag_name: ${{ env.VERSION }}
           name: Pwnagotchi v${{ env.VERSION }}
           token: ${{ secrets.TOKEN }}
-          files: pwnagotchi-rpi-bullseye-${{ env.VERSION }}-armhf.img.xz
+          files: pwnagotchi-${{ env.VERSION }}-32bit.img.xz, pwnagotchi-${{ env.VERSION }}-64bit.img.xz
           body: ${{ env.RELEASE_BODY }}
