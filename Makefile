@@ -47,7 +47,7 @@ packer:
 	cd /tmp/packer-builder-arm-image && go get -d ./... && go build
 
 image:
-	cd builder && /usr/bin/packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
+	cd builder && sudo /usr/bin/packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
 clean:
 	- rm -rf dist pwnagotchi.egg-info
