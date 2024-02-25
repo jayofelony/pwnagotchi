@@ -50,7 +50,8 @@ jobs:
 
     - name: Update QEMU
       run: |
-            sudo update-binfmts --enable qemu-aarch64
+            sudo update-binfmts --enable qemu-aarch64 qemu-arm
+            echo $(ls /usr/bin/qemu-arm-static)
             echo $(ls /usr/bin/qemu-aarch64-static)
 
     - name: Restart binfmt-support
@@ -100,13 +101,9 @@ jobs:
       run: |
         wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
         chmod +x pishrink.sh
-        sudo mv pishrink.sh /usr/local/bin
-        find /home/runner/work/ -type f -name "*.img" -exec sudo pishrink.sh {} \;
+        sudo mv pishrink.sh /usr/local/bin/pishrink
+        find /home/runner/work/ -type f -name "*.img" -exec sudo pishrink -aZ {} \;
 
-    - name: Compress .img files
-      run: |
-         find /home/runner/work/ -type f -name "*.img" -exec xz --no-warn {} \;
-    
     - name: Create tag
       uses: actions/github-script@v7
       with:
@@ -159,8 +156,8 @@ jobs:
                 await uploadFile(path.join(filePath, file));
               }
             } else {
-              // Check if the file has a .xz extension
-              if (path.extname(filePath) === '.xz') {
+              // Check if the file has a .img.xz extension
+              if (path.extname(filePath) === '.img.xz') {
                 console.log(`Uploading ${filePath}...`);
       
                 const asset_name = path.basename(filePath);
