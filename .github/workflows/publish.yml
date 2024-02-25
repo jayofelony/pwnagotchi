@@ -46,7 +46,6 @@ jobs:
     - name: Install dependencies
       run: | 
            sudo apt-get update && sudo apt-get install -y libdbus-1-dev curl unzip gettext qemu-utils qemu qemu-user-static binfmt-support
-           pip install -r requirements.txt
 
     - name: Update QEMU
       run: |
