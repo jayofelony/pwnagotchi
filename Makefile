@@ -65,4 +65,4 @@ bananagotchi: clean packer
 	cd ~ && sudo pishrink -vaZ bananagotchi-$(PWN_VERSION).img
 
 clean:
-	- rm -rf /tmp/*
+	- rm -rf /tmp/packer*
