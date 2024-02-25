@@ -39,29 +39,15 @@ compile_langs:
 		./scripts/language.sh compile $$(basename $$lang); \
 	done
 
-PACKER := ~/pwnagotchi/packer
-PACKER_URL := https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_$(GOARCH).zip
-$(PACKER):
-	mkdir -p $(@D)
-	curl -L "$(PACKER_URL)" -o $(PACKER).zip
-	unzip $(PACKER).zip -d $(@D)
-	rm $(PACKER).zip
-	chmod +x $@
+packer:
+	curl https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip -o /tmp/packer.zip
+	unzip /tmp/packer.zip -d /tmp
+	sudo mv /tmp/packer /usr/bin/packer
+	git clone https://github.com/solo-io/packer-builder-arm-image /tmp/packer-builder-arm-image
+	cd /tmp/packer-builder-arm-image && go get -d ./... && go build
 
-SDIST := dist/pwnagotchi-$(PWN_VERSION).tar.gz
-$(SDIST): setup.py pwnagotchi
-	python3 setup.py sdist
-
-# Building the image requires packer, but don't rebuild the image just because packer updated.
-pwnagotchi: | $(PACKER)
-
-# If the packer or ansible files are updated, rebuild the image.
-pwnagotchi: $(SDIST) builder/pwnagotchi.json.pkr.hcl builder/raspberrypi64.yml $(shell find builder/data -type f)
-
-	cd builder && $(PACKER) init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) $(PACKER) build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
-
-.PHONY: image
-image: pwnagotchi
+image:
+	cd builder && /usr/bin/packer init pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" pwnagotchi.json.pkr.hcl
 
 clean:
 	- rm -rf dist pwnagotchi.egg-info
