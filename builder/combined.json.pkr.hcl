@@ -25,7 +25,7 @@ source "arm" "rpi64-pwnagotchi" {
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-  image_path                    = "pwnagotchi-64bit.img"
+  image_path                    = "../pwnagotchi-64bit.img"
   qemu_binary_source_path       = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
   qemu_binary_destination_path  = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
   image_build_method            = "resize"
@@ -55,7 +55,7 @@ source "arm" "rpi32-pwnagotchi" {
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-  image_path                    = "pwnagotchi-32bit.img"
+  image_path                    = "../pwnagotchi-32bit.img"
   qemu_binary_source_path       = "/usr/libexec/qemu-binfmt/arm-binfmt-P"
   qemu_binary_destination_path  = "/usr/libexec/qemu-binfmt/arm-binfmt-P"
   image_build_method            = "resize"
