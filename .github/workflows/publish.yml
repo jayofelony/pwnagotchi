@@ -130,7 +130,7 @@ jobs:
             tag_name: tag,
             name: tag,
             draft: false,
-            prerelease: true,
+            prerelease: false,
             generate_release_notes: true
           })
           console.log(`Created release with id: ${release.data.id}`)
