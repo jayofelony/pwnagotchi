@@ -45,7 +45,7 @@ jobs:
 
     - name: Install dependencies
       run: | 
-           sudo apt-get update && sudo apt-get install -y libdbus-1-dev curl unzip gettext qemu-utils qemu qemu-user-static binfmt-support
+           sudo apt-get update && sudo apt-get install -y golang libdbus-1-dev curl unzip gettext qemu-utils qemu qemu-user-static binfmt-support
 
     - name: Update QEMU
       run: |
