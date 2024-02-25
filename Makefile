@@ -52,14 +52,17 @@ image: bullseye bookworm banagotchi
 bullseye: clean packer
 	export=LC_ALL=en_GB.utf-8
 	cd builder && sudo /usr/bin/packer init data/32bit/pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" data/32bit/pwnagotchi.json.pkr.hcl
+	cd ~ && sudo pishrink -vaZ pwnagotchi-$(PWN_VERSION)-32bit.img
 
 bookworm: clean packer
 	export=LC_ALL=en_GB.utf-8
 	cd builder && sudo /usr/bin/packer init data/64bit/pwnagotchi.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" data/64bit/pwnagotchi.json.pkr.hcl
+	cd ~ && sudo pishrink -vaZ pwnagotchi-$(PWN_VERSION)-64bit.img
 
 bananagotchi: clean packer
 	export=LC_ALL=C.utf-8
 	cd builder && sudo /usr/bin/packer init data/64bit/bananagotchi.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=bananagotchi" -var "pwn_version=$(PWN_VERSION)" data/64bit/bananagotchi.json.pkr.hcl
+	cd ~ && sudo pishrink -vaZ bananagotchi-$(PWN_VERSION).img
 
 clean:
 	- rm -rf /tmp/*
