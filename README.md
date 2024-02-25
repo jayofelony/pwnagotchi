@@ -1,8 +1,8 @@
 # Pwnagotchi
 This is the main source for all forks:
-- [Bullseye](https://github.com/jayofelony/pwnagotchi-bullseye) RPiZeroW only (32bit)
-- [Bookworm](https://github.com/jayofelony/pwnagotchi-bookworm) RPiZero2W, RPi3, RPi4, RPi5 (64bit)
-- [Bananagotchi](https://github.com/jayofelony/bananagotchi) BPi M4 Zero
+- RPiZeroW only (32bit)
+- RPiZero2W, RPi3, RPi4, RPi5 (64bit)
+- BPi M4 Zero
 
 [GH Sponsor](https://github.com/sponsors/jayofelony)
 
