@@ -459,7 +459,7 @@
 
     - name: clone pwnagotchi repository
       git:
-        repo: https://github.com/jayofelony/pwnagotchi-bookworm.git
+        repo: https://github.com/jayofelony/pwnagotchi.git
         dest: /usr/local/src/pwnagotchi
 
     - name: build pwnagotchi wheel
