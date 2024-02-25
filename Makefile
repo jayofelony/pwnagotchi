@@ -47,7 +47,8 @@ packer:
 	git clone https://github.com/solo-io/packer-builder-arm-image /tmp/packer-builder-arm-image
 	cd /tmp/packer-builder-arm-image && go get -d ./... && go build
 
-image: bullseye bookworm
+image: clean packer
+	cd builder && sudo /usr/bin/packer init combined.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" combined.json.pkr.hcl
 
 bullseye: clean packer
 	export=LC_ALL=en_GB.utf-8
