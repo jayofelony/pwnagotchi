@@ -26,8 +26,8 @@ source "arm" "rpi32-pwnagotchi" {
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
   image_path                    = "../../pwnagotchi-${var.pwn_version}-32bit.img"
-  qemu_binary_source_path       = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
-  qemu_binary_destination_path  = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
+  qemu_binary_source_path       = "/usr/libexec/qemu-binfmt/arm-binfmt-P"
+  qemu_binary_destination_path  = "/usr/libexec/qemu-binfmt/arm-binfmt-P"
   image_build_method            = "resize"
   image_size                    = "9G"
   image_type                    = "dos"
