@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Extract version from file
         id: get_version
@@ -62,9 +62,10 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.VERSION }}
+          prerelease: false
+          generate_release_notes: true
+          tag_name: v${{ env.VERSION }}
           name: Pwnagotchi v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
           files: |
               pwnagotchi-${{ env.VERSION }}-32bit.img.xz
               pwnagotchi-${{ env.VERSION }}-64bit.img.xz

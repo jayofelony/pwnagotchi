@@ -46,6 +46,7 @@ packer:
 	sudo mv /tmp/packer /usr/bin/packer
 
 image: clean packer
+	export=LC_ALL=en_GB.utf-8
 	cd builder && sudo /usr/bin/packer init combined.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" combined.json.pkr.hcl
 
 bullseye: clean packer
