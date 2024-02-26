@@ -47,14 +47,12 @@ jobs:
       - name: Transfer 64bit.img to docker and give permissions
         run: sudo chown runner:docker "pwnagotchi-64bit.img"
 
-      - name: download pishrink
-        run: wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
-
-      - name: compress 32bit.img file using pishrink
-        run: sudo chmod +x "pishrink.sh"; sudo "pishrink.sh" -aZ "pwnagotchi-32bit.img"
-
-      - name: Compress 64bit.img file using pishrink
-        run: sudo pishrink.sh -aZ "pwnagotchi-64bit.img"
+      - name: PiShrink
+        run: |
+          wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
+          chmod +x pishrink.sh
+          sudo mv pishrink.sh /usr/local/bin
+          find /home/runner/work/ -type f -name "*.img" -exec sudo pishrink.sh -aZ {} \;
 
       - name: Change name of 32.img.xz to add version
         run: mv "pwnagotchi-32bit.img.xz" "pwnagotchi-$VERSION-32bit.img.xz"
