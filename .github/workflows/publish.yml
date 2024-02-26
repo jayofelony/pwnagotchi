@@ -63,7 +63,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          prerelease: false
+          prerelease: true
           tag_name: v${{ env.VERSION }}
           name: Pwnagotchi v${{ env.VERSION }}
           files: |
