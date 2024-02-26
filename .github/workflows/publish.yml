@@ -30,7 +30,7 @@ jobs:
       - name: Generate release notes
         id: generate_release_notes
         run: |
-          COMMITS=$(git log --merges --pretty=format:"* %s" $LAST_VERSION..$VERSION | sed 's/$/\\n/g')
+          COMMITS=$(git log --merges --pretty=format:"* %s" $LAST_VERSION--$VERSION | sed 's/$/\\n/g')
           CONTRIBUTORS=$(git shortlog -sn $LAST_VERSION--$VERSION | awk '{print "* @" $2}' | sed 's/$/\\n/g')
           RELEASE_BODY="## What's Changed\n$COMMITS\n\n## New Contributors\n$CONTRIBUTORS\n\n**Full Changelog**: https://github.com/jayofelony/pwnagotchi/compare/$LAST_VERSION...$VERSION"
           echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
