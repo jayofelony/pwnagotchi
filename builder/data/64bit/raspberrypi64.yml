@@ -10,7 +10,7 @@
       full_pi5: "6.1.0-rpi8-rpi-2712"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
-      version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
+      version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi', true) }}"
     system:
       boot_options:
         - "dtoverlay=dwc2"
