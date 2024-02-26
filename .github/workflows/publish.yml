@@ -51,7 +51,7 @@ jobs:
         run: wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
 
       - name: compress 32bit.img file using pishrink
-        run: sudo chmod +x "pishrink.sh"; sudo pishrink.sh -aZ "pwnagotchi-32bit.img"
+        run: sudo chmod +x "pishrink.sh"; sudo "pishrink.sh" -aZ "pwnagotchi-32bit.img"
 
       - name: Compress 64bit.img file using pishrink
         run: sudo pishrink.sh -aZ "pwnagotchi-64bit.img"
