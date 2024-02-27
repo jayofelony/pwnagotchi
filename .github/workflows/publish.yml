@@ -18,7 +18,7 @@ jobs:
         id: get_version
         run: |
           VERSION=$(cut -d "'" -f2 < pwnagotchi/_version.py)
-          echo "VERSION=v$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Get latest tag
         uses: actions-ecosystem/action-get-latest-tag@v1
