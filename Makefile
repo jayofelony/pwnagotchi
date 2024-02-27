@@ -40,7 +40,7 @@ compile_langs:
 		./scripts/language.sh compile $$(basename $$lang); \
 	done
 
-packer:
+packer: clean
 	curl https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip -o /tmp/packer.zip
 	unzip /tmp/packer.zip -d /tmp
 	sudo mv /tmp/packer /usr/bin/packer
