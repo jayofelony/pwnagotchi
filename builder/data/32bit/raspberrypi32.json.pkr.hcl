@@ -89,6 +89,6 @@ build {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
     extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
     playbook_dir    = "data/32bit/extras/"
-    playbook_file   = "data/32bit/pwnagotchi.yml"
+    playbook_file   = "data/32bit/raspberrypi32.yml"
   }
 }
