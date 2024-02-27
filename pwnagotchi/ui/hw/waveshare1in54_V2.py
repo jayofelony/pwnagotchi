@@ -38,7 +38,6 @@ class Waveshare154V2(DisplayImpl):
             self._display = EPD()
             self._display.init(0)
             self.clear()
-            self._display = EPD()
             self._display.init(1)
             self.clear()
         except Exception as e:
