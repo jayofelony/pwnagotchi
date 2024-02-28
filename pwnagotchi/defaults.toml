@@ -25,7 +25,6 @@ main.plugins.auto-update.interval = 1
 main.plugins.bt-tether.enabled = false
 
 # Configuration for Android Phone
-main.plugins.bt-tether.enabled = false
 main.plugins.bt-tether.devices.android-phone.enabled = false 
 main.plugins.bt-tether.devices.android-phone.search_order = 1
 main.plugins.bt-tether.devices.android-phone.mac = ""  # Bluetooth MAC address of the Android phone
