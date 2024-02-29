@@ -29,6 +29,7 @@ def check(version, repo, native=True):
     latest = resp.json()
     info['available'] = latest_ver = latest['tag_name'].replace('v', '')
     is_armhf = info['arch'].startswith('arm')
+    is_aarch = info['arch'].startswith('aarch')
 
     local = version_to_tuple(info['current'])
     remote = version_to_tuple(latest_ver)
@@ -42,6 +43,14 @@ def check(version, repo, native=True):
                     download_url = asset['browser_download_url']
                     if (download_url.endswith('.zip') and
                             (info['arch'] in download_url or (is_armhf and 'armhf' in download_url))):
+                        info['url'] = download_url
+                        break
+            elif is_aarch:
+                # check if this release is compatible with arm64/aarch64
+                for asset in latest['assets']:
+                    download_url = asset['browser_download_url']
+                    if (download_url.endswith('.zip') and
+                            (info['arch'] in download_url or (is_aarch and 'aarch' in download_url))):
                         info['url'] = download_url
                         break
 
