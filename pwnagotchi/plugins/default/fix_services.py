@@ -35,14 +35,11 @@ class FixServices(plugins.Plugin):
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
-        self._status = "--"
-        self._count = 0
 
     def on_loaded(self):
         """
         Gets called when the plugin gets loaded
         """
-        self._status = "ld"
         logging.info("[Fix_Services] plugin loaded.")
 
     def on_ready(self, agent):
@@ -50,31 +47,27 @@ class FixServices(plugins.Plugin):
                                                                  stdout=subprocess.PIPE).stdout))[-10:])
         try:
             cmd_output = subprocess.check_output("ip link show wlan0mon", shell=True)
-            logging.info("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
+            logging.debug("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
             if ",UP," in str(cmd_output):
-                logging.info("wlan0mon is up.")
-                self._status = "up"
+                logging.debug("wlan0mon is up.")
 
             if len(self.pattern.findall(last_lines)) >= 3:
-                self._status = "XX"
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Blind-Bug detected. Restarting.')
                     display.update(force=True)
-                logging.info('[Fix_Services] Blind-Bug detected. Restarting.')
+                logging.debug('[Fix_Services] Blind-Bug detected. Restarting.')
                 try:
                     self._tryTurningItOffAndOnAgain(agent)
                 except Exception as err:
                     logging.warning("[Fix_Services turnOffAndOn] %s" % repr(err))
 
             else:
-                logging.info("[Fix_Services] Logs look good!")
-                self._status = ""
+                logging.debug("[Fix_Services] Logs look good!")
 
         except Exception as err:
             logging.error("[Fix_Services ip link show wlan0mon]: %s" % repr(err))
             try:
-                self._status = "xx"
                 self._tryTurningItOffAndOnAgain(agent)
             except Exception as err:
                 logging.error("[Fix_Services OffNOn]: %s" % repr(err))
@@ -84,12 +77,12 @@ class FixServices(plugins.Plugin):
     # apparently this only gets messages from bettercap going to syslog, not from syslog
     def on_bcap_sys_log(self, agent, event):
         if re.search('wifi error while hopping to channel', event['data']['Message']):
-            logging.info("[Fix_Services]SYSLOG MATCH: %s" % event['data']['Message'])
-            logging.info("[Fix_Services]**** restarting wifi.recon")
+            logging.debug("[Fix_Services]SYSLOG MATCH: %s" % event['data']['Message'])
+            logging.debug("[Fix_Services]**** restarting wifi.recon")
             try:
                 result = agent.run("wifi.recon off; wifi.recon on")
                 if result["success"]:
-                    logging.info("[Fix_Services] wifi.recon flip: success!")
+                    logging.debug("[Fix_Services] wifi.recon flip: success!")
                     if hasattr(agent, 'view'):
                         display = agent.view()
                         if display:
@@ -121,12 +114,12 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 1
             if len(self.pattern.findall(last_lines)) >= 3:
-                logging.info("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Blind-Bug detected. Restarting.')
                     display.update(force=True)
-                logging.info('[Fix_Services] Blind-Bug detected. Restarting.')
+                logging.debug('[Fix_Services] Blind-Bug detected. Restarting.')
                 try:
                     self._tryTurningItOffAndOnAgain(agent)
                 except Exception as err:
@@ -134,20 +127,19 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 2
             elif len(self.pattern2.findall(other_last_lines)) >= 5:
-                logging.info("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
+                logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
                     display.update(force=True)
-                logging.info('[Fix_Services] Wifi channel stuck. Restarting recon.')
+                logging.debug('[Fix_Services] Wifi channel stuck. Restarting recon.')
 
                 try:
                     result = agent.run("wifi.recon off; wifi.recon on")
                     if result["success"]:
-                        logging.info("[Fix_Services] wifi.recon flip: success!")
+                        logging.debug("[Fix_Services] wifi.recon flip: success!")
                         if display:
                             display.update(force=True, new_data={"status": "Wifi recon flipped!",
-                                                                 "brcmfmac_status": self._status,
                                                                  "face": faces.COOL})
                         else:
                             print("Wifi recon flipped\nthat was easy!")
@@ -159,7 +151,7 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 3
             elif len(self.pattern3.findall(other_last_lines)) >= 1:
-                logging.info("[Fix_Services] Firmware has halted or crashed. Restarting wlan0mon.")
+                logging.debug("[Fix_Services] Firmware has halted or crashed. Restarting wlan0mon.")
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Firmware has halted or crashed. Restarting wlan0mon.')
@@ -167,13 +159,13 @@ class FixServices(plugins.Plugin):
                 try:
                     # Run the monstart command to restart wlan0mon
                     cmd_output = subprocess.check_output("monstart", shell=True)
-                    logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
+                    logging.debug("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
             # Look for pattern 4
             elif len(self.pattern4.findall(other_other_last_lines)) >= 3:
-                logging.info("[Fix_Services] wlan0 is down!")
+                logging.debug("[Fix_Services] wlan0 is down!")
                 if hasattr(agent, 'view'):
                     display = agent.view()
                     display.set('status', 'Restarting wlan0 now!')
@@ -181,7 +173,7 @@ class FixServices(plugins.Plugin):
                 try:
                     # Run the monstart command to restart wlan0mon
                     cmd_output = subprocess.check_output("monstart", shell=True)
-                    logging.info("[Fix_Services monstart]: %s" % repr(cmd_output))
+                    logging.debug("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
@@ -197,7 +189,7 @@ class FixServices(plugins.Plugin):
             elif level == "debug":
                 logging.debug(message)
             else:
-                logging.info(message)
+                logging.debug(message)
 
             if ui:
                 ui.update(force=force, new_data=displayData)
@@ -212,17 +204,16 @@ class FixServices(plugins.Plugin):
         # avoid overlapping restarts, but allow it if it's been a while
         # (in case the last attempt failed before resetting "isReloadingMon")
         if self.isReloadingMon and (time.time() - self.LASTTRY) < 180:
-            logging.info("[Fix_Services] Duplicate attempt ignored")
+            logging.debug("[Fix_Services] Duplicate attempt ignored")
         else:
             self.isReloadingMon = True
             self.LASTTRY = time.time()
 
-            self._status = "BL"
             if hasattr(connection, 'view'):
                 display = connection.view()
                 if display:
                     display.update(force=True, new_data={"status": "I'm blind! Try turning it off and on again",
-                                                         "brcmfmac_status": self._status, "face": faces.BORED})
+                                                         "face": faces.BORED})
             else:
                 display = None
 
@@ -238,9 +229,9 @@ class FixServices(plugins.Plugin):
             # is it up?
             try:
                 cmd_output = subprocess.check_output("ip link show wlan0mon", shell=True)
-                logging.info("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
+                logging.debug("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
                 if ",UP," in str(cmd_output):
-                    logging.info("wlan0mon is up. Skip reset?")
+                    logging.debug("wlan0mon is up. Skip reset?")
                     # not reliable, so don't skip just yet
                     # print("wlan0mon is up. Skipping reset.")
                     # self.isReloadingMon = False
@@ -261,11 +252,10 @@ class FixServices(plugins.Plugin):
             except Exception as err:
                 logging.error("[Fix_Services wifi.recon off] error  %s" % (repr(err)))
 
-            logging.info("[Fix_Services] recon paused. Now trying wlan0mon reload")
+            logging.debug("[Fix_Services] recon paused. Now trying wlan0mon reload")
 
             try:
                 cmd_output = subprocess.check_output("monstop", shell=True)
-                self._status = "dn"
                 self.logPrintView("info", "[Fix_Services] wlan0mon down and deleted: %s" % cmd_output,
                                   display, {"status": "wlan0mon d-d-d-down!", "face": faces.BORED})
             except Exception as nope:
@@ -285,7 +275,6 @@ class FixServices(plugins.Plugin):
                     cmd_output = subprocess.check_output("sudo modprobe -r brcmfmac", shell=True)
                     self.logPrintView("info", "[Fix_Services] unloaded brcmfmac", display,
                                       {"status": "Turning it off #%s" % tries, "face": faces.SMART})
-                    self._status = "ul"
 
                     # reload the module
                     try:
@@ -293,28 +282,24 @@ class FixServices(plugins.Plugin):
                         cmd_output = subprocess.check_output("sudo modprobe brcmfmac", shell=True)
 
                         self.logPrintView("info", "[Fix_Services] reloaded brcmfmac")
-                        self._status = "rl"
 
                         # success! now make the mon0
                         try:
                             cmd_output = subprocess.check_output("monstart", shell=True)
                             self.logPrintView("info", "[Fix_Services interface add wlan0mon worked #%s: %s"
                                               % (tries, cmd_output))
-                            self._status = "up"
                             try:
                                 # try accessing mon0 in bettercap
                                 result = connection.run("set wifi.interface wlan0mon")
                                 if "success" in result:
-                                    logging.info("[Fix_Services set wifi.interface wlan0mon worked!")
-                                    self._status = ""
-                                    self._count = self._count + 1
+                                    logging.debug("[Fix_Services set wifi.interface wlan0mon worked!")
                                     # stop looping and get back to recon
                                     break
                                 else:
-                                    logging.info(
+                                    logging.debug(
                                         "[Fix_Services set wifi.interfaceface wlan0mon] failed? %s" % repr(result))
                             except Exception as err:
-                                logging.info(
+                                logging.debug(
                                     "[Fix_Services set wifi.interface wlan0mon] except: %s" % repr(err))
                         except Exception as cerr:  #
                             if not display:
@@ -333,41 +318,38 @@ class FixServices(plugins.Plugin):
 
                 tries = tries + 1
                 if tries < 3:
-                    logging.info("[Fix_Services] wlan0mon didn't make it. trying again")
+                    logging.debug("[Fix_Services] wlan0mon didn't make it. trying again")
                     if not display:
                         print(" wlan0mon didn't make it. trying again")
                 else:
-                    logging.info("[Fix_Services] wlan0mon loading failed, no choice but to reboot ..")
+                    logging.debug("[Fix_Services] wlan0mon loading failed, no choice but to reboot ..")
                     pwnagotchi.reboot()
 
             # exited the loop, so hopefully it loaded
             if tries < 3:
                 if display:
                     display.update(force=True, new_data={"status": "And back on again...",
-                                                         "brcmfmac_status": self._status,
                                                          "face": faces.INTENSE})
                 else:
                     print("And back on again...")
-                logging.info("[Fix_Services] wlan0mon back up")
+                logging.debug("[Fix_Services] wlan0mon back up")
             else:
                 self.LASTTRY = time.time()
 
             time.sleep(8 + tries * 2)  # give it a bit before restarting recon in bettercap
             self.isReloadingMon = False
 
-            logging.info("[Fix_Services] re-enable recon")
+            logging.debug("[Fix_Services] re-enable recon")
             try:
                 result = connection.run("wifi.clear; wifi.recon on")
 
                 if "success" in result:  # and result["success"] is True:
-                    self._status = ""
                     if display:
                         display.update(force=True, new_data={"status": "I can see again! (probably)",
-                                                             "brcmfmac_status": self._status,
                                                              "face": faces.HAPPY})
                     else:
                         print("I can see again")
-                    logging.info("[Fix_Services] wifi.recon on")
+                    logging.debug("[Fix_Services] wifi.recon on")
                     self.LASTTRY = time.time() + 120  # 2-minute pause until next time.
                 else:
                     logging.error("[Fix_Services] wifi.recon did not start up")
@@ -388,25 +370,14 @@ class FixServices(plugins.Plugin):
             else:
                 pos = (ui.width() / 2 + 35, ui.height() - 11)
 
-            logging.info("Got here")
-            ui.add_element('brcmfmac_status', Text(color=BLACK, value='--', position=pos, font=fonts.Small))
+            logging.debug("Got here")
 
     # called when the ui is updated
     def on_ui_update(self, ui):
-        # update those elements
-        if self._status:
-            ui.set('brcmfmac_status', "wlan0mon %s" % self._status)
-        else:
-            ui.set('brcmfmac_status', "rst#%s" % self._count)
+        return
 
     def on_unload(self, ui):
-        with ui._lock:
-            try:
-                ui.remove_element('brcmfmac_status')
-                logging.info("[Fix_Services] unloaded")
-            except Exception as err:
-                logging.info("[Fix_Services] unload err %s " % repr(err))
-            pass
+        return
 
 
 # run from command line to brute force a reload
