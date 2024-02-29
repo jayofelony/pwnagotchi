@@ -199,6 +199,9 @@ def list_plugins(args, config, pattern='*'):
     available_not_installed = set(available.keys()) - set(installed.keys())
 
     max_len_list = available_and_installed if args.installed else available_not_installed
+    if not max_len_list:
+        print('Maybe try: sudo pwnagotchi plugins update')
+        return 1
     max_len = max(map(len, max_len_list))
     header = line.format(name='Plugin', width=max_len, version='Version', enabled='Active', status='Status')
     line_length = max(max_len, len('Plugin')) + len(header) - len('Plugin') - 12  # lol
@@ -239,7 +242,7 @@ def list_plugins(args, config, pattern='*'):
     print('-' * line_length)
 
     if not found:
-        logging.info('Maybe try: pwnagotchi plugins update')
+        print('Maybe try: sudo pwnagotchi plugins update')
         return 1
     return 0
 
