@@ -181,7 +181,7 @@
         install_recommends: false
 
     - name: update pip3, setuptools, wheel
-      shell: "python3 -m pip install --upgrade pip setuptools wheel"
+      shell: "python3 -m pip install --upgrade pip setuptools wheel --break-system-packages"
       args:
         executable: /bin/bash
         chdir: /usr/local/src
