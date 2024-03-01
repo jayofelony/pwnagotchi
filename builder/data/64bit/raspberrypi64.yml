@@ -180,6 +180,12 @@
         update_cache: yes
         install_recommends: false
 
+    - name: update pip3, setuptools, wheel
+      shell: "python3 -m pip install --upgrade pip setuptools wheel"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src
+
     # Now we set up /boot/firmware
     - name: Create pi user
       copy:
