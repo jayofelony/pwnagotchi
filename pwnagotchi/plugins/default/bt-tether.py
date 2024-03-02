@@ -133,7 +133,7 @@ class BTNap:
         """
         Set power of devices to on/off
         """
-        logging.debug("BT-TETHER: Changing bluetooth device to %s", str(on))
+        logging.info("BT-TETHER: Changing bluetooth device to %s", str(on))
 
         try:
             devs = list(BTNap.find_adapter())
@@ -144,7 +144,7 @@ class BTNap:
 
         for dev_addr, dev in devs.items():
             BTNap.prop_set(dev, 'Powered', on)
-            logging.debug('Set power of %s (addr %s) to %s', dev.object_path, dev_addr, str(on))
+            logging.info('Set power of %s (addr %s) to %s', dev.object_path, dev_addr, str(on))
 
         if devs:
             return list(devs.values())[0]
@@ -155,19 +155,19 @@ class BTNap:
         """
         Check if already connected
         """
-        logging.debug("BT-TETHER: Checking if device is paired")
+        logging.info("BT-TETHER: Checking if device is paired")
 
         bt_dev = self.power(True)
 
         if not bt_dev:
-            logging.debug("BT-TETHER: No bluetooth device found.")
+            logging.info("BT-TETHER: No bluetooth device found.")
             return False
 
         try:
             dev_remote = BTNap.find_device(self._mac, bt_dev)
             return bool(BTNap.prop_get(dev_remote, 'Paired'))
         except BTError:
-            logging.debug("BT-TETHER: Device is not paired.")
+            logging.info("BT-TETHER: Device is not paired.")
         return False
 
     def wait_for_device(self, timeout=15):
@@ -176,16 +176,16 @@ class BTNap:
 
         returns device if found None if not
         """
-        logging.debug("BT-TETHER: Waiting for device")
+        logging.info("BT-TETHER: Waiting for device")
 
         bt_dev = self.power(True)
 
         if not bt_dev:
-            logging.debug("BT-TETHER: No bluetooth device found.")
+            logging.info("BT-TETHER: No bluetooth device found.")
             return None
 
         try:
-            logging.debug("BT-TETHER: Starting discovery ...")
+            logging.info("BT-TETHER: Starting discovery ...")
             bt_dev.StartDiscovery()
         except Exception as bt_ex:
             logging.error(bt_ex)
@@ -197,17 +197,17 @@ class BTNap:
         while timeout > -1:
             try:
                 dev_remote = BTNap.find_device(self._mac, bt_dev)
-                logging.debug("BT-TETHER: Using remote device (addr: %s): %s",
+                logging.info("BT-TETHER: Using remote device (addr: %s): %s",
                               BTNap.prop_get(dev_remote, 'Address'), dev_remote.object_path)
                 break
             except BTError:
-                logging.debug("BT-TETHER: Not found yet ...")
+                logging.info("BT-TETHER: Not found yet ...")
 
             time.sleep(1)
             timeout -= 1
 
         try:
-            logging.debug("BT-TETHER: Stopping Discovery ...")
+            logging.info("BT-TETHER: Stopping Discovery ...")
             bt_dev.StopDiscovery()
         except Exception as bt_ex:
             logging.error(bt_ex)
@@ -217,14 +217,14 @@ class BTNap:
 
     @staticmethod
     def pair(device):
-        logging.debug('BT-TETHER: Trying to pair ...')
+        logging.info('BT-TETHER: Trying to pair ...')
         try:
             device.Pair()
-            logging.debug('BT-TETHER: Successful paired with device ;)')
+            logging.info('BT-TETHER: Successful paired with device ;)')
             return True
         except dbus.exceptions.DBusException as err:
             if err.get_dbus_name() == 'org.bluez.Error.AlreadyExists':
-                logging.debug('BT-TETHER: Already paired ...')
+                logging.info('BT-TETHER: Already paired ...')
                 return True
         except Exception:
             pass
@@ -232,10 +232,10 @@ class BTNap:
 
     @staticmethod
     def nap(device):
-        logging.debug('BT-TETHER: Trying to nap ...')
+        logging.info('BT-TETHER: Trying to nap ...')
 
         try:
-            logging.debug('BT-TETHER: Connecting to profile ...')
+            logging.info('BT-TETHER: Connecting to profile ...')
             device.ConnectProfile('nap')
         except Exception:  # raises exception, but still works
             pass
@@ -243,7 +243,7 @@ class BTNap:
         net = dbus.Interface(device, 'org.bluez.Network1')
 
         try:
-            logging.debug('BT-TETHER: Connecting to nap network ...')
+            logging.info('BT-TETHER: Connecting to nap network ...')
             net.Connect('nap')
             return net, True
         except dbus.exceptions.DBusException as err:
@@ -493,10 +493,10 @@ class BTTether(plugins.Plugin):
                 bt = BTNap(device.mac)
 
                 try:
-                    logging.debug('BT-TETHER: Search %d secs for %s ...', device.scantime, device.name)
+                    logging.info('BT-TETHER: Search %d secs for %s ...', device.scantime, device.name)
                     dev_remote = bt.wait_for_device(timeout=device.scantime)
                     if dev_remote is None:
-                        logging.debug('BT-TETHER: Could not find %s, try again in %d minutes.', device.name, device.interval)
+                        logging.info('BT-TETHER: Could not find %s, try again in %d minutes.', device.name, device.interval)
                         self.status = 'NF'
                         continue
                 except Exception as bt_ex:
@@ -507,15 +507,15 @@ class BTTether(plugins.Plugin):
                 paired = bt.is_paired()
                 if not paired:
                     if BTNap.pair(dev_remote):
-                        logging.debug('BT-TETHER: Paired with %s.', device.name)
+                        logging.info('BT-TETHER: Paired with %s.', device.name)
                     else:
-                        logging.debug('BT-TETHER: Pairing with %s failed ...', device.name)
+                        logging.info('BT-TETHER: Pairing with %s failed ...', device.name)
                         self.status = 'PE'
                         continue
                 else:
-                    logging.debug('BT-TETHER: Already paired.')
+                    logging.info('BT-TETHER: Already paired.')
 
-                logging.debug('BT-TETHER: Try to create nap connection with %s ...', device.name)
+                logging.info('BT-TETHER: Try to create nap connection with %s ...', device.name)
                 device.network, success = BTNap.nap(dev_remote)
                 interface = None
 
@@ -523,20 +523,20 @@ class BTTether(plugins.Plugin):
                     try:
                         interface = device.interface()
                     except Exception:
-                        logging.debug('BT-TETHER: Could not establish nap connection with %s', device.name)
+                        logging.info('BT-TETHER: Could not establish nap connection with %s', device.name)
                         continue
 
                     if interface is None:
                         self.status = 'BE'
-                        logging.debug('BT-TETHER: Could not establish nap connection with %s', device.name)
+                        logging.info('BT-TETHER: Could not establish nap connection with %s', device.name)
                         continue
 
-                    logging.debug('BT-TETHER: Created interface (%s)', interface)
+                    logging.info('BT-TETHER: Created interface (%s)', interface)
                     self.status = 'C'
                     any_device_connected = True
                     device.tries = 0 # reset tries
                 else:
-                    logging.debug('BT-TETHER: Could not establish nap connection with %s', device.name)
+                    logging.info('BT-TETHER: Could not establish nap connection with %s', device.name)
                     self.status = 'NF'
                     continue
 
@@ -547,23 +547,23 @@ class BTTether(plugins.Plugin):
                     gateway = ".".join(device.ip.split('.')[:-1] + ['1'])
 
                 wrapped_interface = IfaceWrapper(interface)
-                logging.debug('BT-TETHER: Add ip to %s', interface)
+                logging.info('BT-TETHER: Add ip to %s', interface)
                 if not wrapped_interface.set_addr(addr):
                     self.status = 'AE'
-                    logging.debug("BT-TETHER: Could not add ip to %s", interface)
+                    logging.info("BT-TETHER: Could not add ip to %s", interface)
                     continue
 
                 if device.share_internet:
                     if not connected_priorities or device.priority > max(connected_priorities):
-                        logging.debug('BT-TETHER: Set default route to %s via %s', gateway, interface)
+                        logging.info('BT-TETHER: Set default route to %s via %s', gateway, interface)
                         IfaceWrapper.set_route(gateway, interface)
                         connected_priorities.append(device.priority)
 
-                        logging.debug('BT-TETHER: Change resolv.conf if necessary ...')
+                        logging.info('BT-TETHER: Change resolv.conf if necessary ...')
                         with open('/etc/resolv.conf', 'r+') as resolv:
                             nameserver = resolv.read()
                             if 'nameserver 9.9.9.9' not in nameserver:
-                                logging.debug('BT-TETHER: Added nameserver')
+                                logging.info('BT-TETHER: Added nameserver')
                                 resolv.seek(0)
                                 resolv.write(nameserver + 'nameserver 9.9.9.9\n')
 
