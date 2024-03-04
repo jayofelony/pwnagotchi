@@ -9,7 +9,7 @@ class WaveshareV1(DisplayImpl):
         super(WaveshareV1, self).__init__(config, 'waveshare_1')
 
     def layout(self):
-        fonts.setup(10, 9, 10, 35, 25, 9)
+        fonts.setup(10, 8, 10, 35, 25, 9)
         self._layout['width'] = 250
         self._layout['height'] = 122
         self._layout['face'] = (0, 40)
