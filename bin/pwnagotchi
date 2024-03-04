@@ -7,6 +7,7 @@ import sys
 import toml
 import requests
 import os
+import re
 
 import pwnagotchi
 from pwnagotchi import utils
@@ -160,6 +161,14 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if args.wizard:
+        def is_valid_hostname(hostname):
+            if len(hostname) > 255:
+                return False
+            if hostname[-1] == ".":
+                hostname = hostname[:-1]  # strip exactly one dot from the right, if present
+            allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+            return all(allowed.match(x) for x in hostname.split("."))
+
         pwn_restore = input("Do you want to restore the previous configuration? [Y/N]\n")
         if pwn_restore in ('y', 'yes'):
             os.system("cp -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
@@ -182,13 +191,15 @@ if __name__ == '__main__':
                         pwn_name = "main.name = \"" + pwn_name + "\"\n"
                         f.write(pwn_name)
                     else:
+                        pwn_name = is_valid_hostname(pwn_name)
                         print("I shall go by %s from now on!", pwn_name)
                         pwn_name = "main.name = \"" + pwn_name + "\"\n"
                         f.write(pwn_name)
                     pwn_whitelist = input("How many networks do you want to whitelist? "
                                           "We will also ask a MAC for each network?\n"
                                           "Each SSID and BSSID count as 1 network. \n\n"
-                                          "Be sure to use digits as your answer.\n\n Amount of networks: ")
+                                          "Be sure to use digits as your answer.\n\n"
+                                          "Amount of networks: ")
                     if int(pwn_whitelist) > 0:
                         f.write("main.whitelist = [\n")
                         for x in range(int(pwn_whitelist)):
@@ -198,7 +209,7 @@ if __name__ == '__main__':
                             f.write("\t\"" + bssid + "\",\n")
                         f.write("]\n")
                     # set bluetooth tether
-                    pwn_bluetooth = input("Do you want to enable BT-Tether? [Y/N]")
+                    pwn_bluetooth = input("Do you want to enable BT-Tether? [Y/N] ")
                     if pwn_bluetooth.lower() in ('y', 'yes'):
                         f.write("main.plugins.bt-tether.enabled = true\n\n")
                         pwn_bluetooth_device = input("What device do you use? Android or iOS? ")
@@ -213,7 +224,7 @@ if __name__ == '__main__':
                             if pwn_bluetooth_mac != "":
                                 f.write("main.plugins.bt-tether.devices.android-phone.mac = \"" + pwn_bluetooth_mac + "\"\n")
                     # set up display settings
-                    pwn_display_enabled = input("Do you use a display? [Y/N]\n")
+                    pwn_display_enabled = input("Do you use a display? [Y/N] ")
                     if pwn_display_enabled.lower() in ('y', 'yes'):
                         f.write("ui.display.enabled = true\n")
                         pwn_display_type = input("What display do you use?\n\n"
