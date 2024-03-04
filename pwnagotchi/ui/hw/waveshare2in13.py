@@ -31,38 +31,16 @@ class WaveshareV1(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        if self.config['color'] == 'black':
-            logging.info("initializing waveshare v2in13_V1 display in monochromatic mode")
-            from pwnagotchi.ui.hw.libs.waveshare.v2in13_V1.epd2in13 import EPD
-            self._display = EPD()
-            self._display.init(self._display.lut_full_update)
-            self._display.Clear(0xFF)
-            self._display.init(self._display.lut_partial_update)
-        elif self.config['color'] == 'fastAndFurious':
-            logging.info("initializing waveshare v2in13_V1 3-color display in FAST MODE")
-            logging.info("THIS MAY BE POTENTIALLY DANGEROUS. NO WARRANTY IS PROVIDED")
-            logging.info("USE THIS DISPLAY IN THIS MODE AT YOUR OWN RISK")
-            from pwnagotchi.ui.hw.libs.waveshare.v2in13_V1.epd2in13bcFAST import EPD
-            self._display = EPD()
-            self._display.init()
-            self._display.Clear()
-        else:
-            logging.info("initializing waveshare v2in13_V1 display 3-color mode")
-            from pwnagotchi.ui.hw.libs.waveshare.v2in13_V1.epd2in13bc import EPD
-            self._display = EPD()
-            self._display.init()
-            self._display.Clear()
+        logging.info("initializing waveshare v2in13_V1 display in monochromatic mode")
+        from pwnagotchi.ui.hw.libs.waveshare.v2in13_V1.epd2in13 import EPD
+        self._display = EPD()
+        self._display.init(self._display.lut_full_update)
+        self._display.Clear(0xFF)
+        self._display.init(self._display.lut_partial_update)
 
     def render(self, canvas):
-        if self.config['color'] == 'black':
-            buf = self._display.getbuffer(canvas)
-            self._display.display(buf)
-        elif self.config['color'] == 'fastAndFurious':
-            buf_black = self._display.getbuffer(canvas)
-            self._display.DisplayPartial(buf_black)
-        else:
-            buf_black = self._display.getbuffer(canvas)
-            self._display.displayBlack(buf_black)
+        buf = self._display.getbuffer(canvas)
+        self._display.display(buf)
 
     def clear(self):
         self._display.Clear(0xff)
