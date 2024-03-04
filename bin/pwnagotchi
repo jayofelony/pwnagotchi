@@ -183,7 +183,7 @@ if __name__ == '__main__':
                         f.write(pwn_name)
                     else:
                         print("I shall go by %s from now on!", pwn_name)
-                        pwn_name = "main.name = " + pwn_name + "\"\n"
+                        pwn_name = "main.name = \"" + pwn_name + "\"\n"
                         f.write(pwn_name)
                     pwn_whitelist = input("How many networks do you want to whitelist? "
                                           "We will also ask a MAC for each network?\n"
