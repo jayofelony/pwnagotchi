@@ -164,7 +164,7 @@ if __name__ == '__main__':
         if pwn_check.lower() in ('y', 'yes'):
             pwn_restore = input("Do you want to restore the previous configuration? [y/n]")
             if pwn_restore in ('y', 'yes'):
-                os.system("mv -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi.config.toml")
+                os.system("mv -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
             else:
                 os.system("mv -f /etc/pwnagotchi/config.toml /etc/pwnagotchi/config.toml.bak")
                 with open("/etc/pwnagotchi/config.toml", "a+") as f:
