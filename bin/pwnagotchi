@@ -163,6 +163,9 @@ if __name__ == '__main__':
         pwn_restore = input("Do you want to restore the previous configuration? [y/n]")
         if pwn_restore in ('y', 'yes'):
             os.system("mv -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
+            print("Your previous configuration is restored, and I will restart in 5 seconds.")
+            time.sleep(5)
+            os.system("service pwnagotchi restart")
         else:
             pwn_check = input("This will create a new configuration file and backup your current one, are you sure? [y/n]")
             if pwn_check.lower() in ('y', 'yes'):
