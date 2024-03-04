@@ -28,7 +28,8 @@ class View(object):
         self.invert = 0
         self._black = 0xFF
         self._white = 0x00
-        if 'invert' in config['ui'] and config['ui']['invert'] == 1 or True:
+        if 'invert' in config['ui'] and config['ui']['invert'] == True:
+            logging.error(config['ui']['invert'])
             self.invert = 1
             BLACK = 0x00
             WHITE - 0xFF
@@ -67,7 +68,7 @@ class View(object):
             'line1': Line(self._layout['line1'], color=BLACK),
             'line2': Line(self._layout['line2'], color=BLACK),
 
-            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=BLACK, font=fonts.Huge, png=config['ui']['faces']['png']),
+            'face': Text(value=faces.SLEEP, position=(20, 20), color=BLACK, font=fonts.Huge),
 
             # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=BLACK),
             'friend_name': Text(value=None, position=self._layout['friend_name'], font=fonts.BoldSmall, color=BLACK),
@@ -389,7 +390,7 @@ class View(object):
             state = self._state
             changes = state.changes(ignore=self._ignore_changes)
             if force or len(changes):
-                self._canvas = Image.new('1', (self._width, self._height), WHITE)
+                self._canvas = Image.new('1', (self._width, self._height), self._white)
                 drawer = ImageDraw.Draw(self._canvas)
 
                 plugins.on('ui_update', self)
