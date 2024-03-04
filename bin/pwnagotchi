@@ -197,7 +197,7 @@ if __name__ == '__main__':
                             f.write(pwn_name)
                         else:
                             print("You have chosen an invalid name. Please start over.")
-                            pass
+                            exit()
                     pwn_whitelist = input("How many networks do you want to whitelist? "
                                           "We will also ask a MAC for each network?\n"
                                           "Each SSID and BSSID count as 1 network. \n\n"
