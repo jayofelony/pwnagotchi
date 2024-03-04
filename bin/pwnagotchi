@@ -188,12 +188,12 @@ if __name__ == '__main__':
                     if pwn_name == "":
                         pwn_name = "Pwnagotchi"
                         print("I shall go by Pwnagotchi from now on!")
-                        pwn_name = "main.name = \"%s\"\n" % pwn_name
+                        pwn_name = f"main.name = \"{pwn_name}\"\n"
                         f.write(pwn_name)
                     else:
                         if is_valid_hostname(pwn_name):
-                            print("I shall go by %s from now on!" % pwn_name)
-                            pwn_name = "main.name = \"%s\"\n" % pwn_name
+                            print(f"I shall go by {pwn_name} from now on!")
+                            pwn_name = f"main.name = \"{pwn_name}\"\n"
                             f.write(pwn_name)
                         else:
                             print("You have chosen an invalid name. Please start over.")
@@ -208,8 +208,8 @@ if __name__ == '__main__':
                         for x in range(int(pwn_whitelist)):
                             ssid = input("SSID (Name): ")
                             bssid = input("BSSID (MAC): ")
-                            f.write("\t\"%s\",\n" % ssid)
-                            f.write("\t\"%s\",\n" % bssid)
+                            f.write(f"\t\"{ssid}\",\n")
+                            f.write(f"\t\"{bssid}\",\n")
                         f.write("]\n")
                     # set bluetooth tether
                     pwn_bluetooth = input("Do you want to enable BT-Tether? [Y/N] ")
@@ -220,12 +220,12 @@ if __name__ == '__main__':
                             f.write("main.plugins.bt-tether.devices.android-phone.enabled = true\n")
                             pwn_bluetooth_mac = input("What is the bluetooth MAC of your device? ")
                             if pwn_bluetooth_mac != "":
-                                f.write("main.plugins.bt-tether.devices.android-phone.mac = \"%s\"\n" % pwn_bluetooth_mac)
+                                f.write(f"main.plugins.bt-tether.devices.android-phone.mac = \"{pwn_bluetooth_mac}\"\n")
                         elif pwn_bluetooth_device.lower() == "ios":
                             f.write("main.plugins.bt-tether.devices.ios-phone.enabled = true\n")
                             pwn_bluetooth_mac = input("What is the bluetooth MAC of your device? ")
                             if pwn_bluetooth_mac != "":
-                                f.write("main.plugins.bt-tether.devices.ios-phone.mac = \"%s\"\n" % pwn_bluetooth_mac)
+                                f.write(f"main.plugins.bt-tether.devices.ios-phone.mac = \"{pwn_bluetooth_mac}\"\n")
                     # set up display settings
                     pwn_display_enabled = input("Do you use a display? [Y/N] ")
                     if pwn_display_enabled.lower() in ('y', 'yes'):
@@ -234,14 +234,22 @@ if __name__ == '__main__':
                                                  "Be sure to check for the correct display type @ \n"
                                                  "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L431\n")
                         if pwn_display_type != "":
-                            f.write("ui.display.type = \"%s\"\n" % pwn_display_type)
+                            f.write(f"ui.display.type = \"{pwn_display_type}\"\n")
                         pwn_display_invert = input("Do you want to invert the display colors? [Y/N]\n\n"
                                                    "N = Black background\n"
                                                    "Y = White background\n")
                         if pwn_display_invert.lower() in ('y', 'yes'):
                             f.write("ui.invert = true\n")
                     f.close()
-                    print("Your configuration is done, and I will restart in 5 seconds.")
+                    if pwn_bluetooth.lower() in ('y', 'yes'):
+                        if pwn_bluetooth_device.lower == "android":
+                            print("To visit the webui on your phone go to: http://192.168.44.44:8080\n"
+                                  "Your configuration is done, and I will restart in 5 seconds.")
+                        elif pwn_bluetooth_device.lower == "ios":
+                            print("To visit the webui on your phone go to: http://172.20.10.6:8080\n"
+                                  "Your configuration is done, and I will restart in 5 seconds.")
+                    else:
+                        print("Your configuration is done, and I will restart in 5 seconds.")
                     time.sleep(5)
                     os.system("service pwnagotchi restart")
             else:
