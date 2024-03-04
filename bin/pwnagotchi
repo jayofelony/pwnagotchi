@@ -221,6 +221,11 @@ if __name__ == '__main__':
                                                  "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L431")
                         if pwn_display_type != "":
                             f.write("ui.display.type = \""+pwn_display_type+"\"\n")
+                        pwn_display_invert = input("Do you want to invert the display colors? [y/n]\n\n"
+                                                   "No = Black background\n"
+                                                   "Yes = White background")
+                        if pwn_display_invert in ('y', 'yes'):
+                            f.write("ui.invert = true\n")
                     f.close()
                     print("Your configuration is done, and I will restart in 5 seconds.")
                     time.sleep(5)
