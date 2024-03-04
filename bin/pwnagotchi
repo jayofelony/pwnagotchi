@@ -214,7 +214,7 @@ if __name__ == '__main__':
                                 f.write("main.plugins.bt-tether.devices.android-phone.mac = \"" + pwn_bluetooth_mac + "\"\n")
                     # set up display settings
                     pwn_display_enabled = input("Do you use a display? [y/n]")
-                    if pwn_display_enabled.lower() in ('y,', 'yes'):
+                    if pwn_display_enabled.lower() in ('y', 'yes'):
                         f.write("ui.display.enabled = true\n")
                         pwn_display_type = input("What display do you use?\n\n"
                                                  "Be sure to check for the correct display type @ \n"
