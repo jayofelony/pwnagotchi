@@ -137,7 +137,7 @@ if __name__ == '__main__':
                         help="Interactive installation of your personal configuration.")
     parser.add_argument('--check-update', dest="check_update", action="store_true", default=False,
                         help="Check for updates on Pwnagotchi. And tells current version.")
-    parser.add_argument('--donate', dest="donate", action="store_true", default=False,
+    parser.add_argument('--wizard', dest="wizard", action="store_true", default=False,
                         help="How to donate to this project.")
 
     # pwnagotchi plugins --help
@@ -159,8 +159,8 @@ if __name__ == '__main__':
         print(pwnagotchi.__version__)
         sys.exit(0)
 
-    if args.install:
-        pwn_restore = input("Do you want to restore the previous configuration? [y/n]")
+    if args.wizard:
+        pwn_restore = input("Do you want to restore the previous configuration? [y/n]\n")
         if pwn_restore in ('y', 'yes'):
             os.system("mv -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
             print("Your previous configuration is restored, and I will restart in 5 seconds.")
