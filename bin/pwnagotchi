@@ -234,7 +234,7 @@ if __name__ == '__main__':
                                                  "Be sure to check for the correct display type @ \n"
                                                  "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L431\n")
                         if pwn_display_type != "":
-                            f.write("ui.display.type = \""+pwn_display_type+"\"\n")
+                            f.write("ui.display.type = \"%s\"\n" % pwn_display_type)
                         pwn_display_invert = input("Do you want to invert the display colors? [Y/N]\n\n"
                                                    "N = Black background\n"
                                                    "Y = White background\n")
