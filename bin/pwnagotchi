@@ -243,10 +243,10 @@ if __name__ == '__main__':
                     f.close()
                     if pwn_bluetooth.lower() in ('y', 'yes'):
                         if pwn_bluetooth_device.lower == "android":
-                            print("To visit the webui on your phone go to: http://192.168.44.44:8080\n"
+                            print("To visit the webui when connected with your phone, visit: http://192.168.44.44:8080\n"
                                   "Your configuration is done, and I will restart in 5 seconds.")
                         elif pwn_bluetooth_device.lower == "ios":
-                            print("To visit the webui on your phone go to: http://172.20.10.6:8080\n"
+                            print("To visit the webui when connected with your phone, visit: http://172.20.10.6:8080\n"
                                   "Your configuration is done, and I will restart in 5 seconds.")
                     else:
                         print("Your configuration is done, and I will restart in 5 seconds.")
