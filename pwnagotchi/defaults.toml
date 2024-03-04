@@ -32,7 +32,7 @@ main.plugins.bt-tether.devices.android-phone.netmask = 24
 main.plugins.bt-tether.devices.android-phone.interval = 1
 main.plugins.bt-tether.devices.android-phone.scantime = 10
 main.plugins.bt-tether.devices.android-phone.max_tries = 10
-main.plugins.bt-tether.devices.android-phone.share_internet = false
+main.plugins.bt-tether.devices.android-phone.share_internet = true
 main.plugins.bt-tether.devices.android-phone.priority = 1
 
 main.plugins.bt-tether.devices.ios-phone.enabled = false
@@ -43,7 +43,7 @@ main.plugins.bt-tether.devices.ios-phone.netmask = 24
 main.plugins.bt-tether.devices.ios-phone.interval = 5
 main.plugins.bt-tether.devices.ios-phone.scantime = 20
 main.plugins.bt-tether.devices.ios-phone.max_tries = 0
-main.plugins.bt-tether.devices.ios-phone.share_internet = false
+main.plugins.bt-tether.devices.ios-phone.share_internet = true
 main.plugins.bt-tether.devices.ios-phone.priority = 999
 
 main.plugins.fix_services.enabled = true
