@@ -202,12 +202,12 @@ if __name__ == '__main__':
                         if pwn_bluetooth_device.lower() == "android":
                             f.write("main.plugins.bt-tether.devices.android-phone.enabled = true\n")
                             pwn_bluetooth_mac = input("What is the Bluetooth MAC of your device?")
-                            if pwn_bluetooth_mac is not "":
+                            if pwn_bluetooth_mac != "":
                                 f.write("main.plugins.bt-tether.devices.android-phone.mac = \""+pwn_bluetooth_mac+"\"\n")
                         elif pwn_bluetooth_device.lower() == "ios":
                             f.write("main.plugins.bt-tether.devices.ios-phone.enabled = true\n")
                             pwn_bluetooth_mac = input("What is the Bluetooth MAC of your device?")
-                            if pwn_bluetooth_mac is not "":
+                            if pwn_bluetooth_mac != "":
                                 f.write("main.plugins.bt-tether.devices.android-phone.mac = \"" + pwn_bluetooth_mac + "\"\n")
                     # set up display settings
                     pwn_display_enabled = input("Do you use a display? [y/n]")
@@ -216,7 +216,7 @@ if __name__ == '__main__':
                         pwn_display_type = input("What display do you use?\n\n"
                                                  "Be sure to check for the correct display type @ \n"
                                                  "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L431")
-                        if pwn_display_type is not "":
+                        if pwn_display_type != "":
                             f.write("ui.display.type = \""+pwn_display_type+"\"\n")
                     f.close()
                     print("Your configuration is done, and I will restart in 5 seconds.")
