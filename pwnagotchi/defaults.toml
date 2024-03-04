@@ -154,6 +154,8 @@ personality.throttle_d = 0.9
 
 personality.clear_on_exit = true # clear display when shutting down cleanly
 
+ui.invert = false # false = black background, true = white background
+
 ui.fps = 0.0
 ui.font.name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
 ui.font.size_offset = 0 # will be added to the font size
