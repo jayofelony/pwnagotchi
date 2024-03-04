@@ -383,6 +383,11 @@
         block: |
           export GOPATH=$HOME/go
           export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+          alias custom='cd /usr/local/share/pwnagotchi/custom-plugins/'
+          alias config='sudo nano /etc/pwnagotchi/config.toml'
+          alias pwnlog='tail -f -n300 /etc/pwnagotchi/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'
+          alias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'
+          alias pwnkill='sudo killall -USR1 pwnagotchi'
       when: golang.changed
 
     - name: download pwngrid
@@ -493,24 +498,6 @@
         backup: no
         regexp: '(.*)$'
         line: '\1 modules-load=dwc2,g_ether'
-
-    - name: Add pwnlog alias
-      lineinfile:
-        dest: /home/pi/.bashrc
-        line: "\nalias pwnlog='tail -f -n300 /etc/pwnagotchi/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'"
-        insertafter: EOF
-
-    - name: Add pwnver alias
-      lineinfile:
-        dest: /home/pi/.bashrc
-        line: "\nalias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'"
-        insertafter: EOF
-
-    - name: Add pwnkill alias to restart pwnagotchi with a signal
-      lineinfile:
-        dest: /home/pi/.bashrc
-        line: "\nalias pwnkill='sudo killall -USR1 pwnagotchi'"
-        insertafter: EOF
 
     - name: add firmware packages to hold
       dpkg_selections:
