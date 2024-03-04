@@ -160,12 +160,12 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if args.install:
-        pwn_check = input("This will create a new configuration file and backup your current one, are you sure? [y/n]")
-        if pwn_check.lower() in ('y', 'yes'):
-            pwn_restore = input("Do you want to restore the previous configuration? [y/n]")
-            if pwn_restore in ('y', 'yes'):
-                os.system("mv -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
-            else:
+        pwn_restore = input("Do you want to restore the previous configuration? [y/n]")
+        if pwn_restore in ('y', 'yes'):
+            os.system("mv -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
+        else:
+            pwn_check = input("This will create a new configuration file and backup your current one, are you sure? [y/n]")
+            if pwn_check.lower() in ('y', 'yes'):
                 os.system("mv -f /etc/pwnagotchi/config.toml /etc/pwnagotchi/config.toml.bak")
                 with open("/etc/pwnagotchi/config.toml", "a+") as f:
                     # Set pwnagotchi name
@@ -222,6 +222,8 @@ if __name__ == '__main__':
                     print("Your configuration is done, and I will restart in 5 seconds.")
                     time.sleep(5)
                     os.system("service pwnagotchi restart")
+            else:
+                print("Ok, doing nothing.")
         sys.exit(0)
 
     if args.donate:
