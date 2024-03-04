@@ -456,7 +456,7 @@
           # Add your configuration overrides on this file any configuration changes done to default.toml will be lost!
           # Example:
           # ui.display.enabled = true
-          # ui.display.type = "waveshare_2"
+          # ui.display.type = "waveshare_4"
       when: not user_config.stat.exists
 
     - name: Delete motd 10-uname
