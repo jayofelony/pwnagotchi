@@ -194,8 +194,8 @@ if __name__ == '__main__':
                         for x in range(int(pwn_whitelist)):
                             ssid = input("SSID (Name):")
                             bssid = input("BSSID (MAC):")
-                            f.write("\t\"" + ssid + "\"\n")
-                            f.write("\t\"" + bssid + "\"\n")
+                            f.write("\t\"" + ssid + "\",\n")
+                            f.write("\t\"" + bssid + "\",\n")
                         f.write("]\n")
                     # set bluetooth tether
                     pwn_bluetooth = input("Do you want to enable BT-Tether? [y/n]")
