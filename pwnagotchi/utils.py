@@ -430,6 +430,10 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('ws_13in3k', 'waveshare13in3k', 'ws13in3k', 'waveshare_133k', 'waveshare133k'):
         config['ui']['display']['type'] = 'waveshare13in3k'
 
+    # WeAct e-ink
+    elif config['ui']['display']['type'] in ('weact2in9', 'weact29in', 'weact2in9'):
+        config['ui']['display']['type'] = 'weact2in9'
+
     else:
         print("unsupported display type %s" % config['ui']['display']['type'])
         sys.exit(1)
