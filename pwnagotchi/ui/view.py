@@ -29,7 +29,7 @@ class View(object):
         self._black = 0xFF
         self._white = 0x00
         if 'invert' in config['ui'] and config['ui']['invert'] == True:
-            logging.debug("INVERT BLACK/WHITES:" + config['ui']['invert'])
+            logging.debug("INVERT BLACK/WHITES:" + str(config['ui']['invert']))
             self.invert = 1
             BLACK = 0x00
             WHITE - 0xFF
