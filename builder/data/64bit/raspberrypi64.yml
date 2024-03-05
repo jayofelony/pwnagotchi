@@ -137,6 +137,7 @@
           - libusb-1.0-0-dev
           - lsof
           - make
+          - ntp
           - python3-dbus
           - python3-flask
           - python3-flask-cors
@@ -179,6 +180,11 @@
         state: present
         update_cache: yes
         install_recommends: false
+
+    - name: set local RTC
+      shell: "timedatectl set-ntp true"
+      args:
+        executable: /bin/bash
 
     - name: update pip3, setuptools, wheel
       shell: "python3 -m pip install --upgrade pip setuptools wheel --break-system-packages"
