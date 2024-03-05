@@ -39,7 +39,7 @@ class Waveshare27inchV2(DisplayImpl):
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
-        self._display.display_Fast(buf)
+        self._display.display_Partial(buf, 0, 0, 176, 264)
 
     def clear(self):
         # This line also removes the 0xFF

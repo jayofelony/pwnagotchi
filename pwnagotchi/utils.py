@@ -431,7 +431,7 @@ def load_config(args):
         config['ui']['display']['type'] = 'waveshare13in3k'
 
     # WeAct e-ink
-    elif config['ui']['display']['type'] in ('weact2in9', 'weact29in', 'weact2in9'):
+    elif config['ui']['display']['type'] in ('weact2in9', 'weact29in'):
         config['ui']['display']['type'] = 'weact2in9'
 
     else:
