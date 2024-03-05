@@ -499,8 +499,8 @@
           export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
           alias custom='cd /usr/local/share/pwnagotchi/custom-plugins/'
           alias config='sudo nano /etc/pwnagotchi/config.toml'
-          alias pwnlog='tail -f -n300 /etc/pwnagotchi/log/pwn*.log | sed --unbuffered \"s/,[[:digit:]]\\{3\\}\\]//g\" | cut -d \" \" -f 2-'
-          alias pwnver='python3 -c \"import pwnagotchi as p; print(p.__version__)\"'
+          alias pwnlog='tail -f -n300 /etc/pwnagotchi/log/pwn*.log | sed --unbuffered "s/,[[:digit:]]\\{3\\}\\]//g" | cut -d " " -f 2-'
+          alias pwnver='python3 -c "import pwnagotchi as p; print(p.__version__)"'
           alias pwnkill='sudo killall -USR1 pwnagotchi'
       when: golang.changed
 
