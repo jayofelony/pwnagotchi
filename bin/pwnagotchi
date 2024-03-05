@@ -19,85 +19,83 @@ from pwnagotchi import fs
 from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
 
 
-def do_clear(display):
-    logging.info("clearing the display ...")
-    display.clear()
-    sys.exit(0)
+def pwnagotchi_cli():
+    def do_clear(display):
+        logging.info("clearing the display ...")
+        display.clear()
+        sys.exit(0)
 
+    def do_manual_mode(agent):
+        logging.info("entering manual mode ...")
 
-def do_manual_mode(agent):
-    logging.info("entering manual mode ...")
+        agent.mode = 'manual'
+        agent.last_session.parse(agent.view(), args.skip_session)
+        if not args.skip_session:
+            logging.info(
+                "the last session lasted %s (%d completed epochs, trained for %d), average reward:%s (min:%s max:%s)" % (
+                    agent.last_session.duration_human,
+                    agent.last_session.epochs,
+                    agent.last_session.train_epochs,
+                    agent.last_session.avg_reward,
+                    agent.last_session.min_reward,
+                    agent.last_session.max_reward))
 
-    agent.mode = 'manual'
-    agent.last_session.parse(agent.view(), args.skip_session)
-    if not args.skip_session:
-        logging.info(
-            "the last session lasted %s (%d completed epochs, trained for %d), average reward:%s (min:%s max:%s)" % (
-                agent.last_session.duration_human,
-                agent.last_session.epochs,
-                agent.last_session.train_epochs,
-                agent.last_session.avg_reward,
-                agent.last_session.min_reward,
-                agent.last_session.max_reward))
-
-    while True:
-        display.on_manual_mode(agent.last_session)
-        time.sleep(5)
-        if grid.is_connected():
-            plugins.on('internet_available', agent)
-
-
-def do_auto_mode(agent):
-    logging.info("entering auto mode ...")
-
-    agent.mode = 'auto'
-    agent.start()
-
-    while True:
-        try:
-            # recon on all channels
-            agent.recon()
-            # get nearby access points grouped by channel
-            channels = agent.get_access_points_by_channel()
-            # for each channel
-            for ch, aps in channels:
-                agent.set_channel(ch)
-
-                if not agent.is_stale() and agent.any_activity():
-                    logging.info("%d access points on channel %d" % (len(aps), ch))
-
-                # for each ap on this channel
-                for ap in aps:
-                    # send an association frame in order to get for a PMKID
-                    agent.associate(ap)
-                    # deauth all client stations in order to get a full handshake
-                    for sta in ap['clients']:
-                        agent.deauth(ap, sta)
-                        time.sleep(1)  # delay to not trigger nexmon firmware bugs
-
-            # An interesting effect of this:
-            #
-            # From Pwnagotchi's perspective, the more new access points
-            # and / or client stations nearby, the longer one epoch of
-            # its relative time will take ... basically, in Pwnagotchi's universe,
-            # Wi-Fi electromagnetic fields affect time like gravitational fields
-            # affect ours ... neat ^_^
-            agent.next_epoch()
-
+        while True:
+            display.on_manual_mode(agent.last_session)
+            time.sleep(5)
             if grid.is_connected():
                 plugins.on('internet_available', agent)
 
-        except Exception as e:
-            if str(e).find("wifi.interface not set") > 0:
-                logging.exception("main loop exception due to unavailable wifi device, likely programmatically disabled (%s)", e)
-                logging.info("sleeping 60 seconds then advancing to next epoch to allow for cleanup code to trigger")
-                time.sleep(60)
+    def do_auto_mode(agent):
+        logging.info("entering auto mode ...")
+
+        agent.mode = 'auto'
+        agent.start()
+
+        while True:
+            try:
+                # recon on all channels
+                agent.recon()
+                # get nearby access points grouped by channel
+                channels = agent.get_access_points_by_channel()
+                # for each channel
+                for ch, aps in channels:
+                    time.sleep(0.2)
+                    agent.set_channel(ch)
+
+                    if not agent.is_stale() and agent.any_activity():
+                        logging.info("%d access points on channel %d" % (len(aps), ch))
+
+                    # for each ap on this channel
+                    for ap in aps:
+                        # send an association frame in order to get for a PMKID
+                        agent.associate(ap)
+                        # deauth all client stations in order to get a full handshake
+                        for sta in ap['clients']:
+                            agent.deauth(ap, sta)
+                            time.sleep(1)  # delay to not trigger nexmon firmware bugs
+
+                # An interesting effect of this:
+                #
+                # From Pwnagotchi's perspective, the more new access points
+                # and / or client stations nearby, the longer one epoch of
+                # its relative time will take ... basically, in Pwnagotchi's universe,
+                # Wi-Fi electromagnetic fields affect time like gravitational fields
+                # affect ours ... neat ^_^
                 agent.next_epoch()
-            else:
-                logging.exception("main loop exception (%s)", e)
 
+                if grid.is_connected():
+                    plugins.on('internet_available', agent)
 
-if __name__ == '__main__':
+            except Exception as e:
+                if str(e).find("wifi.interface not set") > 0:
+                    logging.exception("main loop exception due to unavailable wifi device, likely programmatically disabled (%s)", e)
+                    logging.info("sleeping 60 seconds then advancing to next epoch to allow for cleanup code to trigger")
+                    time.sleep(60)
+                    agent.next_epoch()
+                else:
+                    logging.exception("main loop exception (%s)", e)
+
     def add_parsers(parser):
         """
         Adds the plugins and google subcommands
@@ -169,21 +167,23 @@ if __name__ == '__main__':
             allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
             return all(allowed.match(x) for x in hostname.split("."))
 
-        pwn_restore = input("Do you want to restore the previous configuration? [Y/N]\n")
+        pwn_restore = input("Do you want to restore the previous configuration?\n\n"
+                            "[Y/N]: ")
         if pwn_restore in ('y', 'yes'):
             os.system("cp -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
             print("Your previous configuration is restored, and I will restart in 5 seconds.")
             time.sleep(5)
             os.system("service pwnagotchi restart")
         else:
-            pwn_check = input("This will create a new configuration file and overwrite your current backup, are you sure? [Y/N]\n")
+            pwn_check = input("This will create a new configuration file and overwrite your current backup, are you sure?\n\n"
+                              "[Y/N]: ")
             if pwn_check.lower() in ('y', 'yes'):
                 os.system("mv -f /etc/pwnagotchi/config.toml /etc/pwnagotchi/config.toml.bak")
                 with open("/etc/pwnagotchi/config.toml", "a+") as f:
                     f.write("# Do not edit this file if you do not know what you are doing!!!\n\n")
                     # Set pwnagotchi name
                     print("Welcome to the interactive installation of your personal Pwnagotchi configuration!\n"
-                          "My name is Jayofelony, how may I call you?\n")
+                          "My name is Jayofelony, how may I call you?\n\n")
                     pwn_name = input("Pwnagotchi name (no spaces): ")
                     if pwn_name == "":
                         pwn_name = "Pwnagotchi"
@@ -212,32 +212,39 @@ if __name__ == '__main__':
                             f.write(f"\t\"{bssid}\",\n")
                         f.write("]\n")
                     # set bluetooth tether
-                    pwn_bluetooth = input("Do you want to enable BT-Tether? [Y/N] ")
+                    pwn_bluetooth = input("Do you want to enable BT-Tether?\n\n"
+                                          "[Y/N] ")
                     if pwn_bluetooth.lower() in ('y', 'yes'):
                         f.write("main.plugins.bt-tether.enabled = true\n\n")
-                        pwn_bluetooth_device = input("What device do you use? Android or iOS? ")
+                        pwn_bluetooth_device = input("What device do you use? Android or iOS?\n\n"
+                                                     "Device: ")
                         if pwn_bluetooth_device.lower() == "android":
                             f.write("main.plugins.bt-tether.devices.android-phone.enabled = true\n")
-                            pwn_bluetooth_mac = input("What is the bluetooth MAC of your device? ")
+                            pwn_bluetooth_mac = input("What is the bluetooth MAC of your device?\n\n"
+                                                      "MAC: ")
                             if pwn_bluetooth_mac != "":
                                 f.write(f"main.plugins.bt-tether.devices.android-phone.mac = \"{pwn_bluetooth_mac}\"\n")
                         elif pwn_bluetooth_device.lower() == "ios":
                             f.write("main.plugins.bt-tether.devices.ios-phone.enabled = true\n")
-                            pwn_bluetooth_mac = input("What is the bluetooth MAC of your device? ")
+                            pwn_bluetooth_mac = input("What is the bluetooth MAC of your device?\n\n"
+                                                      "MAC: ")
                             if pwn_bluetooth_mac != "":
                                 f.write(f"main.plugins.bt-tether.devices.ios-phone.mac = \"{pwn_bluetooth_mac}\"\n")
                     # set up display settings
-                    pwn_display_enabled = input("Do you use a display? [Y/N] ")
+                    pwn_display_enabled = input("Do you want to enable a display?\n\n"
+                                                "[Y/N]: ")
                     if pwn_display_enabled.lower() in ('y', 'yes'):
                         f.write("ui.display.enabled = true\n")
                         pwn_display_type = input("What display do you use?\n\n"
                                                  "Be sure to check for the correct display type @ \n"
-                                                 "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L431\n")
+                                                 "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L431\n\n"
+                                                 "Display type: ")
                         if pwn_display_type != "":
                             f.write(f"ui.display.type = \"{pwn_display_type}\"\n")
-                        pwn_display_invert = input("Do you want to invert the display colors? [Y/N]\n\n"
+                        pwn_display_invert = input("Do you want to invert the display colors?\n"
                                                    "N = Black background\n"
-                                                   "Y = White background\n")
+                                                   "Y = White background\n\n"
+                                                   "[Y/N]: ")
                         if pwn_display_invert.lower() in ('y', 'yes'):
                             f.write("ui.invert = true\n")
                     f.close()
@@ -326,3 +333,6 @@ if __name__ == '__main__':
         do_manual_mode(agent)
     else:
         do_auto_mode(agent)
+
+if __name__ == '__main__':
+    pwnagotchi_cli()
