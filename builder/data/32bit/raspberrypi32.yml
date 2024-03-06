@@ -238,11 +238,6 @@
         name: "{{ packages.apt.install }}"
         state: present
 
-    - name: set local RTC
-      shell: "timedatectl set-ntp true"
-      args:
-        executable: /bin/bash
-
     - name: update pip3, setuptools, wheel
       shell: "python3 -m pip install --upgrade pip setuptools wheel"
       args:
