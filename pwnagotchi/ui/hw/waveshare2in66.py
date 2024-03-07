@@ -34,11 +34,12 @@ class Waveshare2in66(DisplayImpl):
         logging.info("initializing waveshare 2.66 inch lcd display")
         from pwnagotchi.ui.hw.libs.waveshare.v2in66.epd2in66 import EPD
         self._display = EPD()
-        self._display.init(0)
+        self._display.init(1)
         self._display.Clear()
 
     def render(self, canvas):
-        self._display.display(canvas)
+        buf = self._display.getbuffer(canvas)
+        self._display.display(buf)
 
     def clear(self):
         self._display.Clear()

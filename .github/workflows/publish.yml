@@ -8,205 +8,65 @@ on:
         required: true
 
 jobs:
- 
-  publish:
+  build:
     runs-on: ubuntu-latest
+
     steps:
+      - uses: actions/checkout@v4
 
-    - name: Remove unnecessary directories
-      run: |
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
-        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      - name: Extract version from file
+        id: get_version
+        run: |
+          VERSION=$(cut -d "'" -f2 < pwnagotchi/_version.py)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-    - name: Check disk space
-      run: df -BG
+      - name: Get latest tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        id: get-latest-tag
 
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Set LAST_VERSION as an environment variable
+        run: echo "LAST_VERSION=${{ steps.get-latest-tag.outputs.tag }}" >> $GITHUB_ENV
 
-    - name: Validate tag
-      id: tag-setter
-      run: |
-            TAG=${{ github.event.inputs.version }}
-            if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Tag $TAG is valid."
-            echo "TAG=$TAG" >> $GITHUB_OUTPUT
-            else
-            echo "Tag $TAG is not a valid semantic version. Aborting."
-            exit 1
-            fi
+      - name: Generate release notes
+        id: generate_release_notes
+        run: |
+          COMMITS=$(git log --merges --pretty=format:"* %s" $LAST_VERSION--$VERSION | sed 's/$/\\n/g')
+          CONTRIBUTORS=$(git shortlog -sn $LAST_VERSION--$VERSION | awk '{print "* @" $2}' | sed 's/$/\\n/g')
+          RELEASE_BODY="**Full Changelog**: https://github.com/jayofelony/pwnagotchi/compare/$LAST_VERSION...$VERSION"
+          echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
+      - name: Install qemu dependencies
+        run: sudo apt update && sudo apt install qemu-user-static qemu-utils xz-utils -y
 
-    - name: Install dependencies
-      run: | 
-           sudo apt-get update && sudo apt-get install -y libdbus-1-dev curl unzip gettext qemu-utils qemu qemu-user-static binfmt-support
-           pip install -r requirements.txt
+      - name: Build img file
+        run: ls -la .; pwd; make all
 
-    - name: Update QEMU
-      run: |
-            sudo update-binfmts --enable qemu-aarch64
-            echo $(ls /usr/bin/qemu-aarch64-static)
+      - name: Transfer 32bit.img to docker and give permissions
+        run: sudo chown runner:docker "pwnagotchi-32bit.img"
 
-    - name: Restart binfmt-support
-      run: sudo service binfmt-support restart
+      - name: Transfer 64bit.img to docker and give permissions
+        run: sudo chown runner:docker "pwnagotchi-64bit.img"
 
-    - name: Mount binfmt_misc
-      run: |
-        if ! grep -qs '/proc/sys/fs/binfmt_misc ' /proc/mounts; then
-          echo "Mounting binfmt_misc"
-          sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
-        fi
+      - name: PiShrink
+        run: |
+          wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
+          chmod +x pishrink.sh
+          sudo mv pishrink.sh /usr/local/bin
+          find /home/runner/work/ -type f -name "*.img" -exec sudo pishrink.sh -aZ {} \;
 
-    - name: Restart binfmt-support
-      run: sudo service binfmt-support restart
-        
-    - name: Update Languages
-      run: make update_langs
-    
-    - name: Compile Languages
-      run: make compile_langs
+      - name: Change name of 32.img.xz to add version
+        run: mv "pwnagotchi-32bit.img.xz" "pwnagotchi-$VERSION-32bit.img.xz"
 
-    - name: Check disk space
-      run: df -BG
+      - name: Change name of 64.img.xz to add version
+        run: mv "pwnagotchi-64bit.img.xz" "pwnagotchi-$VERSION-64bit.img.xz"
 
-    - name: Check qemu-user-static package
-      run: |
-        echo "Checking qemu-user-static package..."
-        dpkg -s qemu-user-static && echo "qemu-user-static is installed." || echo "qemu-user-static is NOT installed."
-    
-    - name: Check binfmt-support service
-      run: |
-        echo "Checking binfmt-support service..."
-        service binfmt-support status && echo "binfmt-support service is running." || echo "binfmt-support service is NOT running."
-    
-    - name: Check binfmt_misc filesystem
-      run: |
-        echo "Checking binfmt_misc filesystem..."
-        mount | grep binfmt_misc && echo "binfmt_misc is mounted." || echo "binfmt_misc is NOT mounted."
-        echo $(ls /proc/sys/fs/binfmt_misc | grep qemu-aarch64)
-
-    - name: Run Makefile
-      run: make
-      env: 
-        PWN_VERSION: ${{ steps.tag-setter.outputs.TAG }}
-
-    - name: PiShrink
-      run: |
-        wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
-        chmod +x pishrink.sh
-        sudo mv pishrink.sh /usr/local/bin
-        find /home/runner/work/ -type f -name "*.img" -exec sudo pishrink.sh {} \;
-
-    - name: Compress .img files
-      run: |
-         find /home/runner/work/ -type f -name "*.img" -exec xz --no-warn {} \;
-    
-    - name: Create tag
-      uses: actions/github-script@v7
-      with:
-        script: |
-            const version = "${{ steps.tag-setter.outputs.TAG }}"
-            console.log(`Creating tag ${version}`)
-            await github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `refs/tags/${version}`,
-              sha: context.sha
-            })
-
-    - name: Create Release
-      id: create_release
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const tag = "${{ steps.tag-setter.outputs.TAG }}"
-          console.log(`Creating release with tag: ${tag}`)
-          const release = await github.rest.repos.createRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag_name: tag,
-            name: tag,
-            draft: false,
-            prerelease: true,
-            generate_release_notes: true
-          })
-          console.log(`Created release with id: ${release.data.id}`)
-          return release.data.id
-
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/github-script@v7
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        script: |
-          const fs = require('fs');
-          const path = require('path');
-          const release_id = "${{ steps.create_release.outputs.result }}";
-          const asset_content_type = 'application/octet-stream';
-          const distDir = '/home/runner/work/';
-          
-          const uploadFile = async (filePath) => {
-            if (fs.lstatSync(filePath).isDirectory()) {
-              const files = fs.readdirSync(filePath);
-              for (const file of files) {
-                await uploadFile(path.join(filePath, file));
-              }
-            } else {
-              // Check if the file has a .xz extension
-              if (path.extname(filePath) === '.xz') {
-                console.log(`Uploading ${filePath}...`);
-      
-                const asset_name = path.basename(filePath);
-                const asset_size = fs.statSync(filePath).size;
-                const asset = fs.createReadStream(filePath);
-      
-                const response = await github.rest.repos.uploadReleaseAsset({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  release_id: release_id,
-                  name: asset_name,
-                  data: asset,
-                  headers: {
-                    'content-type': asset_content_type,
-                    'content-length': asset_size
-                  }
-                });
-      
-                console.log(`Uploaded ${filePath}: ${response.data.browser_download_url}`);
-              }
-            }
-          }
-      
-          await uploadFile(distDir);
-          
-    - name: Update Release
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const release_id = "${{ steps.create_release.outputs.result }}"
-          console.log(`Updating release with id: ${release_id}`)
-          github.rest.repos.updateRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: release_id,
-            tag_name: "${{ steps.tag-setter.outputs.TAG }}",
-            name: "${{ steps.tag-setter.outputs.TAG }}",
-            draft: false,
-            prerelease: false
-          })
-
-    - name: Save environment variable
-      run: echo "${{ steps.tag-setter.outputs.TAG }}"  > env_var.txt
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: env-var
-        path: env_var.txt
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          tag_name: v${{ env.VERSION }}
+          name: Pwnagotchi v${{ env.VERSION }}
+          files: |
+              pwnagotchi-${{ env.VERSION }}-32bit.img.xz
+              pwnagotchi-${{ env.VERSION }}-64bit.img.xz
+          body: ${{ env.RELEASE_BODY }}

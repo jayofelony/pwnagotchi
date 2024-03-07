@@ -23,6 +23,12 @@ def load(config, agent, epoch, from_disk=True):
         from stable_baselines3 import A2C
         logging.debug("[AI] A2C imported in %.2fs" % (time.time() - start))
 
+        # remove invalid ai.parameters leftover from tensor_flow, if present
+        for key in [ 'alpha', 'epsilon', 'lr_schedule' ]:
+            if key in config['params']:
+                logging.info("Removing legacy ai parameter %s" % key);
+                del config['params'][key]
+        
         start = time.time()
         from stable_baselines3.a2c import MlpPolicy
         logging.debug("[AI] MlpPolicy imported in %.2fs" % (time.time() - start))

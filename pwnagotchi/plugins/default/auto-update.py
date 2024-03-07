@@ -28,7 +28,8 @@ def check(version, repo, native=True):
     resp = requests.get("https://api.github.com/repos/%s/releases/latest" % repo)
     latest = resp.json()
     info['available'] = latest_ver = latest['tag_name'].replace('v', '')
-    is_arm64 = info['arch'].startswith('aarch')
+    is_armhf = info['arch'].startswith('arm')
+    is_aarch = info['arch'].startswith('aarch')
 
     local = version_to_tuple(info['current'])
     remote = version_to_tuple(latest_ver)
@@ -36,12 +37,20 @@ def check(version, repo, native=True):
         if not native:
             info['url'] = "https://github.com/%s/archive/%s.zip" % (repo, latest['tag_name'])
         else:
-            if is_arm64:
-                # check if this release is compatible with aarch64
+            if is_armhf:
+                # check if this release is compatible with armhf
                 for asset in latest['assets']:
                     download_url = asset['browser_download_url']
                     if (download_url.endswith('.zip') and
-                            (info['arch'] in download_url or (is_arm64 and 'aarch64' in download_url))):
+                            (info['arch'] in download_url or (is_armhf and 'armhf' in download_url))):
+                        info['url'] = download_url
+                        break
+            elif is_aarch:
+                # check if this release is compatible with arm64/aarch64
+                for asset in latest['assets']:
+                    download_url = asset['browser_download_url']
+                    if (download_url.endswith('.zip') and
+                            (info['arch'] in download_url or (is_aarch and 'aarch' in download_url))):
                         info['url'] = download_url
                         break
 
@@ -189,7 +198,7 @@ class AutoUpdate(plugins.Plugin):
                 to_check = [
                     ('jayofelony/bettercap', parse_version('bettercap -version'), True, 'bettercap'),
                     ('jayofelony/pwngrid', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
-                    ('jayofelony/pwnagotchi-bookworm', pwnagotchi.__version__, False, 'pwnagotchi')
+                    ('jayofelony/pwnagotchi', pwnagotchi.__version__, False, 'pwnagotchi')
                 ]
 
                 for repo, local_version, is_native, svc_name in to_check:

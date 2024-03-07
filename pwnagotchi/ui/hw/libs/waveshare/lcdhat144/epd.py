@@ -12,6 +12,7 @@ from . import config
 from . import LCD_1in44
 from PIL import ImageOps
 
+
 class EPD(object):
     def __init__(self):
         self.width = 128
@@ -24,9 +25,8 @@ class EPD(object):
         pass
 
     def clear(self):
-        #self.LCD.LCD_Clear()
-        pass
+        self.LCD.LCD_Clear()
 
     def display(self, image):
-        rgb_im = ImageOps.colorize(image.convert("L"), black ="green", white ="black")
+        rgb_im = ImageOps.colorize(image.convert("L"), black="green", white="black")
         self.LCD.LCD_ShowImage(rgb_im, 0, 0)

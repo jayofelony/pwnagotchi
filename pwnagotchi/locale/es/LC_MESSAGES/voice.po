@@ -36,18 +36,18 @@ msgid "The neural network is ready."
 msgstr "La red neuronal está lista."
 
 msgid "Generating keys, do not turn off ..."
-msgstr ""
+msgstr "Generando llaves, no me apagues ..."
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
 msgstr "¡Oye, el canal {channel} está libre! Tu AP lo agradecerá."
 
 msgid "Reading last session logs ..."
-msgstr ""
+msgstr "Leyendo los logs de la última sesión ..."
 
 #, python-brace-format
 msgid "Read {lines_so_far} log lines so far ..."
-msgstr ""
+msgstr "Leyendo {lines_so_far} líneas de log hasta ahora ..."
 
 msgid "I'm bored ..."
 msgstr "Estoy aburrido ..."
@@ -74,7 +74,7 @@ msgid "Leave me alone ..."
 msgstr "Me siento tan solo ..."
 
 msgid "I'm mad at you!"
-msgstr ""
+msgstr "Toy re enojado con vos!"
 
 msgid "I'm living the life!"
 msgstr "¡Estoy viviendo la vida!"
@@ -97,11 +97,11 @@ msgstr "¡Hola {name}! Encantado de conocerte."
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
-msgstr ""
+msgstr "Que onda {name}!?"
 
 #, python-brace-format
 msgid "Hey {name} how are you doing?"
-msgstr ""
+msgstr "Eh!, ¿Que haces {name}?"
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
@@ -127,10 +127,10 @@ msgid "Missed!"
 msgstr "¡Perdido!"
 
 msgid "Good friends are a blessing!"
-msgstr ""
+msgstr "Lxs buenxs amigxs son una masa!"
 
 msgid "I love my friends!"
-msgstr ""
+msgstr "¡Amo a mis amigxs!"
 
 msgid "Nobody wants to play with me ..."
 msgstr "Nadie quiere jugar conmigo ..."
@@ -143,7 +143,7 @@ msgstr "¡¿Dónde está todo el mundo?!"
 
 #, python-brace-format
 msgid "Napping for {secs}s ..."
-msgstr "Descansando durante {secs}s ..."
+msgstr "Descansando por {secs}s ..."
 
 msgid "Zzzzz"
 msgstr "Zzzzz"
@@ -203,7 +203,7 @@ msgstr "Oops, algo salió mal ... Reiniciando ..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
-msgstr ""
+msgstr "Subiendo data a {to} ..."
 
 #, python-brace-format
 msgid "Downloading from {name} ..."

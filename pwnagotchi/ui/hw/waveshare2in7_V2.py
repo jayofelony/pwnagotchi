@@ -35,8 +35,6 @@ class Waveshare27inchV2(DisplayImpl):
         from pwnagotchi.ui.hw.libs.waveshare.v2in7_v2.epd2in7_V2 import EPD
         self._display = EPD()
         self._display.init()
-        # this must have changed by waveshare
-        # remove the 0xFF(Clear(0xFF)) other wise it errors. can't pass oxff and self
         self._display.Clear()
 
     def render(self, canvas):

@@ -34,12 +34,12 @@ class Waveshare154(DisplayImpl):
         logging.info("initializing waveshare v1in54 display")
         from pwnagotchi.ui.hw.libs.waveshare.v1in54.epd1in54 import EPD
         self._display = EPD()
-        self._display.init(0x00)
+        self._display.init(self._display.lut_partial_update)
         self._display.Clear()
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
-        self._display.display(buf, None)
+        self._display.display(buf)
 
     def clear(self):
         # pass

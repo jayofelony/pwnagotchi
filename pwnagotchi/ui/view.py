@@ -23,7 +23,21 @@ ROOT = None
 
 class View(object):
     def __init__(self, config, impl, state=None):
-        global ROOT
+        global ROOT, BLACK, WHITE
+        
+        self.invert = 0
+        self._black = 0xFF
+        self._white = 0x00
+        if 'invert' in config['ui'] and config['ui']['invert'] == True:
+            logging.debug("INVERT BLACK/WHITES:" + str(config['ui']['invert']))
+            self.invert = 1
+            BLACK = 0x00
+            WHITE - 0xFF
+            self._black = 0x00
+            self._white = 0xFF
+
+
+
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
@@ -54,10 +68,10 @@ class View(object):
             'line1': Line(self._layout['line1'], color=BLACK),
             'line2': Line(self._layout['line2'], color=BLACK),
 
-            'face': Text(value=faces.SLEEP, position=self._layout['face'], color=BLACK, font=fonts.Huge),
+            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=BLACK, font=fonts.Huge, png=config['ui']['faces']['png']),
 
             # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=BLACK),
-            'friend_name': Text(value=None, position=self._layout['friend_name'], font=fonts.BoldSmall, color=BLACK),
+            'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=BLACK),
 
             'name': Text(value='%s>' % 'pwnagotchi', position=self._layout['name'], color=BLACK, font=fonts.Bold),
 
@@ -98,6 +112,11 @@ class View(object):
         self._state.has_element(key)
 
     def add_element(self, key, elem):
+        if self.invert is 1 and elem.color:
+            if elem.color == 0xff:
+                elem.color = 0x00
+            elif elem.color == 0x00:
+                elem.color = 0xff
         self._state.add_element(key, elem)
 
     def remove_element(self, key):
@@ -371,7 +390,7 @@ class View(object):
             state = self._state
             changes = state.changes(ignore=self._ignore_changes)
             if force or len(changes):
-                self._canvas = Image.new('1', (self._width, self._height), WHITE)
+                self._canvas = Image.new('1', (self._width, self._height), self._white)
                 drawer = ImageDraw.Draw(self._canvas)
 
                 plugins.on('ui_update', self)

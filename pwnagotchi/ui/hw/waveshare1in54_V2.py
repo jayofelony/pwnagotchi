@@ -31,15 +31,27 @@ class Waveshare154V2(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing waveshare v1in54_v2 display")
+        logging.info("initializing waveshare1in54_v2 display")
         from pwnagotchi.ui.hw.libs.waveshare.v1in54_v2.epd1in54_V2 import EPD
-        self._display = EPD()
-        self._display.init(False)
-        self._display.Clear()
+        try:
+            # Double initialization is a workaround for the display not working after a reboot, or mirrored/flipped screen
+            self._display = EPD()
+            self._display.init(0)
+            self.clear()
+            self._display.init(1)
+            self.clear()
+        except Exception as e:
+            logging.error(f"failed to initialize waveshare1in54_v2 display: {e}")
 
     def render(self, canvas):
-        buf = self._display.getbuffer(canvas)
-        self._display.display(buf, None)
+        try:
+            buf = self._display.getbuffer(canvas)
+            self._display.displayPart(buf)
+        except Exception as e:
+            logging.error(f"failed to render to waveshare1in54_v2 display: {e}")
 
     def clear(self):
-        self._display.Clear()
+        try:
+            self._display.Clear(0xFF)
+        except Exception as e:
+            logging.error(f"failed to clear waveshare1in54_v2 display: {e}")

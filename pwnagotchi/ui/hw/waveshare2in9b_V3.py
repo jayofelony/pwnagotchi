@@ -35,12 +35,12 @@ class Waveshare29bV3(DisplayImpl):
         from pwnagotchi.ui.hw.libs.waveshare.v2in9b_v3.epd2in9b_V3 import EPD
         self._display = EPD()
         self._display.init()
-        self._display.Clear(0xFF)
+        self._display.Clear()
         self._display.init()
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
-        self._display.display(buf)
+        self._display.display(buf, None)
 
     def clear(self):
-        self._display.Clear(0xFF)
+        self._display.Clear()

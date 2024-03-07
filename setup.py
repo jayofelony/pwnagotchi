@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import warnings
+import platform
 
 log = logging.getLogger(__name__)
 
@@ -31,7 +32,10 @@ def install_file(source_filename, dest_filename):
 
 def install_system_files():
     setup_path = os.path.dirname(__file__)
-    data_path = os.path.join(setup_path, "builder/data")
+    if platform.machine().startswith('arm'):
+        data_path = os.path.join(setup_path, "builder/data/32bit")
+    elif platform.machine().startswith('aarch'):
+        data_path = os.path.join(setup_path, "builder/data/64bit")
 
     for source_filename in glob.glob("%s/**" % data_path, recursive=True):
         if os.path.isfile(source_filename):
@@ -94,7 +98,7 @@ setup(name='pwnagotchi',
           "install": CustomInstall,
       },
       scripts=['bin/pwnagotchi'],
-      package_data={'pwnagotchi': ['defaults.yml', 'pwnagotchi/defaults.yml', 'locale/*/LC_MESSAGES/*.mo']},
+      package_data={'pwnagotchi': ['defaults.toml', 'pwnagotchi/defaults.toml', 'locale/*/LC_MESSAGES/*.mo']},
       include_package_data=True,
       packages=find_packages(),
       classifiers=[

@@ -18,10 +18,6 @@ main.custom_plugin_repos = [
 
 main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
-main.plugins.aircrackonly.enabled = true
-
-main.plugins.hashie.enabled = true
-
 main.plugins.auto-update.enabled = true
 main.plugins.auto-update.install = true
 main.plugins.auto-update.interval = 1
@@ -36,7 +32,7 @@ main.plugins.bt-tether.devices.android-phone.netmask = 24
 main.plugins.bt-tether.devices.android-phone.interval = 1
 main.plugins.bt-tether.devices.android-phone.scantime = 10
 main.plugins.bt-tether.devices.android-phone.max_tries = 10
-main.plugins.bt-tether.devices.android-phone.share_internet = false
+main.plugins.bt-tether.devices.android-phone.share_internet = true
 main.plugins.bt-tether.devices.android-phone.priority = 1
 
 main.plugins.bt-tether.devices.ios-phone.enabled = false
@@ -47,7 +43,7 @@ main.plugins.bt-tether.devices.ios-phone.netmask = 24
 main.plugins.bt-tether.devices.ios-phone.interval = 5
 main.plugins.bt-tether.devices.ios-phone.scantime = 20
 main.plugins.bt-tether.devices.ios-phone.max_tries = 0
-main.plugins.bt-tether.devices.ios-phone.share_internet = false
+main.plugins.bt-tether.devices.ios-phone.share_internet = true
 main.plugins.bt-tether.devices.ios-phone.priority = 999
 
 main.plugins.fix_services.enabled = true
@@ -118,7 +114,7 @@ main.no_restart = false
 
 main.filter = ""
 
-main.log.path = "/home/pi/logs/pwnagotchi.log"
+main.log.path = "/etc/pwnagotchi/log/pwnagotchi.log"
 main.log.rotation.enabled = true
 main.log.rotation.size = "10M"
 
@@ -156,6 +152,10 @@ personality.bond_encounters_factor = 20000
 personality.throttle_a = 0.4
 personality.throttle_d = 0.9
 
+personality.clear_on_exit = true # clear display when shutting down cleanly
+
+ui.invert = false # false = black background, true = white background
+
 ui.fps = 0.0
 ui.font.name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
 ui.font.size_offset = 0 # will be added to the font size
@@ -185,6 +185,9 @@ ui.faces.debug = "(#__#)"
 ui.faces.upload = "(1__0)"
 ui.faces.upload1 = "(1__1)"
 ui.faces.upload2 = "(0__1)"
+ui.faces.png = false
+ui.faces.position_x = 0
+ui.faces.position_y = 34
 
 ui.web.enabled = true
 ui.web.address = "::" # listening on both ipv4 and ipv6 - switch to 0.0.0.0 to listen on just ipv4
@@ -216,7 +219,7 @@ bettercap.silence = [
 
 fs.memory.enabled = true
 fs.memory.mounts.log.enabled = true
-fs.memory.mounts.log.mount = "/home/pi/logs"
+fs.memory.mounts.log.mount = "/etc/pwnagotchi/log/"
 fs.memory.mounts.log.size = "50M"
 fs.memory.mounts.log.sync = 60
 fs.memory.mounts.log.zram = true

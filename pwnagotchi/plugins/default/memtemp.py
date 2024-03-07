@@ -144,6 +144,9 @@ class MemTemp(plugins.Plugin):
             elif ui.is_waveshare2in7():
                 h_pos = (192, 138)
                 v_pos = (211, 122)
+            elif ui.is_waveshare1in54V2():
+                h_pos = (53, 77)
+                v_pos = (154, 65)
             else:
                 h_pos = (155, 76)
                 v_pos = (175, 61)
