@@ -154,6 +154,12 @@ class Display(View):
     def is_waveshare5in65f(self):
         return self._implementation.name == 'waveshare5in65f'
 
+    def is_waveshare5in79(self):
+        return self._implementation.name == 'waveshare5in79'
+
+    def is_waveshare5in79b(self):
+        return self._implementation.name == 'waveshare5in79b'
+
     def is_waveshare5in83(self):
         return self._implementation.name == 'waveshare5in83'
 

@@ -391,6 +391,12 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('ws_5in65f', 'waveshare5in65f', 'ws5in65f', 'waveshare_565f', 'waveshare565f'):
         config['ui']['display']['type'] = 'waveshare5in65f'
 
+    elif config['ui']['display']['type'] in ('ws_5in79', 'waveshare5in79', 'ws5in79', 'waveshare_579', 'waveshare579'):
+        config['ui']['display']['type'] = 'waveshare5in79'
+
+    elif config['ui']['display']['type'] in ('ws_5in79b', 'waveshare5in79b', 'ws5in79b', 'waveshare_579b', 'waveshare579b'):
+        config['ui']['display']['type'] = 'waveshare5in79b'
+
     elif config['ui']['display']['type'] in ('ws_5in83', 'waveshare5in83', 'ws5in83', 'waveshare_583', 'waveshare583'):
         config['ui']['display']['type'] = 'waveshare5in83'
 
