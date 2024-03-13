@@ -48,7 +48,7 @@ class GPS(plugins.Plugin):
         if self.running:
             info = agent.session()
             self.coordinates = info["gps"]
-            gps_filename = filename.replace(".pcapng", ".gps.json")
+            gps_filename = filename.replace(".pcap", ".gps.json")
 
             if self.coordinates and all([
                 # avoid 0.000... measurements

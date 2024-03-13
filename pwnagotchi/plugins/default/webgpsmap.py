@@ -13,8 +13,8 @@ from dateutil.parser import parse
     webgpsmap shows existing position data stored in your /handshakes/ directory
 
     the plugin does the following:
-        - search for *.pcapng files in your /handshakes/ dir
-            - for every found .pcapng file it looks for a .geo.json or .gps.json or file with
+        - search for *.pcap files in your /handshakes/ dir
+            - for every found .pcap file it looks for a .geo.json or .gps.json or file with
               latitude+longitude data inside and shows this position on the map
             - if also an .cracked file with a plaintext password inside exist, it reads the content and shows the
               position as green instead of red and the password inside the infopox of the position
@@ -166,7 +166,7 @@ class Webgpsmap(plugins.Plugin):
         all_files = os.listdir(handshake_dir)
         # print(all_files)
         all_pcap_files = [os.path.join(handshake_dir, filename) for filename in all_files if
-                          filename.endswith('.pcapng')]
+                          filename.endswith('.pcap')]
         all_geo_or_gps_files = []
         for filename_pcap in all_pcap_files:
             filename_base = filename_pcap[:-5]  # remove ".pcap"
@@ -224,7 +224,7 @@ class Webgpsmap(plugins.Plugin):
                 }
 
                 # get ap password if exist
-                check_for = os.path.basename(pos_file).split(".")[0] + ".pcapng.cracked"
+                check_for = os.path.basename(pos_file).split(".")[0] + ".pcap.cracked"
                 if check_for in all_files:
                     gps_data[ssid + "_" + mac]["pass"] = pos.password()
 
@@ -329,7 +329,7 @@ class PositionFile:
         return_pass = None
         # 2do: make better filename split/remove extension because this one has problems with "." in path
         base_filename, ext1, ext2 = re.split('\.', self._file)
-        password_file_path = base_filename + ".pcapng.cracked"
+        password_file_path = base_filename + ".pcap.cracked"
         if os.path.isfile(password_file_path):
             try:
                 password_file = open(password_file_path, 'r')
