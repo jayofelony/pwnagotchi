@@ -5,9 +5,9 @@
   become: true
   vars:
     kernel:
-      min: "6.1"
-      full: "6.1.0-rpi8-rpi-v8"
-      full_pi5: "6.1.0-rpi8-rpi-2712"
+      min: "6.6"
+      full: "6.6.20+rpt-rpi-v8"
+      full_pi5: "6.6.20+rpt-rpi-2712"
     pwnagotchi:
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi', true) }}"
