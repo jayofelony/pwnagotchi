@@ -199,12 +199,10 @@
         path: /boot/firmware/ssh
         state: touch
 
-    - name: adjust /boot/firmware/config.txt
-      lineinfile:
-        dest: /boot/firmware/config.txt
-        insertafter: EOF
-        line: '{{ item }}'
-      with_items: "{{ system.boot_options }}"
+    - name: remove current rc.local
+      file:
+        path: /etc/rc.local
+        state: absent
 
     - name: change root partition
       replace:

@@ -229,6 +229,11 @@
         path: '{{ pwnagotchi.custom_plugin_dir }}'
         state: directory
 
+    - name: remove current rc.local
+      file:
+        path: /etc/rc.local
+        state: absent
+
     - name: update apt package cache
       apt:
         update_cache: yes
