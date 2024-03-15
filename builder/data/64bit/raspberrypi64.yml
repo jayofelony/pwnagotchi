@@ -25,7 +25,7 @@
         - "[pi4]"
         - "dtoverlay=spi0-0cs"
         - "[pi5]"
-        - "dtoverlay=spi6-2cs"
+        - "dtoverlay=spi0-0cs"
       modules:
         - "i2c-dev"
     services:
