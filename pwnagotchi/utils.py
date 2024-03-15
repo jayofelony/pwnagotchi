@@ -266,6 +266,18 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('displayhatmini'):
         config['ui']['display']['type'] = 'displayhatmini'
 
+    elif config['ui']['display']['type'] in ('pirateaudio'):
+        config['ui']['display']['type'] = 'pirateaudio'
+
+    elif config['ui']['display']['type'] in ('pitft'):
+        config['ui']['display']['type'] = 'pitft'
+
+    elif config['ui']['display']['type'] in ('tftbonnet'):
+        config['ui']['display']['type'] = 'tftbonnet'
+
+    elif config['ui']['display']['type'] in ('waveshareoledlcd'):
+        config['ui']['display']['type'] = 'waveshareoledlcd'
+
     elif config['ui']['display']['type'] in ('waveshare35lcd'):
         config['ui']['display']['type'] = 'waveshare35lcd'
 

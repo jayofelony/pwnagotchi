@@ -217,6 +217,18 @@ class Display(View):
     def is_displayhatmini(self):
         return self._implementation.name == 'displayhatmini'
 
+    def is_pirateaudio(self):
+        return self._implementation.name == 'pirateaudio'
+
+    def is_pitft(self):
+        return self._implementation.name == 'pitft'
+
+    def is_tftbonnet(self):
+        return self._implementation.name == 'tftbonnet'
+        
+    def is_waveshareoledlcd(self):
+        return self._implementation.name == 'waveshareoledlcd'
+
     def is_waveshare35lcd(self):
         return self._implementation.name == 'waveshare35lcd'
 
