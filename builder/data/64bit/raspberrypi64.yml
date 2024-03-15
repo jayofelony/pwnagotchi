@@ -14,7 +14,7 @@
     system:
       boot_options:
         - "dtoverlay=dwc2"
-        - "dtoverlay=spi1-3cs"
+        - "dtoverlay=spi0-0cs"
         - "dtparam=i2c1=on"
         - "dtparam=i2c_arm=on"
         - "dtparam=spi=on"

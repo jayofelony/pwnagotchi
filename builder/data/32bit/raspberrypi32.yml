@@ -46,7 +46,7 @@
         - "arm_64bit=0"
         - "# dwc2 for RNDIS. comment out, and remove dwc2 and g_ether from cmdline.txt for X306 usb battery hat"
         - "dtoverlay=dwc2"
-        - "dtoverlay=spi1-3cs"
+        - "dtoverlay=spi0-0cs"
         - "dtparam=i2c1=on"
         - "dtparam=i2c_arm=on"
         - "dtparam=spi=on"
