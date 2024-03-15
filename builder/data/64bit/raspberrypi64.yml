@@ -14,11 +14,18 @@
     system:
       boot_options:
         - "dtoverlay=dwc2"
-        - "dtoverlay=spi0-0cs"
         - "dtparam=i2c1=on"
         - "dtparam=i2c_arm=on"
         - "dtparam=spi=on"
         - "gpu_mem=16"
+        - "[pi0]"
+        - "dtoverlay=spi0-0cs"
+        - "[pi3]"
+        - "dtoverlay=spi0-0cs"
+        - "[pi4]"
+        - "dtoverlay=spi0-0cs"
+        - "[pi5]"
+        - "dtoverlay=spi6-2cs"
       modules:
         - "i2c-dev"
     services:
@@ -203,6 +210,13 @@
       file:
         path: /etc/rc.local
         state: absent
+
+    - name: adjust /boot/config.txt
+      lineinfile:
+        dest: /boot/config.txt
+        insertafter: EOF
+        line: '{{ item }}'
+      with_items: "{{system.boot_options}}"
 
     - name: change root partition
       replace:
