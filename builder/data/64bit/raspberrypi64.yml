@@ -327,7 +327,7 @@
         ARCHFLAGS: "-arch aarch64"
 
     - name: make firmware patch (bcm43455c0), RPi5
-      shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
+      shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_234_4ca95bb_CY/nexmon/ && make"
       args:
         executable: /bin/bash
         chdir: /usr/local/src/nexmon/
@@ -378,7 +378,7 @@
         ARCHFLAGS: "-arch aarch64"
 
     - name: make firmware patch (bcm43455c0), RPi4
-      shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_206/nexmon/ && make"
+      shell: "source ./setup_env.sh && cd /usr/local/src/nexmon/patches/bcm43455c0/7_45_234_4ca95bb_CY/nexmon/ && make"
       args:
         executable: /bin/bash
         chdir: /usr/local/src/nexmon/
