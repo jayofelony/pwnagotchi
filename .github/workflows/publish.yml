@@ -23,7 +23,8 @@ jobs:
       - name: Get latest tag
         uses: pozetroninc/github-action-get-latest-release@v0.7.0
         id: get-latest-tag
-        token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set LAST_VERSION as an environment variable
         run: echo "LAST_VERSION=${{ steps.get-latest-tag.outputs.tag }}" >> $GITHUB_ENV
