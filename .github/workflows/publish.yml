@@ -21,7 +21,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Get latest tag
-        uses: pozetroninc/github-action-get-latest-release@v0.7.0
+        uses: pozetroninc/github-action-get-latest-release@master
         id: get-latest-tag
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
