@@ -21,8 +21,9 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Get latest tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
+        uses: pozetroninc/github-action-get-latest-release@v0.7.0
         id: get-latest-tag
+        token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set LAST_VERSION as an environment variable
         run: echo "LAST_VERSION=${{ steps.get-latest-tag.outputs.tag }}" >> $GITHUB_ENV
@@ -61,7 +62,7 @@ jobs:
         run: mv "pwnagotchi-64bit.img.xz" "pwnagotchi-$VERSION-64bit.img.xz"
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: true
           tag_name: v${{ env.VERSION }}
