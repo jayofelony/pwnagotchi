@@ -211,9 +211,9 @@
         path: /etc/rc.local
         state: absent
 
-    - name: adjust /boot/config.txt
+    - name: adjust /boot/firmware/config.txt
       blockinfile:
-        dest: /boot/config.txt
+        dest: /boot/firmware/config.txt
         insertafter: EOF
         block: |
           dtoverlay=dwc2
