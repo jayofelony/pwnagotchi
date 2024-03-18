@@ -151,7 +151,7 @@
           - libsqlite3-dev
           - libssl-dev
           - libswscale5
-          - libtiff6
+          - libtiff5
           - libtool
           - libts-bin
           - libusb-1.0-0-dev
