@@ -20,8 +20,8 @@ variable "pwn_version" {
 }
 
 source "arm" "rpi32-pwnagotchi" {
-  file_checksum_url             = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-12-11/2023-12-11-raspios-bookworm-arm64-lite.img.xz.sha256"
-  file_urls                     = ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-2023-12-11/2023-12-11-raspios-bookworm-arm64-lite.img.xz"]
+  file_checksum_url             = "https://downloads.raspberrypi.com/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2024-03-12/2024-03-12-raspios-bullseye-armhf-lite.img.xz.sha256"
+  file_urls                     = ["https://downloads.raspberrypi.com/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2024-03-12/2024-03-12-raspios-bullseye-armhf-lite.img.xz"]
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
