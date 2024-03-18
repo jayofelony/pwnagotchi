@@ -23,8 +23,6 @@ jobs:
       - name: Get latest tag
         uses: actions-ecosystem/action-get-latest-tag@v1
         id: get-latest-tag
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set LAST_VERSION as an environment variable
         run: echo "LAST_VERSION=${{ steps.get-latest-tag.outputs.tag }}" >> $GITHUB_ENV

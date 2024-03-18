@@ -39,26 +39,6 @@
       hostname: "{{ lookup('env', 'PWN_HOSTNAME') | default('pwnagotchi', true) }}"
       version: "{{ lookup('env', 'PWN_VERSION') | default('pwnagotchi-torch', true) }}"
       custom_plugin_dir: "/usr/local/share/pwnagotchi/custom-plugins"
-    system:
-      boot_options:
-        - "#### pwnagotchi additions"
-        - "# this pwnagotchi image is 32-bit only no v8+ headers to build nexmon for 64 bit"
-        - "arm_64bit=0"
-        - "# dwc2 for RNDIS. comment out, and remove dwc2 and g_ether from cmdline.txt for X306 usb battery hat"
-        - "dtoverlay=dwc2"
-        - "dtoverlay=spi0-0cs"
-        - "dtparam=i2c1=on"
-        - "dtparam=i2c_arm=on"
-        - "dtparam=spi=on"
-        - "gpu_mem=16"
-        - "#### audio out on pins 18 and 19"
-        - "#dtoverlay=audremap,pins_18_19"
-        - "#### touchscreen on waveshare touch e-paper"
-        - "#dtoverlay=goodix,interrupt=27,reset=22"
-        - "#### for PWM backlighting on pimoroni displayhatmini"
-        - "dtoverlay=pwm-2chan,pin=12,func=4,pin2=13,func2=4"
-      modules:
-        - "i2c-dev"
     services:
       enable:
         - bettercap.service
@@ -474,20 +454,6 @@
       file:
         path: /boot/ssh
         state: touch
-
-    - name: adjust /boot/config.txt
-      lineinfile:
-        dest: /boot/config.txt
-        insertafter: EOF
-        line: '{{ item }}'
-      with_items: "{{system.boot_options}}"
-
-    - name: adjust /etc/modules
-      lineinfile:
-        dest: /etc/modules
-        insertafter: EOF
-        line: '{{ item }}'
-      with_items: "{{system.modules}}"
 
     - name: change root partition
       replace:
