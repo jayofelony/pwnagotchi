@@ -112,8 +112,6 @@ main.mon_stop_cmd = "/usr/bin/monstop"
 main.mon_max_blind_epochs = 50
 main.no_restart = false
 
-main.filter = ""
-
 main.log.path = "/etc/pwnagotchi/log/pwnagotchi.log"
 main.log.rotation.enabled = true
 main.log.rotation.size = "10M"
