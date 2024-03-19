@@ -55,7 +55,6 @@ dtoverlay=dwc2
 [pi0]
 dtoverlay=spi0-0cs
 
-
 [pi3]
 dtoverlay=spi0-0cs
 
