@@ -51,13 +51,11 @@ image: clean packer
 
 bullseye: clean packer
 	export LC_ALL=en_GB.UTF-8
-	cd builder && sudo /usr/bin/packer init data/32bit/raspberrypi32.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" data/32bit/raspberrypi32.json.pkr.hcl
-	sudo pishrink -vaZ pwnagotchi-32bit.img
+	cd builder && sudo /usr/bin/packer init raspberrypi32.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" raspberrypi32.json.pkr.hcl
 
 bookworm: clean packer
 	export LC_ALL=en_GB.UTF-8
-	cd builder && sudo /usr/bin/packer init data/64bit/raspberrypi64.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" data/64bit/raspberrypi64.json.pkr.hcl
-	sudo pishrink -vaZ pwnagotchi-64bit.img
+	cd builder && sudo /usr/bin/packer init raspberrypi64.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" raspberrypi64.json.pkr.hcl
 
 clean:
 	- rm -rf /tmp/packer*
