@@ -100,7 +100,6 @@ class Client(object):
                 await asyncio.sleep(sleep_time)
                 continue
             except OSError:
-                sleep_time = min_sleep + max_sleep * random.random()
                 logging.warning('connection to the bettercap endpoint failed...')
                 pwnagotchi.restart("AUTO")
 

@@ -304,16 +304,16 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('waveshare1in64g', 'ws1in64g', 'ws164g', 'waveshare_164g', 'waveshare_1in64g'):
         config['ui']['display']['type'] = 'waveshare1in64g'
 
-    elif config['ui']['display']['type'] in ('ws_1', 'ws1', 'waveshare_1', 'waveshare1'):
+    elif config['ui']['display']['type'] in ('ws_1', 'ws1', 'waveshare_1', 'waveshare1', 'waveshare2in13'):
         config['ui']['display']['type'] = 'waveshare_1'
 
-    elif config['ui']['display']['type'] in ('ws_2', 'ws2', 'waveshare_2', 'waveshare2'):
+    elif config['ui']['display']['type'] in ('ws_2', 'ws2', 'waveshare_2', 'waveshare2', 'waveshare2in13v2'):
         config['ui']['display']['type'] = 'waveshare_2'
 
-    elif config['ui']['display']['type'] in ('ws_3', 'ws3', 'waveshare_3', 'waveshare3'):
+    elif config['ui']['display']['type'] in ('ws_3', 'ws3', 'waveshare_3', 'waveshare3', 'waveshare2in13v3'):
         config['ui']['display']['type'] = 'waveshare_3'
 
-    elif config['ui']['display']['type'] in ('ws_4', 'ws4', 'waveshare_4', 'waveshare4'):
+    elif config['ui']['display']['type'] in ('ws_4', 'ws4', 'waveshare_4', 'waveshare4', 'waveshare2in13v4'):
         config['ui']['display']['type'] = 'waveshare_4'
 
     elif config['ui']['display']['type'] in ('waveshare2in13b_v3', 'waveshare2in13b_v3', 'ws213bv3', 'waveshare_213bv3', 'waveshare213inb_v3'):

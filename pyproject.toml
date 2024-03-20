@@ -9,11 +9,13 @@ dependencies = [
     "Pillow",
     "PyYAML",
     "RPi.GPIO",
+    "dbus-python",
     "file-read-backwards",
     "flask",
     "flask-cors",
     "flask-wtf",
     "gast",
+    "gpiozero",
     "gym",
     "inky",
     "pycryptodome",
@@ -30,7 +32,7 @@ dependencies = [
     "torch",
     "torchvision",
     "tweepy",
-    "websockets"
+    "websockets",
 ]
 requires-python = ">=3.9"
 authors = [
