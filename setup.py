@@ -9,7 +9,6 @@ import re
 import shutil
 import warnings
 import platform
-import apt
 
 log = logging.getLogger(__name__)
 
@@ -32,18 +31,6 @@ def install_file(source_filename, dest_filename):
 
 
 def install_system_files():
-    f = open("apt_packages.txt", "r")
-    cache = apt.cache.Cache()
-    cache.update()
-    cache.open()
-
-    for x in f:
-        pkg = cache[x]
-        if pkg.is_installed:
-            continue
-        else:
-            pkg.mark_install()
-    f.close()
     setup_path = os.path.dirname(__file__)
     if platform.machine().startswith('arm'):
         data_path = os.path.join(setup_path, "builder/data/32bit")
