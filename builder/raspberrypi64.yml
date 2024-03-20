@@ -64,6 +64,7 @@
           - bc
           - bison
           - bluez
+          - bluez-tools
           - build-essential
           - curl
           - dkms
