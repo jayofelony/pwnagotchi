@@ -97,6 +97,7 @@
           - bc
           - bison
           - bluez
+          - bluez-tools
           - build-essential
           - curl
           - dkms
@@ -158,6 +159,7 @@
           - lsof
           - make
           - ntp
+          - python3-dbus
           - python3-flask
           - python3-flask-cors
           - python3-flaskext.wtf
