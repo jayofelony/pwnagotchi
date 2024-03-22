@@ -202,6 +202,9 @@ class Display(View):
     def is_inky(self):
         return self._implementation.name == 'inky'
 
+    def is_dummy_display(self):
+        return self._implementation.name == 'dummydisplay'
+
     def is_papirus(self):
         return self._implementation.name == 'papirus'
 

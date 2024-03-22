@@ -242,6 +242,9 @@ def load_config(args):
     if config['ui']['display']['type'] in ('inky', 'inkyphat'):
         config['ui']['display']['type'] = 'inky'
 
+    elif config['ui']['display']['type'] in ('dummy', 'dummydisplay'):
+        config['ui']['display']['type'] = 'dummydisplay'
+
     elif config['ui']['display']['type'] in ('papirus', 'papi'):
         config['ui']['display']['type'] = 'papirus'
 
