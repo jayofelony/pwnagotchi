@@ -254,7 +254,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         txt = '%d (%d)' % (len(self._handshakes), tot)
 
         if self._last_pwnd is not None:
-            txt += ' [%s]' % self._last_pwnd[:11]  # So it doesn't overlap with fix_brcmfmac_plugin
+            txt += ' [%s]' % self._last_pwnd
 
         self._view.set('shakes', txt)
 
