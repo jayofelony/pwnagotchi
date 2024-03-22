@@ -248,7 +248,7 @@ msgid "minutes"
 msgstr "minuten"
 
 msgid "seconds"
-msgstr "seconds"
+msgstr "sekondes"
 
 msgid "hour"
 msgstr "oere"
