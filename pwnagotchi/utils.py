@@ -456,8 +456,8 @@ def load_config(args):
         config['ui']['display']['type'] = 'weact2in9'
 
     else:
-        print("unsupported display type %s" % config['ui']['display']['type'])
-        sys.exit(1)
+        logging.debug("using dummy display, as your display type is unsupported")
+        config['ui']['display']['type'] = 'dummydisplay'
 
     return config
 
