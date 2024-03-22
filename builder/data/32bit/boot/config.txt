@@ -52,12 +52,16 @@ dtparam=i2c_arm=on
 dtparam=spi=on
 gpu_mem=1
 dtoverlay=dwc2
+#dtoverlay=disable-wifi
 
 [pi0]
 dtoverlay=spi1-3cs
+#dtoverlay=disable-wifi
 
 [pi3]
 dtoverlay=spi1-3cs
+#dtoverlay=disable-wifi
 
 [pi4]
 dtoverlay=spi1-3cs
+#dtoverlay=disable-wifi
