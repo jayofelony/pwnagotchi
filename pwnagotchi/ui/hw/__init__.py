@@ -25,6 +25,7 @@ from pwnagotchi.ui.hw.displayhatmini import DisplayHatMini
 from pwnagotchi.ui.hw.pirateaudio import PirateAudio
 from pwnagotchi.ui.hw.pitft import Pitft
 from pwnagotchi.ui.hw.tftbonnet import TftBonnet
+from pwnagotchi.ui.hw.adafruit2in13 import Adafruit2in13V3
 from pwnagotchi.ui.hw.waveshareoledlcd import Waveshareoledlcd
 from pwnagotchi.ui.hw.waveshare1in02 import Waveshare1in02
 from pwnagotchi.ui.hw.waveshare1in54 import Waveshare154
@@ -180,6 +181,9 @@ def display_for(config):
 
     elif config['ui']['display']['type'] == 'waveshare_4':
         return WaveshareV4(config)
+
+    elif config['ui']['display']['type'] == 'adafruit2in13':
+        return Adafruit2in13(config)
 
     elif config['ui']['display']['type'] == 'waveshare2in13bc':
         return Waveshare213bc(config)

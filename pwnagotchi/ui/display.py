@@ -235,6 +235,9 @@ class Display(View):
     def is_waveshare35lcd(self):
         return self._implementation.name == 'waveshare35lcd'
 
+    def is_adfruit213v3(self):
+        return self._implementation.name == 'adafruit2in13_v3'
+
     def is_waveshare_any(self):
         return self.is_waveshare_v1() or self.is_waveshare_v2()
 

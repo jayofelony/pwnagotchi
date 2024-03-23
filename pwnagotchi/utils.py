@@ -286,6 +286,13 @@ def load_config(args):
 
     # E-INK DISPLAYS ------------------------------------------------------------------------
 
+    # Adafruit
+
+    elif config['ui']['display']['type'] in ('adafruit2in13v3', 'af213v3', 'adafruit_213v3', 'adafruit213inv3'):
+        config['ui']['display']['type'] = 'adafruit2in13_v3'
+
+    # Waveshare
+
     elif config['ui']['display']['type'] in ('waveshare1in02', 'ws1in02', 'ws102', 'waveshare_102', 'waveshare_1in02'):
         config['ui']['display']['type'] = 'waveshare1in02'
 
