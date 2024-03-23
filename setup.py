@@ -16,7 +16,10 @@ log = logging.getLogger(__name__)
 def install_file(source_filename, dest_filename):
     # do not overwrite network configuration if it exists already
     # https://github.com/evilsocket/pwnagotchi/issues/483
-    if dest_filename.startswith('/etc/network/interfaces.d/') and dest_filename.startswith('/root/') and os.path.exists(dest_filename):
+    if dest_filename.startswith('/etc/network/interfaces.d/') and os.path.exists(dest_filename):
+        log.info(f"{dest_filename} exists, skipping ...")
+        return
+    elif dest_filename.startswith('/root/') and os.path.exists(dest_filename):
         log.info(f"{dest_filename} exists, skipping ...")
         return
 
