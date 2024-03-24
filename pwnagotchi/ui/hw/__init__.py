@@ -182,8 +182,8 @@ def display_for(config):
     elif config['ui']['display']['type'] == 'waveshare_4':
         return WaveshareV4(config)
 
-    elif config['ui']['display']['type'] == 'adafruit2in13':
-        return Adafruit2in13(config)
+    elif config['ui']['display']['type'] == 'adafruit2in13_v3':
+        return Adafruit2in13V3(config)
 
     elif config['ui']['display']['type'] == 'waveshare2in13bc':
         return Waveshare213bc(config)
