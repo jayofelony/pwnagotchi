@@ -40,7 +40,7 @@ class Waveshare29bV4(DisplayImpl):
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
-        self._display.display(buf, None)
+        self._display.display_Partial(buf, 0, 0, 128, 296)
 
     def clear(self):
         self._display.Clear()

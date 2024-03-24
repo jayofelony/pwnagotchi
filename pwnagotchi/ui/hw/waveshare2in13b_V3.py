@@ -38,7 +38,7 @@ class Waveshare2in13bV3(DisplayImpl):
         self._display.init()
         self._display.Clear()
 
-    def render(self, canvasBlack = None, canvasRed = None):
+    def render(self, canvasBlack=None, canvasRed=None):
         buffer = self._display.getbuffer
         image = Image.new('1', (self._layout['height'], self._layout['width']))
         imageBlack = image if canvasBlack is None else canvasBlack
