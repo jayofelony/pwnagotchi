@@ -264,8 +264,7 @@ def pwnagotchi_cli():
         sys.exit(0)
 
     if args.donate:
-        print("Donations can made @ \n "
-              "https://www.patreon.com/pwnagotchi_torch \n "
+        print("Donations can be made @ \n "
               "https://github.com/sponsors/jayofelony \n\n"
               "But only if you really want to!")
         sys.exit(0)
@@ -278,8 +277,7 @@ def pwnagotchi_cli():
         local = version_to_tuple(pwnagotchi.__version__)
         remote = version_to_tuple(latest_ver)
         if remote > local:
-            user_input = input("There is a new version available! Update from v%s to v%s?\n[Y/N] "
-                               % (pwnagotchi.__version__, latest_ver))
+            user_input = input("There is a new version available! Update from v%s to v%s?\n[Y/N] " % (pwnagotchi.__version__, latest_ver))
             # input validation
             if user_input.lower() in ('y', 'yes'):
                 if os.path.exists('/root/.auto-update'):
@@ -333,6 +331,7 @@ def pwnagotchi_cli():
         do_manual_mode(agent)
     else:
         do_auto_mode(agent)
+
 
 if __name__ == '__main__':
     pwnagotchi_cli()
