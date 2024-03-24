@@ -20,7 +20,6 @@ import logging
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
 
-import os,time
 
 class Pitft(DisplayImpl):
     def __init__(self, config):
@@ -53,7 +52,7 @@ class Pitft(DisplayImpl):
     def initialize(self):
         logging.info("Initializing adafruit pitft 320x240 screen")
         from pwnagotchi.ui.hw.libs.adafruit.pitft.ILI9341 import ILI9341
-        self._display = ILI9341(0,0,25,18)
+        self._display = ILI9341(0, 0, 25, 18)
 
     def render(self, canvas):
         self._display.display(canvas)

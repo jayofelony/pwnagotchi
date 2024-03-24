@@ -93,6 +93,7 @@ ILI9341_GMCTRN1 = 0xE1
 
 ILI9341_PWCTR6 = 0xFC
 
+
 class ILI9341(object):
     """Representation of an ILI9341 TFT LCD."""
 
@@ -348,7 +349,6 @@ class ILI9341(object):
 
         # Rotate the image
         pb = np.rot90(image, rotation // 90).astype('uint16')
-
 
         # Mask and shift the 888 RGB into 565 RGB
         red   = (pb[..., [0]] & 0xf8) << 8
