@@ -32,7 +32,7 @@ class WaveshareV1(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing waveshare v2in13_V1 display in monochromatic mode")
-        from pwnagotchi.ui.hw.libs.waveshare.v2in13_V1.epd2in13 import EPD
+        from pwnagotchi.ui.hw.libs.waveshare.epaper.v2in13_V1.epd2in13 import EPD
         self._display = EPD()
         self._display.init(self._display.lut_full_update)
         self._display.Clear(0xFF)

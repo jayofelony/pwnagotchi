@@ -33,19 +33,19 @@ class Waveshare7in5V2(DisplayImpl):
     def initialize(self):
         if self.config['color'] == 'fast':
             logging.info("initializing waveshare 7.5 V2 inch lcd display")
-            from pwnagotchi.ui.hw.libs.waveshare.v7in5_v2.epd7in5_V2_fast import EPD
+            from pwnagotchi.ui.hw.libs.waveshare.epaper.v7in5_v2.epd7in5_V2_fast import EPD
             self._display = EPD()
             self._display.init()
             self._display.Clear()
         elif self.config['color'] == 'old':
             logging.info("initializing waveshare 7.5 V2 inch lcd display")
-            from pwnagotchi.ui.hw.libs.waveshare.v7in5_v2.epd7in5_V2_old import EPD
+            from pwnagotchi.ui.hw.libs.waveshare.epaper.v7in5_v2.epd7in5_V2_old import EPD
             self._display = EPD()
             self._display.init()
             self._display.Clear()
         else:
             logging.info("initializing waveshare 7.5 V2 inch lcd display")
-            from pwnagotchi.ui.hw.libs.waveshare.v7in5_v2.epd7in5_V2 import EPD
+            from pwnagotchi.ui.hw.libs.waveshare.epaper.v7in5_v2.epd7in5_V2 import EPD
             self._display = EPD()
             self._display.init()
             self._display.Clear()

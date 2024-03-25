@@ -32,7 +32,7 @@ class Waveshare7in5bHD(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing waveshare 7.5b HD inch lcd display")
-        from pwnagotchi.ui.hw.libs.waveshare.v7in5b_HD.epd7in5b_HD import EPD
+        from pwnagotchi.ui.hw.libs.waveshare.epaper.v7in5b_HD.epd7in5b_HD import EPD
         self._display = EPD()
         self._display.init()
         self._display.Clear()

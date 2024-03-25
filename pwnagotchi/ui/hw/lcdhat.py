@@ -33,7 +33,7 @@ class LcdHat(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing lcdhat display")
-        from pwnagotchi.ui.hw.libs.waveshare.lcdhat.epd import EPD
+        from pwnagotchi.ui.hw.libs.waveshare.lcd.lcdhat.epd import EPD
         self._display = EPD()
         self._display.init()
         self._display.clear()

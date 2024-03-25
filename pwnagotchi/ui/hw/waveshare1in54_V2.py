@@ -32,7 +32,7 @@ class Waveshare154V2(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing waveshare1in54_v2 display")
-        from pwnagotchi.ui.hw.libs.waveshare.v1in54_v2.epd1in54_V2 import EPD
+        from pwnagotchi.ui.hw.libs.waveshare.epaper.v1in54_v2.epd1in54_V2 import EPD
         try:
             # Double initialization is a workaround for the display not working after a reboot, or mirrored/flipped screen
             self._display = EPD()

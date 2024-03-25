@@ -32,7 +32,7 @@ class OledHat(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing oledhat display")
-        from pwnagotchi.ui.hw.libs.waveshare.oledhat.epd import EPD
+        from pwnagotchi.ui.hw.libs.waveshare.oled.oledhat.epd import EPD
         self._display = EPD()
         self._display.init()
         self._display.Clear()

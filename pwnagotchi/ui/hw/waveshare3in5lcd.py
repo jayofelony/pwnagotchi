@@ -1,9 +1,8 @@
 import logging
+import time
 
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
-
-import os, time
 
 
 class Waveshare35lcd(DisplayImpl):

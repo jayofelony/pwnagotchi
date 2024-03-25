@@ -49,7 +49,7 @@ class Waveshareoledlcd(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing Waveshare OLED/LCD hat")
-        from pwnagotchi.ui.hw.libs.waveshare.oledlcd.ST7789 import ST7789
+        from pwnagotchi.ui.hw.libs.waveshare.oled.oledlcd.ST7789 import ST7789
         self._display = ST7789(0,0,22,18)
 
     def render(self, canvas):

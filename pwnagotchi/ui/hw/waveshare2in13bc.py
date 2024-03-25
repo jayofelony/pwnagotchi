@@ -32,7 +32,7 @@ class Waveshare213bc(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing waveshare 213bc display")
-        from pwnagotchi.ui.hw.libs.waveshare.v2in13bc.epd2in13bc import EPD
+        from pwnagotchi.ui.hw.libs.waveshare.epaper.v2in13bc.epd2in13bc import EPD
         self._display = EPD()
         self._display.init()
         self._display.Clear()
