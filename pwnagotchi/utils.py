@@ -243,6 +243,39 @@ def load_config(args):
         config['ui']['display']['type'] = 'dummydisplay'
 
     # NON E-INK DISPLAYS---------------------------------------------------------------
+    elif config['ui']['display']['type'] in ('wavesharelcd0in96', 'wslcd0in96'):
+        config['ui']['display']['type'] = 'wavesharelcd0in96'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in3', 'wslcd1in3'):
+        config['ui']['display']['type'] = 'wavesharelcd1in3'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in8', 'wslcd1in8'):
+        config['ui']['display']['type'] = 'wavesharelcd1in8'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in9', 'wslcd1in9'):
+        config['ui']['display']['type'] = 'wavesharelcd1in9'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in14', 'wslcd1in14'):
+        config['ui']['display']['type'] = 'wavesharelcd1in14'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in28', 'wslcd1in28'):
+        config['ui']['display']['type'] = 'wavesharelcd1in28'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in47', 'wslcd1in47'):
+        config['ui']['display']['type'] = 'wavesharelcd1in47'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in54', 'wslcd1in54'):
+        config['ui']['display']['type'] = 'wavesharelcd1in54'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd1in69', 'wslcd1in69'):
+        config['ui']['display']['type'] = 'wavesharelcd1in69'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd2in0', 'wslcd2in0'):
+        config['ui']['display']['type'] = 'wavesharelcd2in0'
+
+    elif config['ui']['display']['type'] in ('wavesharelcd2in4', 'wslcd2in4'):
+        config['ui']['display']['type'] = 'wavesharelcd2in4'
+
     elif config['ui']['display']['type'] in ('inky', 'inkyphat'):
         config['ui']['display']['type'] = 'inky'
 

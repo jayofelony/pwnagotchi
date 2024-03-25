@@ -28,6 +28,39 @@ class Display(View):
     def is_lcdhat(self):
         return self._implementation.name == 'lcdhat'
 
+    def is_wavesharelcd0in96(self):
+        return self._implementation.name == 'wavesharelcd0in96'
+
+    def is_wavesharelcd1in3(self):
+        return self._implementation.name == 'wavesharelcd1in3'
+
+    def is_wavesharelcd1in8(self):
+        return self._implementation.name == 'wavesharelcd1in8'
+
+    def is_wavesharelcd1in9(self):
+        return self._implementation.name == 'wavesharelcd1in9'
+
+    def is_wavesharelcd1in14(self):
+        return self._implementation.name == 'wavesharelcd1in14'
+
+    def is_wavesharelcd1in28(self):
+        return self._implementation.name == 'wavesharelcd1in28'
+
+    def is_wavesharelcd1in47(self):
+        return self._implementation.name == 'wavesharelcd1in47'
+
+    def is_wavesharelcd1in54(self):
+        return self._implementation.name == 'wavesharelcd1in54'
+
+    def is_wavesharelcd1in69(self):
+        return self._implementation.name == 'wavesharelcd1in69'
+
+    def is_wavesharelcd2in0(self):
+        return self._implementation.name == 'wavesharelcd2in0'
+
+    def is_wavesharelcd2in4(self):
+        return self._implementation.name == 'wavesharelcd2in4'
+
     def is_waveshare144lcd(self):
         return self._implementation.name == 'waveshare144lcd'
 

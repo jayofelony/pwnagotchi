@@ -70,12 +70,56 @@ from pwnagotchi.ui.hw.waveshare7in5b_HD import Waveshare7in5bHD
 from pwnagotchi.ui.hw.waveshare7in5b_V2 import Waveshare7in5bV2
 from pwnagotchi.ui.hw.waveshare7in5bc import Waveshare7in5bc
 from pwnagotchi.ui.hw.waveshare13in3k import Waveshare13in3k
+from pwnagotchi.ui.hw.wavesharelcd0in96 import Wavesharelcd0in96
+from pwnagotchi.ui.hw.wavesharelcd1in3 import Wavesharelcd1in3
+from pwnagotchi.ui.hw.wavesharelcd1in8 import Wavesharelcd1in8
+from pwnagotchi.ui.hw.wavesharelcd1in9 import Wavesharelcd1in9
+from pwnagotchi.ui.hw.wavesharelcd1in14 import Wavesharelcd1in14
+from pwnagotchi.ui.hw.wavesharelcd1in28 import Wavesharelcd1in28
+from pwnagotchi.ui.hw.wavesharelcd1in47 import Wavesharelcd1in47
+from pwnagotchi.ui.hw.wavesharelcd1in54 import Wavesharelcd1in54
+from pwnagotchi.ui.hw.wavesharelcd1in69 import Wavesharelcd1in69
+from pwnagotchi.ui.hw.wavesharelcd2in0 import Wavesharelcd2in0
+from pwnagotchi.ui.hw.wavesharelcd2in4 import Wavesharelcd2in4
 
 
 def display_for(config):
     # config has been normalized already in utils.load_config
     if config['ui']['display']['type'] == 'inky':
         return Inky(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd0in96':
+        return Wavesharelcd0in96(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in3':
+        return Wavesharelcd1in3(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in8':
+        return Wavesharelcd1in8(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in9':
+        return Wavesharelcd1in9(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in14':
+        return Wavesharelcd1in14(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in28':
+        return Wavesharelcd1in28(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in47':
+        return Wavesharelcd1in47(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in54':
+        return Wavesharelcd1in54(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd1in69':
+        return Wavesharelcd1in69(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd2in0':
+        return Wavesharelcd2in0(config)
+
+    elif config['ui']['display']['type'] == 'wavesharelcd2in4':
+        return Wavesharelcd2in4(config)
 
     elif config['ui']['display']['type'] == 'dummydisplay':
         return DummyDisplay(config)
