@@ -34,11 +34,12 @@ def install_file(source_filename, dest_filename):
 
 
 def install_system_files():
-    f = open("apt_packages.txt", "r")
-
-    for x in f:
-        os.system(f"apt-get install -y {x}")
-    f.close()
+    data_path = None
+    if os.stat("apt_packages.txt").st_size != 0:
+        f = open("apt_packages.txt", "r")
+        for x in f:
+            os.system(f"apt-get install -y {x}")
+        f.close()
     setup_path = os.path.dirname(__file__)
     if platform.machine().startswith('arm'):
         data_path = os.path.join(setup_path, "builder/data/32bit")
@@ -63,9 +64,7 @@ class CustomInstall(install):
     def run(self):
         super().run()
         if os.geteuid() != 0:
-            warnings.warn(
-                "Not running as root, can't install pwnagotchi system files!"
-            )
+            warnings.warn("Not running as root, can't install pwnagotchi system files!")
             return
         install_system_files()
         restart_services()
