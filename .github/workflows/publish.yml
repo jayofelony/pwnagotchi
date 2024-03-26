@@ -20,21 +20,6 @@ jobs:
           VERSION=$(cut -d "'" -f2 < pwnagotchi/_version.py)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Get latest tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
-        id: get-latest-tag
-
-      - name: Set LAST_VERSION as an environment variable
-        run: echo "LAST_VERSION=${{ steps.get-latest-tag.outputs.tag }}" >> $GITHUB_ENV
-
-      - name: Generate release notes
-        id: generate_release_notes
-        run: |
-          COMMITS=$(git log --merges --pretty=format:"* %s" $LAST_VERSION--$VERSION | sed 's/$/\\n/g')
-          CONTRIBUTORS=$(git shortlog -sn $LAST_VERSION--$VERSION | awk '{print "* @" $2}' | sed 's/$/\\n/g')
-          RELEASE_BODY="**Full Changelog**: https://github.com/jayofelony/pwnagotchi/compare/$LAST_VERSION...$VERSION"
-          echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
-
       - name: Install qemu dependencies
         run: sudo apt update && sudo apt install qemu-user-static qemu-utils xz-utils -y
 
@@ -64,9 +49,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           prerelease: false
+          make_latest: true
           tag_name: v${{ env.VERSION }}
           name: Pwnagotchi v${{ env.VERSION }}
           files: |
               pwnagotchi-${{ env.VERSION }}-32bit.img.xz
               pwnagotchi-${{ env.VERSION }}-64bit.img.xz
-          body: ${{ env.RELEASE_BODY }}
+          generate_release_notes: true
