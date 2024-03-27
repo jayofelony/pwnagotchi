@@ -374,21 +374,36 @@
       when: golang.changed
 
     - name: download pwngrid
-      unarchive:
-        remote_src: yes
-        src: "{{ packages.opwngrid.url }}"
-        dest: /usr/local/bin/
-        mode: 0755
+      git:
+        repo: "{{ packages.pwngrid.source }}"
+        dest: /usr/local/src/pwngrid
 
-    - name: download and install bettercap
-      unarchive:
-        src: "{{ packages.bettercap.url }}"
-        dest: /usr/local/bin
-        remote_src: yes
-        exclude:
-          - README.md
-          - LICENSE.md
-        mode: 0755
+    - name: install pwngrid
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/pwngrid
+
+    - name: remove pwngrid folder
+      file:
+        state: absent
+        path: /usr/local/src/pwngrid
+
+    - name: download bettercap
+      git:
+        repo: "{{ packages.bettercap.source }}"
+        dest: /usr/local/src/bettercap
+
+    - name: install bettercap 2.32.4
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/bettercap
+
+    - name: remove bettercap folder
+      file:
+        state: absent
+        path: /usr/local/src/bettercap
 
     - name: clone bettercap caplets
       git:
