@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+source /usr/bin/pwnlib
+LOG="-log /home/pi/logs/pwngrid-peer.log"
+
+# check to see if pwnagotchi is advertising and disable if not
+# some wifi drivers to not support advertising. Disable in /etc/pwnagotchi/config.toml
+
+if egrep "personality.advertise.*=.*false" /etc/pwnagotchi/config.toml ; then
+   ADVERTISE="-advertise=false"
+   echo OK
+fi
+
+/usr/local/bin/pwngrid -keys /etc/pwnagotchi -address 127.0.0.1:8666 -client-token /root/.api-enrollment.json -wait ${LOG} -iface ${PWNY_MON_IFACE} ${ADVERTISE} -hostname="pwny-hydra-1"

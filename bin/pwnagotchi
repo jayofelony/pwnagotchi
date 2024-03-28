@@ -309,7 +309,16 @@ def pwnagotchi_cli():
     log.setup_logging(args, config)
     fonts.init(config)
 
-    pwnagotchi.set_name(config['main']['name'])
+    # pwny-hydra runs multiple pwnagotchi processes on the same host, so need to be able to
+    # separate hostname from pwnagotchi name.
+    # "main.set_hostname" is a BOOLEAN value to be set in the config file. If it is true,
+    # and the pwny name does not match the hostname, the hostname will be changed and it will
+    # reboot.  If false, the hostname will be ignored in that pwnaogtchi.
+    # (default: True)
+    if 'set_hostname' in config['main']:
+        pwnagotchi.set_name(config['main']['name'], set_hostname=config['main']['set_hostname'])
+    else:
+        pwnagotchi.set_name(config['main']['name'])
 
     plugins.load(config)
 
@@ -319,7 +328,14 @@ def pwnagotchi_cli():
         do_clear(display)
         sys.exit(0)
 
-    agent = Agent(view=display, config=config, keypair=KeyPair(view=display))
+    # pwny-hydra needs different rsa keys for each head
+    # "main.key_path" is a STRING value that specifies the directory where the pwnagotchi
+    # fingerprint, id_rsa and id_rsa.pub are found
+    # (default: /etc/pwnagotchi/)
+    if "key_path" in config['main']:
+        agent = Agent(view=display, config=config, keypair=KeyPair(view=display, path=config['main']['key_path']))
+    else:
+        agent = Agent(view=display, config=config, keypair=KeyPair(view=display))
 
     def usr1_handler(*unused):
         logging.info('Received USR1 singal. Restart process ...')

@@ -5,9 +5,20 @@ import logging
 
 import pwnagotchi
 
-# pwngrid-peer is running on port 8666
+# pwngrid-peer is running on port 8666 by default
 API_ADDRESS = "http://127.0.0.1:8666/api/v1"
+# default location of pwnagotchi ai stats file
+BRAIN_JSON = "/root/brain.json"
 
+# override default API_ADDRESS
+def set_api_address(address):
+    global API_ADDRESS
+    API_ADDRESS = address
+
+# override default brain stats location
+def set_brain_file(filename):
+    global BRAIN_JSON
+    BRAIN_JSON = filename
 
 def is_connected():
     try:
@@ -22,6 +33,7 @@ def is_connected():
 
 
 def call(path, obj=None):
+    global API_ADDRESS
     url = '%s%s' % (API_ADDRESS, path)
     if obj is None:
         r = requests.get(url, headers=None, timeout=(30.0, 60.0))
@@ -61,9 +73,10 @@ def closest_peer():
 
 
 def update_data(last_session):
+    global BRAIN_JSON
     brain = {}
     try:
-        with open('/root/brain.json') as fp:
+        with open(BRAIN_JSON) as fp:
             brain = json.load(fp)
     except:
         pass

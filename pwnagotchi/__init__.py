@@ -10,7 +10,7 @@ config = None
 _cpu_stats = {}
 
 
-def set_name(new_name):
+def set_name(new_name, set_hostname=True):
     if new_name is None:
         return
 
@@ -26,22 +26,25 @@ def set_name(new_name):
     if new_name != current:
         global _name
 
-        logging.info("setting unit hostname '%s' -> '%s'", current, new_name)
-        with open('/etc/hostname', 'wt') as fp:
-            fp.write(new_name)
+        _name = new_name
 
-        with open('/etc/hosts', 'rt') as fp:
-            prev = fp.read()
-            logging.debug("old hosts:\n%s\n", prev)
+        # pwny-hydra -  optionally set host name to match pwnagotchi name
+        if set_hostname:
+            logging.info("setting unit hostname '%s' -> '%s'", current, new_name)
+            with open('/etc/hostname', 'wt') as fp:
+                fp.write(new_name)
 
-        with open('/etc/hosts', 'wt') as fp:
-            patched = prev.replace(current, new_name, -1)
-            logging.debug("new hosts:\n%s\n", patched)
-            fp.write(patched)
+            with open('/etc/hosts', 'rt') as fp:
+                prev = fp.read()
+                logging.debug("old hosts:\n%s\n", prev)
 
-        os.system("hostname '%s'" % new_name)
-        reboot()
+            with open('/etc/hosts', 'wt') as fp:
+                patched = prev.replace(current, new_name, -1)
+                logging.debug("new hosts:\n%s\n", patched)
+                fp.write(patched)
 
+            os.system("hostname '%s'" % new_name)
+            reboot()
 
 def name():
     global _name

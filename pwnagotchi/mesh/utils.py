@@ -1,3 +1,4 @@
+import os
 import _thread
 import logging
 import time
@@ -40,6 +41,15 @@ class AsyncAdvertiser(object):
         grid.set_advertisement_data(self._advertisement)
 
     def start_advertising(self):
+        # pwny-hydra - look for grid.api_address from config.toml
+        if 'grid' in self._config and 'api_address' in self._config['grid']:
+            grid.set_api_address(self._config['grid']['api_address'])
+
+        # pwny-hydra - look for alternate brain.json location from config.toml
+        if 'ai' in self._config and 'path' in self._config['ai']:
+            nn_path = self._config['ai']['path']
+            grid.set_brain_file("%s.json" % os.path.splitext(nn_path)[0])
+
         if self._config['personality']['advertise']:
             _thread.start_new_thread(self._adv_poller, ())
 

@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 
+# If you want to use an external wifi device, edit these to be the interface
+# names of the device when in Managed mode and then in Monitor mode.
+# IMPORTANT: if you change the monitor interface, you must also
+# set it in /etc/pwnagotchi/config.toml under "main.iface" or pwnagotchi
+# will tell bettercap to use the wrong interface
+
+export PWNY_WIFI_IFACE='wlan0'
+
+export PWNY_MON_IFACE='wlan0mon'
+
+# look for monitor interface set in config files
+for conf in /usr/local/lib/python3.11/dist-packages/pwnagotchi/default.toml \
+		/etc/pwnagotchi/default.toml \
+		/etc/pwnagotchi/config.toml; do
+    if grep -q main.iface $conf; then
+	mondev=$(grep main.iface $conf | cut -d \" -f2)
+	export PWNY_MON_IFACE=$mondev
+    fi
+done
+
 # check if brcm is stuck
 check_brcm() {
   if [[ "$(journalctl -n10 -k --since -5m | grep -c 'brcmf_cfg80211_nexmon_set_channel.*Set Channel failed')" -ge 5 ]]; then
@@ -18,27 +38,27 @@ reload_brcm() {
     return 1
   fi
   sleep 2
-  iw dev wlan0 set power_save off
+  iw dev ${PWNY_WIFI_IFACE} set power_save off
   return 0
 }
 
 # starts mon0
 start_monitor_interface() {
   rfkill unblock all
-  ifconfig wlan0 up
-  iw dev wlan0 set power_save off
-  iw phy "$(iw phy | head -1 | cut -d" " -f2)" interface add wlan0mon type monitor
+  ifconfig ${PWNY_WIFI_IFACE} up
+  iw dev ${PWNY_WIFI_IFACE} set power_save off
+  iw phy "$(iw phy | head -1 | cut -d" " -f2)" interface add ${PWNY_MON_IFACE} type monitor
   rfkill unblock all
-  ifconfig wlan0 down
-  ifconfig wlan0mon up
-  iw dev wlan0mon set power_save off
+  ifconfig ${PWNY_WIFI_IFACE} down
+  ifconfig ${PWNY_MON_IFACE} up
+  iw dev ${PWNY_MON_IFACE} set power_save off
 }
 
 # stops mon0
 stop_monitor_interface() {
-  ifconfig wlan0mon down && iw dev wlan0mon del
+  ifconfig ${PWNY_MON_IFACE} down && iw dev ${PWNY_MON_IFACE} del
   reload_brcm
-  ifconfig wlan0 up
+  ifconfig ${PWNY_WIFI_IFACE} up
 }
 
 # returns 0 if the specificed network interface is up
@@ -136,8 +156,8 @@ is_decrypted() {
         fi
       fi
 
-      if ! ip -4 addr show wlan0 | grep inet >/dev/null 2>&1; then
-        >/dev/null 2>&1 ip addr add 192.168.0.10/24 dev wlan0
+      if ! ip -4 addr show ${PWNY_WIFI_IFACE} | grep inet >/dev/null 2>&1; then
+        >/dev/null 2>&1 ip addr add 192.168.0.10/24 dev ${PWNY_WIFI_IFACE}
       fi
 
       if ! pgrep -f decryption-webserver >/dev/null 2>&1; then
@@ -158,11 +178,11 @@ network={
     frequency=2437
 }
 EOF
-        >/dev/null 2>&1 wpa_supplicant -u -s -O -D nl80211 -i wlan0 -c /tmp/wpa_supplicant.conf &
+        >/dev/null 2>&1 wpa_supplicant -u -s -O -D nl80211 -i ${PWNY_WIFI_IFACE} -c /tmp/wpa_supplicant.conf &
       fi
 
       if ! pgrep dnsmasq >/dev/null 2>&1; then
-        >/dev/null 2>&1 dnsmasq -k -p 53 -h -O "6,192.168.0.10" -A "/#/192.168.0.10" -i wlan0 -K -F 192.168.0.50,192.168.0.60,255.255.255.0,24h &
+        >/dev/null 2>&1 dnsmasq -k -p 53 -h -O "6,192.168.0.10" -A "/#/192.168.0.10" -i ${PWNY_WIFI_IFACE} -K -F 192.168.0.50,192.168.0.60,255.255.255.0,24h &
       fi
 
       return 1
