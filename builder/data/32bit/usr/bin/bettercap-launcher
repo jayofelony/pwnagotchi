@@ -22,7 +22,7 @@ fi
 start_monitor_interface
 
 if is_auto_mode_no_delete; then
-  /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-auto -iface wlan0mon
+  /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-auto -iface ${PWNY_MON_IFACE}
 else
-  /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-manual -iface wlan0mon
+  /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-manual -iface ${PWNY_MON_IFACE}
 fi
