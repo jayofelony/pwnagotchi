@@ -264,6 +264,12 @@ class Display(View):
         
     def is_waveshareoledlcd(self):
         return self._implementation.name == 'waveshareoledlcd'
+        
+    def is_waveshareoledlcdvert(self):
+        return self._implementation.name == 'waveshareoledlcdvert'
+        
+    def is_i2coled(self):
+        return self._implementation.name == 'i2coled'
 
     def is_waveshare35lcd(self):
         return self._implementation.name == 'waveshare35lcd'
