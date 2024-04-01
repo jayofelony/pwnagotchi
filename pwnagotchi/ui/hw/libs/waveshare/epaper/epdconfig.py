@@ -31,7 +31,6 @@ import os
 import logging
 import sys
 import time
-import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +112,7 @@ class RaspberryPi:
 
         self.GPIO_RST_PIN.off()
         self.GPIO_DC_PIN.off()
+        self.GPIO_CS_PIN.off()
         self.GPIO_PWR_PIN.off()
         logger.debug("close 5V, Module enters 0 power consumption ...")
 
