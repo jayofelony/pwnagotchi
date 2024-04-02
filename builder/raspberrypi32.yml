@@ -62,7 +62,7 @@
         source: "https://github.com/jayofelony/bettercap.git"
         url: "https://github.com/jayofelony/bettercap/releases/download/2.32.2/bettercap-2.32.2-armhf.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
-      opwngrid:
+      pwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
         url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.7/pwngrid-1.10.7-armhf.zip"
       torch:
