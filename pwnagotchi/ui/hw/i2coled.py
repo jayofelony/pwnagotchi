@@ -1,18 +1,9 @@
-# workinprogress based on the displayhatmini driver
-# LCD support OK
-# OLED support ongoing
-# board GPIO:
-# Key1: GPIO4 / pin7
-# Key2: GPIO17 / pin11
-# Key3: GPIO23 / pin16
-# Key4: GPIO24 / pin18
-# OLED SDA: GPIO2 / pin3 
-# OLED SCL: GPIO3 / pin5
-# OLED info: 
-# driver: SSD1315 (I2C)
-# resolution: 128x64
-# I2C address: 0x3C 0x3D
-# HW datasheet: https://www.waveshare.com/wiki/OLED/LCD_HAT_(A)
+# Created for the Pwnagotchi project by RasTacsko
+# HW libraries are based on the adafruit python SSD1306 repo:
+# https://github.com/adafruit/Adafruit_Python_SSD1306
+# SMBus parts coming from BLavery's lib_oled96 repo:
+# https://github.com/BLavery/lib_oled96
+
 import logging
 
 import pwnagotchi.ui.fonts as fonts
@@ -45,8 +36,9 @@ class I2COled(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing I2C Oled Display on address 0x3C")
-        from pwnagotchi.ui.hw.libs.waveshare.oled.oledlcd.epd import EPD
+        logging.info("initializing 128x64 I2C Oled Display on address 0x3C")
+        logging.info("To change resolution or address check pwnagotchi/ui/hw/libs/i2coled/epd.py")
+        from pwnagotchi.ui.hw.libs.i2coled.epd import EPD
         self._display = EPD()
         self._display.Init()
         self._display.Clear()
