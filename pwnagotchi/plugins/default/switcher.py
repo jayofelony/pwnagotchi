@@ -18,11 +18,13 @@ def systemd_dropin(name, content):
 
     systemctl("daemon-reload")
 
+
 def systemctl(command, unit=None):
     if unit:
         os.system("/bin/systemctl %s %s" % (command, unit))
     else:
         os.system("/bin/systemctl %s" % command)
+
 
 def run_task(name, options):
     task_service_name = "switcher-%s-task.service" % name
@@ -57,7 +59,7 @@ def run_task(name, options):
         """ % (name, task_service_name, name))
 
     if 'reboot' in options and options['reboot']:
-        # create a indication file!
+        # create an indication file!
         # if this file is set, we want the switcher-tasks to run
         open('/root/.switcher', 'a').close()
 
@@ -97,6 +99,7 @@ def run_task(name, options):
 
     systemctl("daemon-reload")
     systemctl("start", task_service_name)
+
 
 class Switcher(plugins.Plugin):
     __author__ = '33197631+dadav@users.noreply.github.com'

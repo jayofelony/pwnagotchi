@@ -89,7 +89,7 @@ class Grid(plugins.Plugin):
         logging.debug("checking pcap's")
         config = agent.config()
 
-        pcap_files = glob.glob(os.path.join(agent.config()['bettercap']['handshakes'], "*.pcap"))
+        pcap_files = glob.glob(os.path.join(config['bettercap']['handshakes'], "*.pcap"))
         num_networks = len(pcap_files)
         reported = self.report.data_field_or('reported', default=[])
         num_reported = len(reported)
