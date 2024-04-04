@@ -29,7 +29,8 @@
 
 
 import logging
-from pwnagotchi.ui.hw.libs.waveshare.epaper import epdconfig
+#from pwnagotchi.ui.hw.libs.waveshare.epaper import epdconfig
+from . import epdconfig
 
 # Display resolution
 EPD_WIDTH = 122
