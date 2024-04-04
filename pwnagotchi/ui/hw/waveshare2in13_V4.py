@@ -7,6 +7,9 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class WaveshareV4(DisplayImpl):
     def __init__(self, config):
         super(WaveshareV4, self).__init__(config, 'waveshare_4')
+        self.invert = False
+        if 'invert' in config['ui'] and config['ui']['invert'] == True:
+            self.invert = True
 
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)
@@ -35,11 +38,17 @@ class WaveshareV4(DisplayImpl):
         from pwnagotchi.ui.hw.libs.waveshare.epaper.v2in13_V4.epd2in13_V4 import EPD
         self._display = EPD()
         self._display.init()
-        self._display.Clear(0xFF)
+        if self.invert is True:
+            self._display.Clear(0xFF)
+        else:
+            self._display.Clear(0x00)
 
     def render(self, canvas):
         buf = self._display.getbuffer(canvas)
         self._display.displayPartial(buf)
 
     def clear(self):
-        self._display.Clear(0xFF)
+        if self.invert is True:
+            self._display.Clear(0xFF)
+        else:
+            self._display.Clear(0x00)
