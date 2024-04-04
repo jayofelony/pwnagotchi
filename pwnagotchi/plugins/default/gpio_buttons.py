@@ -14,8 +14,9 @@ class GPIOButtons(plugins.Plugin):
         self.running = False
         self.ports = {}
         self.commands = None
+        self.options = dict()
 
-    def runCommand(self, channel):
+    def runcommand(self, channel):
         command = self.ports[channel]
         logging.info(f"Button Pressed! Running command: {command}")
         process = subprocess.Popen(command, shell=True, stdin=None, stdout=open("/dev/null", "w"), stderr=None,
@@ -35,8 +36,8 @@ class GPIOButtons(plugins.Plugin):
             gpio = int(gpio)
             self.ports[gpio] = command
             GPIO.setup(gpio, GPIO.IN, GPIO.PUD_UP)
-            GPIO.add_event_detect(gpio, GPIO.FALLING, callback=self.runCommand, bouncetime=600)
-            #set pimoroni display hat mini LED off/dim
+            GPIO.add_event_detect(gpio, GPIO.FALLING, callback=self.runcommand, bouncetime=600)
+            # set pimoroni display hat mini LED off/dim
             GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
             GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
             GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
