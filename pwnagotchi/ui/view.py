@@ -32,12 +32,9 @@ class View(object):
             logging.debug("INVERT BLACK/WHITES:" + str(config['ui']['invert']))
             self.invert = 1
             BLACK = 0x00
-            WHITE - 0xFF
+            WHITE = 0xFF
             self._black = 0x00
             self._white = 0xFF
-
-
-
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])

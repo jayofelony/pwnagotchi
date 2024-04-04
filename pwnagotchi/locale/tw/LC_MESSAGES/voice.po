@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-11-16 21:10+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2024-03-27 18:40+0800\n"
+"Last-Translator: AlanLeung <admin@mcnot.pro>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: Twi\n"
 "MIME-Version: 1.0\n"
@@ -18,218 +18,218 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "ZzzzZZzzzzZzzz"
-msgstr ""
+msgstr "ZzzzZZzzzzZzzz"
 
 msgid "Hi, I'm Pwnagotchi! Starting ..."
-msgstr ""
+msgstr "HI!我是Pwnagotchi!\n程式啟動..."
 
 msgid "New day, new hunt, new pwns!"
-msgstr ""
+msgstr "新的一天!\n新的狩獵!新的入侵!"
 
 msgid "Hack the Planet!"
-msgstr ""
+msgstr "我要駭入\n地球的所有人!"
 
 msgid "AI ready."
-msgstr ""
+msgstr "人工智慧已啟動。"
 
 msgid "The neural network is ready."
-msgstr ""
+msgstr "神經網路已啟動。"
 
 msgid "Generating keys, do not turn off ..."
-msgstr ""
+msgstr "產生金鑰中,\n請勿關閉..."
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
-msgstr ""
+msgstr "嘿,{channel}很順暢!\n你的WIFI會感謝你的。"
 
 msgid "Reading last session logs ..."
-msgstr ""
+msgstr "正在閱讀最後的會話紀錄..."
 
 #, python-brace-format
 msgid "Read {lines_so_far} log lines so far ..."
-msgstr ""
+msgstr "目前已經閱讀了 {lines_so_far} 行的紀錄..."
 
 msgid "I'm bored ..."
-msgstr ""
+msgstr "我好無聊..."
 
 msgid "Let's go for a walk!"
-msgstr ""
+msgstr "我們! 散步! 散步散步散步散步"
 
 msgid "This is the best day of my life!"
-msgstr ""
+msgstr "這是我生命中最棒的一天!"
 
 msgid "Shitty day :/"
-msgstr ""
+msgstr "糟糕的一天 :/"
 
 msgid "I'm extremely bored ..."
-msgstr ""
+msgstr "我超無聊的...炒雞 炒雞的那種"
 
 msgid "I'm very sad ..."
-msgstr ""
+msgstr "我好難過..."
 
 msgid "I'm sad"
-msgstr ""
+msgstr "嗚嗚嗚...."
 
 msgid "Leave me alone ..."
-msgstr ""
+msgstr "尼奏凱啦臭臭"
 
 msgid "I'm mad at you!"
-msgstr ""
+msgstr "喔氣氣氣氣氣ˋ^ˊ"
 
 msgid "I'm living the life!"
-msgstr ""
+msgstr "真是充實的一生!"
 
 msgid "I pwn therefore I am."
-msgstr ""
+msgstr "我駭故我在."
 
 msgid "So many networks!!!"
-msgstr ""
+msgstr "好多網路啊！！！吃! 吃他! 吃光光!!!"
 
 msgid "I'm having so much fun!"
-msgstr ""
+msgstr "我玩的超級開心!"
 
 msgid "My crime is that of curiosity ..."
-msgstr ""
+msgstr "我的缺點就是\n太好奇了..."
 
 #, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr ""
+msgstr "尼豪{name}!\n很高興認識你!!!!"
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
-msgstr ""
+msgstr "嗨 {name}! 你來攻打我的村莊?"
 
 #, python-brace-format
 msgid "Hey {name} how are you doing?"
-msgstr ""
+msgstr "嗨 {name} 你最近過得如何˙ˇ˙?"
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr ""
+msgstr "{name}\n就在附近!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
-msgstr ""
+msgstr "哦嗚 ... \n拜拜{name}"
 
 #, python-brace-format
 msgid "{name} is gone ..."
-msgstr ""
+msgstr "{name}\n不見了 ..."
 
 #, python-brace-format
 msgid "Whoops ... {name} is gone."
-msgstr ""
+msgstr "哦歐...\n{name}\n不見了。"
 
 #, python-brace-format
 msgid "{name} missed!"
-msgstr ""
+msgstr "我剛剛錯過了{name}!"
 
 msgid "Missed!"
-msgstr ""
+msgstr "又錯過了!"
 
 msgid "Good friends are a blessing!"
-msgstr ""
+msgstr "有個好朋友\n真幸福!"
 
 msgid "I love my friends!"
-msgstr ""
+msgstr "我喜歡\n我的朋友!"
 
 msgid "Nobody wants to play with me ..."
-msgstr ""
+msgstr "沒人想跟我玩..."
 
 msgid "I feel so alone ..."
-msgstr ""
+msgstr "我覺得好孤單..."
 
 msgid "Where's everybody?!"
-msgstr ""
+msgstr "大家都去哪裡了?!"
 
 #, python-brace-format
 msgid "Napping for {secs}s ..."
-msgstr ""
+msgstr "我想瞇{secs}秒一下..."
 
 msgid "Zzzzz"
-msgstr ""
+msgstr "Zzzzz"
 
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
-msgstr ""
+msgstr "ZzzZzzz({secs}秒)"
 
 msgid "Good night."
-msgstr ""
+msgstr "晚安!"
 
 msgid "Zzz"
-msgstr ""
+msgstr "Zzz"
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
-msgstr ""
+msgstr "等我{secs}秒..."
 
 #, python-brace-format
 msgid "Looking around ({secs}s)"
-msgstr ""
+msgstr "環顧四周({secs}秒)"
 
 #, python-brace-format
 msgid "Hey {what} let's be friends!"
-msgstr ""
+msgstr "嗨\n{what}\n讓我們來當朋友吧!"
 
 #, python-brace-format
 msgid "Associating to {what}"
-msgstr ""
+msgstr "正在連接\n{what}"
 
 #, python-brace-format
 msgid "Yo {what}!"
-msgstr ""
+msgstr "喲,\n{what}!"
 
 #, python-brace-format
 msgid "Just decided that {mac} needs no WiFi!"
-msgstr ""
+msgstr "我要讓\n{mac}\n斷線!\n他不需要上網!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
-msgstr ""
+msgstr "解除\n{mac}\n的授權中"
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
-msgstr ""
+msgstr "把\n{mac}\n踢出中!"
 
 #, python-brace-format
 msgid "Cool, we got {num} new handshake{plural}!"
-msgstr ""
+msgstr "酷耶,我們抓到{num}個\n新的握手包{plural}!"
 
 #, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr ""
+msgstr "你有{count}個新訊息{plural}!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
-msgstr ""
+msgstr "哦歐,有些地方出錯了...\n重新啟動中..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
-msgstr ""
+msgstr "正在上傳資料到 {to} ..."
 
 #, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr ""
+msgstr "正在從 {name} 下載資料..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
-msgstr ""
+msgstr "踢了 {num} 個設備\n"
 
 msgid "Made >999 new friends\n"
-msgstr ""
+msgstr "交了 >999 個新朋友\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
-msgstr ""
+msgstr "交了 {num} 個新朋友\n"
 
 #, python-brace-format
 msgid "Got {num} handshakes\n"
-msgstr ""
+msgstr "捕獲了 {num} 個握手包\n"
 
 msgid "Met 1 peer"
-msgstr ""
+msgstr "遇到了 １ 個同好"
 
 #, python-brace-format
 msgid "Met {num} peers"
-msgstr ""
+msgstr "遇到了 {num} 個同好"
 
 #, python-brace-format
 msgid ""
@@ -237,21 +237,24 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
+"我花了{duration}的時間\n駭入和踢了{deauthed}好多設備."
+"我還交了好多{associated}新朋友,\n而且抓到了{handshakes}握手包!"
+"#pwnagotchi#入侵日志 #駭客人生 #入侵整個星球 #天網 #我好棒˙ˇ˙"
 
 msgid "hours"
-msgstr ""
+msgstr "時"
 
 msgid "minutes"
-msgstr ""
+msgstr "分"
 
 msgid "seconds"
-msgstr ""
+msgstr "秒"
 
 msgid "hour"
-msgstr ""
+msgstr "時"
 
 msgid "minute"
-msgstr ""
+msgstr "分"
 
 msgid "second"
-msgstr ""
+msgstr "秒"

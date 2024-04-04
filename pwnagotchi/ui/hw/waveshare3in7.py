@@ -10,8 +10,8 @@ class Waveshare3in7(DisplayImpl):
 
     def layout(self):
         fonts.setup(10, 8, 10, 18, 25, 9)
-        self._layout['width'] = 280
-        self._layout['height'] = 480
+        self._layout['width'] = 480
+        self._layout['height'] = 280
         self._layout['face'] = (0, 43)
         self._layout['name'] = (0, 14)
         self._layout['channel'] = (0, 0)

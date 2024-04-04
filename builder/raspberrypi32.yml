@@ -62,7 +62,7 @@
         source: "https://github.com/jayofelony/bettercap.git"
         url: "https://github.com/jayofelony/bettercap/releases/download/2.32.2/bettercap-2.32.2-armhf.zip"
         ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
-      opwngrid:
+      pwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
         url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.7/pwngrid-1.10.7-armhf.zip"
       torch:
@@ -123,6 +123,7 @@
           - libc-ares-dev
           - libc6-dev
           - libcpuinfo-dev
+          - libcurl4-openssl-dev
           - libdbus-1-dev
           - libdbus-glib-1-dev
           - libeigen3-dev
@@ -206,6 +207,30 @@
         state: present
       when: hostname.changed
 
+    - name: setup /boot/config.txt
+      blockinfile:
+        path: /boot/config.txt
+        insertafter: EOF
+        block: |
+          dtparam=i2c1=on
+          dtparam=i2c_arm=on
+          dtparam=spi=on
+          gpu_mem=1
+          dtoverlay=dwc2
+          #dtoverlay=disable-wifi
+
+          [pi0]
+          dtoverlay=spi0-0cs
+          #dtoverlay=disable-wifi
+
+          [pi3]
+          dtoverlay=spi0-0cs
+          #dtoverlay=disable-wifi
+
+          [pi4]
+          dtoverlay=spi0-0cs
+          #dtoverlay=disable-wifi
+
     - name: Create custom plugin directory
       file:
         path: '{{ pwnagotchi.custom_plugin_dir }}'
@@ -263,6 +288,24 @@
         src: /usr/local/lib/libpcap.so.1.9.1
         dest: /usr/local/lib/libpcap.so.0.8
         state: link
+
+    # install latest hcxtools
+
+    - name: clone hcxtools
+      git:
+        repo: https://github.com/ZerBea/hcxtools.git
+        dest: /usr/local/src/hcxtools
+
+    - name: install hcxtools
+      shell: "make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/hcxtools
+
+    - name: remove hcxtools directory
+      file:
+        state: absent
+        path: /usr/local/src/hcxtools
 
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
@@ -374,21 +417,36 @@
       when: golang.changed
 
     - name: download pwngrid
-      unarchive:
-        remote_src: yes
-        src: "{{ packages.opwngrid.url }}"
-        dest: /usr/local/bin/
-        mode: 0755
+      git:
+        repo: "{{ packages.pwngrid.source }}"
+        dest: /usr/local/src/pwngrid
 
-    - name: download and install bettercap
-      unarchive:
-        src: "{{ packages.bettercap.url }}"
-        dest: /usr/local/bin
-        remote_src: yes
-        exclude:
-          - README.md
-          - LICENSE.md
-        mode: 0755
+    - name: install pwngrid
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/pwngrid
+
+    - name: remove pwngrid folder
+      file:
+        state: absent
+        path: /usr/local/src/pwngrid
+
+    - name: download bettercap
+      git:
+        repo: "{{ packages.bettercap.source }}"
+        dest: /usr/local/src/bettercap
+
+    - name: install bettercap 2.32.4
+      shell: "export GOPATH=$HOME/go && export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin && go mod tidy && make && make install"
+      args:
+        executable: /bin/bash
+        chdir: /usr/local/src/bettercap
+
+    - name: remove bettercap folder
+      file:
+        state: absent
+        path: /usr/local/src/bettercap
 
     - name: clone bettercap caplets
       git:
