@@ -48,7 +48,4 @@ class WaveshareV4(DisplayImpl):
         self._display.displayPartial(buf)
 
     def clear(self):
-        if self.invert == True:
-            self._display.Clear(0xFF)
-        else:
-            self._display.Clear(0x00)
+        self._display.Clear(0xFF)
