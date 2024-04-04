@@ -38,7 +38,7 @@ class WaveshareV4(DisplayImpl):
         from pwnagotchi.ui.hw.libs.waveshare.epaper.v2in13_V4.epd2in13_V4 import EPD
         self._display = EPD()
         self._display.init()
-        if self.invert is True:
+        if self.invert == True:
             self._display.Clear(0xFF)
         else:
             self._display.Clear(0x00)
@@ -48,7 +48,7 @@ class WaveshareV4(DisplayImpl):
         self._display.displayPartial(buf)
 
     def clear(self):
-        if self.invert is True:
+        if self.invert == True:
             self._display.Clear(0xFF)
         else:
             self._display.Clear(0x00)
