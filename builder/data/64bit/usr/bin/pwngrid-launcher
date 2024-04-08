@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 source /usr/bin/pwnlib
-LOG="-log /home/pi/logs/pwngrid-peer.log"
+LOG="-log /etc/pwnagotchi/log/pwngrid-peer.log"
 
 # check to see if pwnagotchi is advertising and disable if not
 # some wifi drivers to not support advertising. Disable in /etc/pwnagotchi/config.toml
