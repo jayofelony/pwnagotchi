@@ -211,6 +211,34 @@
         regexp: '(.*)$'
         line: '\1 modules-load=dwc2,g_ether'
 
+    - name: setup /boot/firmware/config.txt
+      blockinfile:
+        path: /boot/firmware/config.txt
+        insertafter: EOF
+        block: |
+          dtparam=i2c1=on
+          dtparam=i2c_arm=on
+          dtparam=spi=on
+          gpu_mem=1
+          dtoverlay=dwc2
+          #dtoverlay=disable-wifi
+          
+          [pi0]
+          dtoverlay=spi0-0cs
+          #dtoverlay=disable-wifi
+          
+          [pi3]
+          dtoverlay=spi0-0cs
+          #dtoverlay=disable-wifi
+          
+          [pi4]
+          dtoverlay=spi0-0cs
+          #dtoverlay=disable-wifi
+          
+          [pi5]
+          dtoverlay=spi0-0cs
+          #dtoverlay=disable-wifi
+
     - name: change hostname
       lineinfile:
         dest: /etc/hostname
