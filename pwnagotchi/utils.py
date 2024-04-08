@@ -150,8 +150,15 @@ def keys_to_str(data):
 
 
 def save_config(config, target):
+    if 'main' in config and '_configfile' in config['main']:
+        logging.info("Saving %s to %s" % (config['main']['_configfile'], target))
+        target = config['main']['_configfile']
+        del config['main']['_configfile']
+
     with open(target, 'wt') as fp:
         fp.write(toml.dumps(config, encoder=DottedTomlEncoder()))
+
+    config['main']['_configfile'] = target
     return True
 
 
@@ -218,9 +225,12 @@ def load_config(args):
                 user_config = keys_to_str(user_config)
                 # convert to toml but use loaded yaml
                 toml.dump(user_config, toml_file)
+                user_config['main']['_configfile'] = args.user_config
+
         elif os.path.exists(args.user_config):
             with open(args.user_config) as toml_file:
                 user_config = toml.load(toml_file)
+                user_config['main']['_configfile'] = args.user_config
 
         if user_config:
             config = merge_config(user_config, config)
