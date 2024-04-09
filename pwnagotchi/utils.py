@@ -325,8 +325,14 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('waveshareoledlcd'):
         config['ui']['display']['type'] = 'waveshareoledlcd'
 
+    elif config['ui']['display']['type'] in ('i2coled'):
+        config['ui']['display']['type'] = 'i2coled'
+
     elif config['ui']['display']['type'] in ('waveshare35lcd'):
         config['ui']['display']['type'] = 'waveshare35lcd'
+
+    elif config['ui']['display']['type'] in ('waveshareoledlcdvert'):
+        config['ui']['display']['type'] = 'waveshareoledlcdvert'
 
     # E-INK DISPLAYS ------------------------------------------------------------------------
 
