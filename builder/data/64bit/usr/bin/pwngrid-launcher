@@ -11,4 +11,4 @@ if egrep "personality.advertise.*=.*false" /etc/pwnagotchi/config.toml ; then
    echo OK
 fi
 
-/usr/local/bin/pwngrid -keys /etc/pwnagotchi -address 127.0.0.1:8666 -client-token /root/.api-enrollment.json -wait ${LOG} -iface ${PWNY_MON_IFACE} ${ADVERTISE} -hostname="pwny-hydra-1"
+/usr/local/bin/pwngrid -keys /etc/pwnagotchi -address 127.0.0.1:8666 -client-token /root/.api-enrollment.json -wait ${LOG} -iface ${PWNY_MON_IFACE} ${ADVERTISE}
