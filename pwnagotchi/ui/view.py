@@ -16,8 +16,9 @@ from pwnagotchi.ui.components import *
 from pwnagotchi.ui.state import State
 from pwnagotchi.voice import Voice
 
-WHITE = 0x00
-BLACK = 0xFF
+# need to specify 6 hex digits in case color, or 0xFF is red (0 green, 0 blue)
+WHITE = 0x000000
+BLACK = 0xFFFFFF
 ROOT = None
 
 
@@ -26,15 +27,15 @@ class View(object):
         global ROOT, BLACK, WHITE
         
         self.invert = 0
-        self._black = 0xFF
-        self._white = 0x00
+        self._black = 0xFFFFFF
+        self._white = 0x000000
         if 'invert' in config['ui'] and config['ui']['invert'] == True:
             logging.debug("INVERT BLACK/WHITES:" + str(config['ui']['invert']))
             self.invert = 1
-            BLACK = 0x00
-            WHITE = 0xFF
-            self._black = 0x00
-            self._white = 0xFF
+            BLACK = 0x000000
+            WHITE = 0xFFFFFF
+            self._black = 0x000000
+            self._white = 0xFFFFFF
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
@@ -387,8 +388,12 @@ class View(object):
             state = self._state
             changes = state.changes(ignore=self._ignore_changes)
             if force or len(changes):
-                self._canvas = Image.new('1', (self._width, self._height), self._white)
+                # default to 1-bit black and white, but allow for color on screens that can do it
+                colormode = self._config['ui']['display']['colormode'] if 'colormode' in self._config['ui']['display'] else '1'
+                self._canvas = Image.new(colormode, (self._width, self._height), self._white)
+
                 drawer = ImageDraw.Draw(self._canvas)
+                drawer.fontmode = '1'  # don't anti-alias text because it looks bad on low res
 
                 plugins.on('ui_update', self)
 
