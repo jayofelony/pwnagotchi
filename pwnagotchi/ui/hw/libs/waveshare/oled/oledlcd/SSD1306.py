@@ -106,7 +106,7 @@ class SSD1306Base(object):
         self._initialize()
         # Turn on the display.
         self.command(SSD1306_DISPLAYON)
-        
+
     def ShowImage(self):
         """
         The image on the "canvas" is flushed through to the hardware display.
@@ -118,10 +118,10 @@ class SSD1306Base(object):
         self.command(SSD1306_PAGEADDR)
         self.command(0)              # Page start address. (0 = reset)
         self.command(self._pages-1)  # Page end address.
-        
+
         for i in range(0, len(self._buffer), 16):
             self.bus.write_i2c_block_data(self.addr, self.data_mode, self._buffer[i:i+16])
-            
+
     def getbuffer(self, image):
         """Set buffer to value of Python Imaging Library image.  The image should
         be in 1 bit mode and a size equal to the display size.

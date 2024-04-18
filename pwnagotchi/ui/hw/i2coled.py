@@ -3,20 +3,33 @@
 # https://github.com/adafruit/Adafruit_Python_SSD1306
 # SMBus parts coming from BLavery's lib_oled96 repo:
 # https://github.com/BLavery/lib_oled96
+# I2C address, width and height import from config.toml made by NurseJackass
 
 import logging
 
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
 
+#
+# Default is 128x64 display on i2c address 0x3C
+#
+# Configure i2c address and dimensions in config.toml:
+#
+# ui.display.type = "i2coled"
+# ui.display.i2c_addr = 0x3C
+# ui.display.width = 128
+# ui.display.height = 64
+#
+
 class I2COled(DisplayImpl):
     def __init__(self, config):
+        self._config = config['ui']['display']
         super(I2COled, self).__init__(config, 'i2coled')
 
     def layout(self):
         fonts.setup(8, 8, 8, 10, 10, 8)
-        self._layout['width'] = 128
-        self._layout['height'] = 64
+        self._layout['width'] = self._config['width'] if 'width' in self._config else 128
+        self._layout['height'] = self._config['height'] if 'height' in self._config else 64
         self._layout['face'] = (0, 30)
         self._layout['name'] = (0, 10)
         self._layout['channel'] = (72, 10)
@@ -36,10 +49,14 @@ class I2COled(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing 128x64 I2C Oled Display on address 0x3C")
-        logging.info("To change resolution or address check pwnagotchi/ui/hw/libs/i2coled/epd.py")
+        i2caddr = self._config['i2c_addr'] if 'i2c_addr' in self._config else 0x3C
+        width = self._config['width'] if 'width' in self._config else 128
+        height = self._config['height'] if 'height' in self._config else 64
+
+        logging.info("initializing %dx%d I2C Oled Display on address 0x%X" % (width, height, i2caddr))
+
         from pwnagotchi.ui.hw.libs.i2coled.epd import EPD
-        self._display = EPD()
+        self._display = EPD(address=i2caddr, width=width, height=height)
         self._display.Init()
         self._display.Clear()
 

@@ -100,13 +100,19 @@ class SSD1306Base(object):
         """Send command byte to display."""
         # I2C write.
         assert(len(cmd) <= 31)
-        self.bus.write_i2c_block_data(self.addr, self.cmd_mode, list(cmd))
+        try:
+            self.bus.write_i2c_block_data(self.addr, self.cmd_mode, list(cmd))
+        except Exception as e:
+            logging.exception(e)
 
     def data(self, data):
         """Send byte of data to display."""
         # I2C write.
-        for i in range(0, len(data), 31):
-            self.bus.write_i2c_block_data(self.addr, self.data_mode, list(data[i:i+31]))
+        try:
+            for i in range(0, len(data), 31):
+                self.bus.write_i2c_block_data(self.addr, self.data_mode, list(data[i:i+31]))
+        except Exception as e:
+            logging.exception(e)
 
     def begin(self, vccstate=SSD1306_SWITCHCAPVCC):
         """Initialize display."""
@@ -116,7 +122,7 @@ class SSD1306Base(object):
         self._initialize()
         # Turn on the display.
         self.command(SSD1306_DISPLAYON)
-        
+
     def ShowImage(self):
         """
         The image on the "canvas" is flushed through to the hardware display.
@@ -128,10 +134,12 @@ class SSD1306Base(object):
         self.command(SSD1306_PAGEADDR)
         self.command(0)              # Page start address. (0 = reset)
         self.command(self._pages-1)  # Page end address.
-        
-        for i in range(0, len(self._buffer), 16):
-            self.bus.write_i2c_block_data(self.addr, self.data_mode, self._buffer[i:i+16])
-            
+        try:
+            for i in range(0, len(self._buffer), 16):
+                self.bus.write_i2c_block_data(self.addr, self.data_mode, self._buffer[i:i+16])
+        except Exception as e:
+            logging.exception(e)
+
     def getbuffer(self, image):
         """Set buffer to value of Python Imaging Library image.  The image should
         be in 1 bit mode and a size equal to the display size.
@@ -229,7 +237,7 @@ class SSD1306_128_64(SSD1306Base):
 class SSD1306_128_32(SSD1306Base):
     def __init__(self, width, height, address=None, bus=None):
         # Call base class constructor.
-        super(SSD1306_128_64, self).__init__(128, 64, address, bus)
+        super(SSD1306_128_32, self).__init__(128, 32, address, bus)
 
     def _initialize(self):
         # 128x32 pixel specific initialization.

@@ -95,11 +95,8 @@ class ST7789(object):
                  offset_left=0,
                  offset_top=0):
         """Create an instance of the display using SPI communication.
-
         Must provide the GPIO pin number for the D/C pin and the SPI driver.
-
         Can optionally provide the GPIO pin number for the reset pin as the rst parameter.
-
         :param port: SPI port number
         :param cs: SPI chip-select number (0 or 1 for BCM
         :param backlight: Pin for controlling backlight
@@ -109,7 +106,6 @@ class ST7789(object):
         :param rotation: Rotation of display connected to ST7789
         :param invert: Invert display
         :param spi_speed_hz: SPI speed (in Hz)
-
         """
         if rotation not in [0, 90, 180, 270]:
             raise ValueError("Invalid rotation {}".format(rotation))
@@ -287,9 +283,7 @@ class ST7789(object):
 
     def begin(self):
         """Set up the display
-
         Deprecated. Included in __init__.
-
         """
         pass
 
@@ -326,9 +320,7 @@ class ST7789(object):
 
     def display(self, image):
         """Write the provided image to the hardware.
-
         :param image: Should be RGB format and the same dimensions as the display hardware.
-
         """
         # Set address bounds to entire display.
         self.set_window()

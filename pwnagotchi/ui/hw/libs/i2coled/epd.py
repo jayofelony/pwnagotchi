@@ -8,20 +8,27 @@ EPD_HEIGHT = 64
 # disp = SSD1306.SSD1306_128_32(128, 32, address=0x3C)
 # disp = SSD1306.SSD1306_96_16(96, 16, address=0x3C)
 # If you change for different resolution, you have to modify the layout in pwnagotchi/ui/hw/i2coled.py
-disp = SSD1306.SSD1306_128_64(128, 64, address=0x3C)
 
 class EPD(object):
 
-    def __init__(self):
-        self.width = EPD_WIDTH
-        self.height = EPD_HEIGHT
+    def __init__(self, address=0x3D, width=EPD_WIDTH, height=EPD_HEIGHT):
+        self.width = width
+        self.height = height
+
+        # choose subclass based on dimensions
+        if height == 32:
+            self.disp = SSD1306.SSD1306_128_32(width, height, address)
+        elif height == 16:
+            self.disp = SSD1306.SSD1306_96_16(width, height, address)
+        else:
+            self.disp = SSD1306.SSD1306_128_64(width, height, address)
 
     def Init(self):
-        disp.begin()
+        self.disp.begin()
 
     def Clear(self):
-        disp.clear()
+        self.disp.clear()
 
     def display(self, image):
-        disp.getbuffer(image)
-        disp.ShowImage()
+        self.disp.getbuffer(image)
+        self.disp.ShowImage()
