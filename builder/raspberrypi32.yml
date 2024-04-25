@@ -292,21 +292,21 @@
 
     # install latest hcxtools
 
-    - name: clone hcxtools
-      git:
-        repo: https://github.com/ZerBea/hcxtools.git
-        dest: /usr/local/src/hcxtools
+    #- name: clone hcxtools
+    #  git:
+    #    repo: https://github.com/ZerBea/hcxtools.git
+    #    dest: /usr/local/src/hcxtools
 
-    - name: install hcxtools
-      shell: "make && make install"
-      args:
-        executable: /bin/bash
-        chdir: /usr/local/src/hcxtools
+    #- name: install hcxtools
+    #  shell: "make && make install"
+    #  args:
+    #    executable: /bin/bash
+    #    chdir: /usr/local/src/hcxtools
 
-    - name: remove hcxtools directory
-      file:
-        state: absent
-        path: /usr/local/src/hcxtools
+    #- name: remove hcxtools directory
+    #  file:
+    #    state: absent
+    #    path: /usr/local/src/hcxtools
 
     ###############################################################
     # Install nexmon to fix wireless scanning (takes 2.5G of space)
