@@ -152,6 +152,7 @@
           - libsleef-dev
           - libsqlite3-dev
           - libssl-dev
+          - libssl-ocaml-dev
           - libswscale5
           - libtiff5
           - libtool
