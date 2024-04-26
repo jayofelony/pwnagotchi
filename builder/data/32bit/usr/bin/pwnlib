@@ -32,7 +32,6 @@ start_monitor_interface() {
   ifconfig wlan0 down
   ifconfig wlan0mon up
   iw dev wlan0mon set power_save off
-  iw dev wlan0 del
 }
 
 # stops mon0
