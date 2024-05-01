@@ -578,7 +578,7 @@ class BTTether(plugins.Plugin):
     def on_ui_setup(self, ui):
         with ui._lock:
             ui.add_element('bluetooth', LabeledValue(color=BLACK, label='BT', value='-',
-                                                     position=(ui.width() / 2 - 10, 0),
+                                                     position=(ui.width() / 2 - 20, 0),
                                                      label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_ui_update(self, ui):
