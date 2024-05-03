@@ -11,7 +11,7 @@ EPD_HEIGHT = 64
 
 class EPD(object):
 
-    def __init__(self, address=0x3D, width=EPD_WIDTH, height=EPD_HEIGHT):
+    def __init__(self, address=0x3C, width=EPD_WIDTH, height=EPD_HEIGHT):
         self.width = width
         self.height = height
 
