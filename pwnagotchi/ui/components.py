@@ -19,7 +19,7 @@ class Bitmap(Widget):
         self.image = Image.open(path)
 
     def draw(self, canvas, drawer):
-        if self.color = 0xFF:
+        if self.color == 0xFF:
             self.image = ImageOps.invert(self.image)
         canvas.paste(self.image, self.xy)
 
