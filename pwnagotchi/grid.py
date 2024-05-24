@@ -92,7 +92,7 @@ def update_data(last_session):
         'build': "Pwnagotchi by Jayofelony",
         'plugins': enabled,
         'language': language,
-        'bettercap': subprocess.getoutput("bettercap -version").split(".\n\n")[1],
+        'bettercap': subprocess.getoutput("bettercap -version").split()[1],
         'opwngrid': subprocess.getoutput("pwngrid -version")
     }
 
