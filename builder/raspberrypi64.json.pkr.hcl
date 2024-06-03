@@ -1,8 +1,8 @@
 packer {
   required_plugins {
     arm = {
-      version = "1.0.0"
-      source  = "github.com/cdecoux/builder-arm"
+      version = ">=1.0.0"
+      source  = "github.com/michalfita/cross"
     }
     ansible = {
       source  = "github.com/hashicorp/ansible"

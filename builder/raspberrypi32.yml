@@ -33,10 +33,10 @@
         source: "https://github.com/jayofelony/pwngrid.git"
         url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.7/pwngrid-1.10.7-armhf.zip"
       torch:
-        wheel: "torch-2.1.0a0+gita8e7c98-cp311-cp311-linux_armv6ll.whl"
+        wheel: "torch-2.1.0a0+gita8e7c98-cp311-cp311-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/py0torch-bookworm-2024-05/torch-2.1.0a0+gita8e7c98-cp311-cp311-linux_armv6l.whl"
       torchvision:
-        wheel: "torchvision-0.16.0+fbb4cc5-cp311-cp311-linux_armv6ll.whl"
+        wheel: "torchvision-0.16.0+fbb4cc5-cp311-cp311-linux_armv6l.whl"
         url: "https://github.com/Sniffleupagus/Torch4Pizero/releases/download/py0torch-bookworm-2024-05/torchvision-0.16.0+fbb4cc5-cp311-cp311-linux_armv6l.whl"
       apt:
         downgrade:
@@ -55,7 +55,6 @@
           - libpcap0.8-dbg
           - libpcap0.8-dev
         remove:
-          - avahi-daemon
           - nfs-common
           - triggerhappy
           - wpasupplicant
@@ -81,18 +80,21 @@
           - git
           - libatlas-base-dev
           - libc6-dev
+          - libcpuinfo-dev
           - libcurl-ocaml-dev
           - libdbus-1-dev
           - libdbus-glib-1-dev
           - libfl-dev
           - libgmp3-dev
           - libnetfilter-queue-dev
+          - libopenblas-dev # https://stackoverflow.com/questions/14570011/explain-why-numpy-should-not-be-imported-from-source-directory
           - libopenjp2-7
           - libpcap-dev
           - libraspberrypi-bin
           - libraspberrypi-dev
           - libraspberrypi-doc
           - libraspberrypi0
+          - libsleef-dev
           - libssl-dev
           - libssl-ocaml-dev
           - libtool
@@ -102,6 +104,7 @@
           - pkg-config
           - python3-dev
           - python3-pip
+          - python3-protobuf
           - python3-setuptools
           - qpdf
           - raspberrypi-kernel-headers

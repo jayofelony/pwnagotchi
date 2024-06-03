@@ -51,7 +51,6 @@
           - libpcap0.8-dbg
           - libpcap0.8-dev
         remove:
-          - avahi-daemon
           - dhpys-swapfile
           - nfs-common
           - triggerhappy
@@ -407,6 +406,7 @@
         - /usr/lib/firmware/brcm/brcmfmac43436-sdio.clm_blob
         - /usr/lib/firmware/brcm/brcmfmac43436-sdio.raspberrypi,model-zero-2-w.clm_blob
         - /usr/lib/firmware/brcm/brcmfmac43455-sdio.clm_blob
+        - /usr/lib/firmware/brcm/BCM43430A1.raspberrypi,model-zero-2-w.hcd
 
     - name: backup original driver
       command: "mv /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz /usr/lib/modules/{{ kernel.full }}/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko.xz.orig"
