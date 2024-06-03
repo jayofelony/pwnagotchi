@@ -8,7 +8,7 @@ dynamic = ["version"]
 dependencies = [
     "Pillow",
     "PyYAML",
-    "RPi.GPIO",
+    "rpi.lgpio",
     "dbus-python",
     "file-read-backwards",
     "flask",
@@ -29,8 +29,8 @@ dependencies = [
     "spidev",
     "stable_baselines3",
     "toml",
-    "torch",
-    "torchvision",
+    "torch; platform_machine=='aarch64'",
+    "torchvision; platform_machine=='aarch64'",
     "tweepy",
     "websockets",
 ]

@@ -18,9 +18,7 @@ dbus-python
 toml
 python-dateutil
 websockets
-torch
-torchvision
 stable_baselines3
-RPi.GPIO
+rpi-lgpio
 rpi_hardware_pwm
 pydrive2

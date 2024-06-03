@@ -73,7 +73,13 @@ build {
   provisioner "shell" {
     inline = ["chmod +x /usr/bin/*"]
   }
-
+  provisioner "shell" {
+    inline = ["mkdir -p /usr/local/src/pwnagotchi"]
+  }
+  provisioner "file" {
+    destination = "/usr/local/src/pwnagotchi/"
+    source = "../"
+  }
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
