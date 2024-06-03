@@ -306,8 +306,14 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('pirateaudio'):
         config['ui']['display']['type'] = 'pirateaudio'
 
+    elif config['ui']['display']['type'] in ('gfxhat'):
+        config['ui']['display']['type'] = 'gfxhat'
+
     elif config['ui']['display']['type'] in ('pitft'):
         config['ui']['display']['type'] = 'pitft'
+
+    elif config['ui']['display']['type'] in ('minipitft'):
+        config['ui']['display']['type'] = 'minipitft'
 
     elif config['ui']['display']['type'] in ('tftbonnet'):
         config['ui']['display']['type'] = 'tftbonnet'

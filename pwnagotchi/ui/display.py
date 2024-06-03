@@ -256,8 +256,14 @@ class Display(View):
     def is_pirateaudio(self):
         return self._implementation.name == 'pirateaudio'
 
+    def gfxhat(self):
+        return self._implementation.name == 'gfxhat'
+
     def is_pitft(self):
         return self._implementation.name == 'pitft'
+
+    def is_minipitft(self):
+        return self._implementation.name == 'minipitft'
 
     def is_tftbonnet(self):
         return self._implementation.name == 'tftbonnet'
