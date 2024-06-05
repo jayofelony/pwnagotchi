@@ -31,6 +31,9 @@ import os
 import logging
 import sys
 import time
+import subprocess
+
+from ctypes import *
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +45,8 @@ class RaspberryPi:
     CS_PIN = 8
     BUSY_PIN = 24
     PWR_PIN = 18
+    MOSI_PIN = 10
+    SCLK_PIN = 11
 
     def __init__(self):
         import spidev
@@ -97,13 +102,45 @@ class RaspberryPi:
     def spi_writebyte2(self, data):
         self.SPI.writebytes2(data)
 
-    def module_init(self):
+    def DEV_SPI_write(self, data):
+        self.DEV_SPI.DEV_SPI_SendData(data)
+
+    def DEV_SPI_nwrite(self, data):
+        self.DEV_SPI.DEV_SPI_SendnData(data)
+
+    def DEV_SPI_read(self):
+        return self.DEV_SPI.DEV_SPI_ReadData()
+
+    def module_init(self, cleanup=False):
         self.GPIO_PWR_PIN.on()
 
-        # SPI device, bus = 0, device = 0
-        self.SPI.open(0, 0)
-        self.SPI.max_speed_hz = 4000000
-        self.SPI.mode = 0b00
+        if cleanup:
+            find_dirs = [
+                os.path.dirname(os.path.realpath(__file__)),
+                '/usr/local/lib',
+                '/usr/lib',
+            ]
+            self.DEV_SPI = None
+            for find_dir in find_dirs:
+                val = int(os.popen('getconf LONG_BIT').read())
+                logging.debug("System is %d bit" % val)
+                if val == 64:
+                    so_filename = os.path.join(find_dir, 'DEV_Config_64.so')
+                else:
+                    so_filename = os.path.join(find_dir, 'DEV_Config_32.so')
+                if os.path.exists(so_filename):
+                    self.DEV_SPI = CDLL(so_filename)
+                    break
+            if self.DEV_SPI is None:
+                RuntimeError('Cannot find DEV_Config.so')
+
+            self.DEV_SPI.DEV_Module_Init()
+
+        else:
+            # SPI device, bus = 0, device = 0
+            self.SPI.open(0, 0)
+            self.SPI.max_speed_hz = 4000000
+            self.SPI.mode = 0b00
         return 0
 
     def module_exit(self, cleanup=False):
@@ -112,7 +149,6 @@ class RaspberryPi:
 
         self.GPIO_RST_PIN.off()
         self.GPIO_DC_PIN.off()
-        self.GPIO_CS_PIN.off()
         self.GPIO_PWR_PIN.off()
         logger.debug("close 5V, Module enters 0 power consumption ...")
 
@@ -128,5 +164,3 @@ implementation = RaspberryPi()
 
 for func in [x for x in dir(implementation) if not x.startswith('_')]:
     setattr(sys.modules[__name__], func, getattr(implementation, func))
-
-### END OF FILE ###
