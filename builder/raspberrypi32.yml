@@ -26,9 +26,10 @@
     packages:
       caplets:
         source: "https://github.com/jayofelony/caplets.git"
+        branch: "lite" # or master
       bettercap:
         source: "https://github.com/jayofelony/bettercap.git"
-        ui: "https://github.com/bettercap/ui/releases/download/v1.3.0/ui.zip"
+        branch: "lite" # or master
       pwngrid:
         source: "https://github.com/jayofelony/pwngrid.git"
         url: "https://github.com/jayofelony/pwngrid/releases/download/v1.10.7/pwngrid-1.10.7-armhf.zip"
@@ -405,6 +406,7 @@
     - name: download bettercap
       git:
         repo: "{{ packages.bettercap.source }}"
+        version: "{{ packages.bettercap.branch }} "
         dest: /usr/local/src/bettercap
 
     - name: install bettercap 2.32.4
@@ -418,19 +420,10 @@
         state: absent
         path: /usr/local/src/bettercap
 
-    #- name: download and install bettercap
-    #  unarchive:
-    #    src: "{{ packages.bettercap.url }}"
-    #    dest: /usr/local/bin
-    #    remote_src: yes
-    #    exclude:
-    #      - README.md
-    #      - LICENSE.md
-    #    mode: 0755
-
     - name: clone bettercap caplets
       git:
         repo: "{{ packages.caplets.source }}"
+        version: "{{ packages.caplets.branch }}"
         dest: /tmp/caplets
       register: capletsgit
 
@@ -439,21 +432,6 @@
         chdir: /tmp/caplets
         target: install
       when: capletsgit.changed
-
-    - name: download and install bettercap ui
-      unarchive:
-        src: "{{ packages.bettercap.ui }}"
-        dest: /usr/local/share/bettercap/
-        remote_src: yes
-        mode: 0755
-
-    # to always have the bettercap webui available (because why not?)
-    - name: copy pwnagotchi-manual over pwnagotchi-auto caplet
-      ansible.builtin.copy:
-        src: /usr/local/share/bettercap/caplets/pwnagotchi-manual.cap
-        dest: /usr/local/share/bettercap/caplets/pwnagotchi-auto.cap
-        force: true
-      ignore_errors: true
 
     - name: create /etc/pwnagotchi folder
       file:
