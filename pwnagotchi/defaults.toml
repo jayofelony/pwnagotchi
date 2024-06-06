@@ -150,8 +150,6 @@ personality.bond_encounters_factor = 20000
 personality.throttle_a = 0.4
 personality.throttle_d = 0.9
 
-personality.clear_on_exit = true # clear display when shutting down cleanly
-
 ui.invert = false # false = black background, true = white background
 
 ui.fps = 0.0
