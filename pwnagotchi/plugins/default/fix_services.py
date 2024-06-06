@@ -29,7 +29,6 @@ class FixServices(plugins.Plugin):
 
     def __init__(self):
         self.options = dict()
-        self.pattern = re.compile(r'brcmf_cfg80211_nexmon_set_channel.*?Set Channel failed')
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
         self.pattern3 = re.compile(r'Firmware has halted or crashed')
         self.pattern4 = re.compile(r'error 400: could not find interface wlan0mon')
@@ -54,20 +53,6 @@ class FixServices(plugins.Plugin):
             logging.debug("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
             if ",UP," in str(cmd_output):
                 logging.debug("wlan0mon is up.")
-
-            if len(self.pattern.findall(last_lines)) >= 3:
-                if hasattr(agent, 'view'):
-                    display = agent.view()
-                    display.set('status', 'Blind-Bug detected. Restarting.')
-                    display.update(force=True)
-                logging.debug('[Fix_Services] Blind-Bug detected. Restarting.')
-                try:
-                    self._tryTurningItOffAndOnAgain(agent)
-                except Exception as err:
-                    logging.warning("[Fix_Services turnOffAndOn] %s" % repr(err))
-
-            else:
-                logging.debug("[Fix_Services] Logs look good!")
 
         except Exception as err:
             logging.error("[Fix_Services ip link show wlan0mon]: %s" % repr(err))
@@ -116,20 +101,8 @@ class FixServices(plugins.Plugin):
 
             logging.debug("[Fix_Services]**** checking")
 
-            # Look for pattern 1
-            if len(self.pattern.findall(last_lines)) >= 3:
-                logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
-                if hasattr(agent, 'view'):
-                    display.set('status', 'Blind-Bug detected. Restarting.')
-                    display.update(force=True)
-                logging.debug('[Fix_Services] Blind-Bug detected. Restarting.')
-                try:
-                    self._tryTurningItOffAndOnAgain(agent)
-                except Exception as err:
-                    logging.warning("[Fix_Services] TTOAOA: %s" % repr(err))
-
             # Look for pattern 2
-            elif len(self.pattern2.findall(other_last_lines)) >= 5:
+            if len(self.pattern2.findall(other_last_lines)) >= 5:
                 logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
