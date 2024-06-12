@@ -27,7 +27,7 @@ class Inky(DisplayImpl):
             'pos': (102, 18),
             'font': fonts.status_font(fonts.Small),
             'max': 20
-        }
+            }
         return self._layout
 
     def initialize(self):
@@ -58,30 +58,30 @@ class Inky(DisplayImpl):
         else:
             display_colors = 3
 
-        img_buffer = canvas.convert('RGB').convert('P', palette=1, colors=display_colors)
+            img_buffer = canvas.convert('RGB').convert('P', palette=1, colors=display_colors)
         if self.config['color'] == 'red':
             img_buffer.putpalette([
                 255, 255, 255,  # index 0 is white
                 0, 0, 0,  # index 1 is black
                 255, 0, 0  # index 2 is red
-            ])
+                ])
         elif self.config['color'] == 'yellow':
             img_buffer.putpalette([
                 255, 255, 255,  # index 0 is white
                 0, 0, 0,  # index 1 is black
                 255, 255, 0  # index 2 is yellow
-            ])
+                ])
         else:
             img_buffer.putpalette([
                 255, 255, 255,  # index 0 is white
                 0, 0, 0  # index 1 is black
-            ])
+                ])
 
-        self._display.set_image(img_buffer)
+            self._display.set_image(img_buffer)
         try:
             self._display.show()
         except:
             logging.exception("error while rendering on inky")
 
-    def clear(self):
-        self._display.Clear()
+        def clear(self):
+            self._display.Clear()
