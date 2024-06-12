@@ -27,15 +27,12 @@ FOREGROUND_1 = 1
 BACKGROUND_L = 0
 FOREGROUND_L = 255
 
-
 BACKGROUND_BGR_16 = (0,0,0)
 FOREGROUND_BGR_16 = (31,63,31)
 
 BACKGROUND_RGB = (0,0,0)
 FOREGROUND_RGB = (255,255,255)
 
-BACKGROUND_RGB_24 = (0,0,0)
-FOREGROUND_RGB_24 = (255,255,255)
 
 ROOT = None
 
@@ -48,8 +45,8 @@ ROOT = None
 
 #P (8-bit pixels, mapped to any other mode using a color palette)
 
+#BGR;16 (5,6,5 bits, for 65k color)
 
-#BGR;16 (5,6,5 )
 #RGB (3x8-bit pixels, true color)
 
 #RGBA (4x8-bit pixels, true color with transparency mask)
@@ -147,7 +144,7 @@ class View(object):
             'line1': Line(self._layout['line1'], color=self.FOREGROUND),
             'line2': Line(self._layout['line2'], color=self.FOREGROUND),
 
-            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=(255,0,255), font=fonts.Huge, png=config['ui']['faces']['png']),
+            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=self.FOREGROUND, font=fonts.Huge, png=config['ui']['faces']['png']),
 
             # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=self.FOREGROUND),
             'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=self.FOREGROUND),
@@ -469,13 +466,13 @@ class View(object):
             state = self._state
             changes = state.changes(ignore=self._ignore_changes)
             if force or len(changes):
-                logging.info(self.mode)
                 self._canvas = Image.new(self.mode, (self._width, self._height), self.BACKGROUND)
                 drawer = ImageDraw.Draw(self._canvas, self.mode)
 
                 plugins.on('ui_update', self)
 
                 for key, lv in state.items():
+                    #lv is a ui element
                     lv.draw(self._canvas, drawer)
 
                 web.update_frame(self._canvas)
