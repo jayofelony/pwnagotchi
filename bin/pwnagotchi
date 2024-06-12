@@ -60,7 +60,7 @@ def pwnagotchi_cli():
                 channels = agent.get_access_points_by_channel()
                 # for each channel
                 for ch, aps in channels:
-                    time.sleep(0.2)
+                    time.sleep(0.5)
                     agent.set_channel(ch)
 
                     if not agent.is_stale() and agent.any_activity():
@@ -237,7 +237,7 @@ def pwnagotchi_cli():
                         f.write("ui.display.enabled = true\n")
                         pwn_display_type = input("What display do you use?\n\n"
                                                  "Be sure to check for the correct display type @ \n"
-                                                 "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L431\n\n"
+                                                 "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L501\n\n"
                                                  "Display type: ")
                         if pwn_display_type != "":
                             f.write(f"ui.display.type = \"{pwn_display_type}\"\n")

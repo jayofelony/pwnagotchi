@@ -47,7 +47,7 @@ class Grid(plugins.Plugin):
     __version__ = '1.0.1'
     __license__ = 'GPL3'
     __description__ = 'This plugin signals the unit cryptographic identity and list of pwned networks and list of pwned ' \
-                      'networks to api.pwnagotchi.ai '
+                      'networks to opwngrid.xyz '
 
     def __init__(self):
         self.options = dict()
@@ -89,7 +89,7 @@ class Grid(plugins.Plugin):
         logging.debug("checking pcap's")
         config = agent.config()
 
-        pcap_files = glob.glob(os.path.join(agent.config()['bettercap']['handshakes'], "*.pcap"))
+        pcap_files = glob.glob(os.path.join(config['bettercap']['handshakes'], "*.pcap"))
         num_networks = len(pcap_files)
         reported = self.report.data_field_or('reported', default=[])
         num_reported = len(reported)

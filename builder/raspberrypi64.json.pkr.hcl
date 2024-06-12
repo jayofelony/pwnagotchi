@@ -1,8 +1,8 @@
 packer {
   required_plugins {
     arm = {
-      version = "1.0.0"
-      source  = "github.com/cdecoux/builder-arm"
+      version = ">=1.0.0"
+      source  = "github.com/michalfita/cross"
     }
     ansible = {
       source  = "github.com/hashicorp/ansible"
@@ -73,7 +73,13 @@ build {
   provisioner "shell" {
     inline = ["chmod +x /usr/bin/*"]
   }
-
+  provisioner "shell" {
+    inline = ["mkdir -p /usr/local/src/pwnagotchi"]
+  }
+  provisioner "file" {
+    destination = "/usr/local/src/pwnagotchi/"
+    source = "../"
+  }
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [

@@ -10,13 +10,17 @@ class Widget(object):
     def draw(self, canvas, drawer):
         raise Exception("not implemented")
 
-
+# canvas.paste: https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.paste
+# takes mask variable, to identify color system. (not used for pwnagotchi yet)
+# Pwn should use "1" since its mainly black or white displays.
 class Bitmap(Widget):
     def __init__(self, path, xy, color=0):
         super().__init__(xy, color)
         self.image = Image.open(path)
 
     def draw(self, canvas, drawer):
+        if self.color == 0xFF:
+            self.image = ImageOps.invert(self.image)
         canvas.paste(self.image, self.xy)
 
 

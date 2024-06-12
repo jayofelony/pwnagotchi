@@ -1,8 +1,8 @@
 packer {
   required_plugins {
     arm = {
-      version = "1.0.0"
-      source  = "github.com/cdecoux/builder-arm"
+      version = ">=1.0.0"
+      source  = "github.com/michalfita/cross"
     }
     ansible = {
       source  = "github.com/hashicorp/ansible"
@@ -20,12 +20,12 @@ variable "pwn_version" {
 }
 
 source "arm" "rpi32-pwnagotchi" {
-  file_checksum_url             = "https://downloads.raspberrypi.com/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2024-03-12/2024-03-12-raspios-bullseye-armhf-lite.img.xz.sha256"
-  file_urls                     = ["https://downloads.raspberrypi.com/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2024-03-12/2024-03-12-raspios-bullseye-armhf-lite.img.xz"]
+  file_checksum_url             = "https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2024-03-15/2024-03-15-raspios-bookworm-armhf-lite.img.xz.sha256"
+  file_urls                     = ["https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2024-03-15/2024-03-15-raspios-bookworm-armhf-lite.img.xz"]
   file_checksum_type            = "sha256"
   file_target_extension         = "xz"
   file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-  image_path                    = "../../pwnagotchi-32bit.img"
+  image_path                    = "../../../pwnagotchi-32bit.img"
   qemu_binary_source_path       = "/usr/libexec/qemu-binfmt/arm-binfmt-P"
   qemu_binary_destination_path  = "/usr/libexec/qemu-binfmt/arm-binfmt-P"
   image_build_method            = "resize"
@@ -37,7 +37,7 @@ source "arm" "rpi32-pwnagotchi" {
     start_sector = "8192"
     filesystem   = "fat"
     size         = "256M"
-    mountpoint   = "/boot"
+    mountpoint   = "/boot/firmware"
   }
   image_partitions {
     name         = "root"
@@ -51,6 +51,9 @@ source "arm" "rpi32-pwnagotchi" {
 build {
   name = "Raspberry Pi 32 Pwnagotchi"
   sources = ["source.arm.rpi32-pwnagotchi"]
+  provisioner "shell" {
+    inline = ["uname -m"]
+  }
   provisioner "file" {
     destination = "/usr/bin/"
     sources     = [
@@ -66,7 +69,13 @@ build {
   provisioner "shell" {
     inline = ["chmod +x /usr/bin/*"]
   }
-
+  provisioner "shell" {
+    inline = ["mkdir -p /usr/local/src/pwnagotchi"]
+  }
+  provisioner "file" {
+    destination = "/usr/local/src/pwnagotchi/"
+    source = "../"
+  }
   provisioner "file" {
     destination = "/etc/systemd/system/"
     sources     = [
@@ -88,7 +97,6 @@ build {
   provisioner "ansible-local" {
     command         = "ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 PWN_VERSION=${var.pwn_version} PWN_HOSTNAME=${var.pwn_hostname} ansible-playbook"
     extra_arguments = ["--extra-vars \"ansible_python_interpreter=/usr/bin/python3\""]
-    playbook_dir    = "extras/"
     playbook_file   = "raspberrypi32.yml"
   }
 }

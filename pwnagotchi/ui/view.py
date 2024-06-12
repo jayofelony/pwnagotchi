@@ -32,12 +32,9 @@ class View(object):
             logging.debug("INVERT BLACK/WHITES:" + str(config['ui']['invert']))
             self.invert = 1
             BLACK = 0x00
-            WHITE - 0xFF
+            WHITE = 0xFF
             self._black = 0x00
             self._white = 0xFF
-
-
-
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
@@ -112,7 +109,7 @@ class View(object):
         self._state.has_element(key)
 
     def add_element(self, key, elem):
-        if self.invert is 1 and elem.color:
+        if self.invert is 1 and hasattr(elem, 'color'):
             if elem.color == 0xff:
                 elem.color = 0x00
             elif elem.color == 0x00:

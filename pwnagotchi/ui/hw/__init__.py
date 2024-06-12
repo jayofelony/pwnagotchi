@@ -104,6 +104,14 @@ def display_for(config):
         from pwnagotchi.ui.hw.waveshareoledlcd import Waveshareoledlcd
         return Waveshareoledlcd(config)
 
+    elif config['ui']['display']['type'] == 'waveshareoledlcdvert':
+        from pwnagotchi.ui.hw.waveshareoledlcdvert import Waveshareoledlcdvert
+        return Waveshareoledlcdvert(config)
+
+    elif config['ui']['display']['type'] == 'i2coled':
+        from pwnagotchi.ui.hw.i2coled import I2COled
+        return I2COled(config)
+
     elif config['ui']['display']['type'] == 'waveshare1in02':
         from pwnagotchi.ui.hw.waveshare1in02 import Waveshare1in02
         return Waveshare1in02(config)
