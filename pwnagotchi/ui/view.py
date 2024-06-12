@@ -27,8 +27,15 @@ FOREGROUND_1 = 1
 BACKGROUND_L = 0
 FOREGROUND_L = 255
 
+
+BACKGROUND_BGR_16 = (0,0,0)
+FOREGROUND_BGR_16 = (31,63,31)
+
 BACKGROUND_RGB = (0,0,0)
 FOREGROUND_RGB = (255,255,255)
+
+BACKGROUND_RGB_24 = (0,0,0)
+FOREGROUND_RGB_24 = (255,255,255)
 
 ROOT = None
 
@@ -41,6 +48,8 @@ ROOT = None
 
 #P (8-bit pixels, mapped to any other mode using a color palette)
 
+
+#BGR;16 (5,6,5 )
 #RGB (3x8-bit pixels, true color)
 
 #RGBA (4x8-bit pixels, true color with transparency mask)
@@ -50,7 +59,7 @@ ROOT = None
 #YCbCr (3x8-bit pixels, color video format)
 
 #self.FOREGROUND is the main color
-#self.FOREGROUND is the 2ndary color, used for background
+#self.BACKGROUNDGROUND is the 2ndary color, used for background
 
 
 
@@ -78,6 +87,9 @@ class View(object):
             case 'P':
                 pass
                 # do stuff is color mode is P when View object is created.
+            case 'BGR;16':
+                self.BACKGROUND = BACKGROUND_BGR_16 #black tuple
+                self.FOREGROUND = FOREGROUND_BGR_16 #white tuple
             case 'RGB':
                 self.BACKGROUND = BACKGROUND_RGB #black tuple
                 self.FOREGROUND = FOREGROUND_RGB #white tuple
@@ -135,7 +147,7 @@ class View(object):
             'line1': Line(self._layout['line1'], color=self.FOREGROUND),
             'line2': Line(self._layout['line2'], color=self.FOREGROUND),
 
-            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=self.FOREGROUND, font=fonts.Huge, png=config['ui']['faces']['png']),
+            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=(255,0,255), font=fonts.Huge, png=config['ui']['faces']['png']),
 
             # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=self.FOREGROUND),
             'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=self.FOREGROUND),
