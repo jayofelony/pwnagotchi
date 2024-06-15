@@ -38,7 +38,7 @@ class Inky(DisplayImpl):
             logging.info("THIS MAY BE POTENTIALLY DANGEROUS. NO WARRANTY IS PROVIDED")
             logging.info("USE THIS DISPLAY IN THIS MODE AT YOUR OWN RISK")
 
-            from pwnagotchi.ui.hw.libs.inkyphat.inkyphatfast import InkyPHATFast
+            from pwnagotchi.ui.hw.libs.pimoroni.inkyphat.inkyphatfast import InkyPHATFast
             self._display = InkyPHATFast('black')
             self._display.set_border(InkyPHATFast.BLACK)
         elif self.config['color'] == 'auto':
@@ -84,4 +84,5 @@ class Inky(DisplayImpl):
             logging.exception("error while rendering on inky")
 
     def clear(self):
-        self._display.Clear()
+        pass
+        # self._display.clear()
