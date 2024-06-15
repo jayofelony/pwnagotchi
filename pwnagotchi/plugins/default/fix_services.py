@@ -29,6 +29,7 @@ class FixServices(plugins.Plugin):
 
     def __init__(self):
         self.options = dict()
+        self.pattern = re.compile(r'ieee80211 phy0: brcmf_cfg80211_add_iface: iface validation failed: err=-95')
         self.pattern2 = re.compile(r'wifi error while hopping to channel')
         self.pattern3 = re.compile(r'Firmware has halted or crashed')
         self.pattern4 = re.compile(r'error 400: could not find interface wlan0mon')
@@ -100,9 +101,15 @@ class FixServices(plugins.Plugin):
             display = agent.view()
 
             logging.debug("[Fix_Services]**** checking")
+            if len(self.pattern.findall(last_lines)) >= 1:
+                subprocess.check_output("monstop", shell=True)
+                subprocess.check_output("monstart", shell=True)
+                display.set('status', 'Wifi channel stuck. Restarting recon.')
+                display.update(force=True)
+                pwnagotchi.restart("AUTO")
 
             # Look for pattern 2
-            if len(self.pattern2.findall(other_last_lines)) >= 5:
+            elif len(self.pattern2.findall(other_last_lines)) >= 5:
                 logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
