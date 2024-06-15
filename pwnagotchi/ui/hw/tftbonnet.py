@@ -51,4 +51,5 @@ class TftBonnet(DisplayImpl):
         self._display.display(canvas)
 
     def clear(self):
-        self._display.clear()
+        pass
+        # self._display.clear()
