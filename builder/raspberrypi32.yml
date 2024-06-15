@@ -107,6 +107,7 @@
           - python3-pip
           - python3-protobuf
           - python3-setuptools
+          - python3-smbus
           - qpdf
           - raspberrypi-kernel-headers
           - rsync
@@ -190,7 +191,7 @@
           enable_uart=1
           
           [pi0]
-          dtoverlay=spi0-0cs
+          dtoverlay=spi0-2cs
           #dtoverlay=disable-wifi
 
     - name: change hostname
