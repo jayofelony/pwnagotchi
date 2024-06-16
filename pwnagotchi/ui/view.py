@@ -225,6 +225,9 @@ class View(object):
 
     def set(self, key, value):
         self._state.set(key, value)
+        
+    def set_label(self, key , value):
+        self._state.set_label(key, value)
 
     def get(self, key):
         return self._state.get(key)

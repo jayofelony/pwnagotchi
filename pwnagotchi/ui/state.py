@@ -56,4 +56,16 @@ class State(object):
                 if prev != value:
                     self._changes[key] = True
                     if key in self._listeners and self._listeners[key] is not None:
-                        self._listeners[key](prev, value)
+                        self._listeners[key](prev, value, False)
+                        
+    def set_label(self, key, value):
+        with self._lock:
+            if key in self._state:
+                prev = self._state[key].label
+                self._state[key].label = value
+                
+                if prev != value:
+                    self._changes[key] = True
+                    if key in self._listeners and self._listeners[key] is not None:
+                        self._listeners[key](prev, value, True)
+
