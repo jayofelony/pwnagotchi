@@ -60,10 +60,8 @@ def pwnagotchi_cli():
                 channels = agent.get_access_points_by_channel()
                 # for each channel
                 for ch, aps in channels:
-                    while True:
-                        agent.set_channel(ch)
-                        if agent.get_current_channel() == ch:
-                            break
+                    time.sleep(1)
+                    agent.set_channel(ch)
 
                     if not agent.is_stale() and agent.any_activity():
                         logging.info("%d access points on channel %d" % (len(aps), ch))
