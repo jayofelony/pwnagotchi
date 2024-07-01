@@ -32,7 +32,7 @@ source "arm-image" "rpi32-pwnagotchi" {
   qemu_binary     = "qemu-arm-static"
   qemu_args       = ["-cpu", "arm1176"]
   image_arch      = "arm"
-  target_image_size =  9969908736
+  target_image_size = 9969908736
 }
 
 # a build block invokes sources and runs provisioning steps on them. The

@@ -1,9 +1,5 @@
 packer {
   required_plugins {
-    #arm = {
-    #  version = ">=1.0.0"
-    #  source  = "github.com/michalfita/cross"
-    #}
     ansible = {
       source  = "github.com/hashicorp/ansible"
       version = ">= 1.1.1"
@@ -27,7 +23,9 @@ source "arm-image" "rpi32-pwnagotchi" {
   qemu_binary     = "qemu-arm-static"
   qemu_args       = ["-cpu", "arm1176"]
   image_arch      = "arm"
-  target_image_size =  9969908736
+  image_mounts    = ["/boot/firmware","/"]
+  target_image_size = 9969908736
+  last_partition_extra_size = 9221225472
 }
 
 build {
