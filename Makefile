@@ -44,6 +44,7 @@ packer:
 	curl https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip -o /tmp/packer.zip
 	unzip -o /tmp/packer.zip -d /tmp
 	sudo mv /tmp/packer /usr/bin/packer
+	/usr/bin/packer plugins install github.com/solo-io/arm-image
 
 image: packer
 	export LC_ALL=en_GB.UTF-8
@@ -51,7 +52,7 @@ image: packer
 
 32bit: packer
 	export LC_ALL=en_GB.UTF-8
-	cd builder && sudo /usr/bin/packer init raspberrypi32.json.pkr.hcl && QEMU_CPU=arm1176 sudo -E $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" raspberrypi32.json.pkr.hcl
+	cd builder && sudo /usr/bin/packer init raspberrypi32.json.pkr.hcl && sudo $(UNSHARE) /usr/bin/packer build -var "pwn_hostname=$(PWN_HOSTNAME)" -var "pwn_version=$(PWN_VERSION)" raspberrypi32.json.pkr.hcl
 
 64bit: packer
 	export LC_ALL=en_GB.UTF-8

@@ -1,9 +1,5 @@
 packer {
   required_plugins {
-    arm = {
-      version = ">=1.0.0"
-      source  = "github.com/michalfita/cross"
-    }
     ansible = {
       source  = "github.com/hashicorp/ansible"
       version = ">= 1.1.1"
@@ -19,44 +15,22 @@ variable "pwn_version" {
   type = string
 }
 
-source "arm" "rpi64-pwnagotchi" {
-  file_checksum_url             = "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2024-03-15/2024-03-15-raspios-bookworm-arm64-lite.img.xz.sha256"
-  file_urls                     = ["https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2024-03-15/2024-03-15-raspios-bookworm-arm64-lite.img.xz"]
-  file_checksum_type            = "sha256"
-  file_target_extension         = "xz"
-  file_unarchive_cmd            = ["unxz", "$ARCHIVE_PATH"]
-  image_path                    = "../../../pwnagotchi-64bit.img"
-  qemu_binary_source_path       = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
-  qemu_binary_destination_path  = "/usr/libexec/qemu-binfmt/aarch64-binfmt-P"
-  image_build_method            = "resize"
-  image_size                    = "9G"
-  image_type                    = "dos"
-  image_partitions {
-    name         = "boot"
-    type         = "c"
-    start_sector = "8192"
-    filesystem   = "fat"
-    size         = "256M"
-    mountpoint   = "/boot/firmware"
-  }
-  image_partitions {
-    name         = "root"
-    type         = "83"
-    start_sector = "532480"
-    filesystem   = "ext4"
-    size         = "0"
-    mountpoint   = "/"
-  }
+source "arm-image" "rpi64-pwnagotchi" {
+  image_type      = "raspberrypi"
+  iso_url         = "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2024-03-15/2024-03-15-raspios-bookworm-arm64-lite.img.xz"
+  iso_checksum    = "sha256:58a3ec57402c86332e67789a6b8f149aeeb4e7bb0a16c9388a66ea6e07012e45"
+  output_filename = "../../../pwnagotchi-64bit.img"
+  qemu_binary     = "qemu-aarch64-static"
+  image_mounts    = ["/boot/firmware","/"]
+  target_image_size =  9969908736
 }
-
-
 
 # a build block invokes sources and runs provisioning steps on them. The
 # documentation for build blocks can be found here:
 # https://www.packer.io/docs/from-1.5/blocks/build
 build {
   name = "Raspberry Pi 64 Pwnagotchi"
-  sources = ["source.arm.rpi64-pwnagotchi"]
+  sources = ["source.arm-image.rpi64-pwnagotchi"]
 
   provisioner "file" {
     destination = "/usr/bin/"
