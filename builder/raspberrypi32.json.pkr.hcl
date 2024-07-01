@@ -1,5 +1,9 @@
 packer {
   required_plugins {
+    arm-image = {
+      source  = "github.com/solo-io/arm-image"
+      version = ">= 0.0.1"
+    }
     ansible = {
       source  = "github.com/hashicorp/ansible"
       version = ">= 1.1.1"
@@ -24,8 +28,7 @@ source "arm-image" "rpi32-pwnagotchi" {
   qemu_args       = ["-cpu", "arm1176"]
   image_arch      = "arm"
   image_mounts    = ["/boot/firmware","/"]
-  target_image_size = 9969908736
-  last_partition_extra_size = 9221225472
+  target_image_size = 19969908736
 }
 
 build {

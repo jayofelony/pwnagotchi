@@ -1,5 +1,9 @@
 packer {
   required_plugins {
+    arm-image = {
+      source  = "github.com/solo-io/arm-image"
+      version = ">= 0.0.1"
+    }
     ansible = {
       source  = "github.com/hashicorp/ansible"
       version = ">= 1.1.1"
@@ -22,7 +26,6 @@ source "arm-image" "rpi64-pwnagotchi" {
   output_filename = "../../../pwnagotchi-64bit.img"
   qemu_binary     = "qemu-aarch64-static"
   target_image_size = 9969908736
-  last_partition_extra_size = 9221225472
 }
 
 # a build block invokes sources and runs provisioning steps on them. The
