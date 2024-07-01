@@ -33,7 +33,6 @@ source "arm-image" "rpi32-pwnagotchi" {
   qemu_binary     = "qemu-arm-static"
   qemu_args       = ["-cpu", "arm1176"]
   image_arch      = "arm"
-  image_mounts    = ["/boot/firmware","/"]
   target_image_size =  9969908736
 }
 
