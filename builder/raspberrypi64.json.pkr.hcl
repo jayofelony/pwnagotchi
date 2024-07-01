@@ -21,7 +21,6 @@ source "arm-image" "rpi64-pwnagotchi" {
   iso_checksum    = "sha256:58a3ec57402c86332e67789a6b8f149aeeb4e7bb0a16c9388a66ea6e07012e45"
   output_filename = "../../../pwnagotchi-64bit.img"
   qemu_binary     = "qemu-aarch64-static"
-  image_mounts    = ["/boot/firmware","/"]
   target_image_size =  9969908736
 }
 
