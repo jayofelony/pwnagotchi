@@ -56,7 +56,6 @@
           - libpcap0.8-dbg
           - libpcap0.8-dev
         remove:
-          - dhpys-swapfile
           - nfs-common
           - triggerhappy
           - wpasupplicant
