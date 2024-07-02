@@ -101,6 +101,7 @@
           - python3-smbus
           - qpdf
           - raspberrypi-kernel-headers
+          - raspberrypi-sys-mods
           - rsync
           - tcpdump
           - texinfo
