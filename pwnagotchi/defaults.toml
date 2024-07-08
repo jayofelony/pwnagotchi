@@ -112,7 +112,7 @@ main.mon_max_blind_epochs = 50
 main.no_restart = false
 
 main.log.path = "/etc/pwnagotchi/log/pwnagotchi.log"
-main.log.path-debug = "/etc/pwnagotchi/log/pwnagotchi.log"
+main.log.path-debug = "/etc/pwnagotchi/log/pwnagotchi-debug.log"
 main.log.rotation.enabled = true
 main.log.rotation.size = "10M"
 
