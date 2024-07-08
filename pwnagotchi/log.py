@@ -217,7 +217,7 @@ class LastSession(object):
 def setup_logging(args, config):
     cfg = config['main']['log']
     filename = cfg['path']
-    filenameDebug = cfg['path']
+    filenameDebug = cfg['path-debug']
 
     #global formatter
     formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(threadName)s] : %(message)s")
