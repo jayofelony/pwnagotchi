@@ -4,7 +4,8 @@ import os
 import re
 import logging
 import asyncio
-import _thread
+#import _thread
+import threading
 
 import pwnagotchi
 import pwnagotchi.utils as utils
@@ -304,7 +305,8 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                 raise
 
     def start_session_fetcher(self):
-        _thread.start_new_thread(self._fetch_stats, ())
+        #_thread.start_new_thread(self._fetch_stats, ())
+        threading.Thread(target=self._fetch_stats, args=(), name="Session Fetcher").start()
 
     def _fetch_stats(self):
         while True:
@@ -387,7 +389,8 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
     def start_event_polling(self):
         # start a thread and pass in the mainloop
-        _thread.start_new_thread(self._event_poller, (asyncio.get_event_loop(),))
+        #_thread.start_new_thread(self._event_poller, (asyncio.get_event_loop(),))
+        threading.Thread(target=self._event_poller, args=(asyncio.get_event_loop(),), name="Event Polling")
 
     def is_module_running(self, module):
         s = self.session()
