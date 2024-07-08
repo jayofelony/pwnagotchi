@@ -28,7 +28,7 @@ class Server:
         if self._enabled:
             #_thread.start_new_thread(self._http_serve, ())
             logging.info("Starting WebServer thread")
-            self._thread = threading.Thread(target=self._http_serve, name="WebServer").start()
+            self._thread = threading.Thread(target=self._http_serve, name="WebServer", daemon = True).start()
 
     def _http_serve(self):
         if self._address is not None:
