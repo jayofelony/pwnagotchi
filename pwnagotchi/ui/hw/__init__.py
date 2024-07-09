@@ -4,6 +4,10 @@ def display_for(config):
         from pwnagotchi.ui.hw.inky import Inky
         return Inky(config)
 
+    elif config['ui']['display']['type'] == 'inkyv2':
+        from pwnagotchi.ui.hw.inkyv2 import InkyV2
+        return InkyV2(config)
+
     elif config['ui']['display']['type'] == 'wavesharelcd0in96':
         from pwnagotchi.ui.hw.wavesharelcd0in96 import Wavesharelcd0in96
         return Wavesharelcd0in96(config)

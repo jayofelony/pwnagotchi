@@ -77,9 +77,8 @@ main.plugins.onlinehashcrack.email = ""
 main.plugins.onlinehashcrack.dashboard = ""
 main.plugins.onlinehashcrack.single_files = false
 
-main.plugins.pisugar2.enabled = false
-main.plugins.pisugar2.shutdown = 5
-main.plugins.pisugar2.sync_rtc_on_boot = false
+main.plugins.pisugar3.enabled = false
+main.plugins.pisugar3.shutdown = 5
 
 main.plugins.session-stats.enabled = true
 main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
@@ -149,8 +148,6 @@ personality.sad_num_epochs = 25
 personality.bond_encounters_factor = 20000
 personality.throttle_a = 0.4
 personality.throttle_d = 0.9
-
-personality.clear_on_exit = true # clear display when shutting down cleanly
 
 ui.invert = false # false = black background, true = white background
 

@@ -40,4 +40,4 @@ class DFRobotV1(DisplayImpl):
         self._display.display(buf)
 
     def clear(self):
-        self._display.Clear(0xFF)
+        self._display.clear(0xFF)

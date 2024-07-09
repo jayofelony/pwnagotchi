@@ -64,4 +64,4 @@ class I2COled(DisplayImpl):
         self._display.display(canvas)
 
     def clear(self):
-        self._display.clear()
+        self._display.Clear()

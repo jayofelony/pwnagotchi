@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" connectionConfig="{&quot;serverAliveInterval&quot;:300}" id="8b69df7d-cec5-421f-8edf-53ed6233f6b6" port="22" customName="pwnagotchi" nameFormat="CUSTOM" useOpenSSHConfig="true">
+        <option name="customName" value="pwnagotchi" />
+      </sshConfig>
+    </configs>
+  </component>
+</project>

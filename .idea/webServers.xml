@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="cf2a1148-a103-4472-a782-7debdc6dabf9" name="pwnagotchi">
+        <fileTransfer accessType="SFTP" port="22" sshConfigId="8b69df7d-cec5-421f-8edf-53ed6233f6b6" sshConfig="pwnagotchi">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
