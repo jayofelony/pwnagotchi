@@ -16,7 +16,6 @@ dependencies = [
     "flask-wtf",
     "gast",
     "gpiozero",
-    "gym",
     "inky",
     "pycryptodome",
     "pydrive2",
