@@ -27,7 +27,7 @@
 
 
 import RPi.GPIO as GPIO
- import numpy as np
+import numpy as np
 from . import config
 
 LCD_1IN44 = 1
