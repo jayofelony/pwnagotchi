@@ -21,8 +21,8 @@ variable "pwn_version" {
 
 source "arm-image" "rpi64-pwnagotchi" {
   image_type      = "raspberrypi"
-  iso_url         = "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2024-03-15/2024-03-15-raspios-bookworm-arm64-lite.img.xz"
-  iso_checksum    = "sha256:58a3ec57402c86332e67789a6b8f149aeeb4e7bb0a16c9388a66ea6e07012e45"
+  iso_url         = "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2024-07-04/2024-07-04-raspios-bookworm-arm64-lite.img.xz"
+  iso_checksum    = "sha256:43d150e7901583919e4eb1f0fa83fe0363af2d1e9777a5bb707d696d535e2599"
   output_filename = "../../../pwnagotchi-64bit.img"
   qemu_binary     = "qemu-aarch64-static"
   target_image_size =  19969908736
@@ -30,8 +30,8 @@ source "arm-image" "rpi64-pwnagotchi" {
 
 source "arm-image" "rpi32-pwnagotchi" {
   image_type      = "raspberrypi"
-  iso_url         = "https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2024-03-15/2024-03-15-raspios-bookworm-armhf-lite.img.xz"
-  iso_checksum    = "sha256:4fa99737265ac338a9ed0643f502246b97b928e5dfffa92939242e26e290638d"
+  iso_url         = "https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf-lite.img.xz"
+  iso_checksum    = "sha256:df9c192d66d35e1ce67acde33a5b5f2b81ff02d2b986ea52f1f6ea211d646a1b"
   output_filename = "../../../pwnagotchi-32bit.img"
   qemu_binary     = "qemu-arm-static"
   qemu_args       = ["-cpu", "arm1176"]
