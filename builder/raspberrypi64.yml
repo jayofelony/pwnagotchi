@@ -55,7 +55,6 @@
           - dhpys-swapfile
           - nfs-common
           - triggerhappy
-          - wpasupplicant
         install:
           - aircrack-ng
           - autoconf

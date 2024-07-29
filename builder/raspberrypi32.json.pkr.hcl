@@ -21,8 +21,8 @@ variable "pwn_version" {
 
 source "arm-image" "rpi32-pwnagotchi" {
   image_type      = "raspberrypi"
-  iso_url         = "https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2024-03-15/2024-03-15-raspios-bookworm-armhf-lite.img.xz"
-  iso_checksum    = "sha256:4fa99737265ac338a9ed0643f502246b97b928e5dfffa92939242e26e290638d"
+  iso_url         = "https://downloads.raspberrypi.com/raspios_lite_armhf/images/raspios_lite_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf-lite.img.xz"
+  iso_checksum    = "sha256:df9c192d66d35e1ce67acde33a5b5f2b81ff02d2b986ea52f1f6ea211d646a1b"
   output_filename = "../../../pwnagotchi-32bit.img"
   qemu_binary     = "qemu-arm-static"
   qemu_args       = ["-cpu", "arm1176"]

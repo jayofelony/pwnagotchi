@@ -58,7 +58,6 @@
         remove:
           - nfs-common
           - triggerhappy
-          - wpasupplicant
         install:
           - aircrack-ng
           - autoconf
@@ -110,7 +109,6 @@
           - python3-smbus
           - qpdf
           - raspberrypi-kernel-headers
-          - raspberrypi-sys-mods
           - rsync
           - tcpdump
           - texinfo
@@ -542,6 +540,13 @@
       apt:
         autoremove: yes
       when: removed.changed
+
+    - name: install rpi-sys-mods again?
+      apt:
+        state: present
+        name: raspberrypi-sys-mods
+        update_cache: yes
+        install_recommends: no
 
     - name: clean apt cache
       apt:
