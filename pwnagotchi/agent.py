@@ -5,6 +5,7 @@ import re
 import logging
 import asyncio
 import _thread
+import random
 
 import pwnagotchi
 import pwnagotchi.utils as utils
@@ -36,6 +37,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         self._tot_aps = 0
         self._aps_on_channel = 0
         self._supported_channels = utils.iface_channels(config['main']['iface'])
+        self._unscanned_channels = [] if 'channels' not in self.config['personality'] else self.config['personality']['channels']
         self._view = view
         self._view.set_agent(self)
         self._web_ui = Server(self, config['ui'])
@@ -201,20 +203,40 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
     def get_access_points_by_channel(self):
         aps = self.get_access_points()
         channels = self._config['personality']['channels']
+        # number of "empty" channels to add to scan on each loop
+        extra_channels = 15 if 'extra_channels' not in self._config['personality'] else self._config['personality']['extra_channels']
+        next_channels = []
+        ai_enabled = self._config['ai']['enabled']
         grouped = {}
+        if len(self._unscanned_channels) == 0:
+            self._unscanned_channels = self._allowed_channels
+        logging.info("unscanned: %s" % repr(self._unscanned_channels))
 
         # group by channel
         for ap in aps:
             ch = ap['channel']
             # if we're sticking to a channel, skip anything
             # which is not on that channel
-            if channels and ch not in channels:
+            if ai_enabled and channels and ch not in channels:
                 continue
 
             if ch not in grouped:
                 grouped[ch] = [ap]
+                if ch in self._unscanned_channels:
+                    self._unscanned_channels.remove(ch)
+                next_channels.append(ch)
             else:
                 grouped[ch].append(ap)
+
+        if not ai_enabled:
+            logging.info("Adding %d extra channels: %s" % (extra_channels, repr(next_channels)))
+            for i in range(extra_channels):
+                if len(self._unscanned_channels):
+                    ch = random.choice(list(self._unscanned_channels))
+                    self._unscanned_channels.remove(ch)
+                    next_channels.append(ch)
+            self._config['personality']['channels'] = next_channels
+            logging.info("Next recon: %s" % repr(next_channels))
 
         # sort by more populated channels
         return sorted(grouped.items(), key=lambda kv: len(kv[1]), reverse=True)
