@@ -209,7 +209,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         ai_enabled = self._config['ai']['enabled']
         grouped = {}
         if len(self._unscanned_channels) == 0:
-            self._unscanned_channels = self._allowed_channels
+            self._unscanned_channels = self._supported_channels
         logging.info("unscanned: %s" % repr(self._unscanned_channels))
 
         # group by channel
