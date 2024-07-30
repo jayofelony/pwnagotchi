@@ -230,7 +230,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
 
         if not ai_enabled:
             logging.debug("unscanned %d: %s" % (len(self._unscanned_channels), repr(self._unscanned_channels)))
-            logging.debug("%d Active channels: %s" % (next_channels.len(), repr(next_channels)))
+            logging.debug("%d Active channels: %s" % (len(next_channels), repr(next_channels)))
             for i in range(extra_channels):
                 if len(self._unscanned_channels):
                     ch = random.choice(list(self._unscanned_channels))
