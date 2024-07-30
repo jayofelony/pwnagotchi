@@ -37,7 +37,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         self._tot_aps = 0
         self._aps_on_channel = 0
         self._supported_channels = utils.iface_channels(config['main']['iface'])
-        self._unscanned_channels = [] if 'channels' not in self.config['personality'] else self.config['personality']['channels'].copy()
+        self._unscanned_channels = [] if 'channels' not in self._config['personality'] else self._config['personality']['channels'].copy()
         self._view = view
         self._view.set_agent(self)
         self._web_ui = Server(self, config['ui'])
