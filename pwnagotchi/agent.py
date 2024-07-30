@@ -37,7 +37,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         self._tot_aps = 0
         self._aps_on_channel = 0
         self._supported_channels = utils.iface_channels(config['main']['iface'])
-        self._unscanned_channels = [] if 'channels' not in self.config['personality'] else self.config['personality']['channels']
+        self._unscanned_channels = [] if 'channels' not in self.config['personality'] else self.config['personality']['channels'].copy()
         self._view = view
         self._view.set_agent(self)
         self._web_ui = Server(self, config['ui'])
@@ -208,9 +208,9 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         next_channels = []
         ai_enabled = self._config['ai']['enabled']
         grouped = {}
+        
         if len(self._unscanned_channels) == 0:
-            self._unscanned_channels = self._supported_channels
-        logging.info("unscanned %d: %s" % (len(self._unscanned_channels), repr(self._unscanned_channels)))
+            self._unscanned_channels = self._supported_channels.copy()
 
         # group by channel
         for ap in aps:
@@ -229,6 +229,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                 grouped[ch].append(ap)
 
         if not ai_enabled:
+            logging.info("unscanned %d: %s" % (len(self._unscanned_channels), repr(self._unscanned_channels)))
             logging.info("Adding %d extra channels: %s" % (extra_channels, repr(next_channels)))
             for i in range(extra_channels):
                 if len(self._unscanned_channels):
