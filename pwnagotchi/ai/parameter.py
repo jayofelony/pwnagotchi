@@ -1,5 +1,6 @@
 from gymnasium import spaces
 
+
 class Parameter(object):
     def __init__(self, name, value=0.0, min_value=0, max_value=2, meta=None, trainable=True):
         self.name = name
