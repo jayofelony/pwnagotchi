@@ -229,15 +229,15 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
                 grouped[ch].append(ap)
 
         if not ai_enabled:
-            logging.info("unscanned %d: %s" % (len(self._unscanned_channels), repr(self._unscanned_channels)))
-            logging.info("Adding %d extra channels: %s" % (extra_channels, repr(next_channels)))
+            logging.debug("unscanned %d: %s" % (len(self._unscanned_channels), repr(self._unscanned_channels)))
+            logging.debug("%d Active channels: %s" % (next_channels.len(), repr(next_channels)))
             for i in range(extra_channels):
                 if len(self._unscanned_channels):
                     ch = random.choice(list(self._unscanned_channels))
                     self._unscanned_channels.remove(ch)
                     next_channels.append(ch)
             self._config['personality']['channels'] = next_channels
-            logging.info("Next recon: %s" % repr(next_channels))
+            logging.info("Next recon set: %s" % repr(next_channels))
 
         # sort by more populated channels
         return sorted(grouped.items(), key=lambda kv: len(kv[1]), reverse=True)
