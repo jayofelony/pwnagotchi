@@ -210,7 +210,7 @@ class Agent(Client, Automata, AsyncAdvertiser, AsyncTrainer):
         grouped = {}
         if len(self._unscanned_channels) == 0:
             self._unscanned_channels = self._supported_channels
-        logging.info("unscanned: %s" % repr(self._unscanned_channels))
+        logging.info("unscanned %d: %s" % (len(self._unscanned_channels), repr(self._unscanned_channels)))
 
         # group by channel
         for ap in aps:
