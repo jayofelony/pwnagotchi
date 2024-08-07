@@ -3,7 +3,7 @@ from threading import Lock
 
 class State(object):
     def __init__(self, state={}):
-        self._state = state
+        self._state = state # all ui elements
         self._lock = Lock()
         self._listeners = {}
         self._changes = {}

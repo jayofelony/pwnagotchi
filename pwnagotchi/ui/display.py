@@ -21,7 +21,8 @@ class Display(View):
         self._canvas_next = None
         self._render_thread_instance = threading.Thread(
             target=self._render_thread,
-            daemon=True
+            daemon=True,
+            name="Renderer"
         )
         self._render_thread_instance.start()
 
