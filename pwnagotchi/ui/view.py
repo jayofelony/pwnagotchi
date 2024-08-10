@@ -1,4 +1,5 @@
-import _thread
+#import _thread
+import threading
 import logging
 import random
 import time
@@ -172,7 +173,8 @@ class View(object):
         plugins.on('ui_setup', self)
 
         if config['ui']['fps'] > 0.0:
-            _thread.start_new_thread(self._refresh_handler, ())
+            threading.Thread(target=self._refresh_handler, args=(), name="UI Handler", daemon = True).start()
+            
             self._ignore_changes = ()
         else:
             logging.warning("ui.fps is 0, the display will only update for major changes")
