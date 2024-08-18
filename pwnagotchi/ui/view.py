@@ -216,8 +216,9 @@ class View(object):
         delay = 1.0 / self._config['ui']['fps']
         while True:
             try:
-                name = self._state.get('name')
-                self.set('name', name.rstrip('█').strip() if '█' in name else (name + ' █'))
+                if self._config['ui'].get('cursor', True) == True:
+                    name = self._state.get('name')
+                    self.set('name', name.rstrip('█').strip() if '█' in name else (name + ' █'))
                 self.update()
             except Exception as e:
                 logging.warning("non fatal error while updating view: %s" % e)

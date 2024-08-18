@@ -151,7 +151,7 @@ personality.throttle_a = 0.4
 personality.throttle_d = 0.9
 
 ui.invert = false # false = black background, true = white background
-
+ui.cursor = true
 ui.fps = 0.0
 ui.font.name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
 ui.font.size_offset = 0 # will be added to the font size
