@@ -136,7 +136,7 @@ class View(object):
         delay = 1.0 / self._config['ui']['fps']
         while True:
             try:
-                if self._config['ui'].get('cursor', False) == True:
+                if self._config['ui'].get('cursor', True) == True:
                     name = self._state.get('name')
                     self.set('name', name.rstrip('█').strip() if '█' in name else (name + ' █'))
                 self.update()
