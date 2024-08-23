@@ -18,9 +18,6 @@ if ! check_brcm; then
   sleep 10
 fi
 
-# start wlan0mon
-start_monitor_interface
-
 if is_auto_mode_no_delete; then
   /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-auto -iface wlan0mon
 else

@@ -7,7 +7,8 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class Wavesharelcd1in8(DisplayImpl):
     def __init__(self, config):
         super(Wavesharelcd1in8, self).__init__(config, 'wavesharelcd1in8')
-
+        self.mode = "RGB"
+        
     def layout(self):
         fonts.setup(10, 8, 10, 18, 25, 9)
         self._layout['width'] = 160

@@ -21,7 +21,8 @@ class Display(View):
         self._canvas_next = None
         self._render_thread_instance = threading.Thread(
             target=self._render_thread,
-            daemon=True
+            daemon=True,
+            name="Renderer"
         )
         self._render_thread_instance.start()
 
@@ -287,7 +288,7 @@ class Display(View):
         return self._implementation.name == 'adafruit2in13_v3'
 
     def is_waveshare_any(self):
-        return self.is_waveshare_v1() or self.is_waveshare_v2()
+        return self.is_waveshare_v1() or self.is_waveshare_v2() or self.is_waveshare_v4() or self.is_waveshare_v3
 
     def init_display(self):
         if self._enabled:

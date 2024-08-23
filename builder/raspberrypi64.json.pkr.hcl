@@ -26,6 +26,7 @@ source "arm-image" "rpi64-pwnagotchi" {
   output_filename = "../../../pwnagotchi-64bit.img"
   qemu_binary     = "qemu-aarch64-static"
   target_image_size = 19969908736
+  image_mounts    = ["/boot/firmware","/"]
 }
 
 # a build block invokes sources and runs provisioning steps on them. The

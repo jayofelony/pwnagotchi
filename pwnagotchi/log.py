@@ -217,25 +217,45 @@ class LastSession(object):
 def setup_logging(args, config):
     cfg = config['main']['log']
     filename = cfg['path']
+    filenameDebug = cfg['path-debug']
 
-    formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
-    root = logging.getLogger()
-
-    root.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    #global formatter
+    formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(threadName)s] : %(message)s")
+    logger = logging.getLogger()
+    
+    for handler in logger.handlers:
+        handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
+        handler.setFormatter(formatter)
+    
+    
+    logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
     if filename:
         # since python default log rotation might break session data in different files,
         # we need to do log rotation ourselves
         log_rotation(filename, cfg)
+        log_rotation(filenameDebug, cfg)
 
-        file_handler = logging.FileHandler(filename)
-        file_handler.setFormatter(formatter)
-        root.addHandler(file_handler)
+    
+    
+        # File handler for logging all normal messages
+    file_handler = logging.FileHandler(filename) #creates new
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
-    root.addHandler(console_handler)
+    # File handler for logging all debug messages
+    file_handler = logging.FileHandler(filenameDebug) #creates new
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
+    # Console handler for logging debug messages if args.debug is true else just log normal
+    #console_handler = logging.StreamHandler() #creates new
+    #console_handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    #console_handler.setFormatter(formatter)
+    #logger.addHandler(console_handler)
+    
     if not args.debug:
         # disable scapy and tensorflow logging
         logging.getLogger("scapy").disabled = True
@@ -248,6 +268,8 @@ def setup_logging(args, config):
         requests_log = logging.getLogger("requests")
         requests_log.addHandler(logging.NullHandler())
         requests_log.prpagate = False
+
+
 
 
 def log_rotation(filename, cfg):
