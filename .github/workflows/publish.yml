@@ -2,10 +2,6 @@ name: Publish
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number'
-        required: true
 
 jobs:
   build:
