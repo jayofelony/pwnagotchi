@@ -90,7 +90,7 @@
           - libopenblas-dev # https://stackoverflow.com/questions/14570011/explain-why-numpy-should-not-be-imported-from-source-directory
           - libopenjp2-7
           - libpcap-dev
-          - libraspberrypi-bin
+          #- libraspberrypi-bin      ## seems to be provided by raspi-utils now
           - libraspberrypi-dev
           - libraspberrypi-doc
           - libraspberrypi0
