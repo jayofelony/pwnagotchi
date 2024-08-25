@@ -9,7 +9,15 @@ on:
 
 jobs:
   build:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - name: "Raspberry Pi 32-bit"
+          id: "32bit"  
+        - name: "Raspberry Pi 64-bit"
+          id: "64bit" 
 
     steps:
       - uses: actions/checkout@v4
@@ -23,27 +31,21 @@ jobs:
       - name: Install qemu dependencies
         run: sudo apt update && sudo apt install qemu-user-static qemu-utils xz-utils -y
 
-      - name: Build img file
-        run: ls -la .; pwd; make all
+      - name: Build ${{ matrix.name }} img file
+        run: ls -la .; pwd; make packer; make ${{ matrix.id }}
 
-      - name: Transfer 32bit.img to docker and give permissions
-        run: sudo chown runner:docker "pwnagotchi-32bit.img"
-
-      - name: Transfer 64bit.img to docker and give permissions
-        run: sudo chown runner:docker "pwnagotchi-64bit.img"
+      - name: Transfer ${{ matrix.name }} .img to docker and give permissions
+        run: sudo chown runner:docker "pwnagotchi-${{ matrix.id }}.img"
 
       - name: PiShrink
         run: |
           wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
           chmod +x pishrink.sh
           sudo mv pishrink.sh /usr/local/bin
-          find /home/runner/work/ -type f -name "*.img" -exec sudo pishrink.sh -aZ {} \;
+          find /home/runner/work/ -type f -name "pwnagotchi-${{ matrix.id }}.img" -exec sudo pishrink.sh -aZ {} \;
 
-      - name: Change name of 32.img.xz to add version
-        run: mv "pwnagotchi-32bit.img.xz" "pwnagotchi-$VERSION-32bit.img.xz"
-
-      - name: Change name of 64.img.xz to add version
-        run: mv "pwnagotchi-64bit.img.xz" "pwnagotchi-$VERSION-64bit.img.xz"
+      - name: Change name of .img.xz to add version
+        run: mv "pwnagotchi-${{ matrix.id }}.img.xz" "pwnagotchi-${{ env.VERSION }}-${{ matrix.id }}.img.xz"
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -52,7 +54,5 @@ jobs:
           make_latest: true
           tag_name: v${{ env.VERSION }}
           name: Pwnagotchi v${{ env.VERSION }}
-          files: |
-              pwnagotchi-${{ env.VERSION }}-32bit.img.xz
-              pwnagotchi-${{ env.VERSION }}-64bit.img.xz
+          files: pwnagotchi-${{ env.VERSION }}-${{ matrix.id }}.img.xz
           generate_release_notes: true
