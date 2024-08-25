@@ -21,31 +21,32 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: publish/build
 
       - name: Extract version from file
         id: get_version
         run: |
-          VERSION=$(cut -d "'" -f2 < pwnagotchi/_version.py)
+          VERSION=$(cut -d "'" -f2 < publish/build/pwnagotchi/_version.py)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Install qemu dependencies
         run: sudo apt update && sudo apt install qemu-user-static qemu-utils xz-utils -y
 
       - name: Build ${{ matrix.name }} img file
-        run: ls -la .; pwd; make packer; make ${{ matrix.id }}
-
-      - name: Transfer ${{ matrix.name }} .img to docker and give permissions
-        run: sudo chown runner:docker "pwnagotchi-${{ matrix.id }}.img"
+        run: cd publish/build; ls -la .; pwd; make packer; make ${{ matrix.id }}
+      
+      - name: Change name of .img.xz to add version
+        run: |
+          sudo chown runner:docker "pwnagotchi-${{ matrix.id }}.img"
+          mv "pwnagotchi-${{ matrix.id }}.img" "pwnagotchi-${{ env.VERSION }}-${{ matrix.id }}.img"
 
       - name: PiShrink
         run: |
           wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
           chmod +x pishrink.sh
           sudo mv pishrink.sh /usr/local/bin
-          find /home/runner/work/ -type f -name "pwnagotchi-${{ matrix.id }}.img" -exec sudo pishrink.sh -aZ {} \;
-
-      - name: Change name of .img.xz to add version
-        run: mv "pwnagotchi-${{ matrix.id }}.img.xz" "pwnagotchi-${{ env.VERSION }}-${{ matrix.id }}.img.xz"
+          sudo pishrink.sh -aZ "pwnagotchi-${{ env.VERSION }}-${{ matrix.id }}.img"
 
       - name: Release
         uses: softprops/action-gh-release@v2
