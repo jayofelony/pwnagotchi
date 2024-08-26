@@ -26,18 +26,17 @@ Multiple units within close physical proximity can "talk" to each other, adverti
 
 ## Documentation
 
-https://www.pwnagotchi.ai
+https://github.com/jayofelony/pwnagotchi/wiki 
+https://www.pwnagotchi.org
 
 ## Links
 
 | &nbsp;    | Official Links                                              |
 |-----------|-------------------------------------------------------------|
-| Website   | [pwnagotchi.ai](https://pwnagotchi.org/)                     |
-| Forum     | [community.pwnagotchi.ai](https://community.pwnagotchi.ai/) |
-| Slack     | [pwnagotchi.slack.com](https://invite.pwnagotchi.ai/)       |
+| Website   | [pwnagotchi.org](https://pwnagotchi.org/)                     |
+| Forum     | [discord.gg](https://discord.gg/PGgnzFbz4M) |
 | Subreddit | [r/pwnagotchi](https://www.reddit.com/r/pwnagotchi/)        |
-| Twitter   | [@pwnagotchi](https://twitter.com/pwnagotchi)               |
 
 ## License
 
-`pwnagotchi` is made with ♥ by [@evilsocket](https://twitter.com/evilsocket) and the [amazing dev team](https://github.com/evilsocket/pwnagotchi/graphs/contributors). It is released under the GPL3 license.
+`pwnagotchi` created by [@evilsocket](https://twitter.com/evilsocket) and updated by [us](https://github.com/jayofelony/pwnagotchi/graphs/contributors). It is released under the GPL3 license.
