@@ -28,7 +28,7 @@ class Waveshare3in7(DisplayImpl):
         'font': fonts.status_font(fonts.Medium),
         'max': 21
         }
-    return self._layout
+        return self._layout
 
     def initialize(self):
         logging.info("initializing waveshare 3.7 inch lcd display")

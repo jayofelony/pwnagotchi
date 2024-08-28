@@ -83,7 +83,7 @@
           - libgmp3-dev
           - libnetfilter-queue-dev
           - libpcap-dev
-          - libraspberrypi-bin
+          #- libraspberrypi-bin      ## seems to be provided by raspi-utils now
           - libraspberrypi-dev
           - libraspberrypi-doc
           - libraspberrypi0
