@@ -26,10 +26,7 @@ dependencies = [
     "shimmy",
     "smbus2",
     "spidev",
-    "stable_baselines3",
     "toml",
-    "torch; platform_machine=='aarch64'",
-    "torchvision; platform_machine=='aarch64'",
     "tweepy",
     "websockets",
 ]
