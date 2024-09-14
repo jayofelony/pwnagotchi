@@ -128,10 +128,10 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 time.sleep(1)
 
     def start(self):
-        self.start_monitor_mode()
         self._wait_bettercap()
         self.setup_events()
         self.set_starting()
+        self.start_monitor_mode()
         self.start_event_polling()
         self.start_session_fetcher()
         # print initial stats
