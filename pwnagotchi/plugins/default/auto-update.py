@@ -196,7 +196,7 @@ class AutoUpdate(plugins.Plugin):
 
                 to_install = []
                 to_check = [
-                    ('jayofelony/bettercap', parse_version('bettercap -version'), True, 'bettercap'),
+                    ('bettercap/bettercap', parse_version('bettercap -version'), True, 'bettercap'),
                     ('jayofelony/pwngrid', parse_version('pwngrid -version'), True, 'pwngrid-peer'),
                     ('jayofelony/pwnagotchi', pwnagotchi.__version__, False, 'pwnagotchi')
                 ]
