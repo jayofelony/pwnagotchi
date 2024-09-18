@@ -6,7 +6,6 @@ import time
 from threading import Lock
 
 from PIL import ImageDraw
-from PIL import ImageColor as colors
 
 import pwnagotchi
 import pwnagotchi.plugins as plugins
@@ -52,40 +51,40 @@ class View(object):
         self._width = self._layout['width']
         self._height = self._layout['height']
         self._state = State(state={
-            'channel': LabeledValue(color=self.FOREGROUND, label='CH', value='00', position=self._layout['channel'],
+            'channel': LabeledValue(color=BLACK, label='CH', value='00', position=self._layout['channel'],
                                     label_font=fonts.Bold,
                                     text_font=fonts.Medium),
-            'aps': LabeledValue(color=self.FOREGROUND, label='APS', value='0 (00)', position=self._layout['aps'],
+            'aps': LabeledValue(color=BLACK, label='APS', value='0 (00)', position=self._layout['aps'],
                                 label_font=fonts.Bold,
                                 text_font=fonts.Medium),
 
-            'uptime': LabeledValue(color=self.FOREGROUND, label='UP', value='00:00:00', position=self._layout['uptime'],
+            'uptime': LabeledValue(color=BLACK, label='UP', value='00:00:00', position=self._layout['uptime'],
                                    label_font=fonts.Bold,
                                    text_font=fonts.Medium),
 
-            'line1': Line(self._layout['line1'], color=self.FOREGROUND),
-            'line2': Line(self._layout['line2'], color=self.FOREGROUND),
+            'line1': Line(self._layout['line1'], color=BLACK),
+            'line2': Line(self._layout['line2'], color=BLACK),
 
-            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=self.FOREGROUND, font=fonts.Huge, png=config['ui']['faces']['png']),
+            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=BLACK, font=fonts.Huge, png=config['ui']['faces']['png']),
 
-            # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=self.FOREGROUND),
-            'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=self.FOREGROUND),
+            # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=BLACK),
+            'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=BLACK),
 
-            'name': Text(value='%s>' % 'pwnagotchi', position=self._layout['name'], color=self.FOREGROUND, font=fonts.Bold),
+            'name': Text(value='%s>' % 'pwnagotchi', position=self._layout['name'], color=BLACK, font=fonts.Bold),
 
             'status': Text(value=self._voice.default(),
                            position=self._layout['status']['pos'],
-                           color=self.FOREGROUND,
+                           color=BLACK,
                            font=self._layout['status']['font'],
                            wrap=True,
                            # the current maximum number of characters per line, assuming each character is 6 pixels wide
                            max_length=self._layout['status']['max']),
 
-            'shakes': LabeledValue(label='PWND ', value='0 (00)', color=self.FOREGROUND,
+            'shakes': LabeledValue(label='PWND ', value='0 (00)', color=BLACK,
                                    position=self._layout['shakes'], label_font=fonts.Bold,
                                    text_font=fonts.Medium),
             'mode': Text(value='AUTO', position=self._layout['mode'],
-                         font=fonts.Bold, color=self.FOREGROUND),
+                         font=fonts.Bold, color=BLACK),
         })
 
         if state:
@@ -111,7 +110,7 @@ class View(object):
         self._state.has_element(key)
 
     def add_element(self, key, elem):
-        if self.invert is 1 and hasattr(elem, 'color'):
+        if self.invert is 1 and elem.color:
             if elem.color == 0xff:
                 elem.color = 0x00
             elif elem.color == 0x00:
@@ -390,8 +389,8 @@ class View(object):
             state = self._state
             changes = state.changes(ignore=self._ignore_changes)
             if force or len(changes):
-                self._canvas = Image.new(self.mode, (self._width, self._height), self.BACKGROUND)
-                drawer = ImageDraw.Draw(self._canvas, self.mode)
+                self._canvas = Image.new('1', (self._width, self._height), self._white)
+                drawer = ImageDraw.Draw(self._canvas)
 
                 plugins.on('ui_update', self)
 
