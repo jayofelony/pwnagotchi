@@ -166,7 +166,7 @@ class auto_tune(plugins.Plugin):
                         iname, iname, "False", checked)
                         ret += "</td>"
                     else:
-                        ret += '<th>%s</th>' % (p)
+                        ret += '<th>%s</th>' % p
                         ret += '<td><input type=text id="%s" name="%s" size="5" value="%s"></td>' % (
                         iname, iname, sec[p])
                         # ret += '<tr><th>%s</th>' % ("" if p not in self.descriptions else self.descriptions[p])
@@ -184,7 +184,7 @@ class auto_tune(plugins.Plugin):
         histo = self._histogram
         nloops = int(histo["loops"])
         if nloops > 0:
-            ret += "<h2>APs per Channel over %s epochs</h2>" % (nloops)
+            ret += "<h2>APs per Channel over %s epochs</h2>" % nloops
             ret += "<table border=1 spacing=4 cellspacing=1>"
             chans = "<tr><th>Channel</th>"
             totals = "<tr><th>APs seen</th>"
@@ -229,7 +229,7 @@ class auto_tune(plugins.Plugin):
                     logging.debug("Skipping no-name %s '%s'" % (ap['hostname'], lmac))
                     numHidden += 1
                     continue  # skip hidden APs
-                elif ap['hostname'] == None and not self.options['show_hidden']:
+                elif ap['hostname'] is None and not self.options['show_hidden']:
                     logging.debug("Skipping None %s '%s'" % (ap['hostname'], lmac))
                     numHidden += 1
                     continue  # skip hidden APs
@@ -487,7 +487,7 @@ class auto_tune(plugins.Plugin):
                     self._known_aps[apID][p] = access_point[p]
 
                 # if wasn't visible, increment current count
-                if self._known_aps[apID]['AT_visible'] == False:
+                if not self._known_aps[apID]['AT_visible']:
                     self._known_aps[apID]['AT_visible'] = True
                     self._known_aps[apID]['AT_seen'] += 1
                     self.incrementChisto('Current APs', channel)
@@ -495,7 +495,7 @@ class auto_tune(plugins.Plugin):
                 # increment context count in the AP data
                 self._known_aps[apID][tag] = 1 if tag not in self._known_aps[apID] else self._known_aps[apID][tag] + 1
                 if not context:
-                    logging.info("Returning AP: %s" % (apID))
+                    logging.info("Returning AP: %s" % apID)
 
             self._known_aps[apID]['AT_lastseen'] = time.time()
             return True
@@ -559,7 +559,7 @@ class auto_tune(plugins.Plugin):
                 self.incrementChisto('Missed joins', channel)
                 logging.warn("Unknown AP '%s' seen leaving" % apID)
             else:
-                if self._known_aps[apID]['AT_visible'] == False:
+                if not self._known_aps[apID]['AT_visible']:
                     self.incrementChisto('Missed rejoins', channel)
                     logging.warn("AP '%s' already gone", apID)
                 else:
