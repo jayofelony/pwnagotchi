@@ -22,98 +22,20 @@ from pwnagotchi.voice import Voice
 WHITE = 0x00 # white is actually black on jays image
 BLACK = 0xFF # black is actually white on jays image
 
-BACKGROUND_1 = 0
-FOREGROUND_1 = 1
-
-BACKGROUND_L = 0
-FOREGROUND_L = 255
-
-BACKGROUND_BGR_16 = (0,0,0)
-FOREGROUND_BGR_16 = (31,63,31)
-
-BACKGROUND_RGB = (0,0,0)
-FOREGROUND_RGB = (255,255,255)
-
-
-ROOT = None
-
-
-
-
-#1 (1-bit pixels, black and white, stored with one pixel per byte)
-
-#L (8-bit pixels, grayscale)
-
-#P (8-bit pixels, mapped to any other mode using a color palette)
-
-#BGR;16 (5,6,5 bits, for 65k color)
-
-#RGB (3x8-bit pixels, true color)
-
-#RGBA (4x8-bit pixels, true color with transparency mask)
-
-#CMYK (4x8-bit pixels, color separation)
-
-#YCbCr (3x8-bit pixels, color video format)
-
-#self.FOREGROUND is the main color
-#self.BACKGROUNDGROUND is the 2ndary color, used for background
-
-
-
 class View(object):
     def __init__(self, config, impl, state=None):
         global ROOT, BLACK, WHITE
-        
-        #values/code for display color mode    
-        
-        self.mode = '1' # 1 = (1-bit pixels, black and white, stored with one pixel per byte)
-        if hasattr(impl, 'mode'):
-            self.mode = impl.mode
-            
-        
-        
-        match self.mode:
-            case '1':
-                self.BACKGROUND = BACKGROUND_1
-                self.FOREGROUND = FOREGROUND_1
-                # do stuff is color mode is 1 when View object is created. 
-            case 'L':
-                self.BACKGROUND =  BACKGROUND_L # black 0 to 255
-                self.FOREGROUND = FOREGROUND_L
-                # do stuff is color mode is L when View object is created.
-            case 'P':
-                pass
-                # do stuff is color mode is P when View object is created.
-            case 'BGR;16':
-                self.BACKGROUND = BACKGROUND_BGR_16 #black tuple
-                self.FOREGROUND = FOREGROUND_BGR_16 #white tuple
-            case 'RGB':
-                self.BACKGROUND = BACKGROUND_RGB #black tuple
-                self.FOREGROUND = FOREGROUND_RGB #white tuple
-                # do stuff is color mode is RGB when View object is created.
-            case 'RGBA':
-                # do stuff is color mode is RGBA when View object is created.
-                pass
-            case 'CMYK':
-                # do stuff is color mode is CMYK when View object is created.
-                pass
-            case 'YCbCr':
-                # do stuff is color mode is YCbCr when View object is created.
-                pass
-            case _:
-                # do stuff when color mode doesnt exist for display
-                self.BACKGROUND = BACKGROUND_1
-                self.FOREGROUND = FOREGROUND_1
-            
             
         self.invert = 0
+        self._black = 0xFF
+        self._white = 0x00
         if 'invert' in config['ui'] and config['ui']['invert'] == True:
-            logging.debug("INVERT:" + str(config['ui']['invert']))
+            logging.debug("INVERT BLACK/WHITES:" + str(config['ui']['invert']))
             self.invert = 1
-            tmp = self.FOREGROUND 
-            self.FOREGROUND = self.FOREGROUND
-            self.FOREGROUND = tmp
+            BLACK = 0x00
+            WHITE = 0xFF
+            self._black = 0x00
+            self._white = 0xFF
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
