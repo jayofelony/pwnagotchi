@@ -146,7 +146,7 @@ class auto_tune(plugins.Plugin):
         form_data = request.values.items()
 
         for secname, sec in [["Personality", self._agent._config['personality']],
-                             ["AUTO Tune", self._agent._config['main']['plugins']['auto_tune']]]:
+                             ["AUTO Tune", self._agent._config['main']['plugins']['auto-tune']]]:
             ret += '<h2>%s Variables</h2>' % secname
             ret += '<table>\n'
             ret += '<tr align=left><th>Parameter</th><th>Value</th><th>Description</th></tr>\n'
