@@ -100,6 +100,10 @@ def display_for(config):
         from pwnagotchi.ui.hw.gfxhat import GfxHat
         return GfxHat(config)
 
+    elif config['ui']['display']['type'] == 'argonpod':
+        from pwnagotchi.ui.hw.argonpod import ArgonPod
+        return ArgonPod(config)
+
     elif config['ui']['display']['type'] == 'pitft':
         from pwnagotchi.ui.hw.pitft import Pitft
         return Pitft(config)
