@@ -33,7 +33,7 @@ dependencies = [
     "tweepy",
     "websockets",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
   {name = "Evilsocket", email = "evilsocket@gmail.com"},
   {name = "Jayofelony", email = "oudshoorn.jeroen@gmail.com"}
