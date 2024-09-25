@@ -264,6 +264,9 @@ class Display(View):
         return self._implementation.name == 'gfxhat'
 
     def is_pitft(self):
+        return self._implementation.name == 'argonpod'
+
+    def is_pitft(self):
         return self._implementation.name == 'pitft'
 
     def is_minipitft(self):
