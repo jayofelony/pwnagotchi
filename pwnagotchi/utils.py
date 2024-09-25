@@ -315,6 +315,9 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('pitft'):
         config['ui']['display']['type'] = 'pitft'
 
+    elif config['ui']['display']['type'] in ('argonpod'):
+        config['ui']['display']['type'] = 'argonpod'
+
     elif config['ui']['display']['type'] in ('minipitft'):
         config['ui']['display']['type'] = 'minipitft'
 
