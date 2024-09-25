@@ -44,7 +44,7 @@ class ArgonPod(DisplayImpl):
 
     def initialize(self):
         logging.info("Initializing Argon Pod display")
-        from pwnagotchi.ui.hw.libs.adafruit.pitft.ILI9341 import ILI9341
+        from pwnagotchi.ui.hw.libs.argon.argonpod.ILI9341 import ILI9341
         self._display = ILI9341(0, 0, 22, 18)
 
     def render(self, canvas):
