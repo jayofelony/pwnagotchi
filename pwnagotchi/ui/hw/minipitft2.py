@@ -10,9 +10,9 @@ import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.hw.base import DisplayImpl
 
 
-class MiniPitft(DisplayImpl):
+class MiniPitft2(DisplayImpl):
     def __init__(self, config):
-        super(MiniPitft, self).__init__(config, 'minipitft')
+        super(MiniPitft2, self).__init__(config, 'minipitft2')
 
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)
@@ -39,7 +39,7 @@ class MiniPitft(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing Adafruit Mini Pi Tft 135x240")
-        from pwnagotchi.ui.hw.libs.adafruit.minipitft.ST7789 import ST7789
+        from pwnagotchi.ui.hw.libs.adafruit.minipitft2.ST7789 import ST7789
         self._display = ST7789(0,0,25,22)
 
     def render(self, canvas):
