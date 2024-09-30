@@ -272,6 +272,9 @@ class Display(View):
     def is_minipitft(self):
         return self._implementation.name == 'minipitft'
 
+    def is_minipitft2(self):
+        return self._implementation.name == 'minipitft2'
+
     def is_tftbonnet(self):
         return self._implementation.name == 'tftbonnet'
         

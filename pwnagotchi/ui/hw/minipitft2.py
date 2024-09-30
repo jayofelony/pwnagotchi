@@ -38,7 +38,7 @@ class MiniPitft(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing Adafruit Mini Pi Tft 240x240")
+        logging.info("initializing Adafruit Mini Pi Tft 135x240")
         from pwnagotchi.ui.hw.libs.adafruit.minipitft.ST7789 import ST7789
         self._display = ST7789(0,0,25,22)
 

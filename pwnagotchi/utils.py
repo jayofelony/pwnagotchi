@@ -321,6 +321,9 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('minipitft'):
         config['ui']['display']['type'] = 'minipitft'
 
+    elif config['ui']['display']['type'] in ('minipitft2'):
+        config['ui']['display']['type'] = 'minipitft2'
+
     elif config['ui']['display']['type'] in ('tftbonnet'):
         config['ui']['display']['type'] = 'tftbonnet'
 

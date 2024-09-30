@@ -112,6 +112,10 @@ def display_for(config):
         from pwnagotchi.ui.hw.minipitft import MiniPitft
         return MiniPitft(config)
 
+    elif config['ui']['display']['type'] == 'minipitft2':
+        from pwnagotchi.ui.hw.minipitft2 import MiniPitft2
+        return MiniPitft2(config)
+
     elif config['ui']['display']['type'] == 'tftbonnet':
         from pwnagotchi.ui.hw.tftbonnet import TftBonnet
         return TftBonnet(config)
