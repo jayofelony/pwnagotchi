@@ -17,7 +17,7 @@ class MiniPitft2(DisplayImpl):
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)
         self._layout['width'] = 240
-        self._layout['height'] = 240
+        self._layout['height'] = 135
         self._layout['face'] = (0, 40)
         self._layout['name'] = (5, 20)
         self._layout['channel'] = (0, 0)
