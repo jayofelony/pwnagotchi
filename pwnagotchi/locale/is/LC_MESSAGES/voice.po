@@ -1,235 +1,224 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Icelandic Translation.
+# Copyright (C) 2019
+# This file is distributed under the same license as the pwnagotchi package..
+# Sean Duggan <sean.duggan@pm.me>, 2024.
 #
-
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:10+0100\n"
+"POT-Creation-Date: 2024-09-24 21:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: FULL NAME <sean.duggan@pm.me>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: Icelandic\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=UTF-8\n" 
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "ZzzzZZzzzzZzzz"
-msgstr ""
+msgstr "ZzzzZZzzzzZzzz"
 
 msgid "Hi, I'm Pwnagotchi! Starting ..."
-msgstr ""
+msgstr "Hæ, Ég heiti Pwnagotchi! Ræsi.."
 
 msgid "New day, new hunt, new pwns!"
-msgstr ""
+msgstr "Nýr dagur, Ný veiði, Ný pwns!"
 
 msgid "Hack the Planet!"
-msgstr ""
+msgstr "Hakkaðu plánetuna!"
 
 msgid "AI ready."
-msgstr ""
+msgstr "AI tilbúið."
 
 msgid "The neural network is ready."
-msgstr ""
+msgstr "Tauganetið er tilbúið."
 
 msgid "Generating keys, do not turn off ..."
-msgstr ""
+msgstr "Bý til lykla, ekki slökkva á."
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
-msgstr ""
+msgstr "Hæ, Rás {channel} er líka ókeypis! AP þinn mun þakka fyrir."
 
 msgid "Reading last session logs ..."
-msgstr ""
+msgstr "Les fyrri leiðarbók..."
 
 #, python-brace-format
 msgid "Read {lines_so_far} log lines so far ..."
-msgstr ""
+msgstr "Ég las {lines_so_far} leiðarbók línur hingað til..."
 
 msgid "I'm bored ..."
-msgstr ""
+msgstr "Mér leiðist ..."
 
 msgid "Let's go for a walk!"
-msgstr ""
+msgstr "Förum í göngutúr!"
 
 msgid "This is the best day of my life!"
-msgstr ""
+msgstr "Þetta er besti dagur lífs míns!"
 
 msgid "Shitty day :/"
-msgstr ""
+msgstr "Skítadagur :/"
 
 msgid "I'm extremely bored ..."
-msgstr ""
+msgstr "Mér leiðist óskaplega mikið ..."
 
 msgid "I'm very sad ..."
-msgstr ""
+msgstr "Ég er mjög leiður ..."
 
 msgid "I'm sad"
-msgstr ""
+msgstr "Ég er leiður"
 
 msgid "Leave me alone ..."
-msgstr ""
+msgstr "Láttu mig í friði ..."
 
 msgid "I'm mad at you!"
-msgstr ""
+msgstr "Ég er reiður út í þig!"
 
 msgid "I'm living the life!"
-msgstr ""
+msgstr "Ég lifi besta lífi!"
 
 msgid "I pwn therefore I am."
-msgstr ""
+msgstr "Ég pwn þess vegna er ég."
 
 msgid "So many networks!!!"
-msgstr ""
+msgstr "Svo mörg net!!!"
 
 msgid "I'm having so much fun!"
-msgstr ""
+msgstr "Mér finnst svo gaman!"
 
 msgid "My crime is that of curiosity ..."
-msgstr ""
+msgstr "Glæpur minn er forvitni ..."
 
 #, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr ""
+msgstr "Hæ {name}! Gaman að hitta þig!"
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
-msgstr ""
+msgstr "Yo {name}! Sup?"
 
 #, python-brace-format
 msgid "Hey {name} how are you doing?"
-msgstr ""
+msgstr "Hæ {name} Hvernig hefurðu það?"
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr ""
+msgstr "Tæki {name} er nálægt!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
-msgstr ""
+msgstr "Uhm ... bless {name}"
 
 #, python-brace-format
 msgid "{name} is gone ..."
-msgstr ""
+msgstr "{name} er farinn ..."
 
 #, python-brace-format
 msgid "Whoops ... {name} is gone."
-msgstr ""
+msgstr "Úps ... {name} er farinn."
 
 #, python-brace-format
 msgid "{name} missed!"
-msgstr ""
+msgstr "{name} saknað!'"
 
 msgid "Missed!"
-msgstr ""
+msgstr "Saknað!'"
 
 msgid "Good friends are a blessing!"
-msgstr ""
+msgstr "Góðir vinir eru blessun!"
 
 msgid "I love my friends!"
-msgstr ""
+msgstr "Ég elska vini mína!"
 
 msgid "Nobody wants to play with me ..."
-msgstr ""
+msgstr "Enginn vill leika við mig ..."
 
 msgid "I feel so alone ..."
-msgstr ""
+msgstr "Mér finnst ég vera svo ein ..."
 
 msgid "Where's everybody?!"
-msgstr ""
+msgstr "Hvar eru allir?!"
 
 #, python-brace-format
 msgid "Napping for {secs}s ..."
-msgstr ""
+msgstr "Sef í {secs}s ..."
 
 msgid "Zzzzz"
-msgstr ""
+msgstr "Zzzzz"
 
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
-msgstr ""
+msgstr "ZzzZzzz ({secs})"
 
 msgid "Good night."
-msgstr ""
+msgstr "Góða nótt."
 
 msgid "Zzz"
-msgstr ""
+msgstr "Zzz"
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
-msgstr ""
+msgstr "Bíð eftir {secs} ..."
 
 #, python-brace-format
 msgid "Looking around ({secs}s)"
-msgstr ""
+msgstr "Horfi í kringum mig ({secs}s)"
 
 #, python-brace-format
 msgid "Hey {what} let's be friends!"
-msgstr ""
+msgstr "Hæ {what} við skulum vera vinir!"
 
 #, python-brace-format
 msgid "Associating to {what}"
-msgstr ""
+msgstr "Tengist við {what}"
 
 #, python-brace-format
 msgid "Yo {what}!"
-msgstr ""
+msgstr "Yo {what}!"
 
 #, python-brace-format
 msgid "Just decided that {mac} needs no WiFi!"
-msgstr ""
+msgstr "Ég ákvað að {mac} þurfi ekki WiFi!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
-msgstr ""
+msgstr "Afvotta {mac}"
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
-msgstr ""
+msgstr "Sparkbanna {mac}!"
 
 #, python-brace-format
 msgid "Cool, we got {num} new handshake{plural}!"
-msgstr ""
+msgstr "Flott! við fengum {num} ný handatök {plural}!"
 
 #, python-brace-format
 msgid "You have {count} new message{plural}!"
-msgstr ""
+msgstr "þú hefur {count} ný skilaboð!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
-msgstr ""
-
-#, python-brace-format
-msgid "Uploading data to {to} ..."
-msgstr ""
-
-#, python-brace-format
-msgid "Downloading from {name} ..."
-msgstr ""
+msgstr "Oops, eitthvað brotnaði ... Endurræsi ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
-msgstr ""
-
-msgid "Made >999 new friends\n"
-msgstr ""
+msgstr "Sparkaði {num} stöðvar\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
-msgstr ""
+msgstr "Eignaðist {num} nýja vini\n"
 
 #, python-brace-format
 msgid "Got {num} handshakes\n"
-msgstr ""
+msgstr "Fékk {num} ný handabönd\n"
 
 msgid "Met 1 peer"
-msgstr ""
+msgstr "Hitti 1 jafningja"
 
 #, python-brace-format
 msgid "Met {num} peers"
-msgstr ""
+msgstr "Hitti {num} jafningja"
 
 #, python-brace-format
 msgid ""
@@ -237,21 +226,27 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-
+"Ég hef verið að pwna í {duration} og sparkað {deauthed} viðskiptavinum! Ég hef líka hitt  "
+"{associated} nýja vini og borðað {handshakes} handabönd! #pwnagotchi "
+"#pwnlog #pwnlife #hacktheplanet #skynet"
 msgid "hours"
-msgstr ""
+msgstr "klukkustundir"
 
 msgid "minutes"
-msgstr ""
+msgstr "mínútur"
 
 msgid "seconds"
-msgstr ""
+msgstr "sekúndur"
 
 msgid "hour"
-msgstr ""
+msgstr "klukkustund"
 
 msgid "minute"
-msgstr ""
+msgstr "mínútu"
 
 msgid "second"
-msgstr ""
+msgstr "sekúndu"
+
+#, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr "Hleð upp gögnum til {to} ..."
