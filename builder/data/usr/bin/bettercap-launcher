@@ -9,6 +9,8 @@ if is_crypted_mode; then
   done
 fi
 
+start_monitor_interface
+
 if is_auto_mode_no_delete; then
   /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-auto -iface wlan0mon
 else
