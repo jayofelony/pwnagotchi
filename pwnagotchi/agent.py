@@ -98,8 +98,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
             if has_mon is False:
                 if mon_start_cmd is not None and mon_start_cmd != '':
                     logging.info("starting monitor interface ...")
-                    # self.run('!%s' % mon_start_cmd)
-                    subprocess.Popen([mon_start_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    self.run('!%s' % mon_start_cmd)
                 else:
                     logging.info("waiting for monitor interface %s ...", mon_iface)
                     time.sleep(1)
