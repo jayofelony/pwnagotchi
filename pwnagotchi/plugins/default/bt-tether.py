@@ -490,7 +490,7 @@ class BTTether(plugins.Plugin):
             sorted_devices = sorted(devices_to_try, key=lambda x: x.search_order)
 
             for device in sorted_devices:
-                bt = BTNap(device.mac)
+                bt = BTNap(device.mac.lower())
 
                 try:
                     logging.debug('BT-TETHER: Search %d secs for %s ...', device.scantime, device.name)
