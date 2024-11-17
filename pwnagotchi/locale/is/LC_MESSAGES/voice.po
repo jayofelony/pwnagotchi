@@ -8,13 +8,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-24 21:50+0100\n"
+"POT-Creation-Date: 2024-11-17 20:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <sean.duggan@pm.me>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: Icelandic\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n" 
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "ZzzzZZzzzzZzzz"
@@ -202,8 +202,20 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oops, eitthvað brotnaði ... Endurræsi ..."
 
 #, python-brace-format
+msgid "Uploading data to {to} ..."
+msgstr "Hleð upp gögnum til {to} ..."
+
+#, fuzzy, python-brace-format
+msgid "Downloading from {name} ..."
+msgstr "Hleð upp gögnum til {to} ..."
+
+#, python-brace-format
 msgid "Kicked {num} stations\n"
 msgstr "Sparkaði {num} stöðvar\n"
+
+#, fuzzy
+msgid "Made >999 new friends\n"
+msgstr "Eignaðist {num} nýja vini\n"
 
 #, python-brace-format
 msgid "Made {num} new friends\n"
@@ -226,9 +238,10 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-"Ég hef verið að pwna í {duration} og sparkað {deauthed} viðskiptavinum! Ég hef líka hitt  "
-"{associated} nýja vini og borðað {handshakes} handabönd! #pwnagotchi "
-"#pwnlog #pwnlife #hacktheplanet #skynet"
+"Ég hef verið að pwna í {duration} og sparkað {deauthed} viðskiptavinum! Ég "
+"hef líka hitt  {associated} nýja vini og borðað {handshakes} handabönd! "
+"#pwnagotchi #pwnlog #pwnlife #hacktheplanet #skynet"
+
 msgid "hours"
 msgstr "klukkustundir"
 
@@ -246,7 +259,3 @@ msgstr "mínútu"
 
 msgid "second"
 msgstr "sekúndu"
-
-#, python-brace-format
-msgid "Uploading data to {to} ..."
-msgstr "Hleð upp gögnum til {to} ..."

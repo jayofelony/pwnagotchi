@@ -41,10 +41,7 @@ def install_system_files():
             os.system(f"apt-get install -y {x}")
         f.close()
     setup_path = os.path.dirname(__file__)
-    if platform.machine().startswith('arm'):
-        data_path = os.path.join(setup_path, "builder/data/32bit")
-    elif platform.machine().startswith('aarch'):
-        data_path = os.path.join(setup_path, "builder/data/64bit")
+    data_path = os.path.join(setup_path, "builder/data")
 
     for source_filename in glob.glob("%s/**" % data_path, recursive=True):
         if os.path.isfile(source_filename):

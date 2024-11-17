@@ -51,7 +51,7 @@ class Environment(gym.Env):
             'state_v': None
         }
 
-        self.action_space = spaces.MultiDiscrete([p.space_size() for p in Environment.params if p.trainable])
+        self.action_space = spaces.multi_discrete.MultiDiscrete([p.space_size() for p in Environment.params if p.trainable])
         self.observation_space = spaces.Box(low=0, high=1, shape=featurizer.shape, dtype=np.float32)
         self.reward_range = reward.range
 
