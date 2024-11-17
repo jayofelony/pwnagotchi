@@ -6,6 +6,7 @@ import logging
 import asyncio
 #import _thread
 import threading
+import subprocess
 
 import pwnagotchi
 import pwnagotchi.utils as utils
@@ -97,7 +98,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
             if has_mon is False:
                 if mon_start_cmd is not None and mon_start_cmd != '':
                     logging.info("starting monitor interface ...")
-                    self.run('!%s' % mon_start_cmd)
+                    # self.run('!%s' % mon_start_cmd)
+                    subprocess.Popen([mon_start_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 else:
                     logging.info("waiting for monitor interface %s ...", mon_iface)
                     time.sleep(1)
