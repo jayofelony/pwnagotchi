@@ -139,7 +139,9 @@ def install(display, update):
             source_path = "%s-%s" % (source_path, update['available'])
 
         # setup.py is going to install data files for us
-        os.system("cd %s && pip3 install . --break-system-packages" % source_path)
+        # first we create a new virtual environment and activate it
+        os.system("cd %s && python3 -m venv env && source env/bin/activate" % source_path)
+        os.system("cd %s && pip3 install ." % source_path)
     return True
 
 
