@@ -17,6 +17,8 @@ reload_brcm() {
 # starts mon0
 start_monitor_interface() {
   rfkill unblock all
+  modprobe -r brcmfmac
+  modprobe brcmfmac
   ifconfig wlan0 up
   sleep 3
   iw dev wlan0 set power_save off
