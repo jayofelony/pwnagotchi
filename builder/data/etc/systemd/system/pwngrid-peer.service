@@ -1,6 +1,6 @@
 [Unit]
 Description=pwngrid peer service.
-Documentation=https://pwnagotchi.ai
+Documentation=https://pwnagotchi.org
 Wants=network.target
 After=bettercap.service
 
