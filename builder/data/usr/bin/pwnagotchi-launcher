@@ -10,8 +10,8 @@ if is_crypted_mode; then
 fi
 
 if is_auto_mode; then
-  /usr/local/src/pwnagotchi/env/bin/pwnagotchi
+  /opt/.pwn/bin/pwnagotchi
   systemctl restart bettercap
 else
-  /usr/local/src/pwnagotchi/env/bin/pwnagotchi --manual
+  /opt/.pwn/bin/pwnagotchi --manual
 fi
