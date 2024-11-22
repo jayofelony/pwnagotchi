@@ -140,7 +140,7 @@ def install(display, update):
 
         # setup.py is going to install data files for us
         # first we create a new virtual environment and activate it
-        os.system("cd %s && python3 -m venv ../.pwn && source ../.pwn/bin/activate" % source_path)
+        os.system("cd /opt/ && source .pwn/bin/activate")
         os.system("cd %s && pip3 install ." % source_path)
     return True
 
