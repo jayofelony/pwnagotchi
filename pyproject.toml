@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,6 @@ dynamic = ["version"]
 dependencies = [
     "Pillow",
     "PyYAML",
-    "rpi.lgpio",
     "dbus-python",
     "file-read-backwards",
     "flask",
@@ -17,13 +16,17 @@ dependencies = [
     "gast",
     "gpiozero",
     "inky",
+    "numpy",
     "pycryptodome",
     "pydrive2",
     "python-dateutil",
     "requests",
+    "rpi-lgpio",
     "rpi_hardware_pwm",
     "scapy",
+    "setuptools",
     "shimmy",
+    "smbus",
     "smbus2",
     "spidev",
     "toml",
@@ -50,9 +53,11 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://pwnagotchi.org/"
-Documentation = "https://pwnagotchi.org/"
+Documentation = "https://github.com/jayofelony/pwnagotchi/wiki"
 Repository = "https://github.com/jayofelony/pwnagotchi.git"
+GitHub = "https://github.com/jayofelony/pwnagotchi"
 Issues = "https://github.com/jayofelony/pwnagotchi/issues"
+Download = "https://github.com/jayofelony/pwnagotchi/releases/latest"
 
 [project.scripts]
 pwnagotchi_cli = "bin.pwnagotchi:pwnagotchi_cli"
