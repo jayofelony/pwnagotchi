@@ -38,7 +38,6 @@ class auto_tune(plugins.Plugin):
         self._active_channels = []  # list of channels with APs found in last scan
         self._known_aps = {}  # dict of all APs by normalized name+mac
         self._known_clients = {}  # dict of all clients by normalized APmac+STAmac (many clients to not have names)
-        self._agent = None  # local copy of the pwnagotchi agent, available after on_ready
 
         self.descriptions = {  # descriptions of personality variables displayed in webui
             "advertise": "enable/disable advertising to mesh peers",
