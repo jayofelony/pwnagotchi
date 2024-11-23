@@ -2,11 +2,11 @@
 set -e
 
 # name of the ethernet gadget interface on the host
-USB_IFACE=${1:-enp0s20f0u1}
+USB_IFACE=${1:-enx002282ffff20}
 USB_IFACE_IP=10.0.0.1
 USB_IFACE_NET=10.0.0.0/24
 # host interface to use for upstream connection
-UPSTREAM_IFACE=${2:-enxe4b97aa99867}
+UPSTREAM_IFACE=${2:-wlp2s0}
 
 ip addr add "$USB_IFACE_IP/24" dev "$USB_IFACE"
 ip link set "$USB_IFACE" up
