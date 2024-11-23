@@ -396,7 +396,7 @@ class auto_tune(plugins.Plugin):
 
     def on_ui_update(self, ui):
         try:
-            mode = '  AT'
+            mode = 'AT'
             ui.set('mode', mode)
         except Exception as e:
             logging.exception(e)
