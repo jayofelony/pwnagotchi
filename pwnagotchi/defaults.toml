@@ -107,7 +107,7 @@ main.plugins.wpa-sec.download_results = false
 main.iface = "wlan0mon"
 main.mon_start_cmd = "/usr/bin/monstart"
 main.mon_stop_cmd = "/usr/bin/monstop"
-main.mon_max_blind_epochs = 50
+main.mon_max_blind_epochs = 5
 main.no_restart = false
 
 main.log.path = "/etc/pwnagotchi/log/pwnagotchi.log"
