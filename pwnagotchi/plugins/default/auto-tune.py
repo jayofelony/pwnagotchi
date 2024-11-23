@@ -38,6 +38,7 @@ class auto_tune(plugins.Plugin):
         self._active_channels = []  # list of channels with APs found in last scan
         self._known_aps = {}  # dict of all APs by normalized name+mac
         self._known_clients = {}  # dict of all clients by normalized APmac+STAmac (many clients to not have names)
+        self._agent = None
 
         self.descriptions = {  # descriptions of personality variables displayed in webui
             "advertise": "enable/disable advertising to mesh peers",
@@ -395,12 +396,8 @@ class auto_tune(plugins.Plugin):
 
     def on_ui_update(self, ui):
         try:
-            if self._agent.mode == 'manual':
-                mode = 'MANU'
-                ui.set('mode', mode)
-            else:
-                mode = 'AT'
-                ui.set('mode', mode)
+            mode = 'AT'
+            ui.set('mode', mode)
         except Exception as e:
             logging.exception(e)
 
