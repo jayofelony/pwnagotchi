@@ -1,4 +1,3 @@
-Pillow
 PyYAML
 dbus-python
 file-read-backwards
