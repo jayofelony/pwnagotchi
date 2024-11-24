@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "pwnagotchi"
 dynamic = ["version"]
 dependencies = [
-    "Pillow",
     "PyYAML",
     "dbus-python",
     "file-read-backwards",
