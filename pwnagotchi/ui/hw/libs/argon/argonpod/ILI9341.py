@@ -18,104 +18,105 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+
+# Modified for Pwnagotchi by RasTacsko
+# Based on ST7899 driver for pimoroni displayhatmini by Do-Ki
+
 import numbers
 import time
 import numpy as np
 
+from PIL import Image
+from PIL import ImageDraw
+
 import spidev
 import RPi.GPIO as GPIO
 
+__version__ = '0.0.1'
 
-__version__ = '0.0.4'
+# Constants for interacting with display registers.
+ILI9341_TFTWIDTH = 320
+ILI9341_TFTHEIGHT = 240
 
-BG_SPI_CS_BACK = 0
-BG_SPI_CS_FRONT = 1
+ILI9341_NOP = 0x00
+ILI9341_SWRESET = 0x01
+ILI9341_RDDID = 0x04
+ILI9341_RDDST = 0x09
 
-SPI_CLOCK_HZ = 16000000
+ILI9341_SLPIN = 0x10
+ILI9341_SLPOUT = 0x11
+ILI9341_PTLON = 0x12
+ILI9341_NORON = 0x13
 
-ST7789_NOP = 0x00
-ST7789_SWRESET = 0x01
-ST7789_RDDID = 0x04
-ST7789_RDDST = 0x09
+ILI9341_RDMODE = 0x0A
+ILI9341_RDMADCTL = 0x0B
+ILI9341_RDPIXFMT = 0x0C
+ILI9341_RDIMGFMT = 0x0A
+ILI9341_RDSELFDIAG = 0x0F
 
-ST7789_SLPIN = 0x10
-ST7789_SLPOUT = 0x11
-ST7789_PTLON = 0x12
-ST7789_NORON = 0x13
+ILI9341_INVOFF = 0x20
+ILI9341_INVON = 0x21
+ILI9341_GAMMASET = 0x26
+ILI9341_DISPOFF = 0x28
+ILI9341_DISPON = 0x29
 
-ST7789_INVOFF = 0x20
-ST7789_INVON = 0x21
-ST7789_DISPOFF = 0x28
-ST7789_DISPON = 0x29
+ILI9341_CASET = 0x2A
+ILI9341_PASET = 0x2B
+ILI9341_RAMWR = 0x2C
+ILI9341_RAMRD = 0x2E
 
-ST7789_CASET = 0x2A
-ST7789_RASET = 0x2B
-ST7789_RAMWR = 0x2C
-ST7789_RAMRD = 0x2E
+ILI9341_PTLAR = 0x30
+ILI9341_MADCTL = 0x36
+ILI9341_PIXFMT = 0x3A
 
-ST7789_PTLAR = 0x30
-ST7789_MADCTL = 0x36
-ST7789_COLMOD = 0x3A
+ILI9341_FRMCTR1 = 0xB1
+ILI9341_FRMCTR2 = 0xB2
+ILI9341_FRMCTR3 = 0xB3
+ILI9341_INVCTR = 0xB4
+ILI9341_DFUNCTR = 0xB6
 
-ST7789_FRMCTR1 = 0xB1
-ST7789_FRMCTR2 = 0xB2
-ST7789_FRMCTR3 = 0xB3
-ST7789_INVCTR = 0xB4
-ST7789_DISSET5 = 0xB6
+ILI9341_PWCTR1 = 0xC0
+ILI9341_PWCTR2 = 0xC1
+ILI9341_PWCTR3 = 0xC2
+ILI9341_PWCTR4 = 0xC3
+ILI9341_PWCTR5 = 0xC4
+ILI9341_VMCTR1 = 0xC5
+ILI9341_VMCTR2 = 0xC7
 
-ST7789_GCTRL = 0xB7
-ST7789_GTADJ = 0xB8
-ST7789_VCOMS = 0xBB
+ILI9341_RDID1 = 0xDA
+ILI9341_RDID2 = 0xDB
+ILI9341_RDID3 = 0xDC
+ILI9341_RDID4 = 0xDD
 
-ST7789_LCMCTRL = 0xC0
-ST7789_IDSET = 0xC1
-ST7789_VDVVRHEN = 0xC2
-ST7789_VRHS = 0xC3
-ST7789_VDVS = 0xC4
-ST7789_VMCTR1 = 0xC5
-ST7789_FRCTRL2 = 0xC6
-ST7789_CABCCTRL = 0xC7
+ILI9341_GMCTRP1 = 0xE0
+ILI9341_GMCTRN1 = 0xE1
 
-ST7789_RDID1 = 0xDA
-ST7789_RDID2 = 0xDB
-ST7789_RDID3 = 0xDC
-ST7789_RDID4 = 0xDD
-
-ST7789_GMCTRP1 = 0xE0
-ST7789_GMCTRN1 = 0xE1
-
-ST7789_PWCTR6 = 0xFC
+ILI9341_PWCTR6 = 0xFC
 
 
-class ST7789(object):
-    """Representation of an ST7789 TFT LCD."""
+class ILI9341(object):
+    """Representation of an ILI9341 TFT LCD."""
 
-    def __init__(self, port, cs, dc, backlight, rst=None, width=320,
-                 height=240, rotation=0, invert=True, spi_speed_hz=60 * 1000 * 1000,
-                 offset_left=0,
-                 offset_top=0):
+    def __init__(self, port, cs, dc, backlight, rst=None, 
+                 width=ILI9341_TFTWIDTH, height=ILI9341_TFTHEIGHT,
+                 rotation=270, invert=False, spi_speed_hz=64000000, 
+                 offset_left=0, offset_top=0):
         """Create an instance of the display using SPI communication.
-
         Must provide the GPIO pin number for the D/C pin and the SPI driver.
-
         Can optionally provide the GPIO pin number for the reset pin as the rst parameter.
-
-        :param port: SPI port number
-        :param cs: SPI chip-select number (0 or 1 for BCM
-        :param backlight: Pin for controlling backlight
-        :param rst: Reset pin for ST7789
-        :param width: Width of display connected to ST7789
-        :param height: Height of display connected to ST7789
-        :param rotation: Rotation of display connected to ST7789
+        :param port: SPI port number -> 0
+        :param cs: SPI chip-select number (0 or 1 for BCM) -> 1
+        :param backlight: Pin for controlling backlight -> 18
+        :param rst: Reset pin for ILI9341 -> 24?
+        :param width: Width of display connected to ILI9341 -> 240
+        :param height: Height of display connected to ILI9341 -> 320
+        :param rotation: Rotation of display connected to ILI9341
         :param invert: Invert display
         :param spi_speed_hz: SPI speed (in Hz)
-
         """
+
         if rotation not in [0, 90, 180, 270]:
             raise ValueError("Invalid rotation {}".format(rotation))
-
-        if width != height and rotation in [90, 270]:
-            raise ValueError("Invalid rotation {} for {}x{} resolution".format(rotation, width, height))
 
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
@@ -143,13 +144,17 @@ class ST7789(object):
         if backlight is not None:
             GPIO.setup(backlight, GPIO.OUT)
             GPIO.output(backlight, GPIO.LOW)
-            time.sleep(0.1)
+            time.sleep(0.05)
             GPIO.output(backlight, GPIO.HIGH)
 
         # Setup reset as output (if provided).
         if rst is not None:
             GPIO.setup(self._rst, GPIO.OUT)
             self.reset()
+
+        # Create an image buffer.
+        self.buffer = Image.new('RGB', (width, height))
+
         self._init()
 
     def send(self, data, is_data=True, chunk_size=4096):
@@ -165,7 +170,7 @@ class ST7789(object):
             data = [data & 0xFF]
         # Write data a chunk at a time.
         for start in range(0, len(data), chunk_size):
-            end = min(start + chunk_size, len(data))
+            end = min(start+chunk_size, len(data))
             self._spi.xfer(data[start:end])
 
     def set_backlight(self, value):
@@ -193,104 +198,110 @@ class ST7789(object):
         """Reset the display, if reset pin is connected."""
         if self._rst is not None:
             GPIO.output(self._rst, 1)
-            time.sleep(0.500)
+            time.sleep(0.005)
             GPIO.output(self._rst, 0)
-            time.sleep(0.500)
+            time.sleep(0.02)
             GPIO.output(self._rst, 1)
-            time.sleep(0.500)
+            time.sleep(0.150)
 
     def _init(self):
-        # Initialize the display.
-
-        self.command(ST7789_SWRESET)    # Software reset
-        time.sleep(0.150)               # delay 150 ms
-
-        self.command(ST7789_MADCTL)
-        self.data(0x70)
-
-        self.command(ST7789_FRMCTR2)    # Frame rate ctrl - idle mode
-        self.data(0x0C)
-        self.data(0x0C)
+        # Initialize the display.  Broken out as a separate function so it can
+        # be overridden by other displays in the future.
+        self.command(0xEF)
+        self.data(0x03)
+        self.data(0x80)
+        self.data(0x02)
+        self.command(0xCF)
         self.data(0x00)
-        self.data(0x33)
-        self.data(0x33)
-
-        self.command(ST7789_COLMOD)
-        self.data(0x05)
-
-        self.command(ST7789_GCTRL)
-        self.data(0x14)
-
-        self.command(ST7789_VCOMS)
-        self.data(0x37)
-
-        self.command(ST7789_LCMCTRL)    # Power control
+        self.data(0XC1)
+        self.data(0X30)
+        self.command(0xED)
+        self.data(0x64)
+        self.data(0x03)
+        self.data(0X12)
+        self.data(0X81)
+        self.command(0xE8)
+        self.data(0x85)
+        self.data(0x00)
+        self.data(0x78)
+        self.command(0xCB)
+        self.data(0x39)
         self.data(0x2C)
-
-        self.command(ST7789_VDVVRHEN)   # Power control
-        self.data(0x01)
-
-        self.command(ST7789_VRHS)       # Power control
-        self.data(0x12)
-
-        self.command(ST7789_VDVS)       # Power control
+        self.data(0x00)
+        self.data(0x34)
+        self.data(0x02)
+        self.command(0xF7)
         self.data(0x20)
-
-        self.command(0xD0)
-        self.data(0xA4)
-        self.data(0xA1)
-
-        self.command(ST7789_FRCTRL2)
-        self.data(0x0F)
-
-        self.command(ST7789_GMCTRP1)    # Set Gamma
-        self.data(0xD0)
-        self.data(0x04)
-        self.data(0x0D)
-        self.data(0x11)
-        self.data(0x13)
-        self.data(0x2B)
-        self.data(0x3F)
-        self.data(0x54)
-        self.data(0x4C)
+        self.command(0xEA)
+        self.data(0x00)
+        self.data(0x00)
+        self.command(ILI9341_PWCTR1)    # Power control
+        self.data(0x23)                    # VRH[5:0]
+        self.command(ILI9341_PWCTR2)    # Power control
+        self.data(0x10)                    # SAP[2:0];BT[3:0]
+        self.command(ILI9341_VMCTR1)    # VCM control
+        self.data(0x3e)
+        self.data(0x28)
+        self.command(ILI9341_VMCTR2)    # VCM control2
+        self.data(0x86)                    # --
+        self.command(ILI9341_MADCTL)    #  Memory Access Control
+        self.data(0x48)
+        self.command(ILI9341_PIXFMT)
+        self.data(0x55)
+        self.command(ILI9341_FRMCTR1)
+        self.data(0x00)
         self.data(0x18)
-        self.data(0x0D)
-        self.data(0x0B)
-        self.data(0x1F)
-        self.data(0x23)
-
-        self.command(ST7789_GMCTRN1)    # Set Gamma
-        self.data(0xD0)
-        self.data(0x04)
+        self.command(ILI9341_DFUNCTR)    #  Display Function Control
+        self.data(0x08)
+        self.data(0x82)
+        self.data(0x27)
+        self.command(0xF2)                #  3Gamma Function Disable
+        self.data(0x00)
+        self.command(ILI9341_GAMMASET)    # Gamma curve selected
+        self.data(0x01)
+        self.command(ILI9341_GMCTRP1)    # Set Gamma
+        self.data(0x0F)
+        self.data(0x31)
+        self.data(0x2B)
         self.data(0x0C)
+        self.data(0x0E)
+        self.data(0x08)
+        self.data(0x4E)
+        self.data(0xF1)
+        self.data(0x37)
+        self.data(0x07)
+        self.data(0x10)
+        self.data(0x03)
+        self.data(0x0E)
+        self.data(0x09)
+        self.data(0x00)
+        self.command(ILI9341_GMCTRN1)    # Set Gamma
+        self.data(0x00)
+        self.data(0x0E)
+        self.data(0x14)
+        self.data(0x03)
         self.data(0x11)
-        self.data(0x13)
-        self.data(0x2C)
-        self.data(0x3F)
-        self.data(0x44)
-        self.data(0x51)
-        self.data(0x2F)
-        self.data(0x1F)
-        self.data(0x1F)
-        self.data(0x20)
-        self.data(0x23)
-
+        self.data(0x07)
+        self.data(0x31)
+        self.data(0xC1)
+        self.data(0x48)
+        self.data(0x08)
+        self.data(0x0F)
+        self.data(0x0C)
+        self.data(0x31)
+        self.data(0x36)
+        self.data(0x0F)
         if self._invert:
-            self.command(ST7789_INVON)   # Invert display
+            self.command(ILI9341_INVON)   # Invert display
         else:
-            self.command(ST7789_INVOFF)  # Don't invert display
-
-        self.command(ST7789_SLPOUT)
-
-        self.command(ST7789_DISPON)     # Display on
-        time.sleep(0.100)               # 100 ms
+            self.command(ILI9341_INVOFF)  # Don't invert display
+        self.command(ILI9341_SLPOUT)    # Exit Sleep
+        time.sleep(0.120)
+        self.command(ILI9341_DISPON)    # Display on
 
     def begin(self):
-        """Set up the display
-
-        Deprecated. Included in __init__.
-
-        """
+        """Set up the display deprecated. 
+        Included in __init__. """
         pass
 
     def set_window(self, x0=0, y0=0, x1=None, y1=None):
@@ -298,37 +309,28 @@ class ST7789(object):
         x1 should define the minimum and maximum x pixel bounds.  y0 and y1
         should define the minimum and maximum y pixel bound.  If no parameters
         are specified the default will be to update the entire display from 0,0
-        to width-1,height-1.
+        to 239,319.
         """
         if x1 is None:
-            x1 = self._width - 1
-
+            x1 = self.width-1
         if y1 is None:
-            y1 = self._height - 1
+            y1 = self.height-1
 
-        y0 += self._offset_top
-        y1 += self._offset_top
-
-        x0 += self._offset_left
-        x1 += self._offset_left
-
-        self.command(ST7789_CASET)       # Column addr set
+        self.command(ILI9341_CASET)        # Column addr set
         self.data(x0 >> 8)
         self.data(x0 & 0xFF)             # XSTART
         self.data(x1 >> 8)
         self.data(x1 & 0xFF)             # XEND
-        self.command(ST7789_RASET)       # Row addr set
+        self.command(ILI9341_PASET)        # Row addr set
         self.data(y0 >> 8)
         self.data(y0 & 0xFF)             # YSTART
         self.data(y1 >> 8)
         self.data(y1 & 0xFF)             # YEND
-        self.command(ST7789_RAMWR)       # write to RAM
+        self.command(ILI9341_RAMWR)        # write to RAM
 
     def display(self, image):
         """Write the provided image to the hardware.
-
         :param image: Should be RGB format and the same dimensions as the display hardware.
-
         """
         # Set address bounds to entire display.
         self.set_window()

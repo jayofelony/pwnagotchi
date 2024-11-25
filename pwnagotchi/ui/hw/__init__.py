@@ -96,9 +96,25 @@ def display_for(config):
         from pwnagotchi.ui.hw.pirateaudio import PirateAudio
         return PirateAudio(config)
 
+    elif config['ui']['display']['type'] == 'gfxhat':
+        from pwnagotchi.ui.hw.gfxhat import GfxHat
+        return GfxHat(config)
+
+    elif config['ui']['display']['type'] == 'argonpod':
+        from pwnagotchi.ui.hw.argonpod import ArgonPod
+        return ArgonPod(config)
+
     elif config['ui']['display']['type'] == 'pitft':
         from pwnagotchi.ui.hw.pitft import Pitft
         return Pitft(config)
+
+    elif config['ui']['display']['type'] == 'minipitft':
+        from pwnagotchi.ui.hw.minipitft import MiniPitft
+        return MiniPitft(config)
+
+    elif config['ui']['display']['type'] == 'minipitft2':
+        from pwnagotchi.ui.hw.minipitft2 import MiniPitft2
+        return MiniPitft2(config)
 
     elif config['ui']['display']['type'] == 'tftbonnet':
         from pwnagotchi.ui.hw.tftbonnet import TftBonnet

@@ -3,7 +3,6 @@
 # Key2 (for2,8"): GPIO22
 # Key3 (for2,8"): GPIO23
 # Key4 (for2,8"): GPIO27
-# Key5 (for2,4"): GPIO27
 #
 # Key1 (for2,4"): GPIO16
 # Key2 (for2,4"): GPIO13
