@@ -174,7 +174,7 @@ class BTNap:
         """
         Wait for device
 
-        returns device if found None if not
+        returns device if found, None if not
         """
         logging.debug("BT-TETHER: Waiting for device")
 
