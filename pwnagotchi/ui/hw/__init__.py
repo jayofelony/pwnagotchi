@@ -87,6 +87,10 @@ def display_for(config):
     elif config['ui']['display']['type'] == 'spotpear24inch':
         from pwnagotchi.ui.hw.spotpear24in import Spotpear24inch
         return Spotpear24inch(config)
+    
+    elif config['ui']['display']['type'] == 'spotpear154lcd':
+        from pwnagotchi.ui.hw.spotpear154lcd import Spotpear154lcd
+        return Spotpear154lcd(config)
 
     elif config['ui']['display']['type'] == 'displayhatmini':
         from pwnagotchi.ui.hw.displayhatmini import DisplayHatMini
@@ -107,6 +111,14 @@ def display_for(config):
     elif config['ui']['display']['type'] == 'pitft':
         from pwnagotchi.ui.hw.pitft import Pitft
         return Pitft(config)
+    
+    elif config['ui']['display']['type'] == 'gamepi15':
+        from pwnagotchi.ui.hw.gamepi15 import GamePi15
+        return GamePi15(config)
+    
+    elif config['ui']['display']['type'] == 'gamepi20':
+        from pwnagotchi.ui.hw.gamepi20 import GamePi20
+        return GamePi20(config)
 
     elif config['ui']['display']['type'] == 'minipitft':
         from pwnagotchi.ui.hw.minipitft import MiniPitft

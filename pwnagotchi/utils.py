@@ -303,6 +303,9 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('spotpear24inch'):
         config['ui']['display']['type'] = 'spotpear24inch'
 
+    elif config['ui']['display']['type'] in ('spotpear154lcd'):
+        config['ui']['display']['type'] = 'spotpear154lcd'
+
     elif config['ui']['display']['type'] in ('displayhatmini'):
         config['ui']['display']['type'] = 'displayhatmini'
 
@@ -338,6 +341,12 @@ def load_config(args):
 
     elif config['ui']['display']['type'] in ('waveshareoledlcdvert'):
         config['ui']['display']['type'] = 'waveshareoledlcdvert'
+
+    elif config['ui']['display']['type'] in ('gamepi20'):
+        config['ui']['display']['type'] = 'gamepi20'
+
+    elif config['ui']['display']['type'] in ('gamepi15'):
+        config['ui']['display']['type'] = 'gamepi15'
 
     # E-INK DISPLAYS ------------------------------------------------------------------------
 
