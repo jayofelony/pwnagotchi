@@ -253,9 +253,18 @@ class Display(View):
 
     def is_spotpear24inch(self):
         return self._implementation.name == 'spotpear24inch'
+    
+    def is_spotpear154lcd(self):
+        return self._implementation.name == 'spotpear154lcd'
 
     def is_displayhatmini(self):
         return self._implementation.name == 'displayhatmini'
+    
+    def is_gamepi20(self):
+        return self._implementation.name == 'gamepi20'
+
+    def is_gamepi15(self):
+        return self._implementation.name == 'gamepi15'
 
     def is_pirateaudio(self):
         return self._implementation.name == 'pirateaudio'
