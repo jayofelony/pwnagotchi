@@ -2,6 +2,7 @@ import logging
 
 import pwnagotchi.plugins as plugins
 from pwnagotchi.ai.epoch import Epoch
+import os
 
 
 # basic mood system
@@ -136,7 +137,12 @@ class Automata(object):
             self.set_grateful()
 
         plugins.on('epoch', self, self._epoch.epoch - 1, self._epoch.data())
-
+        if self._epoch.blind_for % 10 == 2:
+            logging.info("two blind epochs -> restarting wifi.recon...", self._epoch.blind_for)
+            self.run('wifi.recon on')
+        if self._epoch.blind_for and self._epoch.blind_for % 5 == 0:
+            logging.info("%d epochs without visible access points -> restarting bettercap...", self._epoch.blind_for)
+            os.system("systemctl restart bettercap")
         if self._epoch.blind_for >= self._config['main']['mon_max_blind_epochs']:
             logging.critical("%d epochs without visible access points -> restarting ...", self._epoch.blind_for)
             self._restart()
