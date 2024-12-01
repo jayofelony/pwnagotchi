@@ -36,7 +36,7 @@ FILES_TO_BACKUP="
     /boot/firmware/cmdline.txt \
     /boot/firmware/config.txt \
     /root/settings.yaml \
-    /root/client_sercrets.json \
+    /root/client_secrets.json \
     /root/.api-report.json \
     /root/.ssh \
     /root/.bashrc \
