@@ -51,6 +51,9 @@ classifiers = [
     'Environment :: Console',
 ]
 
+[tool.setuptools.dynamic]
+version = {attr = "pwnagotchi.__version__"}
+
 [project.urls]
 Homepage = "https://pwnagotchi.org/"
 Documentation = "https://github.com/jayofelony/pwnagotchi/wiki"
