@@ -1,57 +1,55 @@
-"""Library for the GFX HAT ST7567 SPI LCD."""
-from .st7567 import ST7567
+from . import st7567
+from . import backlight
+CONTRAST = 40
 
-st7567 = ST7567()
+# Define RGB colors
+WHITE = (255, 255, 255)
+GREY = (255, 255, 255)
+MAROON = (128, 0, 0)
+RED = (255, 0, 0)
+PURPLE = (128, 0, 128)
+FUCHSIA = (255, 0, 255)
+GREEN = (0, 128, 0)
+LIME = (0, 255, 0)
+OLIVE = (128, 128, 0)
+YELLOW = (255, 255, 0)
+NAVY = (0, 0, 128)
+BLUE = (0, 0, 255)
+TEAL = (0, 128, 128)
+AQUA = (0, 255, 255)
 
-dimensions = st7567.dimensions
+# Map color names to RGB values
+color_map = {
+    'WHITE': WHITE,
+    'GREY' : GREY,
+    'MAROON': MAROON,
+    'RED': RED,
+    'PURPLE': PURPLE,
+    'FUCHSIA': FUCHSIA,
+    'GREEN' : GREEN,
+    'LIME' : LIME,
+    'OLIVE' : OLIVE,
+    'YELLOW' : YELLOW,
+    'NAVY' : NAVY,
+    'BLUE' : BLUE,
+    'TEAL' : TEAL,
+    'AQUA' : AQUA
+}
 
+class LCD(object):
 
-def clear():
-    """Clear GFX HAT's display buffer."""
-    st7567.clear()
+    def __init__(self, contrast=CONTRAST, blcolor=('OLIVE')):
+        self.disp = st7567.ST7567()
+        self.disp.contrast(contrast)
 
+    def Init(self, color_name):
+        self.disp.setup()
+        blcolor = color_map.get(color_name.upper(), OLIVE)  # Default to olive if color not found
+        backlight.set_all(*blcolor)
+        backlight.show()
 
-def set_pixel(x, y, value):
-    """Set a single pixel in GTX HAT's display buffer.
+    def Clear(self):
+        self.disp.clear()
 
-    :param x: X position (from 0 to 127)
-    :param y: Y position (from 0 to 63)
-    :param value: pixel state 1 = On, 0 = Off
-
-    """
-    st7567.set_pixel(x, y, value)
-
-
-def show():
-    """Update GFX HAT with the current buffer contents."""
-    st7567.show()
-
-
-def contrast(value):
-    """Change GFX HAT LCD contrast."""
-    st7567.contrast(value)
-
-
-def rotation(r=0):
-    """Set the display rotation.
-
-    :param r: Specify the rotation in degrees: 0, or 180
-
-    """
-    if r == 0:
-        st7567.rotated = False
-
-    elif r == 180:
-        st7567.rotated = True
-
-    else:
-        raise ValueError('Rotation must be 0 or 180 degrees')
-
-
-def get_rotation():
-    """Get the display rotation value.
-
-    Returns an integer, either 0, or 180
-
-    """
-    return 180 if st7567.rotated else 0
+    def Display(self, image):
+        self.disp.show(image)

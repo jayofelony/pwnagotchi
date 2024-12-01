@@ -9,7 +9,7 @@ LED_MAP = [2, 1, 0, 5, 4, 3]
 def setup():
     """Set up the backlight on GFX HAT."""
     global _sn3218
-    import sn3218 as _sn3218
+    from . import sn3218 as _sn3218
 
     _sn3218.enable()
     _sn3218.enable_leds(0b111111111111111111)

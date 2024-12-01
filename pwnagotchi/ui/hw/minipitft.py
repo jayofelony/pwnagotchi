@@ -1,6 +1,6 @@
 # board GPIO:
-# A:        GPIO22
-# B:        GPIO23
+# A:        GPIO23
+# B:        GPIO24
 #
 # HW datasheet: https://learn.adafruit.com/adafruit-1-3-color-tft-bonnet-for-raspberry-pi/overview
 
@@ -38,7 +38,10 @@ class MiniPitft(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing Adafruit Mini Pi Tft 240x240")
+        logging.info("Initializing Adafruit Mini Pi Tft 240x240")
+        logging.info("Available pins for GPIO Buttons: 23, 24")
+        logging.info("Backlight pin available on GPIO 22")        
+        logging.info("I2C bus available on stemma QT header")
         from pwnagotchi.ui.hw.libs.adafruit.minipitft.ST7789 import ST7789
         self._display = ST7789(0,0,25,22)
 
