@@ -32,28 +32,31 @@ OUTPUT=${OUTPUT:-${UNIT_HOSTNAME}-backup-$(date +%s).tgz}
 # username to use for ssh
 UNIT_USERNAME=${UNIT_USERNAME:-pi}
 # what to backup
-FILES_TO_BACKUP="/root/brain.nn \
-  /root/brain.json \
-  /root/.api-report.json \
-  /root/.ssh \
-  /root/.bashrc \
-  /root/.profile \
-  /root/handshakes \
-  /root/peers \
-  /etc/pwnagotchi/ \
-  /etc/ssh/ \
-  /var/log/pwnagotchi.log \
-  /var/log/pwnagotchi*.gz \
-  /home/pi/.ssh \
-  /home/pi/.bashrc \
-  /home/pi/.profile \
-  /root/.api-report.json \
-  /root/.auto-update \
-  /root/.bt-tether* \
-  /root/.net_pos_saved \
-  /root/.ohc_uploads \
-  /root/.wigle_uploads \
-  /root/.wpa_sec_uploads"
+FILES_TO_BACKUP="
+    /boot/firmware/cmdline.txt \
+    /boot/firmware/config.txt \
+    /root/settings.yaml \
+    /root/client_sercrets.json \
+    /root/.api-report.json \
+    /root/.ssh \
+    /root/.bashrc \
+    /root/.profile \
+    /root/handshakes \
+    /root/peers \
+    /etc/modprobe.d/g_ether.conf \
+    /etc/pwnagotchi/ \
+    /etc/ssh/ \
+    /etc/pwnagotchi/log/pwnagotchi.log \
+    /etc/pwnagotchi/log/pwnagotchi*.gz \
+    /home/pi/.ssh \
+    /home/pi/.bashrc \
+    /home/pi/.profile \
+    /root/.api-report.json \
+    /root/.auto-update \
+    /root/.bt-tether* \
+    /root/.ohc_uploads \
+    /root/.wigle_uploads \
+    /root/.wpa_sec_uploads"
 
 ping -c 1 "${UNIT_HOSTNAME}" > /dev/null 2>&1 || {
   echo "@ unit ${UNIT_HOSTNAME} can't be reached, make sure it's connected and a static IP assigned to the USB interface."
