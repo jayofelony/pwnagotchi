@@ -63,4 +63,4 @@ Issues = "https://github.com/jayofelony/pwnagotchi/issues"
 Download = "https://github.com/jayofelony/pwnagotchi/releases/latest"
 
 [project.scripts]
-pwnagotchi = "bin.pwnagotchi:pwnagotchi_cli"
+pwnagotchi = "pwnagotchi:pwnagotchi_cli"
