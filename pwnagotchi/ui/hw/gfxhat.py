@@ -8,7 +8,7 @@
 # ui.display.blcolor = "olive"
 # 
 # Contrast should be between 30-50, default is 40
-# Backlight are predefined in the epd.py
+# Backlight are predefined in the lcd.py
 # Available backlight colors:
 # white, grey, maroon, red, purple, fuchsia, green, 
 # lime, olive, yellow, navy, blue, teal, aqua
@@ -48,10 +48,16 @@ class GfxHat(DisplayImpl):
     def initialize(self):
         contrast = self._config['contrast'] if 'contrast' in self._config else 40
         blcolor = self._config['blcolor'] if 'blcolor' in self._config else 'OLIVE'
-        logging.info("initializing Pimoroni GfxHat")
-        logging.info("initializing Pimoroni GfxHat - Contrast: %d Backlight color: %s" % (contrast, blcolor))
-        from pwnagotchi.ui.hw.libs.pimoroni.gfxhat.epd import EPD
-        self._display = EPD(contrast=contrast)
+        logging.info("Initializing Pimoroni GfxHat - Contrast: %d Backlight color: %s" % (contrast, blcolor))
+        logging.info("Available config options: ui.display.contrast and ui.display.color")
+        logging.info("Contrast should be between 30-50, default is 40")
+        logging.info("Backlight are predefined in the lcd.py")
+        logging.info("Available backlight colors:")
+        logging.info("white, grey, maroon, red, purple, fuchsia, green,")
+        logging.info("lime, olive, yellow, navy, blue, teal, aqua")
+        logging.info("Touch control work in progress (6 touch buttons with short and long press and LED feedback)")
+        from pwnagotchi.ui.hw.libs.pimoroni.gfxhat.lcd import LCD
+        self._display = LCD(contrast=contrast)
         self._display.Init(color_name=blcolor)
         self._display.Clear()
 

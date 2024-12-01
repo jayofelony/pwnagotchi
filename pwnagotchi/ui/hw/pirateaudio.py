@@ -45,6 +45,10 @@ class PirateAudio(DisplayImpl):
 
     def initialize(self):
         logging.info("Initializing PirateAudio - display only")
+        logging.info("Available pins for GPIO Buttons A/B/X/Y: 5, 6, 16, 20 or 24")
+        logging.info("refer to the pimoroni site or pinout.xyz")
+        logging.info("Backlight pin available on GPIO 13")        
+        logging.info("I2S for the DAC available on pins: 18, 19 and 21")
         from pwnagotchi.ui.hw.libs.pimoroni.pirateaudio.ST7789 import ST7789
         self._display = ST7789(0,1,9,13)
 

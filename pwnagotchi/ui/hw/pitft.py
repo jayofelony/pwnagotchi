@@ -50,6 +50,9 @@ class Pitft(DisplayImpl):
 
     def initialize(self):
         logging.info("Initializing adafruit pitft 320x240 screen")
+        logging.info("Available pins for GPIO Buttons on the 3,2inch: 17, 22, 23, 27")
+        logging.info("Available pins for GPIO Buttons on the 2,8inch: 26, 13, 12, 6, 5")
+        logging.info("Backlight pin available on GPIO 18")
         from pwnagotchi.ui.hw.libs.adafruit.pitft.ILI9341 import ILI9341
         self._display = ILI9341(0, 0, 25, 18)
 
