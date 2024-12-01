@@ -333,10 +333,6 @@ def pwnagotchi_cli():
         do_auto_mode(agent)
 
 
-if __name__ == '__main__':
-    pwnagotchi_cli()
-
-
 def set_name(new_name):
     if new_name is None:
         return
