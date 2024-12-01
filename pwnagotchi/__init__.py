@@ -1,22 +1,9 @@
+import os
 import logging
 import time
 import re
-import argparse
-import time
-import signal
-import sys
-import toml
-import requests
-import os
 
 from pwnagotchi._version import __version__
-
-from pwnagotchi import utils
-from pwnagotchi.google import cmd as google_cmd
-from pwnagotchi.plugins import cmd as plugins_cmd
-from pwnagotchi import log
-from pwnagotchi import fs
-from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
 
 _name = None
 config = None
@@ -179,6 +166,26 @@ def reboot(mode=None):
 
     os.system("sync")
     os.system("shutdown -r now")
+
+#!/usr/bin/python3
+import logging
+import argparse
+import time
+import signal
+import sys
+import toml
+import requests
+import os
+import re
+
+import pwnagotchi
+from pwnagotchi import utils
+from pwnagotchi.google import cmd as google_cmd
+from pwnagotchi.plugins import cmd as plugins_cmd
+from pwnagotchi import log
+from pwnagotchi import fs
+from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
+
 
 def pwnagotchi_cli():
     def do_clear(display):
