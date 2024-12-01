@@ -33,9 +33,6 @@ dependencies = [
     "websockets",
 ]
 
-[tool.setuptools.dynamic]
-version = {attr = "pwnagotchi.__version__"}
-
 requires-python = ">=3.11"
 authors = [
   {name = "Evilsocket", email = "evilsocket@gmail.com"},
