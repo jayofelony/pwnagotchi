@@ -2,17 +2,7 @@ import os
 import logging
 import time
 import re
-import argparse
-import signal
-import sys
-import toml
-import requests
-import utils
-from pwnagotchi.google import cmd as google_cmd
-from pwnagotchi.plugins import cmd as plugins_cmd
-from pwnagotchi import log
-from pwnagotchi import fs
-from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
+
 from pwnagotchi._version import __version__
 
 _name = None
