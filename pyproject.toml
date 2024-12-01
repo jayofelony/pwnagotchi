@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -32,6 +32,10 @@ dependencies = [
     "tweepy",
     "websockets",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "pwnagotchi.__version__"}
+
 requires-python = ">=3.11"
 authors = [
   {name = "Evilsocket", email = "evilsocket@gmail.com"},
@@ -59,4 +63,4 @@ Issues = "https://github.com/jayofelony/pwnagotchi/issues"
 Download = "https://github.com/jayofelony/pwnagotchi/releases/latest"
 
 [project.scripts]
-pwnagotchi_cli = "bin.pwnagotchi:pwnagotchi_cli"
+pwnagotchi = "bin.pwnagotchi:pwnagotchi_cli"
