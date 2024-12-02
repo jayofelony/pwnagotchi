@@ -32,7 +32,7 @@ class Spotpear154lcd(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing gamepi15 display")
+        logging.info("initializing spotpear154lcd display")
         from pwnagotchi.ui.hw.libs.pimoroni.displayhatmini.ST7789 import ST7789
         self._display = ST7789(0, 0, 22, 24, 27, 240, 240, 0, True, 60 * 1000 * 1000, 0, 0)
 
