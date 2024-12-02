@@ -44,6 +44,9 @@ class TftBonnet(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing Adafruit Tft Bonnet")
+        logging.info("Available pins for GPIO Buttons Up/Down/Left/Right/Center/A/B: 17, 22, 27, 23, 4, 5, 6")
+        logging.info("Backlight pin available on GPIO 26")        
+        logging.info("I2C bus available on stemma QT header")
         from pwnagotchi.ui.hw.libs.adafruit.tftbonnet.ST7789 import ST7789
         self._display = ST7789(0,0,25,26)
 

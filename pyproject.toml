@@ -1,38 +1,18 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pwnagotchi"
 dynamic = ["version"]
 dependencies = [
-    "PyYAML",
-    "dbus-python",
-    "file-read-backwards",
-    "flask",
-    "flask-cors",
-    "flask-wtf",
-    "gast",
-    "gpiozero",
-    "inky",
-    "numpy",
-    "pycryptodome",
-    "pydrive2",
-    "python-dateutil",
-    "requests",
-    "rpi-lgpio",
-    "rpi_hardware_pwm",
-    "scapy",
-    "setuptools",
-    "shimmy",
-    "smbus",
-    "smbus2",
-    "spidev",
-    "toml",
-    "tweepy",
-    "websockets",
+    "PyYAML", "dbus-python", "file-read-backwards", "flask", "flask-cors",
+    "flask-wtf", "gast", "gpiozero", "inky", "numpy", "pycryptodome", "pydrive2", "python-dateutil",
+    "requests", "rpi-lgpio", "rpi_hardware_pwm", "scapy", "setuptools", "shimmy", "smbus", "smbus2",
+    "spidev", "toml", "tweepy", "websockets",
 ]
-requires-python = ">=3.9"
+
+requires-python = ">=3.11"
 authors = [
   {name = "Evilsocket", email = "evilsocket@gmail.com"},
   {name = "Jayofelony", email = "oudshoorn.jeroen@gmail.com"}
@@ -44,11 +24,14 @@ description = "(⌐■_■) - Deep Reinforcement Learning instrumenting betterca
 readme = "README.md"
 license = {file = "LICENSE.md"}
 classifiers = [
-    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.11',
     'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: GNU General Public License (GPL)',
     'Environment :: Console',
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "pwnagotchi.__version__"}
 
 [project.urls]
 Homepage = "https://pwnagotchi.org/"
@@ -59,4 +42,4 @@ Issues = "https://github.com/jayofelony/pwnagotchi/issues"
 Download = "https://github.com/jayofelony/pwnagotchi/releases/latest"
 
 [project.scripts]
-pwnagotchi_cli = "bin.pwnagotchi:pwnagotchi_cli"
+pwnagotchi = "pwnagotchi.cli:pwnagotchi_cli"

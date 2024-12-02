@@ -49,6 +49,7 @@ class Waveshareoledlcdvert(DisplayImpl):
 
     def initialize(self):
         logging.info("initializing Waveshare OLED/LCD hat vertical mode")
+        logging.info("Available pins for GPIO Buttons K1/K2/K3/K4: 4, 17, 23, 24")
         from pwnagotchi.ui.hw.libs.waveshare.oled.oledlcd.ST7789vert import ST7789
         self._display = ST7789(0,0,22,18)
 
