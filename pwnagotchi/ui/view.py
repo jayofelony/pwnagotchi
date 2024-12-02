@@ -1,4 +1,4 @@
-#import _thread
+# import _thread
 import threading
 import logging
 import random
@@ -6,7 +6,6 @@ import time
 from threading import Lock
 
 from PIL import ImageDraw
-from PIL import ImageColor as colors
 
 import pwnagotchi
 import pwnagotchi.plugins as plugins
@@ -19,105 +18,28 @@ from pwnagotchi.ui.components import *
 from pwnagotchi.ui.state import State
 from pwnagotchi.voice import Voice
 
-WHITE = 0x00 # white is actually black on jays image
-BLACK = 0xFF # black is actually white on jays image
-
-BACKGROUND_1 = 0
-FOREGROUND_1 = 1
-
-BACKGROUND_L = 0
-FOREGROUND_L = 255
-
-BACKGROUND_BGR_16 = (0,0,0)
-FOREGROUND_BGR_16 = (31,63,31)
-
-BACKGROUND_RGB = (0,0,0)
-FOREGROUND_RGB = (255,255,255)
-
-
-ROOT = None
-
-
-
-
-#1 (1-bit pixels, black and white, stored with one pixel per byte)
-
-#L (8-bit pixels, grayscale)
-
-#P (8-bit pixels, mapped to any other mode using a color palette)
-
-#BGR;16 (5,6,5 bits, for 65k color)
-
-#RGB (3x8-bit pixels, true color)
-
-#RGBA (4x8-bit pixels, true color with transparency mask)
-
-#CMYK (4x8-bit pixels, color separation)
-
-#YCbCr (3x8-bit pixels, color video format)
-
-#self.FOREGROUND is the main color
-#self.BACKGROUNDGROUND is the 2ndary color, used for background
-
+WHITE = 0x00  # white is actually black on jays image
+BLACK = 0xFF  # black is actually white on jays image
 
 
 class View(object):
     def __init__(self, config, impl, state=None):
         global ROOT, BLACK, WHITE
-        
-        #values/code for display color mode    
-        
-        self.mode = '1' # 1 = (1-bit pixels, black and white, stored with one pixel per byte)
-        if hasattr(impl, 'mode'):
-            self.mode = impl.mode
-            
-        
-        
-        match self.mode:
-            case '1':
-                self.BACKGROUND = BACKGROUND_1
-                self.FOREGROUND = FOREGROUND_1
-                # do stuff is color mode is 1 when View object is created. 
-            case 'L':
-                self.BACKGROUND =  BACKGROUND_L # black 0 to 255
-                self.FOREGROUND = FOREGROUND_L
-                # do stuff is color mode is L when View object is created.
-            case 'P':
-                pass
-                # do stuff is color mode is P when View object is created.
-            case 'BGR;16':
-                self.BACKGROUND = BACKGROUND_BGR_16 #black tuple
-                self.FOREGROUND = FOREGROUND_BGR_16 #white tuple
-            case 'RGB':
-                self.BACKGROUND = BACKGROUND_RGB #black tuple
-                self.FOREGROUND = FOREGROUND_RGB #white tuple
-                # do stuff is color mode is RGB when View object is created.
-            case 'RGBA':
-                # do stuff is color mode is RGBA when View object is created.
-                pass
-            case 'CMYK':
-                # do stuff is color mode is CMYK when View object is created.
-                pass
-            case 'YCbCr':
-                # do stuff is color mode is YCbCr when View object is created.
-                pass
-            case _:
-                # do stuff when color mode doesnt exist for display
-                self.BACKGROUND = BACKGROUND_1
-                self.FOREGROUND = FOREGROUND_1
-            
-            
+
         self.invert = 0
+        self._black = 0xFF
+        self._white = 0x00
         if 'invert' in config['ui'] and config['ui']['invert'] == True:
-            logging.debug("INVERT:" + str(config['ui']['invert']))
+            logging.debug("INVERT BLACK/WHITES:" + str(config['ui']['invert']))
             self.invert = 1
-            tmp = self.FOREGROUND 
-            self.FOREGROUND = self.FOREGROUND
-            self.FOREGROUND = tmp
+            BLACK = 0x00
+            WHITE = 0xFF
+            self._black = 0x00
+            self._white = 0xFF
 
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
-            
+
         self._agent = None
         self._render_cbs = []
         self._config = config
@@ -130,40 +52,42 @@ class View(object):
         self._width = self._layout['width']
         self._height = self._layout['height']
         self._state = State(state={
-            'channel': LabeledValue(color=self.FOREGROUND, label='CH', value='00', position=self._layout['channel'],
+            'channel': LabeledValue(color=BLACK, label='CH', value='00', position=self._layout['channel'],
                                     label_font=fonts.Bold,
                                     text_font=fonts.Medium),
-            'aps': LabeledValue(color=self.FOREGROUND, label='APS', value='0 (00)', position=self._layout['aps'],
+            'aps': LabeledValue(color=BLACK, label='APS', value='0 (00)', position=self._layout['aps'],
                                 label_font=fonts.Bold,
                                 text_font=fonts.Medium),
 
-            'uptime': LabeledValue(color=self.FOREGROUND, label='UP', value='00:00:00', position=self._layout['uptime'],
+            'uptime': LabeledValue(color=BLACK, label='UP', value='00:00:00', position=self._layout['uptime'],
                                    label_font=fonts.Bold,
                                    text_font=fonts.Medium),
 
-            'line1': Line(self._layout['line1'], color=self.FOREGROUND),
-            'line2': Line(self._layout['line2'], color=self.FOREGROUND),
+            'line1': Line(self._layout['line1'], color=BLACK),
+            'line2': Line(self._layout['line2'], color=BLACK),
 
-            'face': Text(value=faces.SLEEP, position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']), color=self.FOREGROUND, font=fonts.Huge, png=config['ui']['faces']['png']),
+            'face': Text(value=faces.SLEEP,
+                         position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']),
+                         color=BLACK, font=fonts.Huge, png=config['ui']['faces']['png']),
 
-            # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=self.FOREGROUND),
-            'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=self.FOREGROUND),
+            # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=BLACK),
+            'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=BLACK),
 
-            'name': Text(value='%s>' % 'pwnagotchi', position=self._layout['name'], color=self.FOREGROUND, font=fonts.Bold),
+            'name': Text(value='%s>' % 'pwnagotchi', position=self._layout['name'], color=BLACK, font=fonts.Bold),
 
             'status': Text(value=self._voice.default(),
                            position=self._layout['status']['pos'],
-                           color=self.FOREGROUND,
+                           color=BLACK,
                            font=self._layout['status']['font'],
                            wrap=True,
                            # the current maximum number of characters per line, assuming each character is 6 pixels wide
                            max_length=self._layout['status']['max']),
 
-            'shakes': LabeledValue(label='PWND ', value='0 (00)', color=self.FOREGROUND,
+            'shakes': LabeledValue(label='PWND ', value='0 (00)', color=BLACK,
                                    position=self._layout['shakes'], label_font=fonts.Bold,
                                    text_font=fonts.Medium),
             'mode': Text(value='AUTO', position=self._layout['mode'],
-                         font=fonts.Bold, color=self.FOREGROUND),
+                         font=fonts.Bold, color=BLACK),
         })
 
         if state:
@@ -173,8 +97,8 @@ class View(object):
         plugins.on('ui_setup', self)
 
         if config['ui']['fps'] > 0.0:
-            threading.Thread(target=self._refresh_handler, args=(), name="UI Handler", daemon = True).start()
-            
+            threading.Thread(target=self._refresh_handler, args=(), name="UI Handler", daemon=True).start()
+
             self._ignore_changes = ()
         else:
             logging.warning("ui.fps is 0, the display will only update for major changes")
@@ -189,7 +113,7 @@ class View(object):
         self._state.has_element(key)
 
     def add_element(self, key, elem):
-        if self.invert is 1 and hasattr(elem, 'color'):
+        if self.invert is 1 and elem.color:
             if elem.color == 0xff:
                 elem.color = 0x00
             elif elem.color == 0x00:
@@ -250,7 +174,8 @@ class View(object):
         self.set('uptime', last_session.duration)
         self.set('channel', '-')
         self.set('aps', "%d" % last_session.associated)
-        self.set('shakes', '%d (%s)' % (last_session.handshakes, utils.total_unique_handshakes(self._config['bettercap']['handshakes'])))
+        self.set('shakes', '%d (%s)' % (
+        last_session.handshakes, utils.total_unique_handshakes(self._config['bettercap']['handshakes'])))
         self.set_closest_peer(last_session.last_peer, last_session.peers)
         self.update()
 
@@ -340,7 +265,7 @@ class View(object):
 
     def wait(self, secs, sleeping=True):
         was_normal = self.is_normal()
-        part = secs/10.0
+        part = secs / 10.0
 
         for step in range(0, 10):
             # if we weren't in a normal state before going
@@ -468,13 +393,13 @@ class View(object):
             state = self._state
             changes = state.changes(ignore=self._ignore_changes)
             if force or len(changes):
-                self._canvas = Image.new(self.mode, (self._width, self._height), self.BACKGROUND)
-                drawer = ImageDraw.Draw(self._canvas, self.mode)
+                self._canvas = Image.new('1', (self._width, self._height), self._white)
+                drawer = ImageDraw.Draw(self._canvas)
 
                 plugins.on('ui_update', self)
 
                 for key, lv in state.items():
-                    #lv is a ui element
+                    # lv is a ui element
                     lv.draw(self._canvas, drawer)
 
                 web.update_frame(self._canvas)

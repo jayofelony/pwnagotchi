@@ -1,12 +1,12 @@
 # board GPIO:
-# Key1: 
-# Key2: 
-# Key3: 
-# Key4: 
-#
+# Key1: GPIO 16
+# Key2: GPIO 20
+# Key3: GPIO 21
+# Key4: GPIO 26
+# IR:   GPIO 23
 # Touch chipset: 
 # HW info: https://argon40.com/products/pod-display-2-8inch
-# HW datasheet:
+# HW MANUAL: https://cdn.shopify.com/s/files/1/0556/1660/2177/files/ARGON_POD_MANUAL.pdf?v=1668390711%0A
 
 import logging
 
@@ -44,6 +44,9 @@ class ArgonPod(DisplayImpl):
 
     def initialize(self):
         logging.info("Initializing Argon Pod display")
+        logging.info("Available pins for GPIO Buttons: 16, 20, 21, 26")
+        logging.info("IR available on GPIO 23")
+        logging.info("Backlight pin available on GPIO 18")
         from pwnagotchi.ui.hw.libs.argon.argonpod.ILI9341 import ILI9341
         self._display = ILI9341(0, 0, 22, 18)
 

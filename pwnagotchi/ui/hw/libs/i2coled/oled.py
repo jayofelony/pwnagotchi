@@ -9,7 +9,7 @@ EPD_HEIGHT = 64
 # disp = SSD1306.SSD1306_96_16(96, 16, address=0x3C)
 # If you change for different resolution, you have to modify the layout in pwnagotchi/ui/hw/i2coled.py
 
-class EPD(object):
+class OLED(object):
 
     def __init__(self, address=0x3C, width=EPD_WIDTH, height=EPD_HEIGHT):
         self.width = width

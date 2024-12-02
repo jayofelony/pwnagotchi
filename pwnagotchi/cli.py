@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import logging
 import argparse
 import time
@@ -14,7 +13,6 @@ from pwnagotchi import utils
 from pwnagotchi.google import cmd as google_cmd
 from pwnagotchi.plugins import cmd as plugins_cmd
 from pwnagotchi import log
-from pwnagotchi import restart
 from pwnagotchi import fs
 from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
 
