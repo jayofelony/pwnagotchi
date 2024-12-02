@@ -32,7 +32,7 @@ class GamePi15(DisplayImpl):
         return self._layout
 
     def initialize(self):
-        logging.info("initializing gamepi20 display")
+        logging.info("initializing gamepi15 display")
         from pwnagotchi.ui.hw.libs.pimoroni.displayhatmini.ST7789 import ST7789
         self._display = ST7789(0, 0, 25, 24, 27, 240, 240, 270, True, 60 * 1000 * 1000, 0, 0)
 
