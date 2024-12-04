@@ -86,7 +86,6 @@ def update_data(last_session):
             'peers': last_session.peers,
         },
         'uname': subprocess.getoutput("uname -a"),
-        'brain': brain,
         'version': pwnagotchi.__version__,
         'build': "Pwnagotchi by Jayofelony",
         'plugins': enabled,
