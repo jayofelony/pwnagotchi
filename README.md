@@ -27,7 +27,7 @@ Multiple units within close physical proximity can "talk" to each other, adverti
 ## Documentation
 
 https://github.com/jayofelony/pwnagotchi/wiki 
-https://www.pwnagotchi.org
+https://pwnagotchi.org
 
 ## Links
 
