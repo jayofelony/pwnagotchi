@@ -50,10 +50,6 @@ class KeyPair(object):
                 with open(self.fingerprint_path, 'w+t') as fp:
                     fp.write(self.fingerprint)
 
-                # no exception, keys loaded correctly.
-                self._view.on_starting()
-                return
-
             except Exception as e:
                 # if we're here, loading the keys broke something ...
                 logging.exception("error loading keys, maybe corrupted, deleting and regenerating ...")
@@ -63,6 +59,9 @@ class KeyPair(object):
                 except:
                     pass
 
+            # no exception, keys loaded correctly.
+            self._view.on_starting()
+            return
     def sign(self, message):
         hasher = SHA256.new(message.encode("ascii"))
         signer = PKCS1_PSS.new(self.priv_key, saltLen=16)
