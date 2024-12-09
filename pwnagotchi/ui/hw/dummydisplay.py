@@ -25,7 +25,7 @@ class DummyDisplay(DisplayImpl):
         self._layout['friend_name'] = (int(width/12), int(height/10))
         self._layout['shakes'] = (0, height-int(height/25))
         self._layout['mode'] = (width-int(width/8), height - int (height/25))
-        lw, lh = fonts.Small.getsize("W")
+        lw, lh = fonts.Small.getbbox("W")
         self._layout['status'] = {
             'pos': (int(width/48), int(height/3)),
             'font': fonts.status_font(fonts.Small),
