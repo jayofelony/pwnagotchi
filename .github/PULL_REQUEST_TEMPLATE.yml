@@ -1,0 +1,59 @@
+name: Pull Request Template
+description: Template for submitting pull requests.
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Description
+        Provide a detailed description of your changes here.
+
+  - type: textarea
+    id: motivation_and_context
+    attributes:
+      label: Motivation and Context
+      description: Why is this change necessary? What problem does it solve?
+      placeholder: Add details here. Link to open issues if applicable.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: issue_proposal
+    attributes:
+      label: Did you raise an issue for this change? ([required](https://github.com/evilsocket/pwnagotchi/blob/master/CONTRIBUTING.md))
+      options:
+        - label: "Yes, I raised an issue."
+          required: true
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: How has this been tested?
+      description: Provide a detailed description of how your changes were tested.
+      placeholder: Add details about your testing environment, the tests you ran, and the impact of your changes.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: types_of_changes
+    attributes:
+      label: What types of changes does this Pull Request introduce?
+      options:
+        - label: "Bug fix (non-breaking change that fixes an issue)"
+        - label: "New feature (non-breaking change that adds functionality)"
+        - label: "Breaking change (fix or feature that affects existing functionality)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Verify the following
+      options:
+        - label: "My code follows the code style of this project."
+        - label: "My change requires a change to the documentation."
+        - label: "I have updated the documentation accordingly."
+        - label: "I have read the [CONTRIBUTION](https://github.com/evilsocket/pwnagotchi/blob/master/CONTRIBUTING.md) guide."
+        - label: "I have signed off my commits with `git commit -s`."
+    validations:
+      required: true
