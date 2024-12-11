@@ -1,0 +1,67 @@
+name: Pull Request
+description: File a Pull Request
+title: "[PR]: "
+labels: ["bug", "triage"]
+projects: ["pwnagotchi"]
+branch: ["noai"]
+assignees:
+  - jayofelony
+body:
+  - type: markdown
+    id: explanation
+    attributes:
+      label: explanation
+      description: Describe the changes you have made
+      value: |
+        <!--- Describe your changes in detail -->
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: tested
+    attributes:
+      label: Has this been tested?
+      description: How Has This Been Tested?
+      placeholder: Tell us how you tested it
+      value: |
+        <!--- Please describe in detail how you tested your changes. -->
+        <!--- Include details of your testing environment, and the tests you ran to -->
+        <!--- see how your change affects other areas of the code, etc. -->
+    validations:
+      required: true
+  - type: checkboxes
+    id: changes-box
+    attributes:
+      label: changes
+      description: What changes does this imply
+      options:
+        - label: Bug fix (non-breaking change which fixes an issue)
+        - label: New feature (non-breaking change which adds functionality)
+        - label: Breaking change (fix or feature that would cause existing functionality to change)
+      default: 0
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/jayofelony/pwnagotchi/blob/noai/CODE_OF_CONDUCT.md).
+      options:
+        - label: My code follows the code style of this project.
+          required: true
+        - label: My change requires a change to the documentation.
+          required: true
+        - label: I have updated the documentation accordingly.
+          required: true
+        - label: I've read the [CONTRIBUTION](https://github.com/evilsocket/pwnagotchi/blob/master/CONTRIBUTING.md) guide
+          required: true
+        - label: I have signed-off my commits with `git commit -s`
+          required: true
+

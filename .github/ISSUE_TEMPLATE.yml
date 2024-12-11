@@ -35,9 +35,9 @@ body:
       options:
         - 2.9.2 (64bit)
         - 2.9.2 (32bit)
-        default: 0
-      validations:
-        required: true
+      default: 0
+    validations:
+      required: true
   - type: textarea
     id: logs
     attributes:
