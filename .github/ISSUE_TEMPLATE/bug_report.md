@@ -1,32 +1,55 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: "[BUG]"
-labels: bug
-assignees: ''
 
----
-
-**Describe the bug**
-A clear and concise description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior:
-1. ...
-2. ...
-3. ...
-
-**Expected behavior**
-A clear and concise description of what you expected to happen.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Environment (please complete the following information):**
- - Pwnagotchi version
- - OS version
- - Type of hardware
- - Any additional hardware used
-
-**Additional context**
-Add any other context about the problem here.
+name: Bug Report
+description: File a bug report.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+projects: ["pwnagotchi"]
+assignees:
+  - jayofelony
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of our software are you running?
+      options:
+        - 2.9.2 (64bit)
+        - 2.9.2 (32bit)
+        default: 0
+      validations:
+        required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/jayofelony/pwnagotchi/blob/noai/CODE_OF_CONDUCT.md). 
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
