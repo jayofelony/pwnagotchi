@@ -1,9 +1,6 @@
-exclude *.pyc .DS_Store .gitignore MANIFEST.in
-include setup.py
-include distribute_setup.py
+exclude *.pyc .gitignore MANIFEST.in
 include README.md
 include LICENSE
-recursive-include bin *
 recursive-include pwnagotchi *.py
 recursive-include pwnagotchi *.yml
 recursive-include pwnagotchi *.*
