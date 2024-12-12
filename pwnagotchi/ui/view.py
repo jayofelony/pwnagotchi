@@ -160,12 +160,6 @@ class View(object):
         self.set('face', faces.AWAKE)
         self.update()
 
-    def on_ai_ready(self):
-        self.set('mode', '  AI')
-        self.set('face', faces.HAPPY)
-        self.set('status', self._voice.on_ai_ready())
-        self.update()
-
     def on_manual_mode(self, last_session):
         self.set('mode', 'MANU')
         self.set('face', faces.SAD if (last_session.epochs > 3 and last_session.handshakes == 0) else faces.HAPPY)
