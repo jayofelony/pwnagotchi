@@ -24,12 +24,8 @@ class Voice:
         return random.choice([
             self._('Hi, I\'m Pwnagotchi! Starting ...'),
             self._('New day, new hunt, new pwns!'),
-            self._('Hack the Planet!')])
-
-    def on_ai_ready(self):
-        return random.choice([
-            self._('AI ready.'),
-            self._('The neural network is ready.')])
+            self._('Hack the Planet!'),
+            self._('No more mister Wi-Fi!!')])
 
     def on_keys_generation(self):
         return random.choice([
