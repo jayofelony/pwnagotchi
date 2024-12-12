@@ -1,7 +1,6 @@
 import logging
 import glob
 import os
-import time
 import subprocess
 
 import json
@@ -555,20 +554,6 @@ def iface_channels(ifname):
         except Exception as e:
             pass
     return channels
-
-
-def led(on=True):
-    with open('/sys/class/leds/led0/brightness', 'w+t') as fp:
-        fp.write("%d" % (0 if on is True else 1))
-
-
-def blink(times=1, delay=0.3):
-    for _ in range(0, times):
-        led(True)
-        time.sleep(delay)
-        led(False)
-        time.sleep(delay)
-    led(True)
 
 
 class WifiInfo(Enum):
