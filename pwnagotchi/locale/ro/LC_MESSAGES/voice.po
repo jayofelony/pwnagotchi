@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-11-20 00:18+594\n"
 "Last-Translator: Ungureanu Radu-Andrei <radu.ungureanu@techie.com>\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
@@ -28,11 +28,8 @@ msgstr "O noua zi, o noua vanatoare, noi pwn-uri!"
 msgid "Hack the Planet!"
 msgstr "Pirateaza planeta!"
 
-msgid "AI ready."
-msgstr "AI-ul e gata."
-
-msgid "The neural network is ready."
-msgstr "Rețeaua neuronală este gata."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Se generează chei, nu închide..."
@@ -257,3 +254,9 @@ msgstr "minut"
 
 msgid "second"
 msgstr "secundă"
+
+#~ msgid "AI ready."
+#~ msgstr "AI-ul e gata."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Rețeaua neuronală este gata."

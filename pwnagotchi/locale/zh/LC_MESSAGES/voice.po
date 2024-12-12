@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-11-02 10:00+0008\n"
 "Last-Translator: 极客之眼-初九 <511225068@qq.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,11 +29,8 @@ msgstr "美好的一天，狩猎开始!"
 msgid "Hack the Planet!"
 msgstr "我要入侵整个地球!"
 
-msgid "AI ready."
-msgstr "人工智能已启动."
-
-msgid "The neural network is ready."
-msgstr "神经元网络已启动."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "创建密钥中, 请勿断电..."
@@ -255,3 +252,9 @@ msgstr "分"
 
 msgid "second"
 msgstr "秒"
+
+#~ msgid "AI ready."
+#~ msgstr "人工智能已启动."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "神经元网络已启动."

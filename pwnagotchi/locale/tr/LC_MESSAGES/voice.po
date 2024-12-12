@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Arda Barış Tonç <abtonc@icloud.com>\n"
 "Language-Team: \n"
@@ -28,11 +28,8 @@ msgstr "Yeni bir gün, yeni bir av, yeni pwn'lar!"
 msgid "Hack the Planet!"
 msgstr "Dünyayı Hackle!"
 
-msgid "AI ready."
-msgstr "Yapay zeka hazır."
-
-msgid "The neural network is ready."
-msgstr "Nöral ağ hazır."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Anahatarlar oluşturuluyor, lütfen kapatmayın ..."
@@ -257,3 +254,9 @@ msgstr "dakika"
 
 msgid "second"
 msgstr "saniye"
+
+#~ msgid "AI ready."
+#~ msgstr "Yapay zeka hazır."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Nöral ağ hazır."

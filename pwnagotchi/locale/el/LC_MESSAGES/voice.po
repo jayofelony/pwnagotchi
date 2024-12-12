@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-10-03 08:00+0000\n"
 "Last-Translator: Periklis Fregkos <fregkos@gmail.com>\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
@@ -29,11 +29,8 @@ msgstr "Νέα μέρα, νέο κυνήγι, νέα pwns!"
 msgid "Hack the Planet!"
 msgstr "Hackαρε τον πλανήτη!"
 
-msgid "AI ready."
-msgstr "ΤΝ έτοιμη."
-
-msgid "The neural network is ready."
-msgstr "Το νευρωνικό δίκτυο είναι έτοιμο."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr ""
@@ -258,3 +255,9 @@ msgstr ""
 
 msgid "second"
 msgstr ""
+
+#~ msgid "AI ready."
+#~ msgstr "ΤΝ έτοιμη."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Το νευρωνικό δίκτυο είναι έτοιμο."

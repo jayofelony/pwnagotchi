@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-10-21 10:55+0200\n"
 "Last-Translator: gkrs <457603+gkrs@users.noreply.github.com>\n"
 "Language-Team: PL <457603+gkrs@users.noreply.github.com>\n"
@@ -28,11 +28,8 @@ msgstr "Nowy dzień, nowe łowy, nowe pwny!"
 msgid "Hack the Planet!"
 msgstr "Hakujmy planetę!"
 
-msgid "AI ready."
-msgstr "SI gotowa."
-
-msgid "The neural network is ready."
-msgstr "Sieć neuronowa jest gotowa."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Generuję klucze, nie wyłączaj ..."
@@ -257,3 +254,9 @@ msgstr "minuta"
 
 msgid "second"
 msgstr "sekunda"
+
+#~ msgid "AI ready."
+#~ msgstr "SI gotowa."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Sieć neuronowa jest gotowa."

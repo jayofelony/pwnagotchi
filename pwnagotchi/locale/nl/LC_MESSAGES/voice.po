@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 20:32+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-09-29 14:00+0200\n"
 "Last-Translator: Justin-P <justin-p@users.noreply.github.com>\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
@@ -28,11 +28,8 @@ msgstr "Nieuwe dag, nieuwe jacht, nieuwe pwns!"
 msgid "Hack the Planet!"
 msgstr "Hack de Wereld!"
 
-msgid "AI ready."
-msgstr "AI is klaar."
-
-msgid "The neural network is ready."
-msgstr "Neuronen netwerk is klaar."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Sleutel genereren, niet afsluiten ..."
@@ -257,3 +254,9 @@ msgstr "minuut"
 
 msgid "second"
 msgstr "seconde"
+
+#~ msgid "AI ready."
+#~ msgstr "AI is klaar."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Neuronen netwerk is klaar."

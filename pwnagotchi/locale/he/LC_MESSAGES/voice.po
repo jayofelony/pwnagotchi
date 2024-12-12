@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: neo0oen \n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,11 +28,8 @@ msgstr "יום חדש, ציד חדש, ניצחונות חדשים !"
 msgid "Hack the Planet!"
 msgstr "פרוץ לכדור הארץ !"
 
-msgid "AI ready."
-msgstr "הבינה המלאחות'ית מוכנה"
-
-msgid "The neural network is ready."
-msgstr "הרשת הניורולוגית העצבית מוכנה."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "יוצר מפתחות, בבקשה אל תכבה אותי"
@@ -236,7 +232,8 @@ msgid ""
 "I've been pwning for {duration} and kicked {deauthed} clients! I've also met "
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
-msgstr "אני שלטתי במשך {duration} והצלחתי להעיף {deauthed} משתמשים! בדרך גם פגשתי "
+msgstr ""
+"אני שלטתי במשך {duration} והצלחתי להעיף {deauthed} משתמשים! בדרך גם פגשתי "
 "{associated} חברים חדשים ואכלתי {handshakes} לחיצות ידיים #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 
@@ -257,3 +254,9 @@ msgstr "דקה"
 
 msgid "second"
 msgstr "שניה"
+
+#~ msgid "AI ready."
+#~ msgstr "הבינה המלאחות'ית מוכנה"
+
+#~ msgid "The neural network is ready."
+#~ msgstr "הרשת הניורולוגית העצבית מוכנה."

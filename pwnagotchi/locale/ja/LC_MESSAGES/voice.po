@@ -7,9 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2024-08-23 20:40+0900\n"
-"Last-Translator: mendoitarou_ <42207304+mendoitarou@users.noreply.github.com>\n"
+"Last-Translator: mendoitarou_ <42207304+mendoitarou@users.noreply.github."
+"com>\n"
 "Language-Team: pwnagotchi <24534649+wytshadow@users.noreply.github.com>\n"
 "Language: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -28,13 +29,8 @@ msgstr "ポーンしようよ。"
 msgid "Hack the Planet!"
 msgstr "ハックザプラネット！"
 
-msgid "AI ready."
-msgstr "AIの準備ができました。"
-
-msgid "The neural network is ready."
+msgid "No more mister Wi-Fi!!"
 msgstr ""
-"ニューラルネットワークの\n"
-"準備ができました。"
 
 msgid "Generating keys, do not turn off ..."
 msgstr ""
@@ -242,13 +238,11 @@ msgstr ""
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
-msgstr ""
-"{to} にデータをアップロードしてるよ..."
+msgstr "{to} にデータをアップロードしてるよ..."
 
 #, python-brace-format
 msgid "Downloading from {name} ..."
-msgstr ""
-"{name} からダウンロードしてるよ..."
+msgstr "{name} からダウンロードしてるよ..."
 
 #, python-brace-format
 msgid "Kicked {num} stations\n"
@@ -299,3 +293,11 @@ msgstr "分"
 
 msgid "second"
 msgstr "秒"
+
+#~ msgid "AI ready."
+#~ msgstr "AIの準備ができました。"
+
+#~ msgid "The neural network is ready."
+#~ msgstr ""
+#~ "ニューラルネットワークの\n"
+#~ "準備ができました。"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-10-03 10:34+0200\n"
 "Last-Translator: quantumsheep <7271496+quantumsheep@users.noreply.github."
 "com>\n"
@@ -29,11 +29,8 @@ msgstr "Nouveau jour, nouvelle chasse, nouveaux pwns !"
 msgid "Hack the Planet!"
 msgstr "Hack la planète !"
 
-msgid "AI ready."
-msgstr "L'IA est prête."
-
-msgid "The neural network is ready."
-msgstr "Le réseau neuronal est prêt."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Génération des clés, ne pas éteindre..."
@@ -258,3 +255,9 @@ msgstr "minute"
 
 msgid "second"
 msgstr "seconde"
+
+#~ msgid "AI ready."
+#~ msgstr "L'IA est prête."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Le réseau neuronal est prêt."

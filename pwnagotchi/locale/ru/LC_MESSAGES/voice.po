@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pwnagotchi Russian translation v 0.0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -34,11 +34,8 @@ msgstr "Новый день, новая охота, новые взломы!"
 msgid "Hack the Planet!"
 msgstr "Взломай эту Планету!"
 
-msgid "AI ready."
-msgstr "A.I. готов."
-
-msgid "The neural network is ready."
-msgstr "Нейронная сеть готова."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Генерация ключей, не выключайте..."
@@ -263,6 +260,12 @@ msgstr "минуту"
 
 msgid "second"
 msgstr ""
+
+#~ msgid "AI ready."
+#~ msgstr "A.I. готов."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Нейронная сеть готова."
 
 #, python-brace-format
 #~ msgid "Unit {name} is nearby! {name}"

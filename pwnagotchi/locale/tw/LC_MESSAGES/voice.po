@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:10+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2024-03-27 18:40+0800\n"
 "Last-Translator: AlanLeung <admin@mcnot.pro>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,26 +20,33 @@ msgid "ZzzzZZzzzzZzzz"
 msgstr "ZzzzZZzzzzZzzz"
 
 msgid "Hi, I'm Pwnagotchi! Starting ..."
-msgstr "HI!我是Pwnagotchi!\n程式啟動..."
+msgstr ""
+"HI!我是Pwnagotchi!\n"
+"程式啟動..."
 
 msgid "New day, new hunt, new pwns!"
-msgstr "新的一天!\n新的狩獵!新的入侵!"
+msgstr ""
+"新的一天!\n"
+"新的狩獵!新的入侵!"
 
 msgid "Hack the Planet!"
-msgstr "我要駭入\n地球的所有人!"
+msgstr ""
+"我要駭入\n"
+"地球的所有人!"
 
-msgid "AI ready."
-msgstr "人工智慧已啟動。"
-
-msgid "The neural network is ready."
-msgstr "神經網路已啟動。"
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
-msgstr "產生金鑰中,\n請勿關閉..."
+msgstr ""
+"產生金鑰中,\n"
+"請勿關閉..."
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
-msgstr "嘿,{channel}很順暢!\n你的WIFI會感謝你的。"
+msgstr ""
+"嘿,{channel}很順暢!\n"
+"你的WIFI會感謝你的。"
 
 msgid "Reading last session logs ..."
 msgstr "正在閱讀最後的會話紀錄..."
@@ -89,11 +95,15 @@ msgid "I'm having so much fun!"
 msgstr "我玩的超級開心!"
 
 msgid "My crime is that of curiosity ..."
-msgstr "我的缺點就是\n太好奇了..."
+msgstr ""
+"我的缺點就是\n"
+"太好奇了..."
 
 #, python-brace-format
 msgid "Hello {name}! Nice to meet you."
-msgstr "尼豪{name}!\n很高興認識你!!!!"
+msgstr ""
+"尼豪{name}!\n"
+"很高興認識你!!!!"
 
 #, python-brace-format
 msgid "Yo {name}! Sup?"
@@ -105,19 +115,28 @@ msgstr "嗨 {name} 你最近過得如何˙ˇ˙?"
 
 #, python-brace-format
 msgid "Unit {name} is nearby!"
-msgstr "{name}\n就在附近!"
+msgstr ""
+"{name}\n"
+"就在附近!"
 
 #, python-brace-format
 msgid "Uhm ... goodbye {name}"
-msgstr "哦嗚 ... \n拜拜{name}"
+msgstr ""
+"哦嗚 ... \n"
+"拜拜{name}"
 
 #, python-brace-format
 msgid "{name} is gone ..."
-msgstr "{name}\n不見了 ..."
+msgstr ""
+"{name}\n"
+"不見了 ..."
 
 #, python-brace-format
 msgid "Whoops ... {name} is gone."
-msgstr "哦歐...\n{name}\n不見了。"
+msgstr ""
+"哦歐...\n"
+"{name}\n"
+"不見了。"
 
 #, python-brace-format
 msgid "{name} missed!"
@@ -127,10 +146,14 @@ msgid "Missed!"
 msgstr "又錯過了!"
 
 msgid "Good friends are a blessing!"
-msgstr "有個好朋友\n真幸福!"
+msgstr ""
+"有個好朋友\n"
+"真幸福!"
 
 msgid "I love my friends!"
-msgstr "我喜歡\n我的朋友!"
+msgstr ""
+"我喜歡\n"
+"我的朋友!"
 
 msgid "Nobody wants to play with me ..."
 msgstr "沒人想跟我玩..."
@@ -168,38 +191,59 @@ msgstr "環顧四周({secs}秒)"
 
 #, python-brace-format
 msgid "Hey {what} let's be friends!"
-msgstr "嗨\n{what}\n讓我們來當朋友吧!"
+msgstr ""
+"嗨\n"
+"{what}\n"
+"讓我們來當朋友吧!"
 
 #, python-brace-format
 msgid "Associating to {what}"
-msgstr "正在連接\n{what}"
+msgstr ""
+"正在連接\n"
+"{what}"
 
 #, python-brace-format
 msgid "Yo {what}!"
-msgstr "喲,\n{what}!"
+msgstr ""
+"喲,\n"
+"{what}!"
 
 #, python-brace-format
 msgid "Just decided that {mac} needs no WiFi!"
-msgstr "我要讓\n{mac}\n斷線!\n他不需要上網!"
+msgstr ""
+"我要讓\n"
+"{mac}\n"
+"斷線!\n"
+"他不需要上網!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
-msgstr "解除\n{mac}\n的授權中"
+msgstr ""
+"解除\n"
+"{mac}\n"
+"的授權中"
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
-msgstr "把\n{mac}\n踢出中!"
+msgstr ""
+"把\n"
+"{mac}\n"
+"踢出中!"
 
 #, python-brace-format
 msgid "Cool, we got {num} new handshake{plural}!"
-msgstr "酷耶,我們抓到{num}個\n新的握手包{plural}!"
+msgstr ""
+"酷耶,我們抓到{num}個\n"
+"新的握手包{plural}!"
 
 #, python-brace-format
 msgid "You have {count} new message{plural}!"
 msgstr "你有{count}個新訊息{plural}!"
 
 msgid "Oops, something went wrong ... Rebooting ..."
-msgstr "哦歐,有些地方出錯了...\n重新啟動中..."
+msgstr ""
+"哦歐,有些地方出錯了...\n"
+"重新啟動中..."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
@@ -237,9 +281,10 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-"我花了{duration}的時間\n駭入和踢了{deauthed}好多設備."
-"我還交了好多{associated}新朋友,\n而且抓到了{handshakes}握手包!"
-"#pwnagotchi#入侵日志 #駭客人生 #入侵整個星球 #天網 #我好棒˙ˇ˙"
+"我花了{duration}的時間\n"
+"駭入和踢了{deauthed}好多設備.我還交了好多{associated}新朋友,\n"
+"而且抓到了{handshakes}握手包!#pwnagotchi#入侵日志 #駭客人生 #入侵整個星球 #天"
+"網 #我好棒˙ˇ˙"
 
 msgid "hours"
 msgstr "時"
@@ -258,3 +303,9 @@ msgstr "分"
 
 msgid "second"
 msgstr "秒"
+
+#~ msgid "AI ready."
+#~ msgstr "人工智慧已啟動。"
+
+#~ msgid "The neural network is ready."
+#~ msgstr "神經網路已啟動。"

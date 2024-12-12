@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mike Eriksson <mike@swedishmike.org>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,11 +28,8 @@ msgstr "Ny dag, ny jakt, nya pwns!"
 msgid "Hack the Planet!"
 msgstr "Hacka planeten!"
 
-msgid "AI ready."
-msgstr "AI klar."
-
-msgid "The neural network is ready."
-msgstr "Det neurala nätverket är klart."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr ""
@@ -258,3 +254,9 @@ msgstr "minut"
 
 msgid "second"
 msgstr ""
+
+#~ msgid "AI ready."
+#~ msgstr "AI klar."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Det neurala nätverket är klart."

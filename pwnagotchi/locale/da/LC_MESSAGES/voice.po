@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2020-01-18 21:56+ZONE\n"
 "Last-Translator: Dennis Kjær Jensen <signout@signout.dk>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,11 +28,8 @@ msgstr "Ny dag, ny jagt, nye pwns!"
 msgid "Hack the Planet!"
 msgstr "Hack planeten!"
 
-msgid "AI ready."
-msgstr "AI klar."
-
-msgid "The neural network is ready."
-msgstr "Det neurale netværk er klart."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Genererer nøgler, sluk ikke ..."
@@ -257,3 +254,9 @@ msgstr "minut"
 
 msgid "second"
 msgstr "sekund"
+
+#~ msgid "AI ready."
+#~ msgstr "AI klar."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Det neurale netværk er klart."

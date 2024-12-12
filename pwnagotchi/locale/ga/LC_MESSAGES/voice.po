@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-10-15 23:46+0100\n"
 "Last-Translator: \n"
 "Language-Team: Irish\n"
@@ -29,11 +29,8 @@ msgstr "Lá nua, seilg nua, pwns nua!"
 msgid "Hack the Planet!"
 msgstr "Haic An Phláinéid!"
 
-msgid "AI ready."
-msgstr "AI réidh."
-
-msgid "The neural network is ready."
-msgstr "Tá an líonra néarach réidh."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr ""
@@ -258,3 +255,9 @@ msgstr "nóiméad"
 
 msgid "second"
 msgstr "soicind"
+
+#~ msgid "AI ready."
+#~ msgstr "AI réidh."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Tá an líonra néarach réidh."

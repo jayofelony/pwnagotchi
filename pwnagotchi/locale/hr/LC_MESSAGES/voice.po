@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the pwnagotchi package.
 # FIRST AUTHOR dbukovac <37124354+dbukovac@users.noreply.github.com>, 2021.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2021-07-16 00:20+0100\n"
 "Last-Translator: dbukovac <37124354+dbukovac@users.noreply.github.com>\n"
 "Language-Team: HR <37124354+dbukovac@users.noreply.github.com>\n"
@@ -29,11 +28,8 @@ msgstr "Novi dan, novi lov, nove pobjede!"
 msgid "Hack the Planet!"
 msgstr "Hakiraj planet!"
 
-msgid "AI ready."
-msgstr "UI spremna."
-
-msgid "The neural network is ready."
-msgstr "Neuralna mreža je spremna."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Generiram ključeve, nemoj me gasiti ..."
@@ -258,3 +254,9 @@ msgstr "minuta"
 
 msgid "second"
 msgstr "sekunda"
+
+#~ msgid "AI ready."
+#~ msgstr "UI spremna."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Neuralna mreža je spremna."

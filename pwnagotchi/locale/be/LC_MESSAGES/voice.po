@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pwnagotchi Belarusian translation v 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: <https://github.com/andreifinski>\n"
 "Language-Team: \n"
@@ -33,11 +33,8 @@ msgstr "Новы дзень, новае паляванне, новыя ўзло�
 msgid "Hack the Planet!"
 msgstr "Узламай гэту Планету!"
 
-msgid "AI ready."
-msgstr "A.I. гатовы."
-
-msgid "The neural network is ready."
-msgstr "Нейронная сетка гатова."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Генерацыя ключоў, не выключайце..."
@@ -262,6 +259,12 @@ msgstr "хвіліну"
 
 msgid "second"
 msgstr ""
+
+#~ msgid "AI ready."
+#~ msgstr "A.I. гатовы."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Нейронная сетка гатова."
 
 #, python-brace-format
 #~ msgid "Unit {name} is nearby! {name}"

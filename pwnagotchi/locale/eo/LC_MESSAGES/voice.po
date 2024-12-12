@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-25 23:40+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,11 +28,8 @@ msgstr "Nova tago, nova ĉaso, nova wifi!"
 msgid "Hack the Planet!"
 msgstr "Eniru la elektronikon!"
 
-msgid "AI ready."
-msgstr "Mi pretas."
-
-msgid "The neural network is ready."
-msgstr "La elektronika reto estas preta."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Mi generas ŝlosilojn, ne malŝaltu min!"
@@ -258,3 +255,9 @@ msgstr "minuto"
 
 msgid "second"
 msgstr "dua"
+
+#~ msgid "AI ready."
+#~ msgstr "Mi pretas."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "La elektronika reto estas preta."

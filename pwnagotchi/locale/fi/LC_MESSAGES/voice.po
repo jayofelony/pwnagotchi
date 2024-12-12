@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <121556603+spd-wd@users.noreply.github.com>, 2023.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2023-02-11 16:25+0200\n"
 "Last-Translator: Speed Weed <121556603+spd-wd@users.noreply.github.com>\n"
 "Language-Team: pwnagotchi <121556603+spd-wd@users.noreply.github.com>\n"
@@ -29,11 +28,8 @@ msgstr "Uus päivä, uudet kujeet!"
 msgid "Hack the Planet!"
 msgstr "Hack the Planet!"
 
-msgid "AI ready."
-msgstr "Tekoäly ladattu."
-
-msgid "The neural network is ready."
-msgstr "Neuroverkosto ladattu."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Luodaan avaimia, älä katkaise virtaa..."
@@ -258,3 +254,9 @@ msgstr "minuutti"
 
 msgid "second"
 msgstr "sekunti"
+
+#~ msgid "AI ready."
+#~ msgstr "Tekoäly ladattu."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Neuroverkosto ladattu."

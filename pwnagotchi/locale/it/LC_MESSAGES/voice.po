@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-10-02 17:20+0000\n"
 "Language-Team: pwnagotchi <33197631+dadav@users.noreply.github.com>\n"
 "Language: Italian\n"
@@ -27,11 +27,8 @@ msgstr "Nuovo giorno...nuovi handshakes!!!"
 msgid "Hack the Planet!"
 msgstr "Hack il Pianeta"
 
-msgid "AI ready."
-msgstr "IA pronta."
-
-msgid "The neural network is ready."
-msgstr "La rete neurale è pronta."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Generazione di chiavi, non spegnere"
@@ -256,3 +253,9 @@ msgstr "minuto"
 
 msgid "second"
 msgstr "secondo"
+
+#~ msgid "AI ready."
+#~ msgstr "IA pronta."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "La rete neurale è pronta."

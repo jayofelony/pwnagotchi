@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # damoklov <mishanya@protonmail.com>, 2019.
 #
-
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 21:51+0100\n"
+"POT-Creation-Date: 2024-12-12 11:00+0100\n"
 "PO-Revision-Date: 2019-11-02 16:20+0200\n"
 "Last-Translator: damoklov <mishanya@protonmail.com>\n"
 "Language-Team: Ukrainian\n"
@@ -29,11 +28,8 @@ msgstr "Новий день, нове полювання, нові проник�
 msgid "Hack the Planet!"
 msgstr "Хакни цілу планету!"
 
-msgid "AI ready."
-msgstr "Штучний інтелект готовий."
-
-msgid "The neural network is ready."
-msgstr "Нейронна мережа готова."
+msgid "No more mister Wi-Fi!!"
+msgstr ""
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Генерую ключі, не вимикай живлення ..."
@@ -258,3 +254,9 @@ msgstr "хвилина"
 
 msgid "second"
 msgstr "секунда"
+
+#~ msgid "AI ready."
+#~ msgstr "Штучний інтелект готовий."
+
+#~ msgid "The neural network is ready."
+#~ msgstr "Нейронна мережа готова."
