@@ -259,7 +259,6 @@ def setup_logging(args, config):
     if not args.debug:
         # disable scapy and tensorflow logging
         logging.getLogger("scapy").disabled = True
-        logging.getLogger('tensorflow').disabled = True
         # https://stackoverflow.com/questions/15777951/how-to-suppress-pandas-future-warning
         warnings.simplefilter(action='ignore', category=FutureWarning)
         warnings.simplefilter(action='ignore', category=DeprecationWarning)
