@@ -20,7 +20,6 @@ class PiSugar(plugins.Plugin):
     __description__ = "A plugin that will add a voltage indicator for the PiSugar 2"
 
     def __init__(self):
-        self.is_charging = False
         self.is_new_model = False
         self.options = dict()
         conn, event_conn = connect_tcp()
@@ -31,7 +30,7 @@ class PiSugar(plugins.Plugin):
 
         logging.info("[pisugar2] plugin loaded.")
 
-        if self.ps.get_battery_led_amount.value == 2:
+        if self.ps.get_battery_led_amount() == 2:
             self.is_new_model = True
         else:
             self.is_new_model = False
@@ -77,12 +76,9 @@ class PiSugar(plugins.Plugin):
         if self.is_new_model:
             if self.ps.get_battery_power_plugged().value and self.ps.get_battery_allow_charging().value:
                 ui.set("chg", "CHG")
-                if not self.is_charging:
-                    ui.update(force=True, new_data={"status": "Power!! I can feel it!"})
-                self.is_charging = True
+                ui.update(force=True, new_data={"status": "Power!! I can feel it!"})
             else:
                 ui.set("chg", "")
-                self.is_charging = False
 
         ui.set("bat", str(capacity) + "%")
 
