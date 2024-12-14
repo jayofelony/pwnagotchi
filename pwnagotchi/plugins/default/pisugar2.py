@@ -74,7 +74,7 @@ class PiSugar(plugins.Plugin):
         logging.info("BATT GET VALUE IS : " + str(capacity))
         # new model use battery_power_plugged & battery_allow_charging to detect real charging status
         if self.is_new_model:
-            if self.ps.get_battery_power_plugged().value and self.ps.get_battery_allow_charging().value:
+            if self.ps.get_battery_power_plugged() and self.ps.get_battery_allow_charging():
                 ui.set("chg", "CHG")
                 ui.update(force=True, new_data={"status": "Power!! I can feel it!"})
             else:
