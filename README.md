@@ -5,7 +5,11 @@ This is the main source for all forks:
 
 **For installation docs check out the [wiki](https://github.com/jayofelony/pwnagotchi/wiki)!**
 
+If you want to sponsor this project you can use GH Sponsor or cryptocurrency:
+
 [GH Sponsor](https://github.com/sponsors/jayofelony)
+
+Or send some ethereum: 0x33ceC4Abe80fDE460a924d596d4dE31Bc0767bb6
 
 **Proudly partnering with [PiSugar](https://www.pisugar.com)!!**
 
