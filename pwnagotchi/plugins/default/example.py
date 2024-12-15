@@ -58,34 +58,6 @@ class Example(plugins.Plugin):
         # or set a custom state
         #   agent.set_bored()
 
-    # called when the AI finished loading
-    def on_ai_ready(self, agent):
-        pass
-
-    # called when the AI finds a new set of parameters
-    def on_ai_policy(self, agent, policy):
-        pass
-
-    # called when the AI starts training for a given number of epochs
-    def on_ai_training_start(self, agent, epochs):
-        pass
-
-    # called after the AI completed a training epoch
-    def on_ai_training_step(self, agent, _locals, _globals):
-        pass
-
-    # called when the AI has done training
-    def on_ai_training_end(self, agent):
-        pass
-
-    # called when the AI got the best reward so far
-    def on_ai_best_reward(self, agent, reward):
-        pass
-
-    # called when the AI got the worst reward so far
-    def on_ai_worst_reward(self, agent, reward):
-        pass
-
     # called when a non overlapping wifi channel is found to be free
     def on_free_channel(self, agent, channel):
         pass
