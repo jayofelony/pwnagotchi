@@ -143,17 +143,11 @@ class WpaSec(plugins.Plugin):
     def on_ui_setup(self, ui):
         if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
             # Setup for horizontal orientation with adjustable positions
-            x_position = 121  # X position for both SSID and password
-            ssid_y_position = 62  # Y position for SSID
-            password_y_offset = 12  # Y offset for password from SSID
-
+            x_position = 0  # X position for both SSID and password
+            ssid_y_position = 95  # Y position for SSID
             ssid_position = (x_position, ssid_y_position)
-            password_position = (x_position, ssid_y_position + password_y_offset)
-
-            ui.add_element('ssid', LabeledValue(color=BLACK, label='', value='', position=ssid_position,
+            ui.add_element('pass', LabeledValue(color=BLACK, label='', value='', position=ssid_position,
                                                 label_font=fonts.Bold, text_font=fonts.Small))
-            ui.add_element('password', LabeledValue(color=BLACK, label='', value='', position=password_position,
-                                                    label_font=fonts.Bold, text_font=fonts.Small))
 
     def on_unload(self, ui):
         with ui._lock:
@@ -164,10 +158,4 @@ class WpaSec(plugins.Plugin):
         if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
             last_line = os.popen('awk -F: \'!seen[$3]++ {print $3 " - " $4}\' /root/handshakes/wpa-sec.cracked.potfile | tail -n 1')
             last_line = last_line.read().rstrip()
-            if " - " in last_line:
-                ssid, password = last_line.split(" - ", 1)
-            else:
-                ssid = last_line
-                password = ""
-            ui.set('ssid', ssid)
-            ui.set('password', password)
+            ui.set('pass', last_line)
