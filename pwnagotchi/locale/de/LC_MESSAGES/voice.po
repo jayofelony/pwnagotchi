@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-12 11:00+0100\n"
+"POT-Creation-Date: 2024-12-16 20:46+0100\n"
 "PO-Revision-Date: 2019-09-29 14:00+0200\n"
 "Last-Translator: dadav <33197631+dadav@users.noreply.github.com>\n"
 "Language-Team: DE <33197631+dadav@users.noreply.github.com>\n"
@@ -29,6 +29,9 @@ msgid "Hack the Planet!"
 msgstr "Hack den Planeten!"
 
 msgid "No more mister Wi-Fi!!"
+msgstr ""
+
+msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
 msgid "Generating keys, do not turn off ..."

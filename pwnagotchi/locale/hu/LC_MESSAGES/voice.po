@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.4.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-12 11:00+0100\n"
+"POT-Creation-Date: 2024-12-16 20:46+0100\n"
 "PO-Revision-Date: 2020-03-23 0:10+0100\n"
 "Last-Translator: Skeleton022\n"
 "Language-Team: Skeleton022\n"
@@ -29,6 +29,9 @@ msgid "Hack the Planet!"
 msgstr "Törd meg a bolygót!"
 
 msgid "No more mister Wi-Fi!!"
+msgstr ""
+
+msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
 msgid "Generating keys, do not turn off ..."

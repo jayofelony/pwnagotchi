@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-12 11:00+0100\n"
+"POT-Creation-Date: 2024-12-16 20:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,9 @@ msgid "Hack the Planet!"
 msgstr "Eniru la elektronikon!"
 
 msgid "No more mister Wi-Fi!!"
+msgstr ""
+
+msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
 msgid "Generating keys, do not turn off ..."

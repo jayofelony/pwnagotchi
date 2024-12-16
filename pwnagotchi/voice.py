@@ -25,7 +25,9 @@ class Voice:
             self._('Hi, I\'m Pwnagotchi! Starting ...'),
             self._('New day, new hunt, new pwns!'),
             self._('Hack the Planet!'),
-            self._('No more mister Wi-Fi!!')])
+            self._('No more mister Wi-Fi!!'),
+            self._('Pretty fly 4 a Wi-Fi!'),
+        ])
 
     def on_keys_generation(self):
         return random.choice([
