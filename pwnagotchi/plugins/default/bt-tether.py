@@ -80,3 +80,9 @@ class BTTether(plugins.Plugin):
     def on_unload(self, ui):
         with ui._lock:
             ui.remove_element('bluetooth')
+        try:
+            mac = self.options['mac']
+            subprocess.run(['nmcli', 'device', 'disconnect', f'{mac}'], check=True)
+            logging.info(f"[BT-Tether] Disconnected from device with MAC: {mac}")
+        except Exception as e:
+            logging.error(f"[BT-Tether] Failed to disconnect from device: {e}")
