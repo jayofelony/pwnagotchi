@@ -76,11 +76,7 @@ main.plugins.onlinehashcrack.email = ""
 main.plugins.onlinehashcrack.dashboard = ""
 main.plugins.onlinehashcrack.single_files = false
 
-main.plugins.pisugar2.enabled = false
-main.plugins.pisugar2.sync_rtc_on_boot = false
-
-main.plugins.pisugar3.enabled = false
-main.plugins.pisugar3.shutdown = 5
+main.plugins.pisugarx.enabled = false
 
 main.plugins.session-stats.enabled = true
 main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
