@@ -5,12 +5,16 @@ from datetime import datetime
 from threading import Lock
 from pwnagotchi.utils import StatusFile, remove_whitelisted
 from pwnagotchi import plugins
+from pwnagotchi.ui.components import LabeledValue
+from pwnagotchi.ui.view import BLACK
+import pwnagotchi.ui.fonts as fonts
 from json.decoder import JSONDecodeError
 
 
 class WpaSec(plugins.Plugin):
     __author__ = '33197631+dadav@users.noreply.github.com'
-    __version__ = '2.1.0'
+    __editor__ = 'jayofelony'
+    __version__ = '2.1.1'
     __license__ = 'GPL3'
     __description__ = 'This plugin automatically uploads handshakes to https://wpa-sec.stanev.org'
 
@@ -135,3 +139,35 @@ class WpaSec(plugins.Plugin):
                     logging.debug("WPA_SEC: %s", req_e)
                 except OSError as os_e:
                     logging.debug("WPA_SEC: %s", os_e)
+
+    def on_ui_setup(self, ui):
+        if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
+            # Setup for horizontal orientation with adjustable positions
+            x_position = 121  # X position for both SSID and password
+            ssid_y_position = 62  # Y position for SSID
+            password_y_offset = 12  # Y offset for password from SSID
+
+            ssid_position = (x_position, ssid_y_position)
+            password_position = (x_position, ssid_y_position + password_y_offset)
+
+            ui.add_element('ssid', LabeledValue(color=BLACK, label='', value='', position=ssid_position,
+                                                label_font=fonts.Bold, text_font=fonts.Small))
+            ui.add_element('password', LabeledValue(color=BLACK, label='', value='', position=password_position,
+                                                    label_font=fonts.Bold, text_font=fonts.Small))
+
+    def on_unload(self, ui):
+        with ui._lock:
+            ui.remove_element('ssid')
+            ui.remove_element('password')
+
+    def on_ui_update(self, ui):
+        if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
+            last_line = os.popen('awk -F: \'!seen[$3]++ {print $3 " - " $4}\' /root/handshakes/wpa-sec.cracked.potfile | tail -n 1')
+            last_line = last_line.read().rstrip()
+            if " - " in last_line:
+                ssid, password = last_line.split(" - ", 1)
+            else:
+                ssid = last_line
+                password = ""
+            ui.set('ssid', ssid)
+            ui.set('password', password)
