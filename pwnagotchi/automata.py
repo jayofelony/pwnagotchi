@@ -140,10 +140,10 @@ class Automata(object):
         if self._epoch.blind_for % 10 == 2:
             logging.info("two blind epochs -> restarting wifi.recon...", self._epoch.blind_for)
             self.run('wifi.recon on')
-        if self._epoch.blind_for and self._epoch.blind_for % 5 == 0:
+        elif self._epoch.blind_for and self._epoch.blind_for % 5 == 0:
             logging.info("%d epochs without visible access points -> restarting bettercap...", self._epoch.blind_for)
             os.system("systemctl restart bettercap")
-        if self._epoch.blind_for >= self._config['main']['mon_max_blind_epochs']:
+        elif self._epoch.blind_for >= self._config['main']['mon_max_blind_epochs']:
             logging.critical("%d epochs without visible access points -> restarting ...", self._epoch.blind_for)
             self._restart()
             self._epoch.blind_for = 0
