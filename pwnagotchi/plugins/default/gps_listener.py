@@ -19,7 +19,7 @@ pkg install termux-api socat bc
 #!/data/data/com.termux/files/usr/bin/bash
 
 # Server details
-SERVER_IP="192.168.44.45"  # IP of the socat receiver
+SERVER_IP="192.168.44.44"  # IP of the socat receiver
 SERVER_PORT="5000"         # UDP port to send data to
 
 # Function to calculate checksum
@@ -135,11 +135,11 @@ class GPS(plugins.Plugin):
 
     def cleanup_virtual_serial_ports(self):
         if os.path.exists(self.write_virtual_serial):
-            self.log.info(f"Removing old {self.write_virtual_serial}")
+            logging.info(f"Removing old {self.write_virtual_serial}")
             os.remove(self.write_virtual_serial)
 
         if os.path.exists(self.read_virtual_serial):
-            self.log.info(f"Removing old {self.read_virtual_serial}")
+            logging.info(f"Removing old {self.read_virtual_serial}")
             os.remove(self.read_virtual_serial)
 
     def create_virtual_serial_ports(self):
@@ -221,7 +221,7 @@ class GPS(plugins.Plugin):
 
     def on_ui_setup(self, ui):
         with ui._lock:
-            ui.add_element('gps', LabeledValue(color=BLACK, label='GPS', value='-', position=(ui.width() / 2 - 40, 0), label_font=fonts.Bold, text_font=fonts.Medium))
+            ui.add_element('gps', LabeledValue(color=BLACK, label='GPS', value='-', position=(ui.width() / 2 - 47, 0), label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_unload(self, ui):
         self.cleanup()  
