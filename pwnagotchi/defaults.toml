@@ -9,8 +9,6 @@ main.whitelist = [
 main.confd = "/etc/pwnagotchi/conf.d/"
 main.custom_plugin_repos = [
     "https://github.com/jayofelony/pwnagotchi-torch-plugins/archive/master.zip",
-    "https://github.com/tisboyo/pwnagotchi-pisugar2-plugin/archive/master.zip",
-    "https://github.com/nullm0ose/pwnagotchi-plugin-pisugar3/archive/master.zip",
     "https://github.com/Sniffleupagus/pwnagotchi_plugins/archive/master.zip",
     "https://github.com/NeonLightning/pwny/archive/master.zip",
     "https://github.com/marbasec/UPSLite_Plugin_1_3/archive/master.zip"
@@ -60,6 +58,8 @@ main.plugins.onlinehashcrack.dashboard = ""
 main.plugins.onlinehashcrack.single_files = false
 
 main.plugins.pisugarx.enabled = false
+main.plugins.pisugarx.rotation = false
+main.plugins.pisugarx.default_display = "percentage"
 
 main.plugins.session-stats.enabled = true
 main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"

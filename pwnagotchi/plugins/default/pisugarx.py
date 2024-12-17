@@ -29,8 +29,11 @@ class PiSugar(plugins.Plugin):
         self._agent = None
         self.is_new_model = False
         self.options = dict()
-        conn, event_conn = connect_tcp()
-        self.ps = PiSugarServer(conn, event_conn)
+        try:
+            conn, event_conn = connect_tcp()
+            self.ps = PiSugarServer(conn, event_conn)
+        except Exception as e:
+            logging.error("[PiSugarX] error: %s" % repr(e))
         self.ready = False
         self.lasttemp = 69
         self.drot = 0  # display rotation
@@ -96,14 +99,15 @@ class PiSugar(plugins.Plugin):
                                 padding-bottom: 10px;
                             }
                             table {
-                                width: 100%;
+                                width: 40%;
                                 border-collapse: collapse;
                                 margin: 20px 0;
                             }
                             table th, table td {
                                 border: 1px solid #ccc;
-                                padding: 10px;
+                                padding: 5px;
                                 text-align: left;
+                                font-size: 12px;
                             }
                             table thead {
                                 background-color: #f9f9f9;
@@ -129,26 +133,18 @@ class PiSugar(plugins.Plugin):
                     ret += f'''
                                 <tr><td>Server version</td><td>{self.ps.get_version()}</td></tr>
                                 <tr><td>PiSugar Model</td><td>{self.ps.get_model()}</td></tr>
-                                <tr><td>Firmware Version</td><td>{self.ps.get_fireware_version() if self.ps.get_model() == 'Pisugar 3' else 'Not supported'}</td></tr>
                                 <tr><td>Battery Level</td><td>{self.ps.get_battery_level()}%</td></tr>
                                 <tr><td>Battery Voltage</td><td>{self.ps.get_battery_voltage()}V</td></tr>
                                 <tr><td>Battery Current</td><td>{self.ps.get_battery_current()}A</td></tr>
                                 <tr><td>Battery LED Amount</td><td>{self.ps.get_battery_led_amount() if self.ps.get_model() == 'Pisugar 2' else 'Not supported'}</td></tr>
-                                <tr><td>Battery Power Plugged In</td><td>{'Yes' if self.ps.get_battery_power_plugged() and self.is_new_model else 'No'}</td></tr>
                                 <tr><td>Battery Allow Charging</td><td>{'Yes' if self.ps.get_battery_allow_charging() and self.is_new_model else 'No'}</td></tr>
-                                <tr><td>Battery Charging Range</td><td>{self.ps.get_battery_charging_range() if self.is_new_model or self.ps.get_model() == 'Pisugar 3' else 'Not supported'}%</td></tr>
-                                <tr><td>Battery Charging</td><td>{'Yes' if self.ps.get_battery_charging() else 'No'}</td></tr>
-                                <tr><td>Battery Input Protect Enabled</td><td>{'Yes' if self.ps.get_battery_input_protect_enabled() else 'No'}</td></tr>
-                                <tr><td>Battery Output Enabled</td><td>{'Yes' if self.ps.get_battery_output_enabled() else 'No'}</td></tr>
+                                <tr><td>Battery Charging Range</td><td>{self.ps.get_battery_charging_range() if self.is_new_model or self.ps.get_model() == 'Pisugar 3' else 'Not supported'}</td></tr>
                                 <tr><td>Duration of Keep Charging When Full</td><td>{self.ps.get_battery_full_charge_duration} seconds</td></tr>
                                 <tr><td>Battery Safe Shutdown Level</td><td>{self.ps.get_battery_safe_shutdown_level() if self.ps.get_battery_safe_shutdown_level() is not None else 'Not set'}%</td></tr>
                                 <tr><td>Battery Safe Shutdown Delay</td><td>{self.ps.get_battery_safe_shutdown_delay()} seconds</td></tr>
                                 <tr><td>Battery Auto Power On</td><td>{'Yes' if self.ps.get_battery_auto_power_on() else 'No'}</td></tr>
-                                <tr><td>Battery Soft Power Off Enabled</td><td>{'Yes' if self.ps.get_battery_soft_poweroff and self.ps.get_model() == 'Pisugar 3' else 'No'}</td></tr>
+                                <tr><td>Battery Soft Power Off Enabled</td><td>{'Yes' if self.ps.get_battery_soft_poweroff() and self.ps.get_model() == 'Pisugar 3' else 'No'}</td></tr>
                                 <tr><td>System Time</td><td>{self.ps.get_system_time()}</td></tr>
-                                <tr><td>RTC Time</td><td>{self.ps.get_rtc_time()}</td></tr>
-                                <tr><td>RTC Alarm Time</td><td>{self.ps.get_rtc_alarm_time()}</td></tr>
-                                <tr><td>RTC Alarm Enabled</td><td>{'Yes' if self.ps.get_rtc_alarm_enabled() else 'No'}</td></tr>
                                 <tr><td>RTC Adjust PPM</td><td>{self.ps.get_rtc_adjust_ppm() if self.ps.get_model() == 'Pisugar 3' else 'Not supported'}</td></tr>
                                 <tr><td>RTC Alarm Repeat</td><td>{self.ps.get_rtc_alarm_repeat()}</td></tr>
                                 <tr><td>Single Tap Enabled</td><td>{'Yes' if self.ps.get_tap_enable(tap='single') else 'No'}</td></tr>
