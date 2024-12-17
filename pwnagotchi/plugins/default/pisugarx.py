@@ -206,7 +206,7 @@ class PiSugar(plugins.Plugin):
             self.nextDChg = time.time() + 5
 
         if self.drot == 0:  # show battery voltage
-            ui.set('bat', f"{voltage}V")
+            ui.set('bat', f"{voltage:.2f}V")
         elif self.drot == 1: # show battery capacity
             ui.set('bat', f"{capacity}%")
         else: # show battery temperature
