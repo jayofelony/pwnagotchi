@@ -1,6 +1,7 @@
-NumChannels = 233
 
-def freq_to_channel(freq):
+NumChannels: int = 233
+
+def freq_to_channel(freq: int) -> int:
     if 2412 <= freq <= 2472: # 2.4ghz wifi
         return int(((freq - 2412) / 5) + 1)
     elif freq == 2484: # channel 14 special
