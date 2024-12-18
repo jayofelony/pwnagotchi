@@ -166,7 +166,7 @@ ui.display.enabled = false
 ui.display.rotation = 180
 ui.display.type = "waveshare_4"
 
-bettercap.handshakes = "/root/handshakes"
+bettercap.handshakes = "/home/pi/handshakes"
 bettercap.silence = [
     "ble.device.new",
     "ble.device.lost",
