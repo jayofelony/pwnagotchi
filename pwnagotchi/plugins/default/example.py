@@ -14,6 +14,7 @@ class Example(plugins.Plugin):
 
     def __init__(self):
         logging.debug("example plugin created")
+        self.options = dict()
 
     # called when http://<host>:<port>/plugins/<plugin>/ is called
     # must return a html page
@@ -23,17 +24,17 @@ class Example(plugins.Plugin):
 
     # called when the plugin is loaded
     def on_loaded(self):
-        logging.warning("WARNING: this plugin should be disabled! options = " % self.options)
+        logging.warning("WARNING: this plugin should be disabled! options = %s" % self.options)
 
     # called before the plugin is unloaded
     def on_unload(self, ui):
         pass
 
-    # called hen there's internet connectivity
+    # called when there's internet connectivity
     def on_internet_available(self, agent):
         pass
 
-    # called to setup the ui elements
+    # called to set up the ui elements
     def on_ui_setup(self, ui):
         # add custom UI elements
         ui.add_element('ups', LabeledValue(color=BLACK, label='UPS', value='0%/0V', position=(ui.width() / 2 - 25, 0),
@@ -58,7 +59,7 @@ class Example(plugins.Plugin):
         # or set a custom state
         #   agent.set_bored()
 
-    # called when a non overlapping wifi channel is found to be free
+    # called when a non overlapping Wi-Fi channel is found to be free
     def on_free_channel(self, agent, channel):
         pass
 
@@ -103,7 +104,7 @@ class Example(plugins.Plugin):
     def on_association(self, agent, access_point):
         pass
 
-    # called when the agent is deauthenticating a client station from an AP
+    # called when the agent is de-authenticating a client station from an AP
     def on_deauthentication(self, agent, access_point, client_station):
         pass
 
@@ -112,7 +113,7 @@ class Example(plugins.Plugin):
         pass
 
     # called when a new handshake is captured, access_point and client_station are json objects
-    # if the agent could match the BSSIDs to the current list, otherwise they are just the strings of the BSSIDs
+    # if the agent could match the BSSID's to the current list, otherwise they are just the strings of the BSSIDs
     def on_handshake(self, agent, filename, access_point, client_station):
         pass
 

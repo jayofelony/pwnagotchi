@@ -1,6 +1,7 @@
 import os
 import logging
 import requests
+import subprocess
 from datetime import datetime
 from threading import Lock
 from pwnagotchi.utils import StatusFile, remove_whitelisted
@@ -22,10 +23,10 @@ class WpaSec(plugins.Plugin):
         self.ready = False
         self.lock = Lock()
         try:
-            self.report = StatusFile('/root/.wpa_sec_uploads', data_format='json')
+            self.report = StatusFile('/home/pi/.wpa_sec_uploads', data_format='json')
         except JSONDecodeError:
-            os.remove("/root/.wpa_sec_uploads")
-            self.report = StatusFile('/root/.wpa_sec_uploads', data_format='json')
+            os.remove("/home/pi/.wpa_sec_uploads")
+            self.report = StatusFile('/home/pi/.wpa_sec_uploads', data_format='json')
         self.options = dict()
         self.skip = list()
 
@@ -42,14 +43,20 @@ class WpaSec(plugins.Plugin):
                                        cookies=cookie,
                                        files=payload,
                                        timeout=timeout)
-                if ' already submitted' in result.text:
-                    logging.debug("%s was already submitted.", path)
+                if result.status_code == 200:
+                    if 'already submitted' in result.text:
+                        logging.debug("%s was already submitted.", path)
+                        return False
+                    return True
+                elif result.status_code != 200:
+                    logging.error("WPA_SEC: Error code: %s", result.text)
+                    return False
             except requests.exceptions.RequestException as req_e:
                 raise req_e
 
     def _download_from_wpasec(self, output, timeout=30):
         """
-        Downloads the results from wpasec and safes them to output
+        Downloads the results from wpasec and saves them to output
 
         Output-Format: bssid, station_mac, ssid, password
         """
@@ -110,12 +117,11 @@ class WpaSec(plugins.Plugin):
                 logging.info("WPA_SEC: Internet connectivity detected. Uploading new handshakes to wpa-sec.stanev.org")
                 for idx, handshake in enumerate(handshake_new):
                     display.on_uploading(f"wpa-sec.stanev.org ({idx + 1}/{len(handshake_new)})")
-
                     try:
-                        self._upload_to_wpasec(handshake)
-                        reported.append(handshake)
-                        self.report.update(data={'reported': reported})
-                        logging.debug("WPA_SEC: Successfully uploaded %s", handshake)
+                        if self._upload_to_wpasec(handshake):
+                            reported.append(handshake)
+                            self.report.update(data={'reported': reported})
+                            logging.debug("WPA_SEC: Successfully uploaded %s", handshake)
                     except requests.exceptions.RequestException as req_e:
                         self.skip.append(handshake)
                         logging.debug("WPA_SEC: %s", req_e)
@@ -123,7 +129,6 @@ class WpaSec(plugins.Plugin):
                     except OSError as os_e:
                         logging.debug("WPA_SEC: %s", os_e)
                         continue
-
                 display.on_normal()
 
             if 'download_results' in self.options and self.options['download_results']:
@@ -156,6 +161,22 @@ class WpaSec(plugins.Plugin):
 
     def on_ui_update(self, ui):
         if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
-            last_line = os.popen('awk -F: \'!seen[$3]++ {print $3 " - " $4}\' /root/handshakes/wpa-sec.cracked.potfile | tail -n 1')
-            last_line = last_line.read().rstrip()
-            ui.set('pass', last_line)
+            file_path = '/home/pi/handshakes/wpa-sec.cracked.potfile'
+            try:
+                with open(file_path, 'r') as file:
+                    # Read all lines and extract the required fields
+                    lines = file.readlines()
+                    if lines:  # Check if file is not empty
+                        last_line = lines[-1]
+                        parts = last_line.split(':')  # Split line into fields using ':' as a delimiter
+                        if len(parts) >= 4:
+                            result = f"{parts[2]} - {parts[3].strip()}"
+                        else:
+                            result = "Malformed line format"
+                    else:
+                        result = "File is empty"
+            except FileNotFoundError:
+                result = "File not found"
+            except OSError as e:
+                result = f"Error reading file: {e}"
+            ui.set('pass', result)
