@@ -42,7 +42,7 @@ class BTTether(plugins.Plugin):
         method=manual
         [ipv6]
         addr-gen-mode=default
-        method=auto
+        method=disabled
         [proxy]
         '''
         try:
