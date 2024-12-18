@@ -41,7 +41,7 @@ FILES_TO_BACKUP="
     /root/.ssh \
     /root/.bashrc \
     /root/.profile \
-    /root/handshakes \
+    /home/pi/handshakes \
     /root/peers \
     /etc/modprobe.d/g_ether.conf \
     /etc/pwnagotchi/ \
