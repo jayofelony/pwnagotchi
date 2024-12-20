@@ -56,7 +56,7 @@ FILES_TO_BACKUP="
     /root/.bt-tether* \
     /root/.ohc_uploads \
     /root/.wigle_uploads \
-    /root/.wpa_sec_uploads"
+    /home/pi/.wpa_sec_uploads"
 
 ping -c 1 "${UNIT_HOSTNAME}" > /dev/null 2>&1 || {
   echo "@ unit ${UNIT_HOSTNAME} can't be reached, make sure it's connected and a static IP assigned to the USB interface."
