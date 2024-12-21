@@ -21,10 +21,10 @@ class BTTether(plugins.Plugin):
 
     def on_ready(self, agent):
         ip = self.options['ip']
-        if self.options['phone'] == 'android':
+        if self.options['phone'].lower() == 'android':
             address = f'{ip}/24,192.168.44.1'
             route = '192.168.44.0/24,192.168.44.1'
-        elif self.options['phone'] == 'ios':
+        elif self.options['phone'].lower() == 'ios':
             address = f'{ip}/24,172.20.10.1'
             route = '172.20.10.0/24,172.20.10.1'
         file = f'''
