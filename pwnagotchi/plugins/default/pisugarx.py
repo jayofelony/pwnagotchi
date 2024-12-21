@@ -34,14 +34,15 @@ class PiSugar(plugins.Plugin):
 
         self.ready = False
         self.lasttemp = 69
-        self.drot = 0  # display rotation
+        self.drot = 0  # display rotation index
         self.nextDChg = 0  # last time display changed
-        self.rotation_enabled = True  # default rotation enabled
+        self.rotation_enabled = True  # default: rotation enabled
         self.default_display = "voltage"  # default display option
 
     def safe_get(self, func, default=None):
         """
-        Helper function to safely call PiSugar getters. When exception detected call default
+        Helper function to safely call PiSugar getters. When an exception is detected,
+        return 'default' and log at debug level.
         """
         if self.ps is None:
             return default
@@ -218,6 +219,7 @@ class PiSugar(plugins.Plugin):
             return render_template_string(ret), 404
 
     def on_ui_setup(self, ui):
+        # Add the "bat" UI element
         ui.add_element(
             "bat",
             LabeledValue(
@@ -235,6 +237,10 @@ class PiSugar(plugins.Plugin):
             ui.remove_element("bat")
 
     def on_ui_update(self, ui):
+        # Make sure "bat" is in the UI state (guard to prevent KeyError)
+        if 'bat' not in ui._state._state:
+            return
+
         capacity = self.safe_get(self.ps.get_battery_level, default=0)
         voltage = self.safe_get(self.ps.get_battery_voltage, default=0.00)
         temp = self.safe_get(self.ps.get_temperature, default=0)
@@ -244,10 +250,10 @@ class PiSugar(plugins.Plugin):
 
         if battery_plugged:
             # If plugged in, display "CHG"
-            ui._state._state['bat'].label = "CHG"
+            ui._state._state['bat'].label = "CHG: "
         else:
             # Otherwise, keep it as "BAT"
-            ui._state._state['bat'].label = "BAT"
+            ui._state._state['bat'].label = "BAT: "
 
         # Handle rotation or default display logic
         if self.rotation_enabled:
