@@ -32,8 +32,7 @@ OUTPUT=${OUTPUT:-${UNIT_HOSTNAME}-backup-$(date +%s).tgz}
 # username to use for ssh
 UNIT_USERNAME=${UNIT_USERNAME:-pi}
 # what to backup
-FILES_TO_BACKUP="
-    /boot/firmware/cmdline.txt \
+FILES_TO_BACKUP="/boot/firmware/cmdline.txt \
     /boot/firmware/config.txt \
     /root/settings.yaml \
     /root/client_secrets.json \
