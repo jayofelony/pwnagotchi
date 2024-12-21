@@ -36,11 +36,11 @@ class WpaSec(plugins.Plugin):
         """
         with open(path, 'rb') as file_to_upload:
             cookie = {'key': self.options['api_key']}
-
+            payload = {'file': file_to_upload}
             try:
                 result = requests.post(self.options['api_url'],
                                        cookies=cookie,
-                                       files=file_to_upload,
+                                       files=payload,
                                        timeout=timeout)
                 if result.status_code == 200:
                     if ' already submitted' in result.text:
