@@ -239,21 +239,17 @@ class PiSugar(plugins.Plugin):
         voltage = self.safe_get(self.ps.get_battery_voltage, default=0.00)
         temp = self.safe_get(self.ps.get_temperature, default=0)
 
-        if temp != self.lasttemp:
-            logging.debug(f"[PiSugarX] ({capacity}%, {voltage:.2f}V, {temp}°C)")
-            self.lasttemp = temp
+        # Check if battery is plugged in
+        battery_plugged = self.safe_get(self.ps.get_battery_power_plugged, default=False)
 
-        # If it's a new model and charging is detected
-        if self.is_new_model:
-            battery_plugged = self.safe_get(self.ps.get_battery_power_plugged, default=False)
-            battery_allow_charging = self.safe_get(self.ps.get_battery_allow_charging, default=False)
-            if battery_plugged and battery_allow_charging:
-                ui._state._state['bat'].label = "CHG"
-                ui.update(force=True, new_data={"status": "Power!! I can feel it!"})
-            else:
-                ui._state._state['bat'].label = "BAT"
+        if battery_plugged:
+            # If plugged in, display "CHG"
+            ui._state._state['bat'].label = "CHG"
+        else:
+            # Otherwise, keep it as "BAT"
+            ui._state._state['bat'].label = "BAT"
 
-        # If rotation is enabled, cycle through voltage, percentage, and temp
+        # Handle rotation or default display logic
         if self.rotation_enabled:
             if time.time() > self.nextDChg:
                 self.drot = (self.drot + 1) % 3
