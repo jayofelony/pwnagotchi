@@ -30,6 +30,7 @@ class BTTether(plugins.Plugin):
         file = f'''
         [connection]
         id=bluetooth
+        interface-name=bnep0
         type=bluetooth
         autoconnect=yes
         [bluetooth]
