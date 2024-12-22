@@ -264,7 +264,7 @@ class PiSugar(plugins.Plugin):
             if self.drot == 0:  # show battery voltage
                 ui.set('bat', f"{voltage:.2f}V")
             elif self.drot == 1:  # show battery capacity
-                ui.set('bat', f"{capacity:.2f}%")
+                ui.set('bat', f"{capacity:.0f}%")
             else:  # show battery temperature
                 ui.set('bat', f"{temp}°C")
         else:
@@ -272,7 +272,7 @@ class PiSugar(plugins.Plugin):
             if self.default_display == 'voltage':
                 ui.set('bat', f"{voltage:.2f}V")
             elif self.default_display in ['percentage', 'percent']:
-                ui.set('bat', f"{capacity:.2f}%")
+                ui.set('bat', f"{capacity:.0f}%")
             elif self.default_display == 'temp':
                 ui.set('bat', f"{temp}°C")
 
