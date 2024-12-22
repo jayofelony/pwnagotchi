@@ -58,7 +58,7 @@ def check(version, repo, native=True):
 
 
 def make_path_for(name):
-    path = os.path.join("/opt/", name)
+    path = os.path.join("/home/pi/", name)
     if os.path.exists(path):
         logging.debug("[update] deleting %s" % path)
         shutil.rmtree(path, ignore_errors=True, onerror=None)
@@ -138,10 +138,20 @@ def install(display, update):
         if not os.path.exists(source_path):
             source_path = "%s-%s" % (source_path, update['available'])
 
-        # setup.py is going to install data files for us
-        # first we create a new virtual environment and activate it
-        os.system("cd /home/pi && source .pwn/bin/activate")
-        os.system("cd %s && pip3 install ." % source_path)
+        try:
+            # Activate the virtual environment and install the package
+            subprocess.run(
+                ["bash", "-c", f"source /home/pi/.pwn/bin/activate && pip install {source_path}"],
+                check=True
+            )
+
+            # Clean up the source directory
+            shutil.rmtree(source_path, ignore_errors=True)
+
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Installation failed: {e}")
+        except Exception as e:
+            logging.error(f"Unexpected error: {e}")
     return True
 
 
