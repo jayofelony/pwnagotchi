@@ -2,7 +2,7 @@
 set -e
 
 # name of the ethernet gadget interface on the host
-USB_IFACE=${1:-enx002282ffff20}
+USB_IFACE=${1:-$(ifconfig | grep enx | awk -F\: '{print $1}')}
 USB_IFACE_IP=10.0.0.1
 USB_IFACE_NET=10.0.0.0/24
 # host interface to use for upstream connection
