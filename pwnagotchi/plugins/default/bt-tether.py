@@ -7,7 +7,7 @@ from pwnagotchi.ui.view import BLACK
 
 class BTTether(plugins.Plugin):
     __author__ = 'Jayofelony'
-    __version__ = '1.0'
+    __version__ = '1.1'
     __license__ = 'GPL3'
     __description__ = 'A new BT-Tether plugin'
 
@@ -19,45 +19,29 @@ class BTTether(plugins.Plugin):
     def on_loaded(self):
         logging.info("[BT-Tether] plugin loaded.")
 
-    def on_ready(self, agent):
-        ip = self.options['ip']
-        if self.options['phone'].lower() == 'android':
-            address = f'{ip}/24,192.168.44.1'
-            route = '192.168.44.0/24,192.168.44.1'
-        elif self.options['phone'].lower() == 'ios':
-            address = f'{ip}/24,172.20.10.1'
-            route = '172.20.10.0/24,172.20.10.1'
-        file = f'''
-        [connection]
-        id=bluetooth
-        interface-name=bnep0
-        type=bluetooth
-        autoconnect=yes
-        [bluetooth]
-        bdaddr={self.options['mac']}
-        type=panu
-        [ipv4]
-        address1={address}
-        route1={route}
-        dns=8.8.8.8;1.1.1.1;
-        method=manual
-        [ipv6]
-        addr-gen-mode=default
-        method=disabled
-        [proxy]
-        '''
+    def on_config_changed(self, config):
+        ip = config['main']['plugins']['bt-tether']['ip']
+        phone_name = config['main']['plugins']['bt-tether']['phone-name'] + ' Network'
+        if config['main']['plugins']['bt-tether']['phone'].lower() == 'android':
+            address = f'{ip}'
+            gateway = '192.168.44.1'
+        elif config['main']['plugins']['bt-tether']['phone'].lower() == 'ios':
+            address = f'{ip}'
+            gateway = '172.20.10.1'
         try:
-            file = '\n'.join(line.strip() for line in file.strip().splitlines() if line.strip())
-            with open('/etc/NetworkManager/system-connections/bluetooth.nmconnection', 'w+') as bt_file:
-                bt_file.write(file)
-            subprocess.run(['chmod', '600', '/etc/NetworkManager/system-connections/bluetooth.nmconnection'], check=True)
-            try:
-                mac = self.options['mac']
-                subprocess.run(['nmcli', 'device', 'connect', f'{mac}'], check=True)
-            except Exception as e:
-                logging.error(f"[BT-Tether] Failed to connect to device: {e}")
+            subprocess.run(['nmcli', 'connection', 'modify', f'{phone_name}', 'ipv4.addresses', f'{address}', 'ipv4.gateway',f'{gateway}'], check=True)
+            subprocess.run(['nmcli', 'connection', 'reload'], check=True)
+            subprocess.run(['systemctl', 'restart', 'NetworkManager'], check=True)
         except Exception as e:
-            logging.error(f"[BT-Tether] Failed to save Bluetooth connection file: {e}")
+            logging.error(f"[BT-Tether] Failed to connect to device: {e}")
+        self.ready = True
+
+    def on_ready(self, agent):
+        try:
+            mac = self.options['mac']
+            subprocess.run(['nmcli', 'device', 'connect', f'{mac}'], check=True)
+        except Exception as e:
+            logging.error(f"[BT-Tether] Failed to connect to device: {e}")
         self.ready = True
 
     def on_ui_setup(self, ui):

@@ -23,6 +23,7 @@ main.plugins.auto-update.install = false
 main.plugins.auto-update.interval = 1
 
 main.plugins.bt-tether.enabled = false
+main.plugins.bt-tether.phone-name = ""
 main.plugins.bt-tether.mac = ""
 main.plugins.bt-tether.phone = "" # android or ios
 main.plugins.bt-tether.ip = "" # 192.168.44.2 android / 172.20.10.2 ios
