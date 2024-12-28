@@ -37,11 +37,6 @@ class BTTether(plugins.Plugin):
         self.ready = True
 
     def on_ready(self, agent):
-        try:
-            mac = self.options['mac']
-            subprocess.run(['nmcli', 'device', 'connect', f'{mac}'], check=True)
-        except Exception as e:
-            logging.error(f"[BT-Tether] Failed to connect to device: {e}")
         self.ready = True
 
     def on_ui_setup(self, ui):
