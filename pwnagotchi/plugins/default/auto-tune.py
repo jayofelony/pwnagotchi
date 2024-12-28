@@ -390,17 +390,6 @@ class auto_tune(plugins.Plugin):
             self._agent.run("wifi.recon clear")
             self._agent.run("wifi.clear")
 
-    # called before the plugin is unloaded
-    def on_unload(self, ui):
-        ui.set('mode', 'AUTO')
-
-    def on_ui_update(self, ui):
-        try:
-            mode = 'AT'
-            ui.set('mode', mode)
-        except Exception as e:
-            logging.exception(e)
-
     # called when the agent refreshed its access points list
     def on_wifi_update(self, agent, access_points):
         # check aps and update active channels
