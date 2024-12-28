@@ -33,9 +33,9 @@ body:
       label: Version
       description: What version of our software are you running?
       options:
-        - 2.9.2
         - 2.9.3
         - 2.9.3-2
+        - 2.9.4
       default: 0
     validations:
       required: true
