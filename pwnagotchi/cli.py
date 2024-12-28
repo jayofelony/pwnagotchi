@@ -215,20 +215,24 @@ def pwnagotchi_cli():
                                           "[Y/N] ")
                     if pwn_bluetooth.lower() in ('y', 'yes'):
                         f.write("main.plugins.bt-tether.enabled = true\n\n")
-                        pwn_bluetooth_device = input("What device do you use? Android or iOS?\n\n"
+                        pwn_bluetooth_phone_name = input("What name uses your phone, check settings?\n\n")
+                        if pwn_bluetooth_phone_name != "":
+                            f.write(f"main.plugins.bt-tether.phone-name = \"{pwn_bluetooth_phone_name}\"\n")
+                        pwn_bluetooth_device = input("What device do you use? android or ios?\n\n"
                                                      "Device: ")
-                        if pwn_bluetooth_device.lower() == "android":
-                            f.write("main.plugins.bt-tether.devices.android-phone.enabled = true\n")
-                            pwn_bluetooth_mac = input("What is the bluetooth MAC of your device?\n\n"
-                                                      "MAC: ")
-                            if pwn_bluetooth_mac != "":
-                                f.write(f"main.plugins.bt-tether.devices.android-phone.mac = \"{pwn_bluetooth_mac}\"\n")
-                        elif pwn_bluetooth_device.lower() == "ios":
-                            f.write("main.plugins.bt-tether.devices.ios-phone.enabled = true\n")
-                            pwn_bluetooth_mac = input("What is the bluetooth MAC of your device?\n\n"
-                                                      "MAC: ")
-                            if pwn_bluetooth_mac != "":
-                                f.write(f"main.plugins.bt-tether.devices.ios-phone.mac = \"{pwn_bluetooth_mac}\"\n")
+                        if pwn_bluetooth_device != "":
+                            if pwn_bluetooth_device != "android" and pwn_bluetooth_device != "ios":
+                                print("You have chosen an invalid device. Please start over.")
+                                exit()
+                            f.write(f"main.plugins.bt-tether.phone = \"{pwn_bluetooth_device.lower()}\"\n")
+                            if pwn_bluetooth_device == "android":
+                                f.write("main.plugins.bt-tether.ip = \"192.168.44.44\"\n")
+                            elif pwn_bluetooth_device == "ios":
+                                f.write("main.plugins.bt-tether.ip = \"172.20.10.6\"\n")
+                        pwn_bluetooth_mac = input("What is the bluetooth MAC of your device?\n\n"
+                                                  "MAC: ")
+                        if pwn_bluetooth_mac != "":
+                            f.write(f"main.plugins.bt-tether.mac = \"{pwn_bluetooth_mac}\"\n")
                     # set up display settings
                     pwn_display_enabled = input("Do you want to enable a display?\n\n"
                                                 "[Y/N]: ")
@@ -250,7 +254,9 @@ def pwnagotchi_cli():
                     if pwn_bluetooth.lower() in ('y', 'yes'):
                         if pwn_bluetooth_device.lower == "android":
                             print("To visit the webui when connected with your phone, visit: http://192.168.44.44:8080\n"
+                                  "Be sure to run `sudo bluetoothctl` to set-up the bluetooth connection for the first time. And read the wiki step 4.\n"
                                   "Your configuration is done, and I will restart in 5 seconds.")
+
                         elif pwn_bluetooth_device.lower == "ios":
                             print("To visit the webui when connected with your phone, visit: http://172.20.10.6:8080\n"
                                   "Your configuration is done, and I will restart in 5 seconds.")
