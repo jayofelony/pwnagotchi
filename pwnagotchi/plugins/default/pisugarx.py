@@ -250,10 +250,10 @@ class PiSugar(plugins.Plugin):
 
         if battery_plugged:
             # If plugged in, display "CHG"
-            ui._state._state['bat'].label = "CHG: "
+            ui._state._state['bat'].label = "CHG"
         else:
             # Otherwise, keep it as "BAT"
-            ui._state._state['bat'].label = "BAT: "
+            ui._state._state['bat'].label = "BAT"
 
         # Handle rotation or default display logic
         if self.rotation_enabled:
