@@ -28,6 +28,9 @@ class BTTether(plugins.Plugin):
         elif config['main']['plugins']['bt-tether']['phone'].lower() == 'ios':
             address = f'{ip}'
             gateway = '172.20.10.1'
+        else:
+            logging.error("[BT-Tether] Phone type not supported.")
+            return
         try:
             subprocess.run(['nmcli', 'connection', 'modify', f'{phone_name}', 'ipv4.addresses', f'{address}', 'ipv4.gateway',f'{gateway}', 'ipv4.route-metric', '100'], check=True)
             subprocess.run(['nmcli', 'connection', 'reload'], check=True)
