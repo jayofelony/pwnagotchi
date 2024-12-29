@@ -21,6 +21,7 @@ class BTTether(plugins.Plugin):
 
     def on_config_changed(self, config):
         ip = self.options['ip']
+        mac = self.options['mac']
         phone_name = self.options['phone-name'] + ' Network'
         if self.options['phone'].lower() == 'android':
             address = f'{ip}'
@@ -32,7 +33,17 @@ class BTTether(plugins.Plugin):
             logging.error("[BT-Tether] Phone type not supported.")
             return
         try:
-            subprocess.run(['nmcli', 'connection', 'modify', f'{phone_name}', 'ipv4.addresses', f'{address}', 'ipv4.gateway',f'{gateway}', 'ipv4.route-metric', '100'], check=True)
+            subprocess.run([
+                'nmcli', 'connection', 'modify', f'{phone_name}',
+                'connection.type', 'bluetooth',
+                'bluetooth.type', 'panu',
+                'bluetooth.bdaddr', f'{mac}',
+                'ipv4.method', 'manual',
+                'ipv4.addresses', f'{address}',
+                'ipv4.gateway',f'{gateway}',
+                'ipv4.route-metric', '100'
+            ], check=True)
+            subprocess.run(['nmcli', 'connection', 'reload'], check=True)
             subprocess.run(['nmcli', 'connection', 'up', f'{phone_name}'], check=True)
         except Exception as e:
             logging.error(f"[BT-Tether] Failed to connect to device: {e}")
