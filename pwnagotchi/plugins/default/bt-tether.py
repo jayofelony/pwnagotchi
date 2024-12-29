@@ -15,19 +15,17 @@ class BTTether(plugins.Plugin):
         self.ready = False
         self.options = dict()
         self.status = '-'
-        self._config = dict()
 
     def on_loaded(self):
         logging.info("[BT-Tether] plugin loaded.")
 
     def on_config_changed(self, config):
-        self._config = config
-        ip = config['main']['plugins']['bt-tether']['ip']
-        phone_name = config['main']['plugins']['bt-tether']['phone-name'] + ' Network'
-        if config['main']['plugins']['bt-tether']['phone'].lower() == 'android':
+        ip = self.options['ip']
+        phone_name = self.options['phone-name'] + ' Network'
+        if self.options['phone'].lower() == 'android':
             address = f'{ip}'
             gateway = '192.168.44.1'
-        elif config['main']['plugins']['bt-tether']['phone'].lower() == 'ios':
+        elif self.options['phone'].lower() == 'ios':
             address = f'{ip}'
             gateway = '172.20.10.1'
         else:
@@ -50,7 +48,7 @@ class BTTether(plugins.Plugin):
                                                      label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_ui_update(self, ui):
-        phone_name = self._config['main']['plugins']['bt-tether']['phone-name'] + ' Network'
+        phone_name = self.options['phone-name'] + ' Network'
         if (subprocess.run(['bluetoothctl', 'info'], capture_output=True, text=True)).stdout.find('Connected: yes') != -1:
             self.status = 'C'
         else:
@@ -62,7 +60,7 @@ class BTTether(plugins.Plugin):
         ui.set('bluetooth', self.status)
 
     def on_unload(self, ui):
-        phone_name = self._config['main']['plugins']['bt-tether']['phone-name'] + ' Network'
+        phone_name = self.options['phone-name'] + ' Network'
         with ui._lock:
             ui.remove_element('bluetooth')
         try:
