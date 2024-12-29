@@ -63,7 +63,7 @@ main.plugins.pisugarx.enabled = false
 main.plugins.pisugarx.rotation = false
 main.plugins.pisugarx.default_display = "percentage"
 
-main.plugins.session-stats.enabled = true
+main.plugins.session-stats.enabled = false
 main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
 
 main.plugins.ups_hat_c.enabled = false
