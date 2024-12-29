@@ -40,7 +40,7 @@ class BTTether(plugins.Plugin):
                 'bluetooth.bdaddr', f'{mac}',
                 'ipv4.method', 'manual',
                 'ipv4.addresses', f'{address}',
-                'ipv4.gateway',f'{gateway}',
+                'ipv4.gateway', f'{gateway}',
                 'ipv4.route-metric', '100'
             ], check=True)
             subprocess.run(['nmcli', 'connection', 'reload'], check=True)
