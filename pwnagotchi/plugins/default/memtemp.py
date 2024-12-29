@@ -49,6 +49,8 @@ class MemTemp(plugins.Plugin):
     LINE_SPACING = 10
     LABEL_SPACING = 0
     FIELD_WIDTH = 4
+    def __init__(self):
+        self.options = dict()
 
     def on_loaded(self):
         self._last_cpu_load = self._cpu_stat()
@@ -62,7 +64,7 @@ class MemTemp(plugins.Plugin):
 
     def _cpu_stat(self):
         """
-        Returns the splitted first line of the /proc/stat file
+        Returns the split first line of the /proc/stat file
         """
         with open('/proc/stat', 'rt') as fp:
             return list(map(int,fp.readline().split()[1:]))
@@ -84,15 +86,15 @@ class MemTemp(plugins.Plugin):
 
     def cpu_temp(self):
         if self.options['scale'] == "fahrenheit":
-            temp = (pwnagotchi.temperature() * 9 / 5) + 32
-            symbol = "f"
+            temp = (pwnagotchi.temperature(celsius=False))
+            symbol = "F"
         elif self.options['scale'] == "kelvin":
             temp = pwnagotchi.temperature() + 273.15
-            symbol = "k"
+            symbol = "K"
         else:
             # default to celsius
             temp = pwnagotchi.temperature()
-            symbol = "c"
+            symbol = "C"
         return f"{temp}{symbol}"
 
     def cpu_freq(self):
