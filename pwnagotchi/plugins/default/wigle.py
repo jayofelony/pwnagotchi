@@ -86,10 +86,11 @@ def _send_to_wigle(lines, api_key, donate=True, timeout=30):
 
     dummy.seek(0)
 
-    headers = {'Authorization': f"Basic {api_key}",
-               'Accept': 'application/json'}
-    data = {'donate': 'on' if donate else 'false'}
-    payload = {'file': (pwnagotchi.name() + ".csv", dummy, 'multipart/form-data', {'Expires': '0'})}
+    headers = {"Authorization": f"Basic {api_key}",
+               "Accept": "application/json",
+               "HTTP_USER_AGENT": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1"}
+    data = {"donate": "on" if donate else "false"}
+    payload = {"file": (pwnagotchi.name() + ".csv", dummy, "multipart/form-data", {"Expires": "0"})}
     try:
         res = requests.post('https://api.wigle.net/api/v2/file/upload',
                             data=data,

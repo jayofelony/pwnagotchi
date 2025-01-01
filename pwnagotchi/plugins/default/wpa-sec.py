@@ -35,12 +35,15 @@ class WpaSec(plugins.Plugin):
         Uploads the file to https://wpa-sec.stanev.org, or another endpoint.
         """
         with open(path, 'rb') as file_to_upload:
-            cookie = {'key': self.options['api_key']}
-            payload = {'file': file_to_upload}
+            cookie = {"key": self.options['api_key']}
+            payload = {"file": file_to_upload,
+                       "multipart/form-data": {"Expires": "0"}}
+            headers = {"HTTP_USER_AGENT": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1"}
             try:
                 result = requests.post(self.options['api_url'],
                                        cookies=cookie,
                                        files=payload,
+                                       headers=headers,
                                        timeout=timeout)
                 if result.status_code == 200:
                     if ' already submitted' in result.text:
@@ -97,7 +100,7 @@ class WpaSec(plugins.Plugin):
 
     def on_internet_available(self, agent):
         """
-        Called in manual mode when there's internet connectivity
+        Called when there's internet connectivity
         """
         if not self.ready or self.lock.locked():
             return
