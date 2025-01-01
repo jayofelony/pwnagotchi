@@ -13,7 +13,7 @@ def is_connected():
     try:
         # check DNS
         host = 'https://api.opwngrid.xyz/api/v1/uptime'
-        headers = {'user-agent': 'pwnagotchi/%s' % pwnagotchi.__version__}
+        headers = {'user-agent': f'pwnagotchi/{pwnagotchi.__version__}'}
         r = requests.get(host, headers=headers, timeout=(30.0, 60.0))
         if r.json().get('isUp'):
             return True
