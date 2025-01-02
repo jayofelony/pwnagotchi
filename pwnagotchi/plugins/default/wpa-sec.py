@@ -36,8 +36,7 @@ class WpaSec(plugins.Plugin):
         """
         with open(path, 'rb') as file_to_upload:
             cookie = {"key": self.options['api_key']}
-            payload = {"file": file_to_upload,
-                       "multipart/form-data": {"Expires": "0"}}
+            payload = {"file": file_to_upload}
             headers = {"HTTP_USER_AGENT": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1"}
             try:
                 result = requests.post(self.options['api_url'],
