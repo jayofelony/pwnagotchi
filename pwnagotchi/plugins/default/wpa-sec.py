@@ -161,8 +161,7 @@ class WpaSec(plugins.Plugin):
 
     def on_unload(self, ui):
         with ui._lock:
-            ui.remove_element('ssid')
-            ui.remove_element('password')
+            ui.remove_element('pass')
 
     def on_ui_update(self, ui):
         if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
