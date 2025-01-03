@@ -158,8 +158,9 @@ ui.faces.position_y = 34
 
 ui.web.enabled = true
 ui.web.address = "::" # listening on both ipv4 and ipv6 - switch to 0.0.0.0 to listen on just ipv4
-ui.web.username = "changeme"
-ui.web.password = "changeme"
+ui.web.auth = false
+ui.web.username = "changeme" # if auth is true
+ui.web.password = "changeme" # if auth is true
 ui.web.origin = ""
 ui.web.port = 8080
 ui.web.on_frame = ""

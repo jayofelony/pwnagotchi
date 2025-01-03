@@ -64,11 +64,14 @@ class Handler:
     def with_auth(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            auth = request.authorization
-            if not auth or not auth.username or not auth.password or not self._check_creds(auth.username,
-                                                                                           auth.password):
-                return Response('Unauthorized', 401, {'WWW-Authenticate': 'Basic realm="Unauthorized"'})
-            return f(*args, **kwargs)
+            if not self._config['auth']:
+                return f(*args, **kwargs)
+            else:
+                auth = request.authorization
+                if not auth or not auth.username or not auth.password or not self._check_creds(auth.username,
+                                                                                               auth.password):
+                    return Response('Unauthorized', 401, {'WWW-Authenticate': 'Basic realm="Unauthorized"'})
+                return f(*args, **kwargs)
 
         return wrapper
 
