@@ -33,12 +33,19 @@ body:
       label: Version
       description: What version of our software are you running?
       options:
-        - 2.9.3
-        - 2.9.3-2
-        - 2.9.4
+        - 2.9.4-2
       default: 0
     validations:
       required: true
+  - type: dropdown
+    id: 3rd-party-hardware
+    attributes:
+      label: 3rd Party Hardware
+      description: Are you using any 3rd party hardware? By selecting "Yes", you agree that you have tested the issue without the 3rd party hardware. And acknowledge that the issue may be related to the 3rd party hardware, for which we cannot provide full support.
+      options:
+        - Yes
+        - No
+      default: 1
   - type: textarea
     id: logs
     attributes:
