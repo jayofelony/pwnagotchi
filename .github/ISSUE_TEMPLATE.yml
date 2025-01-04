@@ -45,7 +45,7 @@ body:
       options:
         - Yes
         - No
-      default: 1
+      default: 0
   - type: textarea
     id: logs
     attributes:
