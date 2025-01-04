@@ -43,8 +43,8 @@ body:
       label: 3rd Party Hardware
       description: Are you using any 3rd party hardware? By selecting "Yes", you agree that you have tested the issue without the 3rd party hardware. And acknowledge that the issue may be related to the 3rd party hardware, for which we cannot provide full support.
       options:
-        - Yes
-        - No
+        - "Yes"
+        - "No"
       default: 0
   - type: textarea
     id: logs
