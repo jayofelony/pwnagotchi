@@ -1,3 +1,5 @@
+NumChannels: int = 233
+
 def freq_to_channel(freq: float) -> int:
     """
     Convert a Wi-Fi frequency (in MHz) to its corresponding channel number.
