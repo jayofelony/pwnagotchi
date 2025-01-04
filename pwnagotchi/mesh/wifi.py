@@ -1,5 +1,3 @@
-NumChannels: int = 233
-
 def freq_to_channel(freq: float) -> int:
     """
     Convert a Wi-Fi frequency (in MHz) to its corresponding channel number.
@@ -16,8 +14,10 @@ def freq_to_channel(freq: float) -> int:
         return 14
     # 5 GHz Wi-Fi channels
     elif 5150 <= freq <= 5850:  # 5 GHz Wi-Fi
-        if freq < 5270:  # Channels 36-48
+        if 5150 <= freq <= 5350:  # Channels 36-64
             return int(((freq - 5180) / 20) + 36)
+        elif 5470 <= freq <= 5725:  # Channels 100-144
+            return int(((freq - 5500) / 20) + 100)
         else:  # Channels 149-165
             return int(((freq - 5745) / 20) + 149)
     # 6 GHz Wi-Fi channels
