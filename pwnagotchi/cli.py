@@ -208,7 +208,8 @@ def pwnagotchi_cli():
                             ssid = input("SSID (Name): ")
                             bssid = input("BSSID (MAC): ")
                             f.write(f"\t\"{ssid}\",\n")
-                            f.write(f"\t\"{bssid}\",\n")
+                            if bssid != "":
+                                f.write(f"\t\"{bssid}\",\n")
                         f.write("]\n")
                     # set bluetooth tether
                     pwn_bluetooth = input("Do you want to enable BT-Tether?\n\n"
