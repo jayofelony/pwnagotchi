@@ -20,6 +20,8 @@ class BTTether(plugins.Plugin):
         logging.info("[BT-Tether] plugin loaded.")
 
     def on_config_changed(self, config):
+        if any(self.options[key] == '' for key in ['phone', 'phone-name', 'ip', 'mac']):
+            self.ready = False
         ip = self.options['ip']
         mac = self.options['mac']
         phone_name = self.options['phone-name'] + ' Network'
@@ -39,6 +41,7 @@ class BTTether(plugins.Plugin):
                 'bluetooth.type', 'panu',
                 'bluetooth.bdaddr', f'{mac}',
                 'ipv4.method', 'manual',
+                'ipv4.dns', '8.8.8.8;1.1.1.1;'
                 'ipv4.addresses', f'{address}',
                 'ipv4.gateway', f'{gateway}',
                 'ipv4.route-metric', '100'
@@ -46,10 +49,13 @@ class BTTether(plugins.Plugin):
             subprocess.run(['nmcli', 'connection', 'reload'], check=True)
             subprocess.run(['nmcli', 'connection', 'up', f'{phone_name}'], check=True)
         except Exception as e:
-            logging.error(f"[BT-Tether] Failed to connect to device: {e}")
+            logging.debug(f"[BT-Tether] Failed to connect to device: {e}")
+            logging.error(f"[BT-Tether] Failed to connect to device: have you enabled bluetooth tethering on your phone?")
         self.ready = True
 
     def on_ready(self, agent):
+        if any(self.options[key] == '' for key in ['phone', 'phone-name', 'ip', 'mac']):
+            self.ready = False
         self.ready = True
 
     def on_ui_setup(self, ui):
@@ -59,16 +65,19 @@ class BTTether(plugins.Plugin):
                                                      label_font=fonts.Bold, text_font=fonts.Medium))
 
     def on_ui_update(self, ui):
-        phone_name = self.options['phone-name'] + ' Network'
-        if (subprocess.run(['bluetoothctl', 'info'], capture_output=True, text=True)).stdout.find('Connected: yes') != -1:
-            self.status = 'C'
-        else:
-            self.status = '-'
-            try:
-                subprocess.run(['nmcli', 'connection', 'up', f'{phone_name}'], check=True)
-            except Exception as e:
-                logging.error(f"[BT-Tether] Failed to connect to device: {e}")
-        ui.set('bluetooth', self.status)
+        if self.ready:
+            phone_name = self.options['phone-name'] + ' Network'
+            if (subprocess.run(['bluetoothctl', 'info'], capture_output=True, text=True)).stdout.find('Connected: yes') != -1:
+                self.status = 'C'
+            else:
+                self.status = '-'
+                try:
+                    subprocess.run(['nmcli', 'connection', 'up', f'{phone_name}'], check=True)
+                except Exception as e:
+                    logging.debug(f"[BT-Tether] Failed to connect to device: {e}")
+                    logging.error(f"[BT-Tether] Failed to connect to device: have you enabled bluetooth tethering on your phone?")
+            ui.set('bluetooth', self.status)
+        return
 
     def on_unload(self, ui):
         phone_name = self.options['phone-name'] + ' Network'
