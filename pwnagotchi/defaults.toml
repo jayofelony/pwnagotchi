@@ -58,11 +58,6 @@ main.plugins.ohcapi.enabled = true
 main.plugins.ohcapi.api_key = "sk_your_api_key_here"
 main.plugins.ohcapi.receive_email = "yes"
 
-main.plugins.onlinehashcrack.enabled = false
-main.plugins.onlinehashcrack.email = ""
-main.plugins.onlinehashcrack.dashboard = ""
-main.plugins.onlinehashcrack.single_files = false
-
 main.plugins.pisugarx.enabled = false
 main.plugins.pisugarx.rotation = false
 main.plugins.pisugarx.default_display = "percentage"
