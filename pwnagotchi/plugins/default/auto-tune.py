@@ -374,7 +374,7 @@ class auto_tune(plugins.Plugin):
         try:
             defaults = {'show_hidden': False,
                         'reset_history': True,
-                        'extra_channels': 3,
+                        'extra_channels': 15,
                         }
 
             for d in defaults:
