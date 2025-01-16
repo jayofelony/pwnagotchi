@@ -70,7 +70,12 @@ class ohcapi(plugins.Plugin):
             return
 
         # Check if the internet is still available by pinging Google
-        response = requests.get('https://www.google.com', timeout=5)
+        try:
+            response = requests.get('https://www.google.com', timeout=5)
+        except requests.ConnectionError:
+            self.internet_active = False
+            return
+            
         if response.status_code == 200:
             self.internet_active = True
         else:
