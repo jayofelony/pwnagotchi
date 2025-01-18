@@ -23,6 +23,7 @@ DEBUG = '(#__#)'
 UPLOAD = '(1__0)'
 UPLOAD1 = '(1__1)'
 UPLOAD2 = '(0__1)'
+SCALE = 1
 PNG = False
 POSITION_X = 0
 POSITION_Y = 40
