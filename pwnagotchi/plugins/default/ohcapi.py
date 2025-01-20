@@ -45,6 +45,11 @@ class ohcapi(plugins.Plugin):
         self.ready = True
         logging.info("OHC NewAPI: Plugin loaded and ready.")
 
+    def on_webhook(self, path, request):
+        from flask import make_response, redirect
+        response = make_response(redirect("https://www.onlinehashcrack.com", code=302))
+        return response
+    
     def on_internet_available(self, agent):
         """
         Called once when the internet becomes available.
