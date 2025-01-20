@@ -133,7 +133,6 @@ class Wigle(plugins.Plugin):
         response = make_response(redirect("https://www.wigle.net/", code=302))
         return response
 
-
     def on_internet_available(self, agent):
         """
         Called when there's internet connectivity
