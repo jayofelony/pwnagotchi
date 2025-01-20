@@ -60,7 +60,6 @@ main.plugins.ohcapi.receive_email = "yes"
 
 main.plugins.pwndroid.enabled = false
 main.plugins.pwndroid.display = false # show coords on display
-main.plugins.pwndroid.display_altitude = false # show altitude on display
 
 main.plugins.pisugarx.enabled = false
 main.plugins.pisugarx.rotation = false
