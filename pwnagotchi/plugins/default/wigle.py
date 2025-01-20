@@ -127,6 +127,12 @@ class Wigle(plugins.Plugin):
 
         self.ready = True
         logging.info("WIGLE: ready")
+    
+    def on_webhook(self, path, request):
+        from flask import make_response, redirect
+        response = make_response(redirect("https://www.wigle.net/", code=302))
+        return response
+
 
     def on_internet_available(self, agent):
         """
