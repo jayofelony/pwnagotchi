@@ -10,7 +10,7 @@ from json.decoder import JSONDecodeError
 
 class ohcapi(plugins.Plugin):
     __author__ = 'Rohan Dayaram'
-    __version__ = '1.0.3'
+    __version__ = '1.1.0'
     __license__ = 'GPL3'
     __description__ = 'Uploads WPA/WPA2 handshakes to OnlineHashCrack.com using the new API (V2), no dashboard.'
 
@@ -45,6 +45,11 @@ class ohcapi(plugins.Plugin):
         self.ready = True
         logging.info("OHC NewAPI: Plugin loaded and ready.")
 
+    def on_webhook(self, path, request):
+        from flask import make_response, redirect
+        response = make_response(redirect("https://www.onlinehashcrack.com", code=302))
+        return response
+    
     def on_internet_available(self, agent):
         """
         Called once when the internet becomes available.
