@@ -41,7 +41,7 @@ class BTTether(plugins.Plugin):
                 'bluetooth.type', 'panu',
                 'bluetooth.bdaddr', f'{mac}',
                 'ipv4.method', 'manual',
-                'ipv4.dns', '8.8.8.8,1.1.1.1;',
+                'ipv4.dns', '8.8.8.8 1.1.1.1',
                 'ipv4.addresses', f'{address}/24',
                 'ipv4.gateway', f'{gateway}',
                 'ipv4.route-metric', '100'
@@ -49,7 +49,7 @@ class BTTether(plugins.Plugin):
             subprocess.run(['nmcli', 'connection', 'reload'], check=True)
             subprocess.run(['nmcli', 'connection', 'up', f'{phone_name}'], check=True)
         except Exception as e:
-            logging.debug(f"[BT-Tether] Failed to connect to device: {e}")
+            logging.error(f"[BT-Tether] Failed to connect to device: {e}")
             logging.error(f"[BT-Tether] Failed to connect to device: have you enabled bluetooth tethering on your phone?")
         self.ready = True
 
