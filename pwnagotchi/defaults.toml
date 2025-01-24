@@ -19,8 +19,8 @@ main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
 main.plugins.auto-tune.enabled = true
 
-main.plugins.auto-update.enabled = false
-main.plugins.auto-update.install = false
+main.plugins.auto-update.enabled = true
+main.plugins.auto-update.install = true
 main.plugins.auto-update.interval = 1
 
 main.plugins.bt-tether.enabled = false
