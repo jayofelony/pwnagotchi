@@ -66,15 +66,15 @@ class PiSugarServer:
         self.temperature = 0
         self.power_plugged = False
         self.allow_charging = True
-        while self.modle == None:
-            if self.check_device(PiSugar_addresses["PiSugar2"]) != None:
+        while self.modle is None:
+            if self.check_device(PiSugar_addresses["PiSugar2"]) is not None:
                 self.address = PiSugar_addresses["PiSugar2"]
                 if self.check_device(PiSugar_addresses["PiSugar2"], 0Xc2) != 0:
                     self.modle = "PiSugar2Plus"
                 else:
                     self.modle = "PiSugar2"
                 self.device_init()
-            elif self.check_device(PiSugar_addresses["PiSugar3"]) != None:
+            elif self.check_device(PiSugar_addresses["PiSugar3"]) is not None:
                 self.modle = 'PiSugar3'
                 self.address = PiSugar_addresses["PiSugar3"]
             else:
@@ -200,9 +200,9 @@ class PiSugarServer:
         """
         if (self.modle == "PiSugar2Plus") | (self.modle == "PiSugar3Plus"):
             curve = curve5000
-        elif (self.modle == "PiSugar2"):
+        elif self.modle == "PiSugar2":
             curve = curve1200
-        elif (self.modle == "PiSugar3"):
+        elif self.modle == "PiSugar3":
             curve = curve1200_3
          # 将当前电压加入历史记录
 
@@ -464,11 +464,6 @@ class PiSugar(plugins.Plugin):
     def on_ready(self, agent):
         self.ready = True
         self._agent = agent
-        led_amount = self.safe_get(self.ps.get_battery_led_amount, default=0)
-        if led_amount == 2:
-            self.is_new_model = True
-        else:
-            self.is_new_model = False
 
     def on_internet_available(self, agent):
         self._agent = agent
@@ -487,7 +482,6 @@ class PiSugar(plugins.Plugin):
                     battery_level = self.safe_get(self.ps.get_battery_level, default='N/A')
                     battery_voltage = self.safe_get(self.ps.get_battery_voltage, default='N/A')
                     battery_current = self.safe_get(self.ps.get_battery_current, default='N/A')
-                    battery_led_amount = self.safe_get(self.ps.get_battery_led_amount, default='N/A') if model == 'Pisugar 2' else 'Not supported'
                     battery_allow_charging = self.safe_get(self.ps.get_battery_allow_charging, default=False)
                     battery_charging_range = self.safe_get(self.ps.get_battery_charging_range, default='N/A') if self.is_new_model or model == 'Pisugar 3' else 'Not supported'
                     battery_full_charge_duration = getattr(self.ps, 'get_battery_full_charge_duration', lambda: 'N/A')()
@@ -567,7 +561,6 @@ class PiSugar(plugins.Plugin):
                                 <tr><td>Battery Level</td><td>{battery_level}%</td></tr>
                                 <tr><td>Battery Voltage</td><td>{battery_voltage}V</td></tr>
                                 <tr><td>Battery Current</td><td>{battery_current}A</td></tr>
-                                <tr><td>Battery LED Amount</td><td>{battery_led_amount}</td></tr>
                                 <tr><td>Battery Allow Charging</td><td>{"Yes" if battery_allow_charging and self.is_new_model else "No"}</td></tr>
                                 <tr><td>Battery Charging Range</td><td>{battery_charging_range}</td></tr>
                                 <tr><td>Duration of Keep Charging When Full</td><td>{battery_full_charge_duration} seconds</td></tr>
