@@ -13,8 +13,8 @@ import zipfile
 
 
 class GdriveSync(plugins.Plugin):
-    __author__ = '@jayofelony'
-    __version__ = '1.2'
+    __author__ = '@jayofelony & Moist'
+    __version__ = '1.4'
     __license__ = 'GPL3'
     __description__ = 'A plugin to backup various pwnagotchi files and folders to Google Drive. Once every hour from loading plugin.'
 
@@ -26,12 +26,15 @@ class GdriveSync(plugins.Plugin):
         self.status = StatusFile('/root/.gdrive-backup')
         self.backup = True
         self.backupfiles = [
-            '/root/brain.nn',
             '/root/brain.json',
             '/root/.api-report.json',
-            '/root/handshakes',
+            '/home/pi/handshakes',
             '/root/peers',
-            '/etc/pwnagotchi'
+            '/etc/pwnagotchi',
+            '.etc/profile/',
+            '/usr/local/share/pwnagotchi/custom-plugins',
+            '/boot/firmware/config.txt',
+            '/boot/firmware/cmdline.txt'
         ]
 
     def on_loaded(self):
