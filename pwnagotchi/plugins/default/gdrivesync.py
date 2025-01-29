@@ -171,7 +171,7 @@ class GdriveSync(plugins.Plugin):
         """
         self.internet = True
 
-    def on_handshake(self, agent):
+    def on_handshake(self, agent, filename, access_point, client_station):
         display = agent.view()
         if not self.ready and not self.internet:
             return
