@@ -12,15 +12,16 @@ main.custom_plugin_repos = [
     "https://github.com/Sniffleupagus/pwnagotchi_plugins/archive/master.zip",
     "https://github.com/NeonLightning/pwny/archive/master.zip",
     "https://github.com/marbasec/UPSLite_Plugin_1_3/archive/master.zip",
-    "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip"
+    "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip",
+    "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip",
 ]
 
 main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
 main.plugins.auto-tune.enabled = true
 
-main.plugins.auto-update.enabled = false
-main.plugins.auto-update.install = false
+main.plugins.auto-update.enabled = true
+main.plugins.auto-update.install = true
 main.plugins.auto-update.interval = 1
 
 main.plugins.bt-tether.enabled = false
@@ -34,7 +35,7 @@ main.plugins.fix_services.enabled = true
 main.plugins.gdrivesync.enabled = false
 main.plugins.gdrivesync.backupfiles = ['']
 main.plugins.gdrivesync.backup_folder = "PwnagotchiBackups"
-main.plugin.gdrivesync.interval = 1
+main.plugins.gdrivesync.interval = 1
 
 main.plugins.gpio_buttons.enabled = false
 
@@ -60,7 +61,7 @@ main.plugins.ohcapi.receive_email = "yes"
 
 main.plugins.pwndroid.enabled = false
 main.plugins.pwndroid.display = false # show coords on display
-main.plugins.pwndroid.display_alitude = false # show altitude on display
+main.plugins.pwndroid.display_altitude = false # show altitude on display
 
 main.plugins.pisugarx.enabled = false
 main.plugins.pisugarx.rotation = false
@@ -82,9 +83,20 @@ main.plugins.webcfg.enabled = true
 
 main.plugins.webgpsmap.enabled = false
 
-main.plugins.wigle.enabled = false
-main.plugins.wigle.api_key = ""
-main.plugins.wigle.donate = false
+main.plugins.wardriver.enabled = false
+main.plugins.wardriver.path = "/root/wardriver"
+main.plugins.wardriver.ui.enabled = true
+main.plugins.wardriver.ui.icon = false
+main.plugins.wardriver.ui.icon_reverse = false
+main.plugins.wardriver.ui.position.x = 7
+main.plugins.wardriver.ui.position.y = 85
+main.plugins.wardriver.wigle.enabled = true
+main.plugins.wardriver.wigle.api_key = ""
+main.plugins.wardriver.wigle.donate = false
+main.plugins.wardriver.whitelist = [
+    "network-1",
+    "network-2"
+]
 
 main.plugins.wpa-sec.enabled = false
 main.plugins.wpa-sec.api_key = ""
