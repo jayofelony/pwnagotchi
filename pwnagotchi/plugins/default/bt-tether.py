@@ -1,14 +1,124 @@
 import logging
 import subprocess
 import re
-
+from flask import abort, render_template_string
 import pwnagotchi.plugins as plugins
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
 
-MAC_PTTRN = "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
-IP_PTTRN = "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
+TEMPLATE = """
+{% extends "base.html" %}
+{% set active_page = "bt-tether" %}
+{% block title %}
+    {{ title }}
+{% endblock %}
+{% block meta %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=0" />
+{% endblock %}
+{% block styles %}
+{{ super() }}
+    <style>
+        #searchText {
+            width: 100%;
+        }
+        table {
+            table-layout: auto;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+        @media screen and (max-width:700px) {
+            table, tr, td {
+                padding:0;
+                border:1px solid;
+            }
+            table {
+                border:none;
+            }
+            tr:first-child, thead, th {
+                display:none;
+                border:none;
+            }
+            tr {
+                float: left;
+                width: 100%;
+                margin-bottom: 2em;
+            }
+            td {
+                float: left;
+                width: 100%;
+                padding:1em;
+            }
+            td::before {
+                content:attr(data-label);
+                word-wrap: break-word;
+                color: white;
+                border-right:2px solid;
+                width: 20%;
+                float:left;
+                padding:1em;
+                font-weight: bold;
+                margin:-1em 1em -1em -1em;
+            }
+        }
+    </style>
+{% endblock %}
+{% block script %}
+    var searchInput = document.getElementById("searchText");
+    searchInput.onkeyup = function() {
+        var filter, table, tr, td, i, txtValue;
+        filter = searchInput.value.toUpperCase();
+        table = document.getElementById("tableOptions");
+        if (table) {
+            tr = table.getElementsByTagName("tr");
+
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[0];
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    }else{
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    }
+{% endblock %}
+{% block content %}
+    <input type="text" id="searchText" placeholder="Search for ..." title="Type in a filter">
+    <table id="tableOptions">
+        <tr>
+            <th>Item</th>
+            <th>Configuration</th>
+        </tr>
+        <tr>
+            <td data-label="bluetooth">Bluetooth</td>
+            <td>{{bluetooth|safe}}</td>
+        </tr>
+        <tr>
+            <td data-label="device">Device</td>
+            <td>{{device|safe}}</td>
+        </tr>
+        <tr>
+            <td data-label="connection">Connection</td>
+            <td>{{connection|safe}}</td>
+        </tr>
+    </table>
+{% endblock %}
+"""
+
+MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+IP_PTTRN = r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
 
 class BTTether(plugins.Plugin):
     __author__ = "Jayofelony, modified my fmatray"
@@ -23,17 +133,23 @@ class BTTether(plugins.Plugin):
         self.mac = None
 
     @staticmethod
-    def nmcli(args, pattern=None):
+    def exec_cmd(cmd, args, pattern=None):
         try:
-            result = subprocess.run(["nmcli"] + args, 
+            result = subprocess.run([cmd] + args, 
                                     check=True, capture_output=True, text=True)
             if pattern:
                 return result.stdout.find(pattern)
             return result
         except Exception as exp:
-            logging.error(f"[BT-Tether] Error with nmcli: {exp}")
+            logging.error(f"[BT-Tether] Error with {cmd} : {exp}")
             raise exp
 
+    def bluetoothctl(self, args, pattern=None):
+        return self.exec_cmd("bluetoothctl", args, pattern)
+
+    def nmcli(self, args, pattern=None):
+        return self.exec_cmd("nmcli", args, pattern)
+    
     def on_loaded(self):
         logging.info("[BT-Tether] plugin loaded.")
 
@@ -89,6 +205,14 @@ class BTTether(plugins.Plugin):
                 f"[BT-Tether] Failed to connect to device: have you enabled bluetooth tethering on your phone?"
             )
 
+    def on_unload(self, ui):
+        with ui._lock:
+            ui.remove_element("bluetooth")
+        try:
+            self.nmcli(["connection", "down", f"{self.phone_name}"])
+        except Exception as e:
+            logging.error(f"[BT-Tether] Failed to disconnect from device: {e}")
+
     def on_ui_setup(self, ui):
         with ui._lock:
             ui.add_element('bluetooth', LabeledValue(color=BLACK, label='BT', value='-',
@@ -121,10 +245,35 @@ class BTTether(plugins.Plugin):
             except Exception as e:
                 logging.error(f"[BT-Tether] Error on update: {e}")
 
-    def on_unload(self, ui):
-        with ui._lock:
-            ui.remove_element("bluetooth")
-        try:
-            self.nmcli(["connection", "down", f"{self.phone_name}"])
-        except Exception as e:
-            logging.error(f"[BT-Tether] Failed to disconnect from device: {e}")
+    def on_webhook(self, path, request):
+        if not self.ready:
+            return """<html>
+                        <head><title>BT-tether: Error</title></head>
+                        <body><code>Plugin not ready</code></body>
+                    </html>"""
+        if path == "/" or not path:
+            try:
+                bluetooth = self.bluetoothctl(["info", self.mac])
+                bluetooth = bluetooth.stdout.replace('\n', '<br>')
+            except Exception as e:
+                bluetooth = "Error while checking bluetoothctl"
+            
+            try: 
+                device =self.nmcli(["-w", "0","device", "show", self.mac])
+                device = device.stdout.replace('\n', '<br>')
+            except Exception as e:
+                device = "Error while checking nmcli device"
+            
+            try:
+                connection = self.nmcli(["-w", "0","connection", "show", self.phone_name])
+                connection = connection.stdout.replace('\n', '<br>')
+            except Exception as e:
+                connection = "Error while checking nmcli connection"
+
+            logging.debug(device)
+            return render_template_string(TEMPLATE,
+                                            title="BT-Tether",
+                                            bluetooth=bluetooth,
+                                            device=device,
+                                            connection=connection)
+        abort(404)
