@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import re
+import time
 from flask import abort, render_template_string
 import pwnagotchi.plugins as plugins
 import pwnagotchi.ui.fonts as fonts
@@ -117,8 +118,10 @@ TEMPLATE = """
 {% endblock %}
 """
 
+# We all love crazy regex patterns
 MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
-IP_PTTRN = r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
+IP_PTTRN = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
+DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]?\s*)$"
 
 class BTTether(plugins.Plugin):
     __author__ = "Jayofelony, modified my fmatray"
@@ -176,7 +179,11 @@ class BTTether(plugins.Plugin):
 
         self.phone_name = self.options["phone-name"] + " Network"
         self.mac = self.options["mac"]
-        dns = self.options.get("dns", "8.8.8.8 1.1.1.1").replace(",", " ").replace(";", " ")
+        dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
+        if not re.match(DNS_PTTRN, dns):
+            logging.error(f"[BT-Tether] DNS error: {dns}")
+            return
+        dns = re.sub("[\s,;]+", " ", dns).strip() # DNS cleaning
 
         try:
             # Configure connection. Metric is set to 200 to prefer connection over USB
@@ -198,6 +205,7 @@ class BTTether(plugins.Plugin):
             logging.error(f"[BT-Tether] Error while configuring: {e}")
             return
         try:
+            time.sleep(5) # Give some delay to configure before going up
             self.nmcli(["connection", "up", f"{self.phone_name}"])
         except Exception as e:
             logging.error(f"[BT-Tether] Failed to connect to device: {e}")
