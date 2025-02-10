@@ -50,6 +50,7 @@ curve5000 = [
 ]
 
 
+
 class PiSugarServer:
     def __init__(self):
         """
@@ -70,6 +71,7 @@ class PiSugarServer:
         self.lowpower_shutdown = False
         self.lowpower_shutdown_level = 10
         self.max_charge_voltage_protection = False
+        self.max_protection_voltage=4
         # Start the device connection in a background thread
         self.connection_thread = threading.Thread(
             target=self._connect_device, daemon=True)
@@ -138,6 +140,20 @@ class PiSugarServer:
                     ctr1 = self.i2creg[0x02]  # 读取控制寄存器 1
                     self.power_plugged = (ctr1 & (1 << 7)) != 0  # 检查电源是否插入
                     self.allow_charging = (ctr1 & (1 << 6)) != 0  # 检查是否允许充电
+                    if self.max_charge_voltage_protection:
+                        self._bus.write_byte_data(
+                            self.address, 0x0B, 0x29)  # 关闭写保护
+                        self._bus.write_byte_data(self.address, 0x20, self._bus.read_byte_data(
+                            self.address, 0x20) | 0b10000000)
+                        self._bus.write_byte_data(
+                            self.address, 0x0B, 0x00)  # 开启写保护
+                    else:
+                        self._bus.write_byte_data(
+                            self.address, 0x0B, 0x29)  # 关闭写保护
+                        self._bus.write_byte_data(self.address, 0x20, self._bus.read_byte_data(
+                            self.address, 0x20) & 0b01111111)
+                        self._bus.write_byte_data(
+                            self.address, 0x0B, 0x00)  # 开启写保护
                 elif self.modle == 'PiSugar2':
                     high = self.i2creg[0xa3]
                     low = self.i2creg[0xa2]
@@ -146,12 +162,29 @@ class PiSugarServer:
                             2600.0 + (((high & 0x1f) << 8) + low) * 0.26855) / 1000.0
                     self.power_plugged = (self.i2creg[0x55] & 0b00010000) != 0
 
+                    if self.max_charge_voltage_protection:
+                        battery_voltage = self.battery_voltage
+                        if (battery_voltage) > self.max_protection_voltage:
+                            self.set_battery_notallow_charging()
+                        else:
+                            self.set_battery_allow_charging()
+                    else:
+                        self.set_battery_allow_charging()
+
                 elif self.modle == 'PiSugar2Plus':
                     low = self.i2creg[0xd0]
                     high = self.i2creg[0xd1]
                     self.battery_voltage = (
                         (((high & 0b00111111) << 8) + low) * 0.26855 + 2600.0)/1000
                     self.power_plugged = self.i2creg[0xdd] == 0x1f
+                    if self.max_charge_voltage_protection:
+                        battery_voltage = self.battery_voltage
+                        if (battery_voltage) > self.max_protection_voltage:
+                            self.set_battery_notallow_charging()
+                        else:
+                            self.set_battery_allow_charging()
+                    else:
+                        self.set_battery_allow_charging()
 
                 self.voltage_history.append(self.battery_voltage)
                 self.battery_level = self.convert_battery_voltage_to_level()
@@ -161,7 +194,6 @@ class PiSugarServer:
                         logging.info("[PiSugarX] low power shutdown now.")
                         self.shutdown()
                         pwnagotchi.shutdown()
-
                 time.sleep(3)
             except Exception as e:
                 logging.error(f"read error{e}")
@@ -171,11 +203,11 @@ class PiSugarServer:
         # logging.info("[PiSugarX] PiSugar set shutdown .")
         if self.modle == 'PiSugar3':
             # 10秒后关闭电源
-            self._bus.write_byte_data(self.address, 0x0B, 0x29) #关闭写保护
+            self._bus.write_byte_data(self.address, 0x0B, 0x29)  # 关闭写保护
             self._bus.write_byte_data(self.address, 0x09, 10)
             self._bus.write_byte_data(self.address, 0x02, self._bus.read_byte_data(
                 self.address, 0x02) & 0b11011111)
-            self._bus.write_byte_data(self.address, 0x0B, 0x00) #开启写保护
+            self._bus.write_byte_data(self.address, 0x0B, 0x00)  # 开启写保护
             logging.info("[PiSugarX] PiSugar shutdown in 10s.")
         elif self.modle == 'PiSugar2':
             pass
@@ -316,6 +348,60 @@ class PiSugarServer:
         :return: True if charging is allowed, False otherwise.
         """
         return self.allow_charging
+
+    def set_battery_allow_charging(self):
+        print("开启充电")
+        if self.modle == 'PiSugar3':
+            pass
+        elif self.modle == 'PiSugar2':
+            # 禁止 gpio2 输出
+            self._bus.write_byte_data(self.address, 0x54, self._bus.read_byte_data(
+                self.address, 0x54) & 0b11111011)
+            # 开启充电
+            self._bus.write_byte_data(self.address, 0x55, self._bus.read_byte_data(
+                self.address, 0x55) & 0b11111011)
+            # 开启 gpio2 输出
+            self._bus.write_byte_data(self.address, 0x54, self._bus.read_byte_data(
+                self.address, 0x54) | 0b00000100)
+        elif self.modle == 'PiSugar2Plus':
+            # 禁止 gpio2 输出
+            self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
+                self.address, 0x56) & 0b11111011)
+            # 开启充电
+            self._bus.write_byte_data(self.address, 0x55, self._bus.read_byte_data(
+                self.address, 0x55) & 0b11111011)
+            # 开启 gpio2 输出
+            self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
+                self.address, 0x56) | 0b00000100)
+
+        return
+
+    def set_battery_notallow_charging(self):
+        print("关闭充电")
+        if self.modle == 'PiSugar3':
+            pass
+        elif self.modle == 'PiSugar2':
+            # 禁止 gpio2 输出
+            print(self._bus.write_byte_data(self.address, 0x54, self._bus.read_byte_data(
+                self.address, 0x54) & 0b11111011))
+            # 关闭充电
+            self._bus.write_byte_data(self.address, 0x55, self._bus.read_byte_data(
+                self.address, 0x55) | 0b00000100)
+            # 开启 gpio2 输出
+            self._bus.write_byte_data(self.address, 0x54, self._bus.read_byte_data(
+                self.address, 0x54) | 0b00000100)
+        elif self.modle == 'PiSugar2Plus':
+            # 禁止 gpio2 输出
+            self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
+                self.address, 0x56) & 0b11111011)
+            # 关闭充电
+            self._bus.write_byte_data(self.address, 0x55, self._bus.read_byte_data(
+                self.address, 0x55) | 0b00000100)
+            # 开启 gpio2 输出
+            self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
+                self.address, 0x56) | 0b00000100)
+
+        return
 
     def get_battery_charging_range(self):
         """
