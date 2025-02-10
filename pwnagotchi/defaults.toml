@@ -28,7 +28,8 @@ main.plugins.bt-tether.enabled = false
 main.plugins.bt-tether.phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
 main.plugins.bt-tether.mac = ""
 main.plugins.bt-tether.phone = "" # android or ios
-main.plugins.bt-tether.ip = "" # 192.168.44.2 android / 172.20.10.2 ios
+main.plugins.bt-tether.ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
+main.plugins.bt-tether.dns = "" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
 
 main.plugins.fix_services.enabled = true
 
@@ -97,6 +98,13 @@ main.plugins.wardriver.whitelist = [
     "network-1",
     "network-2"
 ]
+
+ain.plugins.wigle.enabled = false
+main.plugins.wigle.api_key = "" # mandatory
+main.plugins.wigle.cvs_dir = "/tmp" # optionnal, is set, the CVS is written to this directory
+main.plugins.wigle.donate = false # default: off
+main.plugins.wigle.timeout = 30 # default: 30 
+main.plugins.wigle.position = (7, 85) # optionnal 
 
 main.plugins.wpa-sec.enabled = false
 main.plugins.wpa-sec.api_key = ""
@@ -188,10 +196,11 @@ bettercap.handshakes = "/home/pi/handshakes"
 bettercap.silence = [
     "ble.device.new",
     "ble.device.lost",
-    "ble.device.disconnected",
-    "ble.device.connected",
     "ble.device.service.discovered",
     "ble.device.characteristic.discovered",
+    "ble.device.disconnected",
+    "ble.device.connected",
+    "ble.connection.timeout",
     "wifi.client.new",
     "wifi.client.lost",
     "wifi.client.probe",
