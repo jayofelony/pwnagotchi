@@ -370,8 +370,8 @@ class PiSugarServer:
             self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
                 self.address, 0x56) & 0b11111011)
             # 开启充电
-            self._bus.write_byte_data(self.address, 0x55, self._bus.read_byte_data(
-                self.address, 0x55) & 0b11111011)
+            self._bus.write_byte_data(self.address, 0x58, self._bus.read_byte_data(
+                self.address, 0x58) & 0b11111011)
             # 开启 gpio2 输出
             self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
                 self.address, 0x56) | 0b00000100)
@@ -397,8 +397,8 @@ class PiSugarServer:
             self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
                 self.address, 0x56) & 0b11111011)
             # 关闭充电
-            self._bus.write_byte_data(self.address, 0x55, self._bus.read_byte_data(
-                self.address, 0x55) | 0b00000100)
+            self._bus.write_byte_data(self.address, 0x58, self._bus.read_byte_data(
+                self.address, 0x58) | 0b00000100)
             # 开启 gpio2 输出
             self._bus.write_byte_data(self.address, 0x56, self._bus.read_byte_data(
                 self.address, 0x56) | 0b00000100)
