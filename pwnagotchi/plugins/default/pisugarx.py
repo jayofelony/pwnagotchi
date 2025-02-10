@@ -51,6 +51,7 @@ curve5000 = [
 
 
 
+
 class PiSugarServer:
     def __init__(self):
         """
@@ -118,6 +119,9 @@ class PiSugarServer:
         """每三秒更新pisugar状态，包括触发自动关机"""
         while True:
             try:
+                if( self.modle == 'PiSugar2') | (self.modle == 'PiSugar2Plus'):
+                    self.set_battery_notallow_charging() #短暂关闭充电以获取准确电池电压
+                    time.sleep(0.05)
                 self.i2creg = []
                 for i in range(0, 256, 32):
                     # 计算当前读取的起始寄存器地址
@@ -352,7 +356,6 @@ class PiSugarServer:
         return self.allow_charging
 
     def set_battery_allow_charging(self):
-        print("开启充电")
         if self.modle == 'PiSugar3':
             pass
         elif self.modle == 'PiSugar2':
@@ -379,7 +382,6 @@ class PiSugarServer:
         return
 
     def set_battery_notallow_charging(self):
-        print("关闭充电")
         if self.modle == 'PiSugar3':
             pass
         elif self.modle == 'PiSugar2':
@@ -532,6 +534,7 @@ class PiSugarServer:
         Synchronize RTC with web time.
         """
         pass
+
 
 
 class PiSugar(plugins.Plugin):
