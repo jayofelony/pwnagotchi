@@ -125,7 +125,7 @@ DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\
 
 class BTTether(plugins.Plugin):
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.3"
+    __version__ = "1.4"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
@@ -212,6 +212,13 @@ class BTTether(plugins.Plugin):
             logging.error(
                 f"[BT-Tether] Failed to connect to device: have you enabled bluetooth tethering on your phone?"
             )
+
+    def on_ready(self, agent):
+        try:
+            logging.info(f"[BT-Tether] Disabling bettercap's BLE module")
+            agent.run("ble.recon off", verbose_errors=False)
+        except Exception as e:
+            logging.info(f"[BT-Tether] Bettercap BLE was already off.")
 
     def on_unload(self, ui):
         with ui._lock:
