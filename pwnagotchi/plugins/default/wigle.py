@@ -37,7 +37,7 @@ class Wigle(plugins.Plugin):
 
     def __init__(self):
         self.ready = False
-        self.report = StatusFile("/root/.wigle_uploads", data_format="json")
+        self.report = None
         self.skip = list()
         self.lock = Lock()
         self.options = dict()
@@ -53,20 +53,21 @@ class Wigle(plugins.Plugin):
         self.ui_counter = 0
 
     def on_config_changed(self, config):
-        api_name = self.options.get("api_name", None)
-        api_key = self.options.get("api_key", None)
-        if not (api_name and api_key):
-            logging.info("[WIGLE] api_name and api_key must be set.")
+        self.api_key = self.options.get("api_key", None)
+        if not self.api_key:
+            logging.info("[WIGLE] api_key must be set.")
             return
-        self.auth = (api_name, api_key)
         self.donate = self.options.get("donate", False)
         self.handshake_dir = config["bettercap"].get("handshakes")
+        report_filename = os.path.join(self.handshake_dir, ".wigle_uploads")
+        self.report = StatusFile(report_filename, data_format="json")
         self.cvs_dir = self.options.get("cvs_dir", None)
         self.whitelist = config["main"].get("whitelist", [])
         self.timeout = self.options.get("timeout", 30)
         self.position = self.options.get("position", (10, 10))
         self.ready = True
         logging.info("[WIGLE] Ready for wardriving!!!")
+        self.get_statistics(force=True)
 
     def on_webhook(self, path, request):
         return make_response(redirect("https://www.wigle.net/", code=302))
@@ -195,8 +196,10 @@ class Wigle(plugins.Plugin):
         try:
             json_res = requests.post(
                 "https://api.wigle.net/api/v2/file/upload",
-                headers={"Accept": "application/json"},
-                auth=self.auth,
+                headers={
+                    "Authorization": f"Basic {self.api_key}",
+                    "Accept": "application/json",
+                },
                 data={"donate": "on" if self.donate else "false"},
                 files=dict(file=(cvs_filename, cvs_content, "text/csv")),
                 timeout=self.timeout,
@@ -233,16 +236,18 @@ class Wigle(plugins.Plugin):
             self.post_wigle(reported, cvs_filename, cvs_content, no_err_entries)
             display.on_normal()
 
-    def get_statistics(self):
-        if (datetime.now(tz=UTC) - self.last_stat).total_seconds() < 30:
+    def get_statistics(self, force=False):
+        if not force and (datetime.now(tz=UTC) - self.last_stat).total_seconds() < 30:
             return
         self.last_stat = datetime.now(tz=UTC)
         try:
             self.statistics["ready"] = False
             json_res = requests.get(
                 "https://api.wigle.net/api/v2/stats/user",
-                headers={"Accept": "application/json"},
-                auth=self.auth,
+                headers={
+                    "Authorization": f"Basic {self.api_key}",
+                    "Accept": "application/json",
+                },
                 timeout=self.timeout,
             ).json()
             if not json_res["success"]:
@@ -290,9 +295,9 @@ class Wigle(plugins.Plugin):
             if self.ui_counter == 0:
                 msg = f"User:{self.statistics['username']}"
             if self.ui_counter == 1:
-                msg = f"Rank:{self.statistics['rank']} Monthly:{self.statistics['monthrank']}"
+                msg = f"Rank:{self.statistics['rank']} Month:{self.statistics['monthrank']}"
             elif self.ui_counter == 2:
                 msg = f"{self.statistics['discoveredwiFi']} discovered WiFis"
             elif self.ui_counter == 3:
-                msg = f"Last report:{self.statistics['last']}"
+                msg = f"Last upl.:{self.statistics['last']}"
             ui.set("wigle", msg)
