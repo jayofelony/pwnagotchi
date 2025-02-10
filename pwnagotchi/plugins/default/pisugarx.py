@@ -71,7 +71,7 @@ class PiSugarServer:
         self.lowpower_shutdown = False
         self.lowpower_shutdown_level = 10
         self.max_charge_voltage_protection = False
-        self.max_protection_voltage=4
+        self.max_protection_level=80
         # Start the device connection in a background thread
         self.connection_thread = threading.Thread(
             target=self._connect_device, daemon=True)
@@ -163,8 +163,9 @@ class PiSugarServer:
                     self.power_plugged = (self.i2creg[0x55] & 0b00010000) != 0
 
                     if self.max_charge_voltage_protection:
-                        battery_voltage = self.battery_voltage
-                        if (battery_voltage) > self.max_protection_voltage:
+                        self.voltage_history.append(self.battery_voltage)
+                        self.battery_level = self.convert_battery_voltage_to_level()
+                        if (self.battery_level) > self.max_protection_level:
                             self.set_battery_notallow_charging()
                         else:
                             self.set_battery_allow_charging()
@@ -178,8 +179,9 @@ class PiSugarServer:
                         (((high & 0b00111111) << 8) + low) * 0.26855 + 2600.0)/1000
                     self.power_plugged = self.i2creg[0xdd] == 0x1f
                     if self.max_charge_voltage_protection:
-                        battery_voltage = self.battery_voltage
-                        if (battery_voltage) > self.max_protection_voltage:
+                        self.voltage_history.append(self.battery_voltage)
+                        self.battery_level = self.convert_battery_voltage_to_level()
+                        if (self.battery_level) > self.max_protection_level:
                             self.set_battery_notallow_charging()
                         else:
                             self.set_battery_allow_charging()
