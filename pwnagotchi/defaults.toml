@@ -84,21 +84,6 @@ main.plugins.webcfg.enabled = true
 
 main.plugins.webgpsmap.enabled = false
 
-main.plugins.wardriver.enabled = false
-main.plugins.wardriver.path = "/root/wardriver"
-main.plugins.wardriver.ui.enabled = true
-main.plugins.wardriver.ui.icon = false
-main.plugins.wardriver.ui.icon_reverse = false
-main.plugins.wardriver.ui.position.x = 7
-main.plugins.wardriver.ui.position.y = 85
-main.plugins.wardriver.wigle.enabled = true
-main.plugins.wardriver.wigle.api_key = ""
-main.plugins.wardriver.wigle.donate = false
-main.plugins.wardriver.whitelist = [
-    "network-1",
-    "network-2"
-]
-
 ain.plugins.wigle.enabled = false
 main.plugins.wigle.api_key = "" # mandatory
 main.plugins.wigle.cvs_dir = "/tmp" # optionnal, is set, the CVS is written to this directory
