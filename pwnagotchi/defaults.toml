@@ -84,12 +84,12 @@ main.plugins.webcfg.enabled = true
 
 main.plugins.webgpsmap.enabled = false
 
-ain.plugins.wigle.enabled = false
+main.plugins.wigle.enabled = false
 main.plugins.wigle.api_key = "" # mandatory
 main.plugins.wigle.cvs_dir = "/tmp" # optionnal, is set, the CVS is written to this directory
 main.plugins.wigle.donate = false # default: off
 main.plugins.wigle.timeout = 30 # default: 30 
-main.plugins.wigle.position = (7, 85) # optionnal 
+main.plugins.wigle.position = [7, 85] # optionnal
 
 main.plugins.wpa-sec.enabled = false
 main.plugins.wpa-sec.api_key = ""
