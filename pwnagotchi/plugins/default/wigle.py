@@ -57,10 +57,9 @@ class WigleStatistics:
     def update_group(self, json_res):
         rank = 1
         for group in json_res["groups"]:
-            if group['groupId'] == self.groupID:
+            if group["groupId"] == self.groupID:
                 self.grouprank = rank
             rank += 1
-
 
 
 class Wigle(plugins.Plugin):
@@ -89,9 +88,6 @@ class Wigle(plugins.Plugin):
         self.handshake_dir = config["bettercap"].get("handshakes")
         report_filename = os.path.join(self.handshake_dir, ".wigle_uploads")
         self.report = StatusFile(report_filename, data_format="json")
-        self.cache_dir = os.path.join(self.handshake_dir, "cache")
-        if not (os.path.exists(self.cache_dir)):
-            os.mkdir(self.cache_dir)
         self.cvs_dir = self.options.get("cvs_dir", None)
         self.whitelist = config["main"].get("whitelist", [])
         self.timeout = self.options.get("timeout", 30)
@@ -116,17 +112,6 @@ class Wigle(plugins.Plugin):
             logging.debug("[WIGLE] Can't find pcap for %s", gps_file)
             return None
         return pcap_filename
-
-    def get_cache(self, pcap_file):
-        cache_filename = os.path.basename(pcap_file.replace(".pcap", ".cache"))
-        cache_filename = os.path.join(self.cache_dir, cache_filename)
-        if not os.path.exists(cache_filename):
-            return None
-        try:
-            with open(cache_filename, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            return None
 
     @staticmethod
     def extract_gps_data(path):
@@ -337,21 +322,6 @@ class Wigle(plugins.Plugin):
                 self.upload_new_handshakes(reported, new_gps_files, agent)
             else:
                 self.get_statistics()
-
-    def cache_ap(self, ap):
-        mac = ap["mac"].replace(":", "")
-        hostname = re.sub(r"[^a-zA-Z0-9]", "", ap["hostname"])
-        filename = os.path.join(self.cache_dir, f"{hostname}_{mac}.cache")
-        with open(filename, "w") as f:
-            json.dump(ap, f)
-
-    def on_unfiltered_ap_list(self, agent, aps):
-        for ap in filter(lambda ap: ap["hostname"] not in ["", "<hidden>"], aps):
-            self.cache_ap(ap)
-
-    def on_handshake(self, agent, filename, access_point, client_station):
-        logging.info(f"[WIGLE] on_handshake")
-        self.cache_ap(access_point)
 
     def on_ui_setup(self, ui):
         with ui._lock:
