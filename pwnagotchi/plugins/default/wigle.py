@@ -158,14 +158,16 @@ class Wigle(plugins.Plugin):
             content, delimiter=",", quoting=csv.QUOTE_NONE, escapechar="\\"
         )
         for gps_data, pcap_data in data:  # write WIFIs
+            try:
+                timestamp = datetime.strptime(gps_data["Updated"].rsplit(".")[0], "%Y-%m-%dT%H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                timestamp = datetime.strptime(gps_data["Updated"].rsplit(".")[0], "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
             writer.writerow(
                 [
                     pcap_data[WifiInfo.BSSID],
                     pcap_data[WifiInfo.ESSID],
                     f"[{']['.join(pcap_data[WifiInfo.ENCRYPTION])}]",
-                    datetime.strptime(
-                        gps_data["Updated"].rsplit(".")[0], "%Y-%m-%dT%H:%M:%S"
-                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                    timestamp,
                     pcap_data[WifiInfo.CHANNEL],
                     pcap_data[WifiInfo.FREQUENCY],
                     pcap_data[WifiInfo.RSSI],
