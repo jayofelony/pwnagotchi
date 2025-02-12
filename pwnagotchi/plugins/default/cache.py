@@ -8,6 +8,8 @@ from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
 import pwnagotchi.ui.fonts as fonts
 
+def get_cache():
+    return None
 
 class Cache(plugins.Plugin):
     __author__ = "fmatray"
