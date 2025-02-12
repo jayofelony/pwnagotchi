@@ -161,7 +161,7 @@ class BTTether(plugins.Plugin):
             logging.error("[BT-Tether] Phone name not provided")
             return
         if not ("mac" in self.options and re.match(MAC_PTTRN, self.options["mac"])):
-            logging.error("[BT-Tether] Error with mac adresse")
+            logging.error("[BT-Tether] Error with mac address")
             return            
 
         if not ("phone" in self.options and self.options["phone"].lower() in ["android", "ios"]):
@@ -274,7 +274,7 @@ class BTTether(plugins.Plugin):
                 bluetooth = "Error while checking bluetoothctl"
             
             try: 
-                device =self.nmcli(["-w", "0","device", "show", self.mac])
+                device = self.nmcli(["-w", "0","device", "show", self.mac])
                 device = device.stdout.replace('\n', '<br>')
             except Exception as e:
                 device = "Error while checking nmcli device"
