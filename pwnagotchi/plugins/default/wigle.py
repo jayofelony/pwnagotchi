@@ -20,6 +20,7 @@ from pwnagotchi.utils import (
     remove_whitelisted,
 )
 from pwnagotchi import plugins
+from pwnagotchi.plugins.default.cache import read_ap_cache
 from pwnagotchi._version import __version__ as __pwnagotchi_version__
 
 import pwnagotchi.ui.fonts as fonts
@@ -64,7 +65,7 @@ class WigleStatistics:
 
 class Wigle(plugins.Plugin):
     __author__ = "Dadav and updated by Jayofelony and fmatray"
-    __version__ = "4.0.0"
+    __version__ = "4.1.0"
     __license__ = "GPL3"
     __description__ = "This plugin automatically uploads collected WiFi to wigle.net"
     LABEL_SPACING = 0
@@ -79,6 +80,9 @@ class Wigle(plugins.Plugin):
         self.last_stat = datetime.now(tz=UTC)
         self.ui_counter = 0
 
+    def on_loaded(self):
+        logging.info("[WIGLE] plugin loaded.")
+
     def on_config_changed(self, config):
         self.api_key = self.options.get("api_key", None)
         if not self.api_key:
@@ -88,6 +92,7 @@ class Wigle(plugins.Plugin):
         self.handshake_dir = config["bettercap"].get("handshakes")
         report_filename = os.path.join(self.handshake_dir, ".wigle_uploads")
         self.report = StatusFile(report_filename, data_format="json")
+        self.cache_dir = os.path.join(self.handshake_dir, "cache")
         self.cvs_dir = self.options.get("cvs_dir", None)
         self.whitelist = config["main"].get("whitelist", [])
         self.timeout = self.options.get("timeout", 30)
@@ -148,16 +153,19 @@ class Wigle(plugins.Plugin):
         return gps_data
 
     def get_pcap_data(self, pcap_filename):
-        if cache := self.get_cache(pcap_filename):
-            logging.info(f"[WIGLE] Using cache for {pcap_filename}")
-            return {
-                WifiInfo.BSSID: cache["mac"],
-                WifiInfo.ESSID: cache["hostname"],
-                WifiInfo.ENCRYPTION: cache["encryption"],
-                WifiInfo.CHANNEL: cache["channel"],
-                WifiInfo.FREQUENCY: cache["frequency"],
-                WifiInfo.RSSI: cache["rssi"],
-            }
+        try:
+            if cache := read_ap_cache(self.cache_dir, self.pcap_filename):
+                logging.info(f"[WIGLE] Using cache for {pcap_filename}")
+                return {
+                    WifiInfo.BSSID: cache["mac"],
+                    WifiInfo.ESSID: cache["hostname"],
+                    WifiInfo.ENCRYPTION: cache["encryption"],
+                    WifiInfo.CHANNEL: cache["channel"],
+                    WifiInfo.FREQUENCY: cache["frequency"],
+                    WifiInfo.RSSI: cache["rssi"],
+                }
+        except (AttributeError, KeyError):
+            pass
         try:
             pcap_data = extract_from_pcap(
                 pcap_filename,
@@ -190,14 +198,16 @@ class Wigle(plugins.Plugin):
             f"device={pwnagotchi.name()},display=kismet,board=RaspberryPi,brand=pwnagotchi,star=Sol,body=3,subBody=0\n"
             f"MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type\n"
         )
-        writer = csv.writer(
-            content, delimiter=",", quoting=csv.QUOTE_NONE, escapechar="\\"
-        )
+        writer = csv.writer(content, delimiter=",", quoting=csv.QUOTE_NONE, escapechar="\\")
         for gps_data, pcap_data in data:  # write WIFIs
             try:
-                timestamp = datetime.strptime(gps_data["Updated"].rsplit(".")[0], "%Y-%m-%dT%H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                timestamp = datetime.strptime(
+                    gps_data["Updated"].rsplit(".")[0], "%Y-%m-%dT%H:%M:%S"
+                ).strftime("%Y-%m-%d %H:%M:%S")
             except ValueError:
-                timestamp = datetime.strptime(gps_data["Updated"].rsplit(".")[0], "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                timestamp = datetime.strptime(
+                    gps_data["Updated"].rsplit(".")[0], "%Y-%m-%d %H:%M:%S"
+                ).strftime("%Y-%m-%d %H:%M:%S")
             writer.writerow(
                 [
                     pcap_data[WifiInfo.BSSID],
@@ -334,7 +344,10 @@ class Wigle(plugins.Plugin):
 
     def on_unload(self, ui):
         with ui._lock:
-            ui.remove_element("wigle")
+            try:
+                ui.remove_element("wigle")
+            except KeyError:
+                pass
 
     def on_ui_update(self, ui):
         with ui._lock:

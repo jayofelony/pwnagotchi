@@ -144,7 +144,10 @@ class BTTether(plugins.Plugin):
                 return result.stdout.find(pattern)
             return result
         except Exception as exp:
-            logging.error(f"[BT-Tether] Error with {cmd} : {exp}")
+            logging.error(f"[BT-Tether] Error with {cmd}")
+            logging.error(f"[BT-Tether] Exception : {exp}")
+            logging.error(f"[BT-Tether] STDOUT : {result.stdout}")
+            logging.error(f"[BT-Tether] STDERR : {result.stderr}")
             raise exp
 
     def bluetoothctl(self, args, pattern=None):
@@ -205,6 +208,12 @@ class BTTether(plugins.Plugin):
                     "ipv4.route-metric", "200",
                 ]
             )
+            # Configure Device to autoconnect
+            self.nmcli([
+                "device", "set", f"{self.mac}",
+                "autoconnect", "yes",
+                "managed", "yes"
+            ])
             self.nmcli(["connection", "reload"])
             self.ready = True
             logging.info(f"[BT-Tether] Connection {self.phone_name} configured")
