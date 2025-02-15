@@ -459,6 +459,10 @@ def pwnagotchi_cli():
                     print(
                         "\nTo visit the webui when connected via Bluetooth tether on iOS, go to: http://172.20.10.6:8080")
 
+            print("Setting Permissions...")
+            #get the default user by looking at /home/
+            default_user = os.listdir('/home/')[0]
+            os.system(f"chown -R {default_user}:{default_user} /etc/pwnagotchi/config.*")
             print("\nYour configuration is done, and I will restart in 5 seconds.")
             time.sleep(5)
             os.system("service pwnagotchi restart")
