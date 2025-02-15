@@ -66,6 +66,7 @@ class PiSugarServer:
         self.temperature = 0
         self.power_plugged = False
         self.allow_charging = True
+        self.keep_going = True
         while self.modle is None:
             if self.check_device(PiSugar_addresses["PiSugar2"]) is not None:
                 self.address = PiSugar_addresses["PiSugar2"]
@@ -97,7 +98,7 @@ class PiSugarServer:
 
     def update_value(self):
         """每三秒更新pisugar状态，包括触发自动关机"""
-        while True:
+        while self.keep_going:
             try:
                 self.i2creg = []
                 for i in range(0, 256, 32):
@@ -623,6 +624,7 @@ class PiSugar(plugins.Plugin):
     def on_unload(self, ui):
         with ui._lock:
             ui.remove_element("bat")
+        self.ps.keep_going = False
 
     def on_ui_update(self, ui):
         # Make sure "bat" is in the UI state (guard to prevent KeyError)
