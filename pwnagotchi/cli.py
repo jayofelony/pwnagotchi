@@ -1,19 +1,22 @@
-import logging
 import argparse
-import time
-import signal
-import sys
-import toml
-import requests
+import logging
 import os
 import re
+import signal
+import sys
+import time
+
+import dbus
+import dbus.mainloop.glib
+import requests
+import toml
 
 import pwnagotchi
+from pwnagotchi import fs
+from pwnagotchi import log
 from pwnagotchi import utils
 from pwnagotchi.google import cmd as google_cmd
 from pwnagotchi.plugins import cmd as plugins_cmd
-from pwnagotchi import log
-from pwnagotchi import fs
 from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
 
 
@@ -67,9 +70,9 @@ def pwnagotchi_cli():
 
                     # for each ap on this channel
                     for ap in aps:
-                        # send an association frame in order to get for a PMKID
+                        # send an association frame to get a PMKID
                         agent.associate(ap)
-                        # deauth all client stations in order to get a full handshake
+                        # deauth all client stations to get a full handshake
                         for sta in ap['clients']:
                             agent.deauth(ap, sta)
                             time.sleep(1)  # delay to not trigger nexmon firmware bugs
@@ -88,8 +91,10 @@ def pwnagotchi_cli():
 
             except Exception as e:
                 if str(e).find("wifi.interface not set") > 0:
-                    logging.exception("main loop exception due to unavailable wifi device, likely programmatically disabled (%s)", e)
-                    logging.info("sleeping 60 seconds then advancing to next epoch to allow for cleanup code to trigger")
+                    logging.exception(
+                        "main loop exception due to unavailable wifi device, likely programmatically disabled (%s)", e)
+                    logging.info(
+                        "sleeping 60 seconds then advancing to next epoch to allow for cleanup code to trigger")
                     time.sleep(60)
                     agent.next_epoch()
                 else:
@@ -111,7 +116,8 @@ def pwnagotchi_cli():
     # pwnagotchi --help
     parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
                         help='Main configuration file.')
-    parser.add_argument('-U', '--user-config', action='store', dest='user_config', default='/etc/pwnagotchi/config.toml',
+    parser.add_argument('-U', '--user-config', action='store', dest='user_config',
+                        default='/etc/pwnagotchi/config.toml',
                         help='If this file exists, configuration will be merged and this will override default values.')
 
     parser.add_argument('--manual', dest="do_manual", action="store_true", default=False, help="Manual mode.")
@@ -158,115 +164,311 @@ def pwnagotchi_cli():
         sys.exit(0)
 
     if args.wizard:
+        if os.geteuid() != 0:
+            os.execvp("sudo", ["sudo", "pwnagotchi", "--wizard"])
+
         def is_valid_hostname(hostname):
             if len(hostname) > 255:
                 return False
-            if hostname[-1] == ".":
-                hostname = hostname[:-1]  # strip exactly one dot from the right, if present
-            allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+            if hostname.endswith("."):
+                hostname = hostname[:-1]  # strip trailing dot if present
+            allowed = re.compile(r"(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
             return all(allowed.match(x) for x in hostname.split("."))
 
-        pwn_restore = input("Do you want to restore the previous configuration?\n\n"
-                            "[Y/N]: ")
-        if pwn_restore in ('y', 'yes'):
-            os.system("cp -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
-            print("Your previous configuration is restored, and I will restart in 5 seconds.")
+        def ask_yes_no(prompt):
+            """Keeps asking until a valid yes/no is entered."""
+            while True:
+                val = input(prompt).strip().lower()
+                if val in ("y", "yes"):
+                    return True
+                elif val in ("n", "no"):
+                    return False
+                else:
+                    print("Invalid input. Please answer with Y or N.")
+
+        def ask_non_empty(prompt, default=None, validator=None):
+            """
+            Asks for a value, optionally with a default.
+            Retries on empty or invalid input (if a validator is provided).
+            """
+            while True:
+                val = input(prompt).strip()
+                if val == "" and default is not None:
+                    # If empty but default is provided, use default
+                    return default
+                if val == "":
+                    print("A value is required. Please try again.")
+                    continue
+                if validator is not None:
+                    if not validator(val):
+                        print("Invalid input. Please try again.")
+                        continue
+                return val
+
+        def ask_positive_int(prompt):
+            """Retries until the user provides a non-negative integer."""
+            while True:
+                val = input(prompt).strip()
+                if not val.isdigit():
+                    print("Invalid number. Please enter a positive integer.")
+                    continue
+                int_val = int(val)
+                if int_val < 0:
+                    print("Please enter a non-negative (or positive) integer.")
+                    continue
+                return int_val
+
+        def setup_bluetooth_dbus():
+            """
+            Returns the MAC if successful, or None if the user skipped/failure.
+            """
+
+            try:
+                # Initialize DBus main loop
+                dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+                system_bus = dbus.SystemBus()
+
+                # Get the BlueZ ObjectManager
+                manager = dbus.Interface(
+                    system_bus.get_object("org.bluez", "/"),
+                    "org.freedesktop.DBus.ObjectManager"
+                )
+
+                # Find the first available Bluetooth adapter (usually /org/bluez/hci0)
+                objects = manager.GetManagedObjects()
+                adapter_path = None
+                for path, interfaces in objects.items():
+                    if "org.bluez.Adapter1" in interfaces:
+                        adapter_path = path
+                        break
+
+                if not adapter_path:
+                    print("No Bluetooth adapter found. Skipping automatic Bluetooth setup.")
+                    return None
+
+                # Power on, discoverable, pairable
+                adapter_props = dbus.Interface(
+                    system_bus.get_object("org.bluez", adapter_path),
+                    "org.freedesktop.DBus.Properties"
+                )
+                adapter_props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(True))
+                adapter_props.Set("org.bluez.Adapter1", "Discoverable", dbus.Boolean(True))
+                adapter_props.Set("org.bluez.Adapter1", "Pairable", dbus.Boolean(True))
+
+                adapter_iface = dbus.Interface(
+                    system_bus.get_object("org.bluez", adapter_path),
+                    "org.bluez.Adapter1"
+                )
+
+                # Tell the user to open bluetooth settings on their phone to make it discoverable
+                print("Please open Bluetooth settings on your phone and make it discoverable.")
+                print("Press Enter when ready.")
+                input()
+                # Start Discovery
+                print("\nStarting Bluetooth discovery for ~10 seconds...")
+                adapter_iface.StartDiscovery()
+                time.sleep(10)
+                adapter_iface.StopDiscovery()
+
+                # Retrieve an updated list of objects to see discovered devices
+                objects = manager.GetManagedObjects()
+                device_list = []  # We'll store tuples of (MAC, device_path)
+
+                for path, interfaces in objects.items():
+                    if "org.bluez.Device1" in interfaces:
+                        # Retrieve the device's MAC from DBus properties
+                        dev_props = interfaces["org.bluez.Device1"]
+                        mac_addr = dev_props.get("Address")
+                        name = dev_props.get("Name", "Unknown")
+                        device_list.append((mac_addr, name, path))
+
+                if not device_list:
+                    print("No devices discovered. Make sure your phone was in discoverable mode.")
+                    return None
+
+                print("\nDiscovered devices:")
+                for idx, (mac_addr, name, _) in enumerate(device_list):
+                    print(f"  [{idx}]  {mac_addr}  '{name}'")
+
+                # Ask the user to pick by index or MAC
+                choice = input("\nEnter index of your phone (or type a MAC address): ").strip()
+
+                if choice.isdigit():
+                    choice_index = int(choice)
+                    if choice_index < 0 or choice_index >= len(device_list):
+                        print("Invalid index selected. Aborting.")
+                        return None
+                    chosen_mac = device_list[choice_index][0]
+                    device_path = device_list[choice_index][2]
+                else:
+                    # the user typed a MAC address
+                    #  to find it in the device_list
+                    dev_found = [(m, p) for (m, _, p) in device_list if m.lower() == choice.lower()]
+                    if not dev_found:
+                        print(f"The MAC address '{choice}' was not found in the list")
+                        retry = ask_yes_no("Would you like to try again?\n\n[Y/N]: ")
+                        if not retry:
+                            return None
+                        return setup_bluetooth_dbus()
+                    chosen_mac, device_path = dev_found[0]
+
+                # Attempt pairing
+                print(f"\nAttempting to Pair with {chosen_mac} ...\n")
+                dev_obj = system_bus.get_object("org.bluez", device_path)
+                dev_iface = dbus.Interface(dev_obj, "org.bluez.Device1")
+
+                try:
+                    dev_iface.Pair()
+                except dbus.DBusException as e:
+                    print(f"Pairing failed: {e}\nYou may need to confirm on the phone or try again.")
+                    # We'll continue and attempt to trust anyway
+                    pass
+
+                # Mark the device as trusted
+                dev_props_iface = dbus.Interface(dev_obj, "org.freedesktop.DBus.Properties")
+                dev_props_iface.Set("org.bluez.Device1", "Trusted", dbus.Boolean(True))
+
+                print("Successfully set the device as Trusted.\nPairing steps are complete!")
+                return chosen_mac
+            except Exception as e:
+                print(f"\nEncountered error during DBus Bluetooth setup: {e}")
+                return None
+
+        def run_wizard():
+            """
+            Runs the interactive wizard for building a new pwnagotchi config
+            """
+
+            pwn_restore = ask_yes_no("Do you want to restore the previous configuration?\n\n[Y/N]: ")
+            if pwn_restore:
+                os.system("cp -f /etc/pwnagotchi/config.toml.bak /etc/pwnagotchi/config.toml")
+                print("Your previous configuration is restored, and I will restart in 5 seconds.")
+                time.sleep(5)
+                os.system("service pwnagotchi restart")
+                return
+
+            pwn_check = ask_yes_no(
+                "This will create a new configuration file and overwrite your current backup, are you sure?\n\n[Y/N]: "
+            )
+            if not pwn_check:
+                print("Ok, doing nothing.")
+                return
+
+            # Move existing config to backup
+            os.system("mv -f /etc/pwnagotchi/config.toml /etc/pwnagotchi/config.toml.bak")
+            with open("/etc/pwnagotchi/config.toml", "a+") as f:
+                f.write("# Do not edit this file if you do not know what you are doing!!!\n\n")
+
+                # Ask for pwnagotchi name
+                print("\nWelcome to the interactive installation of your personal Pwnagotchi configuration!\n"
+                      "My name is Jayofelony, how may I call you?\n")
+                pwn_name = ask_non_empty(
+                    "Pwnagotchi name (no spaces): ",
+                    default="Pwnagotchi",
+                    validator=lambda val: is_valid_hostname(val) or val == ""
+                )
+                if pwn_name == "Pwnagotchi":
+                    print("Defaulting to Pwnagotchi.")
+                    print("I shall go by Pwnagotchi from now on!")
+                else:
+                    print(f"I shall go by {pwn_name} from now on!")
+                f.write(f'main.name = "{pwn_name}"\n')
+
+                # Whitelist networks
+                pwn_whitelist_count = ask_positive_int(
+                    "How many networks do you want to whitelist?\n"
+                    "Each SSID or BSSID counts as 1 entry.\n"
+                    "Amount of networks: "
+                )
+                if pwn_whitelist_count > 0:
+                    f.write("main.whitelist = [\n")
+                    for _ in range(pwn_whitelist_count):
+                        ssid = input("SSID (Name) (default: ''): ").strip()
+                        bssid_amount = ask_positive_int("How many BSSIDs (MAC addresses) do you want to whitelist for "
+                                                        f"the SSID '{ssid}'? (default: 1): ")
+                        if bssid_amount == 0:
+                            bssid_amount = 1
+                        for y in range(bssid_amount):
+                            bssid = input(f"BSSID #{y + 1} (MAC) for {ssid}: ").strip()
+                            if bssid:
+                                f.write(f'\t"{bssid}",\n')
+                        if ssid:
+                            f.write(f'\t"{ssid}",\n')
+                    f.write("]\n")
+
+                # Bluetooth tether
+                pwn_bluetooth = ask_yes_no("Do you want to enable BT-Tether?\n\n[Y/N]: ")
+                if pwn_bluetooth:
+                    f.write("main.plugins.bt-tether.enabled = true\n\n")
+
+                    # phone name is required
+                    pwn_bluetooth_phone_name = ask_non_empty(
+                        "What name does your phone use in BT settings?\n(This is required): "
+                    )
+                    f.write(f'main.plugins.bt-tether.phone-name = "{pwn_bluetooth_phone_name}"\n')
+
+                    # Keep retrying for valid device: 'android' or 'ios'
+                    while True:
+                        pwn_bluetooth_device = input("What device do you use? [android/ios]\nDevice: ").strip().lower()
+                        if pwn_bluetooth_device in ["android", "ios"]:
+                            f.write(f'main.plugins.bt-tether.phone = "{pwn_bluetooth_device}"\n')
+                            if pwn_bluetooth_device == "android":
+                                f.write('main.plugins.bt-tether.ip = "192.168.44.44"\n')
+                            else:  # ios
+                                f.write('main.plugins.bt-tether.ip = "172.20.10.6"\n')
+                            break
+                        else:
+                            print("Invalid device. Please enter 'android' or 'ios'.")
+
+                    # Now do the DBus-based pairing/trusting steps
+                    phone_mac = setup_bluetooth_dbus()
+                    if phone_mac:
+                        # Write the chosen MAC into the config
+                        f.write(f'main.plugins.bt-tether.mac = "{phone_mac}"\n')
+                    else:
+                        f.write('main.plugins.bt-tether.mac = ""\n')
+
+                # Display settings
+                pwn_display_enabled = ask_yes_no("Do you want to enable a display?\n\n[Y/N]: ")
+                if pwn_display_enabled:
+                    f.write("ui.display.enabled = true\n")
+                    pwn_display_type = input(
+                        "What display do you use?\n\n"
+                        "(Be sure to check for the correct display type @\n"
+                        " https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L501 )\n\n"
+                        "Display type: "
+                    ).strip()
+                    if pwn_display_type:
+                        f.write(f'ui.display.type = "{pwn_display_type}"\n')
+
+                    invert_colors = ask_yes_no(
+                        "\nDo you want to have a white background color?\n"
+                        "N = Black background\n"
+                        "Y = White background\n\n[Y/N]: "
+                    )
+                    if invert_colors:
+                        f.write("ui.invert = true\n")
+
+            # Final messages
+            if pwn_bluetooth:
+                if pwn_bluetooth_device == "android":
+                    print(
+                        "\nTo visit the webui when connected via Bluetooth tether on Android, go to: http://192.168.44.44:8080")
+                else:
+                    print(
+                        "\nTo visit the webui when connected via Bluetooth tether on iOS, go to: http://172.20.10.6:8080")
+
+            print("Setting Permissions...")
+            #get the default user by looking at /home/
+            default_user = os.listdir('/home/')[0]
+            os.system(f"chown -R {default_user}:{default_user} /etc/pwnagotchi/config.*")
+            print("\nYour configuration is done, and I will restart in 5 seconds.")
             time.sleep(5)
             os.system("service pwnagotchi restart")
-        else:
-            pwn_check = input("This will create a new configuration file and overwrite your current backup, are you sure?\n\n"
-                              "[Y/N]: ")
-            if pwn_check.lower() in ('y', 'yes'):
-                os.system("mv -f /etc/pwnagotchi/config.toml /etc/pwnagotchi/config.toml.bak")
-                with open("/etc/pwnagotchi/config.toml", "a+") as f:
-                    f.write("# Do not edit this file if you do not know what you are doing!!!\n\n")
-                    # Set pwnagotchi name
-                    print("Welcome to the interactive installation of your personal Pwnagotchi configuration!\n"
-                          "My name is Jayofelony, how may I call you?\n\n")
-                    pwn_name = input("Pwnagotchi name (no spaces): ")
-                    if pwn_name == "":
-                        pwn_name = "Pwnagotchi"
-                        print("I shall go by Pwnagotchi from now on!")
-                        pwn_name = f"main.name = \"{pwn_name}\"\n"
-                        f.write(pwn_name)
-                    else:
-                        if is_valid_hostname(pwn_name):
-                            print(f"I shall go by {pwn_name} from now on!")
-                            pwn_name = f"main.name = \"{pwn_name}\"\n"
-                            f.write(pwn_name)
-                        else:
-                            print("You have chosen an invalid name. Please start over.")
-                            exit()
-                    pwn_whitelist = input("How many networks do you want to whitelist? "
-                                          "We will also ask a MAC for each network?\n"
-                                          "Each SSID and BSSID count as 1 network. \n\n"
-                                          "Be sure to use digits as your answer.\n\n"
-                                          "Amount of networks: ")
-                    if int(pwn_whitelist) > 0:
-                        f.write("main.whitelist = [\n")
-                        for x in range(int(pwn_whitelist)):
-                            ssid = input("SSID (Name): ")
-                            bssid = input("BSSID (MAC): ")
-                            f.write(f"\t\"{ssid}\",\n")
-                            if bssid != "":
-                                f.write(f"\t\"{bssid}\",\n")
-                        f.write("]\n")
-                    # set bluetooth tether
-                    pwn_bluetooth = input("Do you want to enable BT-Tether?\n\n"
-                                          "[Y/N] ")
-                    if pwn_bluetooth.lower() in ('y', 'yes'):
-                        f.write("main.plugins.bt-tether.enabled = true\n\n")
-                        pwn_bluetooth_phone_name = input("What name uses your phone, check settings?\n\n")
-                        if pwn_bluetooth_phone_name != "":
-                            f.write(f"main.plugins.bt-tether.phone-name = \"{pwn_bluetooth_phone_name}\"\n")
-                        pwn_bluetooth_device = input("What device do you use? android or ios?\n\n"
-                                                     "Device: ")
-                        if pwn_bluetooth_device != "":
-                            if pwn_bluetooth_device != "android" and pwn_bluetooth_device != "ios":
-                                print("You have chosen an invalid device. Please start over.")
-                                exit()
-                            f.write(f"main.plugins.bt-tether.phone = \"{pwn_bluetooth_device.lower()}\"\n")
-                            if pwn_bluetooth_device == "android":
-                                f.write("main.plugins.bt-tether.ip = \"192.168.44.44\"\n")
-                            elif pwn_bluetooth_device == "ios":
-                                f.write("main.plugins.bt-tether.ip = \"172.20.10.6\"\n")
-                        pwn_bluetooth_mac = input("What is the bluetooth MAC of your device?\n\n"
-                                                  "MAC: ")
-                        if pwn_bluetooth_mac != "":
-                            f.write(f"main.plugins.bt-tether.mac = \"{pwn_bluetooth_mac}\"\n")
-                    # set up display settings
-                    pwn_display_enabled = input("Do you want to enable a display?\n\n"
-                                                "[Y/N]: ")
-                    if pwn_display_enabled.lower() in ('y', 'yes'):
-                        f.write("ui.display.enabled = true\n")
-                        pwn_display_type = input("What display do you use?\n\n"
-                                                 "Be sure to check for the correct display type @ \n"
-                                                 "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L501\n\n"
-                                                 "Display type: ")
-                        if pwn_display_type != "":
-                            f.write(f"ui.display.type = \"{pwn_display_type}\"\n")
-                        pwn_display_invert = input("Do you want to invert the display colors?\n"
-                                                   "N = Black background\n"
-                                                   "Y = White background\n\n"
-                                                   "[Y/N]: ")
-                        if pwn_display_invert.lower() in ('y', 'yes'):
-                            f.write("ui.invert = true\n")
-                    f.close()
-                    if pwn_bluetooth.lower() in ('y', 'yes'):
-                        if pwn_bluetooth_device.lower == "android":
-                            print("To visit the webui when connected with your phone, visit: http://192.168.44.44:8080\n"
-                                  "Be sure to run `sudo bluetoothctl` to set-up the bluetooth connection for the first time. And read the wiki step 4.\n"
-                                  "Your configuration is done, and I will restart in 5 seconds.")
 
-                        elif pwn_bluetooth_device.lower == "ios":
-                            print("To visit the webui when connected with your phone, visit: http://172.20.10.6:8080\n"
-                                  "Your configuration is done, and I will restart in 5 seconds.")
-                    else:
-                        print("Your configuration is done, and I will restart in 5 seconds.")
-                    time.sleep(5)
-                    os.system("service pwnagotchi restart")
-            else:
-                print("Ok, doing nothing.")
+        # Run the refactored wizard
+        run_wizard()
         sys.exit(0)
 
     if args.donate:
@@ -283,7 +485,8 @@ def pwnagotchi_cli():
         local = version_to_tuple(pwnagotchi.__version__)
         remote = version_to_tuple(latest_ver)
         if remote > local:
-            user_input = input("There is a new version available! Update from v%s to v%s?\n[Y/N] " % (pwnagotchi.__version__, latest_ver))
+            user_input = input("There is a new version available! Update from v%s to v%s?\n[Y/N] " % (
+                pwnagotchi.__version__, latest_ver))
             # input validation
             if user_input.lower() in ('y', 'yes'):
                 if os.path.exists('/root/.auto-update'):
