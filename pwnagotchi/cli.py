@@ -1,22 +1,22 @@
-import logging
 import argparse
-import time
-import signal
-import sys
-import toml
-import dbus
-import dbus.mainloop.glib
-
-import requests
+import logging
 import os
 import re
+import signal
+import sys
+import time
+
+import dbus
+import dbus.mainloop.glib
+import requests
+import toml
 
 import pwnagotchi
+from pwnagotchi import fs
+from pwnagotchi import log
 from pwnagotchi import utils
 from pwnagotchi.google import cmd as google_cmd
 from pwnagotchi.plugins import cmd as plugins_cmd
-from pwnagotchi import log
-from pwnagotchi import fs
 from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
 
 
@@ -91,8 +91,10 @@ def pwnagotchi_cli():
 
             except Exception as e:
                 if str(e).find("wifi.interface not set") > 0:
-                    logging.exception("main loop exception due to unavailable wifi device, likely programmatically disabled (%s)", e)
-                    logging.info("sleeping 60 seconds then advancing to next epoch to allow for cleanup code to trigger")
+                    logging.exception(
+                        "main loop exception due to unavailable wifi device, likely programmatically disabled (%s)", e)
+                    logging.info(
+                        "sleeping 60 seconds then advancing to next epoch to allow for cleanup code to trigger")
                     time.sleep(60)
                     agent.next_epoch()
                 else:
@@ -114,7 +116,8 @@ def pwnagotchi_cli():
     # pwnagotchi --help
     parser.add_argument('-C', '--config', action='store', dest='config', default='/etc/pwnagotchi/default.toml',
                         help='Main configuration file.')
-    parser.add_argument('-U', '--user-config', action='store', dest='user_config', default='/etc/pwnagotchi/config.toml',
+    parser.add_argument('-U', '--user-config', action='store', dest='user_config',
+                        default='/etc/pwnagotchi/config.toml',
                         help='If this file exists, configuration will be merged and this will override default values.')
 
     parser.add_argument('--manual', dest="do_manual", action="store_true", default=False, help="Manual mode.")
@@ -258,7 +261,7 @@ def pwnagotchi_cli():
                     "org.bluez.Adapter1"
                 )
 
-                #Tell the user to open bluetooth settings on their phone to make it discoverable
+                # Tell the user to open bluetooth settings on their phone to make it discoverable
                 print("Please open Bluetooth settings on your phone and make it discoverable.")
                 print("Press Enter when ready.")
                 input()
@@ -387,7 +390,7 @@ def pwnagotchi_cli():
                         if bssid_amount == 0:
                             bssid_amount = 1
                         for y in range(bssid_amount):
-                            bssid = input(f"BSSID #{y+1} (MAC) for {ssid}: ").strip()
+                            bssid = input(f"BSSID #{y + 1} (MAC) for {ssid}: ").strip()
                             if bssid:
                                 f.write(f'\t"{bssid}",\n')
                         if ssid:
@@ -450,9 +453,11 @@ def pwnagotchi_cli():
             # Final messages
             if pwn_bluetooth:
                 if pwn_bluetooth_device == "android":
-                    print("\nTo visit the webui when connected via Bluetooth tether on Android, go to: http://192.168.44.44:8080")
+                    print(
+                        "\nTo visit the webui when connected via Bluetooth tether on Android, go to: http://192.168.44.44:8080")
                 else:
-                    print("\nTo visit the webui when connected via Bluetooth tether on iOS, go to: http://172.20.10.6:8080")
+                    print(
+                        "\nTo visit the webui when connected via Bluetooth tether on iOS, go to: http://172.20.10.6:8080")
 
             print("\nYour configuration is done, and I will restart in 5 seconds.")
             time.sleep(5)
@@ -461,8 +466,6 @@ def pwnagotchi_cli():
         # Run the refactored wizard
         run_wizard()
         sys.exit(0)
-
-
 
     if args.donate:
         print("Donations can be made @ \n "
@@ -478,7 +481,8 @@ def pwnagotchi_cli():
         local = version_to_tuple(pwnagotchi.__version__)
         remote = version_to_tuple(latest_ver)
         if remote > local:
-            user_input = input("There is a new version available! Update from v%s to v%s?\n[Y/N] " % (pwnagotchi.__version__, latest_ver))
+            user_input = input("There is a new version available! Update from v%s to v%s?\n[Y/N] " % (
+                pwnagotchi.__version__, latest_ver))
             # input validation
             if user_input.lower() in ('y', 'yes'):
                 if os.path.exists('/root/.auto-update'):
