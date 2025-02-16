@@ -59,9 +59,12 @@ class Cache(plugins.Plugin):
             ctime = datetime.now(tz=UTC)
             cache_to_delete = list()
             for cache_file in pathlib.Path(self.cache_dir).glob("*.apcache"):
-                mtime = datetime.fromtimestamp(cache_file.lstat().st_mtime, tz=UTC)
-                if (ctime - mtime).total_seconds() > 60 * 5:
-                    cache_to_delete.append(cache_file)
+                try:
+                    mtime = datetime.fromtimestamp(cache_file.lstat().st_mtime, tz=UTC)
+                    if (ctime - mtime).total_seconds() > 60 * 5:
+                        cache_to_delete.append(cache_file)
+                except FileNotFoundError:
+                    pass
             if cache_to_delete:
                 logging.info(f"[CACHE] Cleaning {len(cache_to_delete)} files")
             for cache_file in cache_to_delete:
