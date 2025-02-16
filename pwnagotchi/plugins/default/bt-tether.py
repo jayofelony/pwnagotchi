@@ -146,8 +146,6 @@ class BTTether(plugins.Plugin):
         except Exception as exp:
             logging.error(f"[BT-Tether] Error with {cmd}")
             logging.error(f"[BT-Tether] Exception : {exp}")
-            logging.error(f"[BT-Tether] STDOUT : {result.stdout}")
-            logging.error(f"[BT-Tether] STDERR : {result.stderr}")
             raise exp
 
     def bluetoothctl(self, args, pattern=None):
