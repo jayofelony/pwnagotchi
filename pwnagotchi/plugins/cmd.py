@@ -1,10 +1,9 @@
-# Handles the commandline stuff
-
 import os
 import logging
 import glob
 import re
 import shutil
+import socket  # <-- Added for DNS check
 from fnmatch import fnmatch
 from pwnagotchi.utils import download_file, unzip, save_config, parse_version, md5
 from pwnagotchi.plugins import default_path
@@ -164,8 +163,8 @@ def upgrade(args, config, pattern='*'):
         installed_version = _extract_version(filename)
 
         if installed_version and available_version:
-                if available_version <= installed_version:
-                    continue
+            if available_version <= installed_version:
+                continue
         else:
             continue
 
@@ -348,11 +347,33 @@ def _analyse_dir(path):
     return results
 
 
+def _check_internet():
+    """
+    Simple DNS check to verify that we can resolve a common hostname.
+    Returns True if DNS resolution succeeds, False otherwise.
+    """
+    try:
+        socket.gethostbyname('google.com')
+        return True
+    except:
+        return False
+
+
 def update(config):
     """
     Updates the database
     """
     global SAVE_DIR
+
+    if not _check_internet():
+        logging.error("No internet connection or DNS not working. Please follow these instructions:")
+        logging.error("https://github.com/jayofelony/pwnagotchi/wiki/Step-2-Connecting")
+        print("No internet/DNS. Please follow these instructions:")
+        print("https://github.com/jayofelony/pwnagotchi/wiki/Step-2-Connecting")
+        return 1
+    else:
+        logging.info("Internet detected - Please run sudo pwnagotchi plugins list")
+        print("Internet detected - Please run sudo pwnagotchi plugins list")
 
     urls = config['main']['custom_plugin_repos']
     if not urls:
@@ -393,3 +414,4 @@ def update(config):
             logging.error('Error while updating plugins: %s', ex)
             rc = 1
     return rc
+    

@@ -277,9 +277,9 @@ class PiSugarServer:
         """
         if (self.modle == "PiSugar2Plus") | (self.modle == "PiSugar3Plus"):
             curve = curve5000
-        elif (self.modle == "PiSugar2"):
+        elif self.modle == "PiSugar2":
             curve = curve1200
-        elif (self.modle == "PiSugar3"):
+        elif self.modle == "PiSugar3":
             curve = curve1200_3
          # 将当前电压加入历史记录
 
@@ -616,6 +616,7 @@ class PiSugar(plugins.Plugin):
         except Exception as e:
             # Log at debug to avoid clutter since it might be a false positive
             logging.warning(f"[PiSugarX] {e}")
+
 
     def on_internet_available(self, agent):
         self._agent = agent

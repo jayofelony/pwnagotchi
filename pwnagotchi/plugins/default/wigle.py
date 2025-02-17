@@ -4,212 +4,302 @@ import json
 import csv
 import requests
 import pwnagotchi
-
-from io import StringIO
-from datetime import datetime
-from pwnagotchi.utils import WifiInfo, FieldNotFoundError, extract_from_pcap, StatusFile, remove_whitelisted
+import re
+from glob import glob
 from threading import Lock
+from io import StringIO
+from datetime import datetime, UTC
+
+from flask import make_response, redirect
+from pwnagotchi.utils import (
+    WifiInfo,
+    FieldNotFoundError,
+    extract_from_pcap,
+    StatusFile,
+    remove_whitelisted,
+)
 from pwnagotchi import plugins
 from pwnagotchi._version import __version__ as __pwnagotchi_version__
 
+import pwnagotchi.ui.fonts as fonts
+from pwnagotchi.ui.components import Text
+from pwnagotchi.ui.view import BLACK
 
-def _extract_gps_data(path):
-    """
-    Extract data from gps-file
-
-    return json-obj
-    """
-
-    try:
-        if path.endswith('.geo.json'):
-            with open(path, 'r') as json_file:
-                tempJson = json.load(json_file)
-                d = datetime.utcfromtimestamp(int(tempJson["ts"]))
-                return {"Latitude": tempJson["location"]["lat"],
-                        "Longitude": tempJson["location"]["lng"],
-                        "Altitude": 10,
-                        "Accuracy": tempJson["accuracy"],
-                        "Updated": d.strftime('%Y-%m-%dT%H:%M:%S.%f')}
-        else:
-            with open(path, 'r') as json_file:
-                return json.load(json_file)
-    except OSError as os_err:
-        raise os_err
-    except json.JSONDecodeError as json_err:
-        raise json_err
-
-
-def _format_auth(data):
-    out = ""
-    for auth in data:
-        out = f"{out}[{auth}]"
-    return [f"{auth}" for auth in data]
-
-
-def _transform_wigle_entry(gps_data, pcap_data, plugin_version):
-    """
-    Transform to wigle entry in file
-    """
-    dummy = StringIO()
-    # write kismet header
-    dummy.write(f"WigleWifi-1.6,appRelease={plugin_version},model=pwnagotchi,release={__pwnagotchi_version__},"
-                f"device={pwnagotchi.name()},display=kismet,board=RaspberryPi,brand=pwnagotchi,star=Sol,body=3,subBody=0\n")
-    dummy.write(
-        "MAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,Type\n")
-
-    writer = csv.writer(dummy, delimiter=",", quoting=csv.QUOTE_NONE, escapechar="\\")
-    writer.writerow([
-        pcap_data[WifiInfo.BSSID],
-        pcap_data[WifiInfo.ESSID],
-        _format_auth(pcap_data[WifiInfo.ENCRYPTION]),
-        datetime.strptime(gps_data['Updated'].rsplit('.')[0],
-                          "%Y-%m-%dT%H:%M:%S").strftime('%Y-%m-%d %H:%M:%S'),
-        pcap_data[WifiInfo.CHANNEL],
-        pcap_data[WifiInfo.RSSI],
-        gps_data['Latitude'],
-        gps_data['Longitude'],
-        gps_data['Altitude'],
-        gps_data['Accuracy'],
-        'WIFI'])
-    return dummy.getvalue()
-
-
-def _send_to_wigle(lines, api_key, donate=True, timeout=30):
-    """
-    Uploads the file to wigle-net
-    """
-
-    dummy = StringIO()
-
-    for line in lines:
-        dummy.write(f"{line}")
-
-    dummy.seek(0)
-
-    headers = {"Authorization": f"Basic {api_key}",
-               "Accept": "application/json",
-               "HTTP_USER_AGENT": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1"}
-    data = {"donate": "on" if donate else "false"}
-    payload = {"file": (pwnagotchi.name() + ".csv", dummy, "multipart/form-data", {"Expires": "0"})}
-    try:
-        res = requests.post('https://api.wigle.net/api/v2/file/upload',
-                            data=data,
-                            headers=headers,
-                            files=payload,
-                            timeout=timeout)
-        json_res = res.json()
-        if not json_res['success']:
-            raise requests.exceptions.RequestException(json_res['message'])
-    except requests.exceptions.RequestException as re_e:
-        raise re_e
+from scapy.all import Scapy_Exception
 
 
 class Wigle(plugins.Plugin):
-    __author__ = "Dadav and updated by Jayofelony"
-    __version__ = "3.1.0"
+    __author__ = "Dadav and updated by Jayofelony and fmatray"
+    __version__ = "4.0.0"
     __license__ = "GPL3"
     __description__ = "This plugin automatically uploads collected WiFi to wigle.net"
+    LABEL_SPACING = 0
 
     def __init__(self):
         self.ready = False
-        self.report = StatusFile('/root/.wigle_uploads', data_format='json')
+        self.report = None
         self.skip = list()
         self.lock = Lock()
         self.options = dict()
+        self.statistics = dict(
+            ready=False,
+            username=None,
+            rank=None,
+            monthrank=None,
+            discoveredwiFi=None,
+            last=None,
+        )
+        self.last_stat = datetime.now(tz=UTC)
+        self.ui_counter = 0
 
-    def on_loaded(self):
-        if 'api_key' not in self.options or ('api_key' in self.options and self.options['api_key'] is None):
-            logging.debug("WIGLE: api_key isn't set. Can't upload to wigle.net")
+    def on_config_changed(self, config):
+        self.api_key = self.options.get("api_key", None)
+        if not self.api_key:
+            logging.info("[WIGLE] api_key must be set.")
             return
-
-        if 'donate' not in self.options:
-            self.options['donate'] = False
-
+        self.donate = self.options.get("donate", False)
+        self.handshake_dir = config["bettercap"].get("handshakes")
+        report_filename = os.path.join(self.handshake_dir, ".wigle_uploads")
+        self.report = StatusFile(report_filename, data_format="json")
+        self.cvs_dir = self.options.get("cvs_dir", None)
+        self.whitelist = config["main"].get("whitelist", [])
+        self.timeout = self.options.get("timeout", 30)
+        self.position = self.options.get("position", (10, 10))
         self.ready = True
-        logging.info("WIGLE: ready")
-    
+        logging.info("[WIGLE] Ready for wardriving!!!")
+        self.get_statistics(force=True)
+
     def on_webhook(self, path, request):
-        from flask import make_response, redirect
-        response = make_response(redirect("https://www.wigle.net/", code=302))
-        return response
+        return make_response(redirect("https://www.wigle.net/", code=302))
+
+    def get_new_gps_files(self, reported):
+        all_gps_files = glob(os.path.join(self.handshake_dir, "*.gps.json"))
+        all_gps_files += glob(os.path.join(self.handshake_dir, "*.geo.json"))
+        all_gps_files = remove_whitelisted(all_gps_files, self.whitelist)
+        return set(all_gps_files) - set(reported) - set(self.skip)
+
+    @staticmethod
+    def get_pcap_filename(gps_file):
+        pcap_filename = re.sub(r"\.(geo|gps)\.json$", ".pcap", gps_file)
+        if not os.path.exists(pcap_filename):
+            logging.debug("[WIGLE] Can't find pcap for %s", gps_file)
+            return None
+        return pcap_filename
+
+    @staticmethod
+    def extract_gps_data(path):
+        """
+        Extract data from gps-file
+        return json-obj
+        """
+        try:
+            if path.endswith(".geo.json"):
+                with open(path, "r") as json_file:
+                    tempJson = json.load(json_file)
+                    d = datetime.fromtimestamp(int(tempJson["ts"]), tz=UTC)
+                    return {
+                        "Latitude": tempJson["location"]["lat"],
+                        "Longitude": tempJson["location"]["lng"],
+                        "Altitude": 10,
+                        "Accuracy": tempJson["accuracy"],
+                        "Updated": d.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+                    }
+            with open(path, "r") as json_file:
+                return json.load(json_file)
+        except (OSError, json.JSONDecodeError) as exp:
+            raise exp
+
+    def get_gps_data(self, gps_file):
+        try:
+            gps_data = self.extract_gps_data(gps_file)
+        except (OSError, json.JSONDecodeError) as exp:
+            logging.debug(f"[WIGLE] Error while extracting GPS data: {exp}")
+            return None
+        if gps_data["Latitude"] == 0 and gps_data["Longitude"] == 0:
+            logging.debug(f"[WIGLE] Not enough gps data for {gps_file}. Next time.")
+            return None
+        return gps_data
+
+    @staticmethod
+    def get_pcap_data(pcap_filename):
+        try:
+            pcap_data = extract_from_pcap(
+                pcap_filename,
+                [
+                    WifiInfo.BSSID,
+                    WifiInfo.ESSID,
+                    WifiInfo.ENCRYPTION,
+                    WifiInfo.CHANNEL,
+                    WifiInfo.FREQUENCY,
+                    WifiInfo.RSSI,
+                ],
+            )
+            logging.debug(f"[WIGLE] PCAP data for {pcap_filename}: {pcap_data}")
+        except FieldNotFoundError:
+            logging.debug(f"[WIGLE] Cannot extract all data: {pcap_filename} (skipped)")
+            return None
+        except Scapy_Exception as sc_e:
+            logging.debug(f"[WIGLE] {sc_e}")
+            return None
+        return pcap_data
+
+    def generate_csv(self, data):
+        date = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{pwnagotchi.name()}_{date}.csv"
+
+        content = StringIO()
+        # write kismet header + header
+        content.write(
+            f"WigleWifi-1.6,appRelease={self.__version__},model=pwnagotchi,release={__pwnagotchi_version__},"
+            f"device={pwnagotchi.name()},display=kismet,board=RaspberryPi,brand=pwnagotchi,star=Sol,body=3,subBody=0\n"
+            f"MAC,SSID,AuthMode,FirstSeen,Channel,Frequency,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,RCOIs,MfgrId,Type\n"
+        )
+        writer = csv.writer(
+            content, delimiter=",", quoting=csv.QUOTE_NONE, escapechar="\\"
+        )
+        for gps_data, pcap_data in data:  # write WIFIs
+            try:
+                timestamp = datetime.strptime(gps_data["Updated"].rsplit(".")[0], "%Y-%m-%dT%H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                timestamp = datetime.strptime(gps_data["Updated"].rsplit(".")[0], "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+            writer.writerow(
+                [
+                    pcap_data[WifiInfo.BSSID],
+                    pcap_data[WifiInfo.ESSID],
+                    f"[{']['.join(pcap_data[WifiInfo.ENCRYPTION])}]",
+                    timestamp,
+                    pcap_data[WifiInfo.CHANNEL],
+                    pcap_data[WifiInfo.FREQUENCY],
+                    pcap_data[WifiInfo.RSSI],
+                    gps_data["Latitude"],
+                    gps_data["Longitude"],
+                    gps_data["Altitude"],
+                    gps_data["Accuracy"],
+                    "",  # RCOIs to populate
+                    "",  # MfgrId always empty
+                    "WIFI",
+                ]
+            )
+        content.seek(0)
+        return filename, content
+
+    def save_to_file(self, cvs_filename, cvs_content):
+        if not self.cvs_dir:
+            return
+        filename = os.path.join(self.cvs_dir, cvs_filename)
+        logging.info(f"[WIGLE] Saving to file {filename}")
+        try:
+            with open(filename, mode="w") as f:
+                f.write(cvs_content.getvalue())
+        except Exception as exp:
+            logging.error(f"[WIGLE] Error while writing CSV file(skipping): {exp}")
+
+    def post_wigle(self, reported, cvs_filename, cvs_content, no_err_entries):
+        try:
+            json_res = requests.post(
+                "https://api.wigle.net/api/v2/file/upload",
+                headers={
+                    "Authorization": f"Basic {self.api_key}",
+                    "Accept": "application/json",
+                },
+                data={"donate": "on" if self.donate else "false"},
+                files=dict(file=(cvs_filename, cvs_content, "text/csv")),
+                timeout=self.timeout,
+            ).json()
+            if not json_res["success"]:
+                raise requests.exceptions.RequestException(json_res["message"])
+            reported += no_err_entries
+            self.report.update(data={"reported": reported})
+            logging.info(f"[WIGLE] Successfully uploaded {len(no_err_entries)} wifis")
+        except (requests.exceptions.RequestException, OSError) as exp:
+            self.skip += no_err_entries
+            logging.debug(f"[WIGLE] Exception while uploading: {exp}")
+
+    def upload_new_handshakes(self, reported, new_gps_files, agent):
+        logging.info("[WIGLE] Uploading new handshakes to wigle.net")
+        csv_entries, no_err_entries = list(), list()
+        for gps_file in new_gps_files:
+            logging.info(f"[WIGLE] Processing {os.path.basename(gps_file)}")
+            if (
+                (pcap_filename := self.get_pcap_filename(gps_file))
+                and (gps_data := self.get_gps_data(gps_file))
+                and (pcap_data := self.get_pcap_data(pcap_filename))
+            ):
+                csv_entries.append((gps_data, pcap_data))
+                no_err_entries.append(gps_file)
+            else:
+                self.skip.append(gps_file)
+        logging.info(f"[WIGLE] Wifi to upload: {len(csv_entries)}")
+        if csv_entries:
+            cvs_filename, cvs_content = self.generate_csv(csv_entries)
+            self.save_to_file(cvs_filename, cvs_content)
+            display = agent.view()
+            display.on_uploading("wigle.net")
+            self.post_wigle(reported, cvs_filename, cvs_content, no_err_entries)
+            display.on_normal()
+
+    def get_statistics(self, force=False):
+        if not force and (datetime.now(tz=UTC) - self.last_stat).total_seconds() < 30:
+            return
+        self.last_stat = datetime.now(tz=UTC)
+        try:
+            self.statistics["ready"] = False
+            json_res = requests.get(
+                "https://api.wigle.net/api/v2/stats/user",
+                headers={
+                    "Authorization": f"Basic {self.api_key}",
+                    "Accept": "application/json",
+                },
+                timeout=self.timeout,
+            ).json()
+            if not json_res["success"]:
+                return
+            self.statistics["ready"] = True
+            self.statistics["username"] = json_res["user"]
+            self.statistics["rank"] = json_res["rank"]
+            self.statistics["monthrank"] = json_res["monthRank"]
+            self.statistics["discoveredwiFi"] = json_res["statistics"]["discoveredWiFi"]
+            last = json_res["statistics"]["last"]
+            self.statistics["last"] = f"{last[6:8]}/{last[4:6]}/{last[0:4]}"
+        except (requests.exceptions.RequestException, OSError) as exp:
+            pass
 
     def on_internet_available(self, agent):
-        """
-        Called when there's internet connectivity
-        """
-        if not self.ready or self.lock.locked():
+        if not self.ready:
             return
+        with self.lock:
+            reported = self.report.data_field_or("reported", default=list())
+            if new_gps_files := self.get_new_gps_files(reported):
+                self.upload_new_handshakes(reported, new_gps_files, agent)
+            else:
+                self.get_statistics()
 
-        from scapy.all import Scapy_Exception
+    def on_ui_setup(self, ui):
+        with ui._lock:
+            ui.add_element(
+                "wigle",
+                Text(value="-", position=self.position, font=fonts.Small, color=BLACK),
+            )
 
-        config = agent.config()
-        display = agent.view()
-        reported = self.report.data_field_or('reported', default=list())
-        handshake_dir = config['bettercap']['handshakes']
-        all_files = os.listdir(handshake_dir)
-        all_gps_files = [os.path.join(handshake_dir, filename)
-                         for filename in all_files
-                         if filename.endswith('.gps.json') or filename.endswith('.geo.json')]
+    def on_unload(self, ui):
+        with ui._lock:
+            ui.remove_element("wigle")
 
-        all_gps_files = remove_whitelisted(all_gps_files, config['main']['whitelist'])
-        new_gps_files = set(all_gps_files) - set(reported) - set(self.skip)
-        if new_gps_files:
-            logging.info("WIGLE: Internet connectivity detected. Uploading new handshakes to wigle.net")
-            csv_entries = list()
-            no_err_entries = list()
-            for gps_file in new_gps_files:
-                if gps_file.endswith('.gps.json'):
-                    pcap_filename = gps_file.replace('.gps.json', '.pcap')
-                if gps_file.endswith('.geo.json'):
-                    pcap_filename = gps_file.replace('.geo.json', '.pcap')
-                if not os.path.exists(pcap_filename):
-                    logging.debug("WIGLE: Can't find pcap for %s", gps_file)
-                    self.skip.append(gps_file)
-                    continue
-                try:
-                    gps_data = _extract_gps_data(gps_file)
-                except OSError as os_err:
-                    logging.debug("WIGLE: %s", os_err)
-                    self.skip.append(gps_file)
-                    continue
-                except json.JSONDecodeError as json_err:
-                    logging.debug("WIGLE: %s", json_err)
-                    self.skip.append(gps_file)
-                    continue
-                if gps_data['Latitude'] == 0 and gps_data['Longitude'] == 0:
-                    logging.debug("WIGLE: Not enough gps-information for %s. Trying again next time.", gps_file)
-                    self.skip.append(gps_file)
-                    continue
-                try:
-                    pcap_data = extract_from_pcap(pcap_filename, [WifiInfo.BSSID,
-                                                                  WifiInfo.ESSID,
-                                                                  WifiInfo.ENCRYPTION,
-                                                                  WifiInfo.CHANNEL,
-                                                                  WifiInfo.RSSI])
-                except FieldNotFoundError:
-                    logging.debug("WIGLE: Could not extract all information. Skip %s", gps_file)
-                    self.skip.append(gps_file)
-                    continue
-                except Scapy_Exception as sc_e:
-                    logging.debug("WIGLE: %s", sc_e)
-                    self.skip.append(gps_file)
-                    continue
-                new_entry = _transform_wigle_entry(gps_data, pcap_data, self.__version__)
-                csv_entries.append(new_entry)
-                no_err_entries.append(gps_file)
-            if csv_entries:
-                display.on_uploading('wigle.net')
-
-                try:
-                    _send_to_wigle(csv_entries, self.options['api_key'], donate=self.options['donate'])
-                    reported += no_err_entries
-                    self.report.update(data={'reported': reported})
-                    logging.info("WIGLE: Successfully uploaded %d files", len(no_err_entries))
-                except requests.exceptions.RequestException as re_e:
-                    self.skip += no_err_entries
-                    logging.debug("WIGLE: Got an exception while uploading %s", re_e)
-                except OSError as os_e:
-                    self.skip += no_err_entries
-                    logging.debug("WIGLE: Got the following error: %s", os_e)
-
-                display.on_normal()
+    def on_ui_update(self, ui):
+        if not self.ready:
+            return
+        with ui._lock:
+            if not self.statistics["ready"]:
+                ui.set("wigle", "We Will Wait Wigle")
+                return
+            msg = "-"
+            self.ui_counter = (self.ui_counter + 1) % 4
+            if self.ui_counter == 0:
+                msg = f"User:{self.statistics['username']}"
+            if self.ui_counter == 1:
+                msg = f"Rank:{self.statistics['rank']} Month:{self.statistics['monthrank']}"
+            elif self.ui_counter == 2:
+                msg = f"{self.statistics['discoveredwiFi']} discovered WiFis"
+            elif self.ui_counter == 3:
+                msg = f"Last upl.:{self.statistics['last']}"
+            ui.set("wigle", msg)
