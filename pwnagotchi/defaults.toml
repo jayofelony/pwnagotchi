@@ -33,6 +33,8 @@ main.plugins.bt-tether.dns = "" # optional, default (google): "8.8.8.8 1.1.1.1".
 
 main.plugins.fix_services.enabled = true
 
+main.plugins.cache.enabled = true
+
 main.plugins.gdrivesync.enabled = false
 main.plugins.gdrivesync.backupfiles = ['']
 main.plugins.gdrivesync.backup_folder = "PwnagotchiBackups"

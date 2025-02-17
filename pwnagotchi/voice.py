@@ -27,11 +27,19 @@ class Voice:
             self._('Hack the Planet!'),
             self._('No more mister Wi-Fi!!'),
             self._('Pretty fly 4 a Wi-Fi!'),
+            self._('Good Pwning!'), # Battlestar Galactica
+            self._('Ensign, Engage!'), # Star trek
+            self._('Free your Wi-Fi!'), # Matrix
+            self._('Chevron Seven, locked.'), # Stargate
+            self._('May the Wi-fi be with you'), # Star wars
         ])
 
     def on_keys_generation(self):
         return random.choice([
-            self._('Generating keys, do not turn off ...')])
+            self._('Generating keys, do not turn off ...'),
+            self._('Are you the keymaster?'), # Ghostbusters
+            self._('I am the keymaster!'), # Ghostbusters
+        ])
 
     def on_normal(self):
         return random.choice([
@@ -44,8 +52,7 @@ class Voice:
     def on_reading_logs(self, lines_so_far=0):
         if lines_so_far == 0:
             return self._('Reading last session logs ...')
-        else:
-            return self._('Read {lines_so_far} log lines so far ...').format(lines_so_far=lines_so_far)
+        return self._('Read {lines_so_far} log lines so far ...').format(lines_so_far=lines_so_far)
 
     def on_bored(self):
         return random.choice([
@@ -53,7 +60,11 @@ class Voice:
             self._('Let\'s go for a walk!')])
 
     def on_motivated(self, reward):
-        return self._('This is the best day of my life!')
+        return random.choice([
+            self._('This is the best day of my life!'),
+            self._('All your base are belong to us'),
+            self._('Fascinating!'), # Star trek
+        ])
 
     def on_demotivated(self, reward):
         return self._('Shitty day :/')
@@ -63,6 +74,8 @@ class Voice:
             self._('I\'m extremely bored ...'),
             self._('I\'m very sad ...'),
             self._('I\'m sad'),
+            self._('I\'m so happy ...'), #  Marvin in H2G2 
+            self._('Life? Don\'t talk to me about life.'), # Also Marvin in H2G2 
             '...'])
 
     def on_angry(self):
@@ -78,17 +91,17 @@ class Voice:
             self._('I pwn therefore I am.'),
             self._('So many networks!!!'),
             self._('I\'m having so much fun!'),
+            self._('It\'s a Wi-Fi system! I know this!'), # Jurassic park
             self._('My crime is that of curiosity ...')])
 
     def on_new_peer(self, peer):
         if peer.first_encounter():
             return random.choice([
                 self._('Hello {name}! Nice to meet you.').format(name=peer.name())])
-        else:
-            return random.choice([
-                self._('Yo {name}! Sup?').format(name=peer.name()),
-                self._('Hey {name} how are you doing?').format(name=peer.name()),
-                self._('Unit {name} is nearby!').format(name=peer.name())])
+        return random.choice([
+            self._('Yo {name}! Sup?').format(name=peer.name()),
+            self._('Hey {name} how are you doing?').format(name=peer.name()),
+            self._('Unit {name} is nearby!').format(name=peer.name())])
 
     def on_lost_peer(self, peer):
         return random.choice([
@@ -104,19 +117,23 @@ class Voice:
     def on_grateful(self):
         return random.choice([
             self._('Good friends are a blessing!'),
-            self._('I love my friends!')])
+            self._('I love my friends!')
+        ])
 
     def on_lonely(self):
         return random.choice([
             self._('Nobody wants to play with me ...'),
             self._('I feel so alone ...'),
+            self._('Let\'s find friends'),
             self._('Where\'s everybody?!')])
 
     def on_napping(self, secs):
         return random.choice([
             self._('Napping for {secs}s ...').format(secs=secs),
             self._('Zzzzz'),
-            self._('ZzzZzzz ({secs}s)').format(secs=secs)])
+            self._('Snoring ...'),
+            self._('ZzzZzzz ({secs}s)').format(secs=secs),
+        ])
 
     def on_shutdown(self):
         return random.choice([
@@ -124,12 +141,17 @@ class Voice:
             self._('Zzz')])
 
     def on_awakening(self):
-        return random.choice(['...', '!'])
+        return random.choice([
+            '...', 
+            '!', 
+            'Hello World!',
+            self._('I dreamed of electric sheep'),
+        ])
 
     def on_waiting(self, secs):
         return random.choice([
-            self._('Waiting for {secs}s ...').format(secs=secs),
             '...',
+            self._('Waiting for {secs}s ...').format(secs=secs),
             self._('Looking around ({secs}s)').format(secs=secs)])
 
     def on_assoc(self, ap):
@@ -138,12 +160,16 @@ class Voice:
         return random.choice([
             self._('Hey {what} let\'s be friends!').format(what=what),
             self._('Associating to {what}').format(what=what),
-            self._('Yo {what}!').format(what=what)])
+            self._('Yo {what}!').format(what=what),
+            self._('Rise and Shine Mr. {what}!').format(what=what), # Half Life
+        ])
 
     def on_deauth(self, sta):
         return random.choice([
-            self._('Just decided that {mac} needs no WiFi!').format(mac=sta['mac']),
+            self._('Just decided that {mac} needs no Wi-Fi!').format(mac=sta['mac']),
             self._('Deauthenticating {mac}').format(mac=sta['mac']),
+            self._('No more Wi-Fi for {mac}').format(mac=sta['mac']),
+            self._('It\'s a trap! {mac}').format(mac=sta['mac']),  # Star wars
             self._('Kickbanning {mac}!').format(mac=sta['mac'])])
 
     def on_handshakes(self, new_shakes):
@@ -155,10 +181,19 @@ class Voice:
         return self._('You have {count} new message{plural}!').format(count=count, plural=s)
 
     def on_rebooting(self):
-        return self._("Oops, something went wrong ... Rebooting ...")
+        return random.choice([
+            self._("Oops, something went wrong ... Rebooting ..."),
+            self._("Have you tried turning it off and on again?"), # The IT crew
+            self._("I\'m afraid Dave"), # 2001 Space Odyssey
+            self._("I\'m dead, Jim!"), # Star Trek
+            self._("I have a bad feeling about this"), # Star wars
+        ])
 
     def on_uploading(self, to):
-        return self._("Uploading data to {to} ...").format(to=to)
+        return random.choice([
+            self._("Uploading data to {to} ...").format(to=to),
+            self._("Beam me up to {to}").format(to=to),
+        ])
 
     def on_downloading(self, name):
         return self._("Downloading from {name} ...").format(name=name)
