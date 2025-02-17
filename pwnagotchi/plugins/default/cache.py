@@ -70,8 +70,8 @@ class Cache(plugins.Plugin):
             for cache_file in cache_to_delete:
                 try:
                     cache_file.unlink()
-                except Exception as e:
-                    logging.error(f"[CACHE] Cannot delete {cache_file}: {e}")
+                except FileNotFoundError as e:
+                    pass
 
     def write_ap_cache(self, access_point):
         with self.lock:
