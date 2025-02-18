@@ -134,11 +134,12 @@ class BTState(Enum):
     BT_PAIRED = 1
     BT_TRUSTED = 2
     BT_CONNECTED = 3
-    DEVICE_DISCONNECTED = 4
-    DEVICE_CONNECTED = 5
-    CONNECTION_DOWN = 6
-    CONNECTION_UP = 7
-    ERROR = 8
+    BT_DISCONNECTED = 4
+    DEVICE_DISCONNECTED = 5
+    DEVICE_CONNECTED = 6
+    CONNECTION_DOWN = 7
+    CONNECTION_UP = 8
+    ERROR = 9
 
 
 class BTTether(plugins.Plugin):
@@ -161,8 +162,7 @@ class BTTether(plugins.Plugin):
                 return result.stdout.find(pattern)
             return result
         except Exception as exp:
-            logging.error(f"[BT-Tether] Error with {cmd}")
-            logging.error(f"[BT-Tether] Exception : {exp}")
+            logging.debug(f"[BT-Tether] Error with {cmd}: {exp}")
             raise exp
 
     def bluetoothctl(self, args, pattern=None):
@@ -297,6 +297,15 @@ class BTTether(plugins.Plugin):
             raise ConnectionConfigError()
 
     def up_connection(self):
+        match self.check_bluetooth():
+            case BTState.BT_CONNECTED:
+                pass
+            case BTState.BT_DISCONNECTED:
+                logging.info(f"[BT-Tether] BT ({self.mac}) not connected. Trying anyway for future")
+            case _:
+                logging.error(f"[BT-Tether] BT ({self.mac}) config error.")
+                return
+
         match self.check_connection():
             case BTState.CONNECTION_UP:
                 logging.info(f"[BT-Tether] Connection already up.")
@@ -306,8 +315,9 @@ class BTTether(plugins.Plugin):
                     self.nmcli(["connection", "up", f"{self.phone_name}"])
                     logging.info(f"[BT-Tether] Connection {self.phone_name} up.")
                 except Exception as e:
-                    logging.error(f"[BT-Tether] Failed to up connection: {e}")
-                    logging.error(f"[BT-Tether] Is bluetooth tethering enabled on your phone?")
+                    logging.error(
+                        f"[BT-Tether] Failed to up connection. Is bluetooth tethering enabled on your phone?"
+                    )
             case BTState.ERROR:
                 logging.error(f"[BT-Tether] Error with connection ({self.phone_name}).")
                 return
@@ -315,13 +325,20 @@ class BTTether(plugins.Plugin):
     def check_bluetooth(self):
         try:
             result = self.bluetoothctl(["--timeout", "0", "info", self.mac]).stdout
-            if result.find(r"Connected:\s+yes"):
-                return BTState.BT_CONNECTED
-            if result.find(r"Trusted:\s+yes"):
-                return BTState.BT_TRUSTED
-            if result.find(r"Paired:\s+yes"):
-                return BTState.BT_PAIRED
-            return BTState.BT_NOTCONFIGURED
+            trusted = result.find(r"Trusted: yes") != -1
+            paired = result.find(r"Paired: yes") != -1
+
+            match paired , trusted:
+                case True, True:
+                    if result.find(r"Connected: yes") != -1:
+                        return BTState.BT_CONNECTED
+                    return BTState.BT_DISCONNECTED
+                case True, False:
+                    return BTState.BT_PAIRED
+                case False, True:
+                    return BTState.BT_TRUSTED
+                case False, False:
+                    return BTState.BT_NOTCONFIGURED
         except Exception as e:
             return BTState.ERROR
 
