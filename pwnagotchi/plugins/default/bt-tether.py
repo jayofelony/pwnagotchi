@@ -209,6 +209,8 @@ class BTTether(plugins.Plugin):
         match self.check_bluetooth():  # Checking BT pairing
             case BTState.BT_CONNECTED:
                 logging.info(f"[BT-Tether] BT device ({self.mac}) connected.")
+            case BTState.BT_DISCONNECTED:
+                logging.info(f"[BT-Tether] BT device ({self.mac}) disconnected. Please connect.")
             case BTState.BT_TRUSTED:
                 logging.info(
                     f"[BT-Tether] BT device ({self.mac}) paired, trusted but not connected."
@@ -328,7 +330,7 @@ class BTTether(plugins.Plugin):
             trusted = result.find(r"Trusted: yes") != -1
             paired = result.find(r"Paired: yes") != -1
 
-            match paired , trusted:
+            match paired, trusted:
                 case True, True:
                     if result.find(r"Connected: yes") != -1:
                         return BTState.BT_CONNECTED
