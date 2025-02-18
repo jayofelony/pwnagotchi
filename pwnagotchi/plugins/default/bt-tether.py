@@ -374,7 +374,7 @@ class BTTether(plugins.Plugin):
                 case BTState.DEVICE_CONNECTED:
                     state, dev_status = "C", "BT dev conn."
                 case BTState.DEVICE_DISCONNECTED:
-                    state, dev_status = "-", "BT dev disconn."
+                    state, dev_status = "-", "BT dev discon."
                 case BTState.ERROR:
                     state, dev_status = "E", "BT dev error"
                     logging.error(f"[BT-Tether] Error with device ({self.mac}).")
