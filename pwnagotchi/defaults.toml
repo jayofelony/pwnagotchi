@@ -69,6 +69,9 @@ main.plugins.pwndroid.display_altitude = false # show altitude on display
 main.plugins.pisugarx.enabled = false
 main.plugins.pisugarx.rotation = false
 main.plugins.pisugarx.default_display = "percentage"
+main.plugins.pisugarx.lowpower_shutdown = true
+main.plugins.pisugarx.lowpower_shutdown_level = 10 # battery percent at which the device will turn off
+main.plugins.pisugarx.max_charge_voltage_protection = false #It will limit the battery voltage to about 80% to extend battery life
 
 main.plugins.session-stats.enabled = false
 main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
