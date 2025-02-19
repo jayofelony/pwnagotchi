@@ -485,14 +485,18 @@ class BTTether(plugins.Plugin):
             pass
 
     def reconnect(self):
-        if (datetime.now(tz=UTC) - self.last_reconnect).total_seconds() < 30:
+        if (datetime.now(tz=UTC) - self.last_reconnect).total_seconds() < 30 or self.lock.locked():
             return
-        logging.info(f"[BT-Tether] Trying to connect to {self.phone_name}")
         self.last_reconnect = datetime.now(tz=UTC)
         with self.lock:
+            logging.info(f"[BT-Tether] Trying to connect to {self.phone_name}")
             self.connect_bluetooth()
             time.sleep(2)
+            if self.check_bluetooth() != BTState.CONNECTED:
+                return
             self.up_device()
+            if self.check_device() != DevState.UP:
+                return
             time.sleep(2)
             self.up_connection()
 
