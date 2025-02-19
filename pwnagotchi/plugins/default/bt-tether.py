@@ -106,16 +106,28 @@ TEMPLATE = """
             <th>Configuration</th>
         </tr>
         <tr>
-            <td data-label="bluetooth">Bluetooth</td>
-            <td>{{bluetooth|safe}}</td>
+            <td data-label="bluetooth"><strong>Bluetooth</strong><br>{{bluetooth_header}}</td>
+            <td>
+                {% for item in bluetooth_config %}
+                    {% if item[0] %}<strong>{{item[0]}}</strong>: {{item[1]}}<br>{% endif %}
+                {% endfor %}
+            </td>
         </tr>
         <tr>
-            <td data-label="device">Device</td>
-            <td>{{device|safe}}</td>
+            <td data-label="device"><strong>Device</strong><br>{{device_header}}</td>
+            <td>
+                {% for item in device_config %}
+                    {% if item[0] %}<strong>{{item[0]}}</strong>: {{item[1]}}<br>{% endif %}
+                {% endfor %}
+            </td>
         </tr>
         <tr>
-            <td data-label="connection">Connection</td>
-            <td>{{connection|safe}}</td>
+            <td data-label="connection"><strong>Connection</strong><br>{{connection_header}}</td>
+            <td>
+                {% for item in connection_config %}
+                    {% if item[0] %}<strong>{{item[0]}}</strong>: {{item[1]}}<br>{% endif %}
+                {% endfor %}
+            </td>
         </tr>
     </table>
 {% endblock %}
@@ -156,7 +168,7 @@ class ConnectionState(Enum):
 
 class BTTether(plugins.Plugin):
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.5.1"
+    __version__ = "1.5.2"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
@@ -530,27 +542,45 @@ class BTTether(plugins.Plugin):
                     </html>"""
         if path == "/" or not path:
             try:
-                bluetooth = self.bluetoothctl(["info", self.mac])
-                bluetooth = bluetooth.stdout.replace("\n", "<br>")
+                bluetooth = self.bluetoothctl(["info", self.mac]).stdout
+                bluetooth_config = [
+                    tuple(i.split(": ")) for i in bluetooth.replace("\t", "").split("\n")[1:]
+                ]
+                bluetooth_header = bluetooth.replace("\t", "").split("\n")[0]
             except Exception as e:
-                bluetooth = "Error while checking bluetoothctl"
+                bluetooth_header = "Error while checking bluetoothctl"
+                bluetooth_config = []
 
             try:
-                device = self.nmcli(["-w", "0", "device", "show", self.mac])
-                device = device.stdout.replace("\n", "<br>")
+                device = self.nmcli(["-w", "0", "device", "show", self.mac]).stdout
+                device_config = [
+                    tuple(i.split(": ")) for i in device.replace("\t", "").split("\n")[1:]
+                ]
+                device_header = device.replace("\t", "").split("\n")[0]
             except Exception as e:
-                device = "Error while checking nmcli device"
+                logging.error(e)
+                device_header = "Error while checking nmcli device"
+                device_config = []
 
             try:
-                connection = self.nmcli(["-w", "0", "connection", "show", self.phone_name])
-                connection = connection.stdout.replace("\n", "<br>")
+                connection = self.nmcli(["-w", "0", "connection", "show", self.phone_name]).stdout
+                connection_config = [
+                    tuple(i.split(": ")) for i in connection.replace("\t", "").split("\n")[1:]
+                ]
+                connection_header = connection.replace("\t", "").split("\n")[0]
             except Exception as e:
-                connection = "Error while checking nmcli connection"
+                logging.error(e)
+                connection_header = "Error while checking nmcli connection"
+                connection_config = []
+
             return render_template_string(
                 TEMPLATE,
                 title="BT-Tether",
-                bluetooth=bluetooth,
-                device=device,
-                connection=connection,
+                bluetooth_header=bluetooth_header,
+                bluetooth_config=bluetooth_config,
+                device_header=device_header,
+                device_config=device_config,
+                connection_header=connection_header,
+                connection_config=connection_config,
             )
         abort(404)
