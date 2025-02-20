@@ -2,6 +2,7 @@ import logging
 import subprocess
 import re
 import time
+import os
 from threading import Lock
 from datetime import datetime, UTC
 from enum import Enum, auto
@@ -11,127 +12,6 @@ import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
 
-TEMPLATE = """
-{% extends "base.html" %}
-{% set active_page = "bt-tether" %}
-{% block title %}
-    {{ title }}
-{% endblock %}
-{% block meta %}
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=0" />
-{% endblock %}
-{% block styles %}
-{{ super() }}
-    <style>
-        #searchText {
-            width: 100%;
-        }
-        table {
-            table-layout: auto;
-            width: 100%;
-        }
-        table, th, td {
-            border: 1px solid;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 15px;
-            text-align: left;
-        }
-        @media screen and (max-width:700px) {
-            table, tr, td {
-                padding:0;
-                border:1px solid;
-            }
-            table {
-                border:none;
-            }
-            tr:first-child, thead, th {
-                display:none;
-                border:none;
-            }
-            tr {
-                float: left;
-                width: 100%;
-                margin-bottom: 2em;
-            }
-            td {
-                float: left;
-                width: 100%;
-                padding:1em;
-            }
-            td::before {
-                content:attr(data-label);
-                word-wrap: break-word;
-                color: white;
-                border-right:2px solid;
-                width: 20%;
-                float:left;
-                padding:1em;
-                font-weight: bold;
-                margin:-1em 1em -1em -1em;
-            }
-        }
-    </style>
-{% endblock %}
-{% block script %}
-    var searchInput = document.getElementById("searchText");
-    searchInput.onkeyup = function() {
-        var filter, table, tr, td, i, txtValue;
-        filter = searchInput.value.toUpperCase();
-        table = document.getElementById("tableOptions");
-        if (table) {
-            tr = table.getElementsByTagName("tr");
-
-            for (i = 0; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td")[0];
-                if (td) {
-                    txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                    }else{
-                        tr[i].style.display = "none";
-                    }
-                }
-            }
-        }
-    }
-{% endblock %}
-{% block content %}
-    <input type="text" id="searchText" placeholder="Search for ..." title="Type in a filter">
-    <table id="tableOptions">
-        <tr>
-            <th>Item</th>
-            <th>Configuration</th>
-        </tr>
-        <tr>
-            <td data-label="bluetooth"><strong>Bluetooth</strong><br>{{bluetooth_header}}</td>
-            <td>
-                {% for item in bluetooth_config %}
-                    {% if item[0] %}<strong>{{item[0]}}</strong>: {{item[1]}}<br>{% endif %}
-                {% endfor %}
-            </td>
-        </tr>
-        <tr>
-            <td data-label="device"><strong>Device</strong><br>{{device_header}}</td>
-            <td>
-                {% for item in device_config %}
-                    {% if item[0] %}<strong>{{item[0]}}</strong>: {{item[1]}}<br>{% endif %}
-                {% endfor %}
-            </td>
-        </tr>
-        <tr>
-            <td data-label="connection"><strong>Connection</strong><br>{{connection_header}}</td>
-            <td>
-                {% for item in connection_config %}
-                    {% if item[0] %}<strong>{{item[0]}}</strong>: {{item[1]}}<br>{% endif %}
-                {% endfor %}
-            </td>
-        </tr>
-    </table>
-{% endblock %}
-"""
 
 # We all love crazy regex patterns
 MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
@@ -186,6 +66,14 @@ class BTTether(plugins.Plugin):
         self.last_reconnect = datetime(2025, 1, 1, 0, 0, tzinfo=UTC)
         self.last_timestamp = None
         self.driver_error = False
+        try:
+            template_file = os.path.dirname(os.path.realpath(__file__)) + "/" + "bt-tether.html"
+            with open(template_file, "r") as fb:
+                self.template = fb.read()
+        except Exception as error:
+            logging.error(
+                f"[BT-Tether] error loading template file {template_file} - error: {error}"
+            )
 
     @staticmethod
     def exec_cmd(cmd, args, pattern=None, silent=False):
@@ -674,7 +562,7 @@ class BTTether(plugins.Plugin):
                 connection_config = []
 
             return render_template_string(
-                TEMPLATE,
+                self.template,
                 title="BT-Tether",
                 bluetooth_header=bluetooth_header,
                 bluetooth_config=bluetooth_config,
