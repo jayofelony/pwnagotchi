@@ -1,4 +1,5 @@
 #!/bin/bash
+# Script to reload kernel modules for bluetooth
 
 echo "Down connections"
 IFS=$'\n'
@@ -8,10 +9,12 @@ do
 done
   
 echo "Down devices"
-for device in $(bluetoothctl devices  | grep -o "[[:xdigit:]:]\{8,17\}")
+for device in $(timeout 5 bluetoothctl devices  | grep -o "[[:xdigit:]:]\{8,17\}")
 do
+	echo "nmcli d"
 	nmcli device down $device 2> /dev/null
-	bluetoothctl disconnect $device 2> /dev/null
+	echo "BT"
+	timeout 5 bluetoothctl disconnect $device 2> /dev/null
 done
 echo "Stoping bluetooth daemon"
 systemctl stop bluetooth
