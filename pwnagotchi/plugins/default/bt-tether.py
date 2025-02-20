@@ -138,9 +138,16 @@ MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
 IP_PTTRN = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
 DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]?\s*)$"
 
+KERN_ERROR_PTTRN = r"^\[(\d+\.\d+)\]\s+Bluetooth:\shci0:\s.+"
+
 
 class ConfigError(Exception):
     pass
+
+
+class DriverState(Enum):
+    ERROR = auto()
+    OK = auto()
 
 
 class BTState(Enum):
@@ -168,7 +175,7 @@ class ConnectionState(Enum):
 
 class BTTether(plugins.Plugin):
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.5.2"
+    __version__ = "1.6.0"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
@@ -177,24 +184,40 @@ class BTTether(plugins.Plugin):
         self.options = dict()
         self.lock = Lock()
         self.last_reconnect = datetime(2025, 1, 1, 0, 0, tzinfo=UTC)
+        self.last_timestamp = None
+        self.driver_error = False
 
     @staticmethod
-    def exec_cmd(cmd, args, pattern=None, log=True):
+    def exec_cmd(cmd, args, pattern=None, silent=False):
         try:
-            result = subprocess.run([cmd] + args, check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                [cmd] + args, check=True, capture_output=True, text=True, timeout=10
+            )
             if pattern:
                 return result.stdout.find(pattern)
             return result
         except Exception as exp:
-            if log:
+            if not silent:
                 logging.debug(f"[BT-Tether] Error with {cmd}: {exp}")
-            raise exp
+                raise exp
 
     def bluetoothctl(self, args, pattern=None):
         return self.exec_cmd("bluetoothctl", args, pattern)
 
     def nmcli(self, args, pattern=None):
         return self.exec_cmd("nmcli", args, pattern)
+
+    def rmmod(self, module):
+        return self.exec_cmd("rmmod", ["-f", module], silent=True)
+
+    def modprobe(self, module):
+        return self.exec_cmd("modprobe", [module])
+
+    def hciconfig(self, command):
+        return self.exec_cmd("hciconfig", ["hci0", command])
+
+    def systemctl(self, command, service):
+        return self.exec_cmd("systemctl", [command, service])
 
     def on_loaded(self):
         logging.info("[BT-Tether] plugin loaded")
@@ -219,7 +242,7 @@ class BTTether(plugins.Plugin):
         if not re.match(IP_PTTRN, self.address):
             logging.error(f"[BT-Tether] IP error: {self.address}")
             return
-
+        self.internet = self.options.get("internet", True)
         self.phone_name = self.options["phone-name"] + " Network"
         self.mac = self.options["mac"]
 
@@ -234,6 +257,13 @@ class BTTether(plugins.Plugin):
 
         self.autoconnect = self.options.get("autoconnect", True)
         self.metric = self.options.get("metric", 200)
+
+        match self.check_driver():
+            case DriverState.OK:
+                logging.info("[BT-Tether] Drivers OK")
+            case DriverState.ERROR:
+                logging.info("[BT-Tether] Drivers ERROR: reloading drivers")
+                self.reload_drivers()
 
         match self.check_bluetooth():  # Checking BT pairing
             case BTState.CONNECTED | BTState.DISCONNECTED:
@@ -288,13 +318,62 @@ class BTTether(plugins.Plugin):
 
     def on_unload(self, ui):
         with ui._lock:
-            ui.remove_element("bluetooth")
+            try:
+                ui.remove_element("bluetooth")
+            except KeyError:
+                pass
         with self.lock:
             logging.info("[BT-Tether] Unloading connection")
             self.down_connection()
             self.down_device()
             self.disconnect_bluetooth()
         logging.info("[BT-Tether] plugin unloaded")
+
+    # ---------- KERNEL DRIVER ----------
+    def get_last_timestamp(self):
+        result = self.exec_cmd("dmesg", ["-l", "err", "-k"]).stdout
+        try:
+            last_error = [l for l in result.split("\n") if l.find("Bluetooth: hci0") != -1][-1]
+            return re.match(KERN_ERROR_PTTRN, last_error).groups()[0]
+        except IndexError:
+            return None
+
+    def check_driver(self):
+        if self.driver_error:
+            return DriverState.ERROR
+        last_timestamp = self.get_last_timestamp()
+        if last_timestamp != self.last_timestamp:
+            self.last_timestamp = last_timestamp
+            self.driver_error = True
+            return DriverState.ERROR
+        return DriverState.OK
+
+    def reload_drivers(self):
+        logging.info("[BT-Tether] Reloading kernel modules")
+        logging.info("[BT-Tether] Connection down")
+        self.down_connection()
+        self.down_device()
+        self.disconnect_bluetooth()
+        logging.info("[BT-Tether] Stoping bluetooth daemon")
+        self.systemctl("stop", "bluetooth")
+        logging.info("[BT-Tether] Downing hci0")
+        self.hciconfig("down")
+        for module in ["hci_uart", "btbcm", "bnep", "bluetooth"]:
+            logging.info(f"[BT-Tether] Removing {module}")
+            self.rmmod(module)
+        for module in ["btbcm", "hci_uart", "bnep", "bluetooth"]:
+            logging.info(f"[BT-Tether] Loading {module}")
+            self.modprobe(module)
+        logging.info("[BT-Tether] Uping and reseting hci0")
+        self.hciconfig("up")
+        self.hciconfig("reset")
+        logging.info("[BT-Tether] Starting bluetooth daemon")
+        self.systemctl("start", "bluetooth")
+        logging.info("[BT-Tether] Restarting NetworkManager daemon")
+        self.systemctl("restart", "NetworkManager")
+        logging.info("[BT-Tether] Bluetooth agent on")
+        self.bluetoothctl(["agent", "on"])
+        self.driver_error = False
 
     # ---------- BLUETOOTH ----------
     def check_bluetooth(self):
@@ -341,7 +420,7 @@ class BTTether(plugins.Plugin):
 
     def disconnect_bluetooth(self):
         try:
-            self.bluetoothctl(["disconnect", f"{self.mac}"])
+            self.bluetoothctl(["--timeout", "10", "disconnect", f"{self.mac}"])
         except Exception as e:
             pass
 
@@ -428,11 +507,14 @@ class BTTether(plugins.Plugin):
                 f"{self.dns}",
                 "ipv4.addresses",
                 f"{self.address}/24",
-                "ipv4.gateway",
-                f"{self.gateway}",
                 "ipv4.route-metric",
                 f"{self.metric}",
             ]
+            if self.internet:
+                args += [
+                    "ipv4.gateway",
+                    f"{self.gateway}",
+                ]
             if self.autoconnect:
                 args += [
                     "connection.autoconnect",
@@ -484,12 +566,16 @@ class BTTether(plugins.Plugin):
         except Exception as e:
             pass
 
+    # ---------- RECONNECT (autoconnect=False) ----------
     def reconnect(self):
         if (datetime.now(tz=UTC) - self.last_reconnect).total_seconds() < 30 or self.lock.locked():
             return
         self.last_reconnect = datetime.now(tz=UTC)
         with self.lock:
             logging.info(f"[BT-Tether] Trying to connect to {self.phone_name}")
+            if self.check_driver() != DriverState.OK:
+                logging.error(f"[BT-Tether] Error with bluetooth driver")
+                return
             self.connect_bluetooth()
             time.sleep(2)
             if self.check_bluetooth() != BTState.CONNECTED:
@@ -504,7 +590,7 @@ class BTTether(plugins.Plugin):
     def on_ui_update(self, ui):
         if not self.ready:
             return
-        state, con_status, dev_status = "", "", ""
+        state, con_status, dev_status, drv_status = "", "", "", ""
         # Checking connection
         match self.check_connection():
             case ConnectionState.UP:
@@ -530,10 +616,20 @@ class BTTether(plugins.Plugin):
             case DevState.ERROR:
                 dev_status = "Dev error"
                 logging.error(f"[BT-Tether] Error with device ({self.mac})")
+
+        # Checking drivers
+        match self.check_driver():
+            case DriverState.OK:
+                pass
+            case DriverState.ERROR:
+                state, drv_status = "K", "Mod error"
+                logging.info("[BT-Tether] Drivers ERROR: reloading drivers")
+                self.reload_drivers()
+
         with ui._lock:
             ui.set("bluetooth", state)
-            if any([con_status, dev_status]):
-                ui.set("status", f"{con_status}\n{dev_status}")
+            if lines := list(filter(lambda x: x, [con_status, dev_status, drv_status])):
+                ui.set("status", "\n".join(lines))
         if not self.autoconnect:
             self.reconnect()
 
