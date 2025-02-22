@@ -294,11 +294,12 @@ class BTManager(Thread):
         """
         Bluetooth disconnection
         """
-        if self.check_bluetooth() == BTState.CONNECTED:
-            try:
-                bluetoothctl(["disconnect", f"{self.mac}"])
-            except Exception as e:
-                pass
+        if self.check_bluetooth() == BTState.DISCONNECTED:
+            return
+        try:
+            bluetoothctl(["disconnect", f"{self.mac}"])
+        except Exception as e:
+            logging.error(f"[BT-Tether] Failed to disconnect BT device ({self.mac}): {e}")
 
     def get_bluetooth_config(self):
         try:
@@ -365,11 +366,12 @@ class BTManager(Thread):
         """
         NetworkManager device down
         """
-        if self.check_device() in [DeviceState.UP, DeviceState.CONNECTING]:
-            try:
-                nmcli(["device", "down", f"{self.mac}"])
-            except Exception as e:
-                pass
+        if self.check_device() == DeviceState.DOWN:
+            return
+        try:
+            nmcli(["device", "down", f"{self.mac}"])
+        except Exception as e:
+            logging.error(f"[BT-Tether] Failed to down device ({self.mac}): {e}")
 
     def get_device_config(self):
         try:
@@ -466,11 +468,12 @@ class BTManager(Thread):
         """
         NetworkManager connection down
         """
-        if self.check_connection() in [ConnectionState.UP, ConnectionState.ACTIVATING]:
-            try:
-                nmcli(["connection", "down", f"{self.phone_name}"])
-            except Exception as e:
-                pass
+        if self.check_connection() == ConnectionState.DOWN:
+            return
+        try:
+            nmcli(["connection", "down", f"{self.phone_name}"])
+        except Exception as e:
+            logging.error(f"[BT-Tether] Failed to down connection ({self.phone_name}): {e}")
 
     def get_connection_config(self):
         try:
@@ -504,7 +507,9 @@ class BTManager(Thread):
         """
         logging.info("[BT-Tether] Unloading connection")
         self.down_connection()
+        time.sleep(2)
         self.down_device()
+        time.sleep(2)
         self.disconnect_bluetooth()
 
     def reconnect(self):
