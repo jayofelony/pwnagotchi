@@ -376,6 +376,8 @@ class BTManager(Thread):
             args += ["ipv4.route-metric", f"{self.metric}"]
             if self.internet:
                 args += ["ipv4.gateway", f"{self.gateway}"]
+            else:
+                args += ["ipv4.gateway", ""]
             if self.autoconnect:
                 args += ["connection.autoconnect", "yes"]
                 args += ["connection.autoconnect-retries", "0"]
@@ -501,10 +503,10 @@ class BTManager(Thread):
         """
         End main loop and down all
         """
-        self.running = False # exit main loop
+        self.running = False  # exit main loop
         try:
             super().join(timeout)
-        except RuntimeError: # Handle coding bugs and ensure the thread exit
+        except RuntimeError:  # Handle coding bugs and ensure the thread exit
             pass
         self.down_all()
 
