@@ -19,7 +19,7 @@ MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
 IP_PTTRN = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
 DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]?\s*)$"
 
-KERN_ERROR_PTTRN = r"^\[(\d+\.\d+)\]\s+Bluetooth:\shci0:\s.+"
+KERN_ERROR_PTTRN = r"^\[\s*(\d+\.\d+)\]\s+Bluetooth:\shci0:\s.+"
 
 
 class ConfigError(Exception):
@@ -273,6 +273,13 @@ class BTManager(Thread):
             except Exception as e:
                 pass
 
+    def get_bluetooth_config(self):
+        try:
+            return bluetoothctl(["info", self.mac])
+        except Exception:
+            logging.error(f"[BT-Tether] Error while getting BT config ({self.mac})")
+            return None
+
     # ---------- DEVICE ----------
     def check_device(self):
         """
@@ -336,6 +343,13 @@ class BTManager(Thread):
                 nmcli(["device", "down", f"{self.mac}"])
             except Exception as e:
                 pass
+
+    def get_device_config(self):
+        try:
+            return nmcli(["-w", "0", "device", "show", f"{self.mac}"])
+        except Exception:
+            logging.error(f"[BT-Tether] Error while getting device config ({self.mac})")
+            return None
 
     # ---------- CONNECTION ----------
     def check_connection(self):
@@ -431,6 +445,13 @@ class BTManager(Thread):
             except Exception as e:
                 pass
 
+    def get_connection_config(self):
+        try:
+            return nmcli(["-w", "0", "connection", "show", self.phone_name])
+        except Exception:
+            logging.error(f"[BT-Tether] Error while getting device config ({self.mac})")
+            return None
+
     # ---------- ALL UP and DOWN ----------
     def up_all(self, force=False):
         """
@@ -511,6 +532,10 @@ class BTManager(Thread):
             pass
         self.down_all()
 
+    # ---------- MAIN LOOP ----------
+    def get_config(self):
+        pass
+
 
 class BTTether(plugins.Plugin):
     """
@@ -518,7 +543,7 @@ class BTTether(plugins.Plugin):
     """
 
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.6.0"
+    __version__ = "1.6.1"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
@@ -560,8 +585,8 @@ class BTTether(plugins.Plugin):
             logging.error(f"[BT-Tether] IP error: {address}")
             return
         internet = self.options.get("internet", True)
-        self.phone_name = self.options["phone-name"] + " Network"
-        self.mac = self.options["mac"]
+        phone_name = self.options["phone-name"] + " Network"
+        mac = self.options["mac"]
 
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
         if not re.match(DNS_PTTRN, dns):
@@ -575,7 +600,7 @@ class BTTether(plugins.Plugin):
         autoconnect = self.options.get("autoconnect", True)
         metric = self.options.get("metric", 200)
         self.btmanager = BTManager(
-            self.phone_name, self.mac, address, gateway, dns, metric, internet, autoconnect
+            phone_name, mac, address, gateway, dns, metric, internet, autoconnect
         )
         self.btmanager.start()
 
@@ -591,7 +616,7 @@ class BTTether(plugins.Plugin):
 
     def on_ui_setup(self, ui):
         """
-        Add the BT element
+        Add the BT element to the UI
         """
         with ui._lock:
             ui.add_element(
@@ -656,6 +681,14 @@ class BTTether(plugins.Plugin):
         """
         Handle web requests to show actual configuration
         """
+
+        def split_config(item, default_header):
+            if item:
+                header = item.replace("\t", "").split("\n")[0]
+                config = [tuple(i.split(": ")) for i in item.replace("\t", "").split("\n")[1:]]
+                return header, config
+            return default_header, []
+
         if not (self.btmanager and self.btmanager.ready):
             return """<html>
                         <head><title>BT-tether: Error</title></head>
@@ -668,37 +701,17 @@ class BTTether(plugins.Plugin):
                         <body><code>Template not loaded</code></body>
                     </html>"""
         if path == "/" or not path:
-            try:
-                bluetooth = bluetoothctl(["info", self.mac])
-                bluetooth_config = [
-                    tuple(i.split(": ")) for i in bluetooth.replace("\t", "").split("\n")[1:]
-                ]
-                bluetooth_header = bluetooth.replace("\t", "").split("\n")[0]
-            except Exception as e:
-                bluetooth_header = "Error while checking bluetoothctl"
-                bluetooth_config = []
+            bluetooth_header, bluetooth_config = split_config(
+                self.btmanager.get_bluetooth_config(), "Error while checking bluetoothctl"
+            )
 
-            try:
-                device = nmcli(["-w", "0", "device", "show", self.mac])
-                device_config = [
-                    tuple(i.split(": ")) for i in device.replace("\t", "").split("\n")[1:]
-                ]
-                device_header = device.replace("\t", "").split("\n")[0]
-            except Exception as e:
-                logging.error(e)
-                device_header = "Error while checking nmcli device"
-                device_config = []
+            device_header, device_config = split_config(
+                self.btmanager.get_device_config(), "Error while checking nmcli device"
+            )
 
-            try:
-                connection = nmcli(["-w", "0", "connection", "show", self.phone_name])
-                connection_config = [
-                    tuple(i.split(": ")) for i in connection.replace("\t", "").split("\n")[1:]
-                ]
-                connection_header = connection.replace("\t", "").split("\n")[0]
-            except Exception as e:
-                logging.error(e)
-                connection_header = "Error while checking nmcli connection"
-                connection_config = []
+            connection_header, connection_config = split_config(
+                self.btmanager.get_connection_config(), "Error while checking nmcli connection"
+            )
 
             return render_template_string(
                 self.template,
