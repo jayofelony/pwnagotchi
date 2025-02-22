@@ -156,7 +156,7 @@ class BTManager(Thread):
     # ---------- KERNEL DRIVER ----------
     def get_last_timestamp(self):
         """
-        Retreive last kernel error
+        Retreive last kernel error. Ex: Bluetooth: hci0 command XXXXX tx timeout"
         """
         result = dmesg()
         try:
@@ -185,6 +185,7 @@ class BTManager(Thread):
         """
         Reload kernel drivers by downing all, stoping daemon, removing modules,
         then it reloads everything.
+        Can be removed in future version is the bug doesn't happen anymore
         """
         logging.info("[BT-Tether] Reloading kernel modules")
         systemctl("stop", "bluetooth")
