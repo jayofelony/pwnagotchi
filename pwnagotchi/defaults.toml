@@ -28,8 +28,11 @@ main.plugins.bt-tether.enabled = false
 main.plugins.bt-tether.phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
 main.plugins.bt-tether.mac = ""
 main.plugins.bt-tether.phone = "" # android or ios
-main.plugins.bt-tether.ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
+main.plugins.bt-tether.autoconnect = true # optional, default true. if true, uses nmcli autoconnect else, up by itself
+main.plugins.bt-tether.ip = "" # optional, default: 192.168.44.2 if android or 172.20.10.2 if ios
 main.plugins.bt-tether.dns = "" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
+main.plugins.bt-tether.metric = 200 # optional, default: 200. Changes connection priority
+main.plugins.bt-tether.internet = true # optional, default true. Use phone as a gateway to Internet or just control
 
 main.plugins.fix_services.enabled = true
 

@@ -65,10 +65,10 @@ class ConnectionState(Enum):
 
 
 # ---------- COMMAND HELPERS ----------
-def exec_cmd(cmd, args, pattern=None, silent=False):
+def exec_cmd(cmd, args, pattern=None, silent=False, timeout=10):
     try:
         result = subprocess.run(
-            [cmd] + args, check=True, capture_output=True, text=True, timeout=10
+            [cmd] + args, check=True, capture_output=True, text=True, timeout=timeout
         )
         if pattern:
             return result.stdout.find(pattern)
@@ -100,7 +100,7 @@ def hciconfig(command):
 
 
 def systemctl(command, service):
-    return exec_cmd("systemctl", [command, service])
+    return exec_cmd("systemctl", [command, service], timeout=30)
 
 
 def dmesg():
@@ -114,11 +114,11 @@ class BTManager(Thread):
     This thread tries to keep the connection up.
     """
 
-    def __init__(self, phone_name, mac, address, gateway, dns, metric, internet, autoconnect):
+    def __init__(self, phone_name, mac, ip, gateway, dns, metric, internet, autoconnect):
         super().__init__()
         self.phone_name = phone_name
         self.mac = mac
-        self.address = address
+        self.ip = ip
         self.gateway = gateway
         self.dns = dns
         self.metric = metric
@@ -144,6 +144,7 @@ class BTManager(Thread):
             logging.error(f"[BT-Tether] Bluetooth pairing error")
             return
         try:
+            self.restart_bluetooth()
             self.configure_connection()
             self.configure_device()
             self.reload_connection()
@@ -188,7 +189,7 @@ class BTManager(Thread):
         Can be removed in future version is the bug doesn't happen anymore
         """
         logging.info("[BT-Tether] Reloading kernel modules")
-        systemctl("stop", "bluetooth")
+        self.stop_bluetooth()
         hciconfig("down")
         for module in ["hci_uart", "btbcm", "bnep", "bluetooth"]:
             rmmod(module)
@@ -196,9 +197,8 @@ class BTManager(Thread):
             modprobe(module)
         hciconfig("up")
         hciconfig("reset")
-        systemctl("start", "bluetooth")
+        self.start_bluetooth()
         systemctl("restart", "NetworkManager")
-        bluetoothctl(["agent", "on"])
         logging.info("[BT-Tether] Kernel modules reloaded")
         self.driver_error = False
 
@@ -242,6 +242,33 @@ class BTManager(Thread):
             case BTState.ERROR:
                 logging.error(f"[BT-Tether] Error with BT device ({self.mac})")
         return False
+
+    def start_bluetooth(self):
+        try:
+            logging.info("[BT-Tether] Start bluetooth service")
+            systemctl("start", "bluetooth")
+            time.sleep(2)
+            bluetoothctl(["power", "on"])
+            bluetoothctl(["agent", "on"])
+        except Exception as e:
+            logging.error(f"[BT-Tether] Error while start bluetooth: {e}")
+
+    def stop_bluetooth(self):
+        try:
+            logging.info("[BT-Tether] Stoping bluetooth service")
+            systemctl("stop", "bluetooth")
+        except Exception as e:
+            logging.error(f"[BT-Tether] Error while stop bluetooth: {e}")
+
+    def restart_bluetooth(self):
+        try:
+            logging.info("[BT-Tether] Restarting bluetooth service")
+            systemctl("restart", "bluetooth")
+            time.sleep(2)
+            bluetoothctl(["power", "on"])
+            bluetoothctl(["agent", "on"])
+        except Exception as e:
+            logging.error(f"[BT-Tether] Error while restarting bluetooth: {e}")
 
     def connect_bluetooth(self):
         """
@@ -387,7 +414,7 @@ class BTManager(Thread):
             args += ["bluetooth.bdaddr", f"{self.mac}"]
             args += ["ipv4.method", "manual"]
             args += ["ipv4.dns", f"{self.dns}"]
-            args += ["ipv4.addresses", f"{self.address}/24"]
+            args += ["ipv4.addresses", f"{self.ip}/24"]
             args += ["ipv4.route-metric", f"{self.metric}"]
             if self.internet:
                 args += ["ipv4.gateway", f"{self.gateway}"]
@@ -565,28 +592,30 @@ class BTTether(plugins.Plugin):
         """
         Read config and starts BTManager
         """
-        if "phone-name" not in self.options:
+        if not (phone_name := self.options.get("phone-name", None)):
             logging.error("[BT-Tether] Phone name not provided")
             return
-        if not ("mac" in self.options and re.match(MAC_PTTRN, self.options["mac"])):
+        phone_name = f"{phone_name} Network"
+
+        mac = self.options.get("mac", None)
+        if not (mac and re.match(MAC_PTTRN, mac)):
             logging.error("[BT-Tether] Error with mac address")
             return
 
-        if not ("phone" in self.options and self.options["phone"].lower() in ["android", "ios"]):
-            logging.error("[BT-Tether] Phone type not supported")
+        match self.options.get("phone", "").lower():
+            case "android":
+                ip = self.options.get("ip", "192.168.44.2")
+                gateway = "192.168.44.1"
+            case "ios":
+                ip = self.options.get("ip", "172.20.10.2")
+                gateway = "172.20.10.1"
+            case _:
+                logging.error("[BT-Tether] Phone type not supported")
+                return
+
+        if not re.match(IP_PTTRN, ip):
+            logging.error(f"[BT-Tether] IP error: {ip}")
             return
-        if self.options["phone"].lower() == "android":
-            address = self.options.get("ip", "192.168.44.2")
-            gateway = "192.168.44.1"
-        elif self.options["phone"].lower() == "ios":
-            address = self.options.get("ip", "172.20.10.2")
-            gateway = "172.20.10.1"
-        if not re.match(IP_PTTRN, address):
-            logging.error(f"[BT-Tether] IP error: {address}")
-            return
-        internet = self.options.get("internet", True)
-        phone_name = self.options["phone-name"] + " Network"
-        mac = self.options["mac"]
 
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
         if not re.match(DNS_PTTRN, dns):
@@ -596,12 +625,12 @@ class BTTether(plugins.Plugin):
                 logging.error(f"[BT-Tether] Wrong DNS setting: '{dns}'")
             return
         dns = re.sub("[\s,;]+", " ", dns).strip()  # DNS cleaning
-
-        autoconnect = self.options.get("autoconnect", True)
         metric = self.options.get("metric", 200)
-        self.btmanager = BTManager(
-            phone_name, mac, address, gateway, dns, metric, internet, autoconnect
-        )
+
+        internet = self.options.get("internet", True)
+        autoconnect = self.options.get("autoconnect", True)
+
+        self.btmanager = BTManager(phone_name, mac, ip, gateway, dns, metric, internet, autoconnect)
         self.btmanager.start()
 
     def on_ready(self, agent):
