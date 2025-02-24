@@ -12,7 +12,8 @@ main.custom_plugin_repos = [
     "https://github.com/Sniffleupagus/pwnagotchi_plugins/archive/master.zip",
     "https://github.com/NeonLightning/pwny/archive/master.zip",
     "https://github.com/marbasec/UPSLite_Plugin_1_3/archive/master.zip",
-    "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip"
+    "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip",
+    "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip",
 ]
 
 main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
@@ -27,14 +28,17 @@ main.plugins.bt-tether.enabled = false
 main.plugins.bt-tether.phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
 main.plugins.bt-tether.mac = ""
 main.plugins.bt-tether.phone = "" # android or ios
-main.plugins.bt-tether.ip = "" # 192.168.44.2 android / 172.20.10.2 ios
+main.plugins.bt-tether.ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
+main.plugins.bt-tether.dns = "" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
 
 main.plugins.fix_services.enabled = true
+
+main.plugins.cache.enabled = true
 
 main.plugins.gdrivesync.enabled = false
 main.plugins.gdrivesync.backupfiles = ['']
 main.plugins.gdrivesync.backup_folder = "PwnagotchiBackups"
-main.plugin.gdrivesync.interval = 1
+main.plugins.gdrivesync.interval = 1
 
 main.plugins.gpio_buttons.enabled = false
 
@@ -65,6 +69,9 @@ main.plugins.pwndroid.display_altitude = false # show altitude on display
 main.plugins.pisugarx.enabled = false
 main.plugins.pisugarx.rotation = false
 main.plugins.pisugarx.default_display = "percentage"
+main.plugins.pisugarx.lowpower_shutdown = true
+main.plugins.pisugarx.lowpower_shutdown_level = 10 # battery percent at which the device will turn off
+main.plugins.pisugarx.max_charge_voltage_protection = false #It will limit the battery voltage to about 80% to extend battery life
 
 main.plugins.session-stats.enabled = false
 main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
@@ -83,8 +90,11 @@ main.plugins.webcfg.enabled = true
 main.plugins.webgpsmap.enabled = false
 
 main.plugins.wigle.enabled = false
-main.plugins.wigle.api_key = ""
-main.plugins.wigle.donate = false
+main.plugins.wigle.api_key = "" # mandatory
+main.plugins.wigle.cvs_dir = "/tmp" # optionnal, is set, the CVS is written to this directory
+main.plugins.wigle.donate = false # default: off
+main.plugins.wigle.timeout = 30 # default: 30 
+main.plugins.wigle.position = [7, 85] # optionnal
 
 main.plugins.wpa-sec.enabled = false
 main.plugins.wpa-sec.api_key = ""
@@ -176,10 +186,11 @@ bettercap.handshakes = "/home/pi/handshakes"
 bettercap.silence = [
     "ble.device.new",
     "ble.device.lost",
-    "ble.device.disconnected",
-    "ble.device.connected",
     "ble.device.service.discovered",
     "ble.device.characteristic.discovered",
+    "ble.device.disconnected",
+    "ble.device.connected",
+    "ble.connection.timeout",
     "wifi.client.new",
     "wifi.client.lost",
     "wifi.client.probe",

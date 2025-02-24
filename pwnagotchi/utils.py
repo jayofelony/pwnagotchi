@@ -564,7 +564,8 @@ class WifiInfo(Enum):
     ESSID = 1
     ENCRYPTION = 2
     CHANNEL = 3
-    RSSI = 4
+    FREQUENCY = 4
+    RSSI = 5
 
 
 class FieldNotFoundError(Exception):
@@ -594,9 +595,6 @@ def extract_from_pcap(path, fields):
     """
     results = dict()
     for field in fields:
-        if not isinstance(field, WifiInfo):
-            raise TypeError("Invalid field")
-
         subtypes = set()
 
         if field == WifiInfo.BSSID:
@@ -606,10 +604,9 @@ def extract_from_pcap(path, fields):
             packets = sniff(offline=path, filter=bpf_filter)
             try:
                 for packet in packets:
-                    if packet.haslayer(Dot11Beacon):
-                        if hasattr(packet[Dot11], 'addr3'):
-                            results[field] = packet[Dot11].addr3
-                            break
+                    if packet.haslayer(Dot11Beacon) and hasattr(packet[Dot11], 'addr3'):
+                        results[field] = packet[Dot11].addr3
+                        break
                 else:  # magic
                     raise FieldNotFoundError("Could not find field [BSSID]")
             except Exception:
@@ -654,6 +651,14 @@ def extract_from_pcap(path, fields):
                 results[field] = freq_to_channel(packets[0][RadioTap].ChannelFrequency)
             except Exception:
                 raise FieldNotFoundError("Could not find field [CHANNEL]")
+        elif field == WifiInfo.FREQUENCY:
+            from scapy.layers.dot11 import sniff, RadioTap
+            from pwnagotchi.mesh.wifi import freq_to_channel
+            packets = sniff(offline=path, count=1)
+            try:
+                results[field] = packets[0][RadioTap].ChannelFrequency
+            except Exception:
+                raise FieldNotFoundError("Could not find field [FREQUENCY]")
         elif field == WifiInfo.RSSI:
             from scapy.layers.dot11 import sniff, RadioTap
             from pwnagotchi.mesh.wifi import freq_to_channel
@@ -662,7 +667,8 @@ def extract_from_pcap(path, fields):
                 results[field] = packets[0][RadioTap].dBm_AntSignal
             except Exception:
                 raise FieldNotFoundError("Could not find field [RSSI]")
-
+        else:
+            raise TypeError("Invalid field")
     return results
 
 
