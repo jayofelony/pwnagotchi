@@ -8,17 +8,17 @@ REM   backup-restore.bat backup  [ -n HOST ] [ -u USER ] [ -o OUTPUT ]
 REM   backup-restore.bat restore [ -n HOST ] [ -u USER ] [ -b BACKUP_FILE ]
 REM ---------------------------------------------------------------------------
 
-set "SCRIPTNAME=%~0"
+set "LOGFILE=%~dp0BR_GPT.log"
+echo [INFO] Script started at %DATE% %TIME% > "%LOGFILE%"
 
 REM ---------------------------------------------------------------------------
-REM If no arguments, show usage
+REM Check for Arguments
 if "%~1"=="" goto usage
 
-REM First argument is the subcommand: "backup" or "restore"
 set "SUBCOMMAND=%~1"
 shift
 
-REM Default values
+REM Default Values
 set "UNIT_HOSTNAME=10.0.0.2"
 set "UNIT_USERNAME=pi"
 set "OUTPUT="
@@ -59,113 +59,84 @@ if "%SUBCOMMAND%"=="restore" (
   )
 )
 
-echo "Unknown or invalid argument: %~1"
+echo [ERROR] Unknown or invalid argument: %~1 >> "%LOGFILE%"
 goto usage
 
 :done_args
 
 REM ---------------------------------------------------------------------------
-REM Subcommand routing
+REM Subcommand Routing
 if "%SUBCOMMAND%"=="backup"  goto do_backup
 if "%SUBCOMMAND%"=="restore" goto do_restore
 goto usage
 
 REM ===========================================================================
 :do_backup
-REM If OUTPUT not specified, generate a name like HOST-backup-RANDOM.tgz
 if "%OUTPUT%"=="" (
-  set /a RAND=%random% 
+  set /a RAND=%random%
   set "OUTPUT=%UNIT_HOSTNAME%-backup-%RAND%.tgz"
 )
 
-echo @ Checking connectivity to %UNIT_HOSTNAME% ...
+echo [INFO] Checking connectivity to %UNIT_HOSTNAME% >> "%LOGFILE%"
 ping -n 1 %UNIT_HOSTNAME% >nul 2>&1
 if errorlevel 1 (
-  echo @ unit %UNIT_HOSTNAME% can't be reached.
+  echo [ERROR] Device %UNIT_HOSTNAME% is unreachable. >> "%LOGFILE%"
   exit /b 1
 )
 
-echo @ Backing up %UNIT_HOSTNAME% to %OUTPUT% ...
-
-REM List of files to back up from the remote device:
+echo [INFO] Backing up %UNIT_HOSTNAME% to %OUTPUT% ... >> "%LOGFILE%"
 set "FILES_TO_BACKUP=/root/settings.yaml /root/client_secrets.json /root/.ssh /root/.api-report.json /root/.bashrc /root/.profile /home/pi/handshakes /root/peers /etc/pwnagotchi/ /usr/local/share/pwnagotchi/custom-plugins /etc/ssh/ /home/pi/.bashrc /home/pi/.profile /home/pi/.wpa_sec_uploads"
 
-REM ---------------------------------------------------------------------------
-REM We'll have the REMOTE do the tar + gzip (since Windows cmd lacks gzip)
-REM so we capture the compressed stream directly into %OUTPUT%
-REM ---------------------------------------------------------------------------
-ssh %UNIT_USERNAME%@%UNIT_HOSTNAME% "sudo tar -cf - %FILES_TO_BACKUP% | gzip -9" > "%OUTPUT%"
+ssh %UNIT_USERNAME%@%UNIT_HOSTNAME% "sudo tar -cf - %FILES_TO_BACKUP% | gzip -9" > "%OUTPUT%" 2>> "%LOGFILE%"
 if errorlevel 1 (
-  echo @ Backup failed
+  echo [ERROR] Backup failed! >> "%LOGFILE%"
   exit /b 1
 )
 
-echo @ Backup finished. Archive: %OUTPUT%
+echo [INFO] Backup completed successfully: %OUTPUT% >> "%LOGFILE%"
 exit /b 0
 
 REM ===========================================================================
 :do_restore
 if "%BACKUP_FILE%"=="" (
-  REM If user didn't specify -b, try to find the latest *.tgz with the hostname prefix
   for /f "delims=" %%A in ('dir /b /a-d /O-D "%UNIT_HOSTNAME%-backup-*.tgz" 2^>nul') do (
     set "BACKUP_FILE=%%A"
     goto found_file
   )
-  echo @ Can't find backup file. Please specify one with '-b'.
+  echo [ERROR] No backup file found. >> "%LOGFILE%"
   exit /b 1
 
 :found_file
-  echo @ Found backup file: %BACKUP_FILE%
-  set /p CONTINUE="@ Continue restoring this file? (y/n) "
-  if /i "%CONTINUE%"=="y" (
-    echo (continuing...)
-  ) else (
-    exit /b 1
-  )
+  echo [INFO] Found backup file: %BACKUP_FILE% >> "%LOGFILE%"
 )
 
-echo @ Checking connectivity to %UNIT_HOSTNAME% ...
+echo [INFO] Checking connectivity to %UNIT_HOSTNAME% >> "%LOGFILE%"
 ping -n 1 %UNIT_HOSTNAME% > nul 2>&1
 if errorlevel 1 (
-  echo @ unit %UNIT_HOSTNAME% can't be reached.
+  echo [ERROR] Device %UNIT_HOSTNAME% is unreachable. >> "%LOGFILE%"
   exit /b 1
 )
 
-echo @ Restoring %BACKUP_FILE% to %UNIT_HOSTNAME% ...
-
-REM We'll send the local file contents over SSH; the remote will do tar xzv
-type "%BACKUP_FILE%" | ssh %UNIT_USERNAME%@%UNIT_HOSTNAME% "tar xzv -C /"
+echo [INFO] Copying backup file to remote device... >> "%LOGFILE%"
+scp "%BACKUP_FILE%" %UNIT_USERNAME%@%UNIT_HOSTNAME%:/tmp/ 2>> "%LOGFILE%"
 if errorlevel 1 (
-  echo @ Restore failed.
+  echo [ERROR] Failed to copy backup file. >> "%LOGFILE%"
   exit /b 1
 )
 
-echo @ Restore finished.
+echo [INFO] Restoring %BACKUP_FILE% on %UNIT_HOSTNAME% >> "%LOGFILE%"
+ssh %UNIT_USERNAME%@%UNIT_HOSTNAME% "sudo tar xzvf /tmp/%BACKUP_FILE% -C /" 2>> "%LOGFILE%"
+if errorlevel 1 (
+  echo [ERROR] Restore failed! >> "%LOGFILE%"
+  exit /b 1
+)
+
+echo [INFO] Restore completed successfully. >> "%LOGFILE%"
 exit /b 0
 
 REM ===========================================================================
 :usage
 echo Usage:
-echo   %SCRIPTNAME% backup  [ -n HOST ] [ -u USER ] [ -o OUTPUT ]
-echo   %SCRIPTNAME% restore [ -n HOST ] [ -u USER ] [ -b BACKUP_FILE ]
-echo.
-echo Subcommands:
-echo   backup      Backup files from the remote device.
-echo   restore     Restore files to the remote device.
-echo.
-echo Common Options:
-echo   -n HOST     Hostname or IP of remote device (default: 10.0.0.2)
-echo   -u USER     Username for SSH (default: pi)
-echo.
-echo Options for 'backup':
-echo   -o OUTPUT   Path/name of the output archive (default: HOST-backup-RANDOM.tgz)
-echo.
-echo Options for 'restore':
-echo   -b BACKUP   Path to the local backup archive to restore.
-echo.
-echo Examples:
-echo   %SCRIPTNAME% backup
-echo   %SCRIPTNAME% backup -n 10.0.0.2 -u pi -o my-backup.tgz
-echo   %SCRIPTNAME% restore -b my-backup.tgz
-echo.
+echo   BR_GPT.bat backup  [ -n HOST ] [ -u USER ] [ -o OUTPUT ]
+echo   BR_GPT.bat restore [ -n HOST ] [ -u USER ] [ -b BACKUP_FILE ]
 exit /b 1
