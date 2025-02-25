@@ -42,8 +42,8 @@ class BTState(Enum):
     PAIRED = auto()
     TRUSTED = auto()
     CONFIGURED = auto()
-    CONNECTED = auto()
     DISCONNECTED = auto()
+    CONNECTED = auto()
 
 
 class DeviceState(Enum):
@@ -116,6 +116,7 @@ class BTManager(Thread):
 
     def __init__(self, phone_name, mac, ip, gateway, dns, metric, internet, autoconnect):
         super().__init__()
+        # phone  variables
         self.phone_name = phone_name
         self.mac = mac
         self.ip = ip
@@ -125,15 +126,20 @@ class BTManager(Thread):
         self.internet = internet
         self.autoconnect = autoconnect
         self.last_reconnect = datetime(2025, 1, 1, 0, 0, tzinfo=UTC)
-        # Assume the driver won't mess during loading
-        self.last_timestamp = self.get_last_timestamp()
-        self.driver_error = False
-        self.ready = False
-        self.running = True
         self.connection_state = None
         self.device_state = None
         self.bluetooth_state = None
+
+        # Kernel modules variables
+        # Assume the driver won't mess during loading
+        self.last_timestamp = self.get_last_timestamp()
+        self.driver_error = False
         self.driver_state = None
+
+        # Thread variables
+        self.ready = False
+        self.running = True
+
         self.configure()
 
     def configure(self):
@@ -563,10 +569,6 @@ class BTManager(Thread):
         except RuntimeError:  # Handle coding bugs and ensure the thread exit
             pass
         self.down_all()
-
-    # ---------- MAIN LOOP ----------
-    def get_config(self):
-        pass
 
 
 class BTTether(plugins.Plugin):
