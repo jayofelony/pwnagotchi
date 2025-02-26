@@ -532,7 +532,7 @@ class BTManager(Thread):
         """
         Check kernel and NetworkManager connection state.
         """
-        logging.info("[BT-Tether] Starting loop")
+        logging.info("[BT-Tether] Starting watchdog")
         if not self.ready:
             logging.error("[BT-Tether] Thread not ready. Cancelling")
             return
@@ -599,6 +599,7 @@ class BTTether(plugins.Plugin):
         """
         Read config and starts BTManager
         """
+        logging.info(f"[BT-Tether] Reading configuration")
         if not (phone_name := self.options.get("phone-name", None)):
             logging.error("[BT-Tether] Phone name not provided")
             return
@@ -609,19 +610,20 @@ class BTTether(plugins.Plugin):
             logging.error("[BT-Tether] Error with mac address")
             return
 
+        ip = self.options.get("ip", None)
         match self.options.get("phone", "").lower():
             case "android":
-                ip = self.options.get("ip", "192.168.44.2")
+                ip = ip or "192.168.44.2"
                 gateway = "192.168.44.1"
             case "ios":
-                ip = self.options.get("ip", "172.20.10.2")
+                ip = ip or "172.20.10.2"
                 gateway = "172.20.10.1"
             case _:
                 logging.error("[BT-Tether] Phone type not supported")
                 return
 
         if not re.match(IP_PTTRN, ip):
-            logging.error(f"[BT-Tether] IP error: {ip}")
+            logging.error(f"[BT-Tether] Error whith configured IP: '{ip}'")
             return
 
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
@@ -638,6 +640,7 @@ class BTTether(plugins.Plugin):
         autoconnect = self.options.get("autoconnect", True)
 
         self.btmanager = BTManager(phone_name, mac, ip, gateway, dns, metric, internet, autoconnect)
+        logging.info(f"[BT-Tether] Plugin configured")
         self.btmanager.start()
 
     def on_ready(self, agent):
@@ -660,7 +663,7 @@ class BTTether(plugins.Plugin):
                 LabeledValue(
                     color=BLACK,
                     label="BT",
-                    value="-",
+                    value="#",
                     position=(ui.width() / 2 - 10, 0),
                     label_font=fonts.Bold,
                     text_font=fonts.Medium,
