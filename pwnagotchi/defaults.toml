@@ -85,6 +85,7 @@ main.plugins.memtemp.orientation = "horizontal"
 main.plugins.ohcapi.enabled = false
 main.plugins.ohcapi.api_key = "sk_your_api_key_here"
 main.plugins.ohcapi.receive_email = "yes"
+main.plugins.ohcapi.interval = 3600
 
 main.plugins.pwndroid.enabled = false
 main.plugins.pwndroid.display = false # show coords on display
