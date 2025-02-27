@@ -38,7 +38,8 @@ main.plugins.auto_backup.files = [
   "/home/pi/.profile",
   "/home/pi/.wpa_sec_uploads",
 ]
-main.plugins.auto_backup.commands = [ "tar czf {backup_file} {files}",]
+main.plugins.auto_backup.exclude = [ "/etc/pwnagotchi/logs/*",]
+main.plugins.auto_backup.commands = [ "tar cf {backup_file} {files}",]
 
 main.plugins.auto-tune.enabled = true
 
