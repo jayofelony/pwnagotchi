@@ -593,7 +593,7 @@ class BTTether(plugins.Plugin):
             self.template = None
 
     def on_loaded(self):
-        logging.info("[BT-Tether] plugin loaded")
+        logging.info(f"[BT-Tether] Plugin loaded. Version {self.__version__}")
 
     def on_config_changed(self, config):
         """
@@ -610,21 +610,33 @@ class BTTether(plugins.Plugin):
             logging.error("[BT-Tether] Error with mac address")
             return
 
-        ip = self.options.get("ip", None)
         match self.options.get("phone", "").lower():
             case "android":
-                ip = ip or "192.168.44.2"
-                gateway = "192.168.44.1"
+                default_ip = "192.168.44.2"
+                default_gateway = "192.168.44.1"
             case "ios":
-                ip = ip or "172.20.10.2"
-                gateway = "172.20.10.1"
+                default_ip = ip or "172.20.10.2"
+                default_gateway = "172.20.10.1"
             case _:
                 logging.error("[BT-Tether] Phone type not supported")
                 return
 
+        ip = self.options.get("ip", "")
         if not re.match(IP_PTTRN, ip):
             logging.error(f"[BT-Tether] Error whith configured IP: '{ip}'")
-            return
+            logging.error(f"[BT-Tether] Using default IP'")
+            ip = default_ip
+
+        gateway = self.options.get("gateway", "")
+        if not re.match(IP_PTTRN, gateway):
+            logging.error(f"[BT-Tether] Error whith configured gateway: '{gateway}'")
+            logging.error(f"[BT-Tether] Using default gateway'")
+            gateway = default_gateway
+
+
+
+        logging.info(f"[BT-Tether] IP: {ip}")
+        logging.info(f"[BT-Tether] Gateway: {gateway}")
 
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
         if not re.match(DNS_PTTRN, dns):
