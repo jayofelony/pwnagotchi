@@ -42,7 +42,6 @@ class ohcapi(plugins.Plugin):
             os.remove(report_filename)
             self.report = StatusFile(report_filename, data_format="json")
         self.whitelist = config["main"].get("whitelist", [])
-        logging.info(f"WHITE: {self.whitelist}")
         self.receive_email = self.options.get("receive_email", "yes")
         self.interval = self.options.get("interval", 60 * 60)  # 1 hour
         self.ready = True
