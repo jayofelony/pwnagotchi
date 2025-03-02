@@ -623,7 +623,7 @@ class BTTether(plugins.Plugin):
 
         ip = self.options.get("ip", None)
         if not ip:
-            logging.error(f"[BT-Tether] No IP provided. Using default IP'")
+            logging.info(f"[BT-Tether] No IP provided. Using default IP")
             ip = default_ip
         elif not re.match(IP_PTTRN, ip):
             logging.error(f"[BT-Tether] Error whith configured IP: '{ip}'")
@@ -632,7 +632,7 @@ class BTTether(plugins.Plugin):
 
         gateway = self.options.get("gateway", None)
         if not gateway:
-            logging.error(f"[BT-Tether] No gateway provided. Using default gateway")
+            logging.info(f"[BT-Tether] No gateway provided. Using default gateway")
             gateway = default_gateway
         elif not re.match(IP_PTTRN, gateway):
             logging.error(f"[BT-Tether] Error whith configured gateway: '{gateway}'")
