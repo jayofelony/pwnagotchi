@@ -577,7 +577,7 @@ class BTTether(plugins.Plugin):
     """
 
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.6.1"
+    __version__ = "1.6.2"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
@@ -615,25 +615,29 @@ class BTTether(plugins.Plugin):
                 default_ip = "192.168.44.2"
                 default_gateway = "192.168.44.1"
             case "ios":
-                default_ip = ip or "172.20.10.2"
+                default_ip = "172.20.10.2"
                 default_gateway = "172.20.10.1"
             case _:
                 logging.error("[BT-Tether] Phone type not supported")
                 return
 
-        ip = self.options.get("ip", "")
-        if not re.match(IP_PTTRN, ip):
+        ip = self.options.get("ip", None)
+        if not ip:
+            logging.error(f"[BT-Tether] No IP provided. Using default IP'")
+            ip = default_ip
+        elif not re.match(IP_PTTRN, ip):
             logging.error(f"[BT-Tether] Error whith configured IP: '{ip}'")
-            logging.error(f"[BT-Tether] Using default IP'")
+            logging.error(f"[BT-Tether] Using default IP")
             ip = default_ip
 
-        gateway = self.options.get("gateway", "")
-        if not re.match(IP_PTTRN, gateway):
+        gateway = self.options.get("gateway", None)
+        if not gateway:
+            logging.error(f"[BT-Tether] No gateway provided. Using default gateway")
+            gateway = default_gateway
+        elif not re.match(IP_PTTRN, gateway):
             logging.error(f"[BT-Tether] Error whith configured gateway: '{gateway}'")
             logging.error(f"[BT-Tether] Using default gateway'")
             gateway = default_gateway
-
-
 
         logging.info(f"[BT-Tether] IP: {ip}")
         logging.info(f"[BT-Tether] Gateway: {gateway}")
