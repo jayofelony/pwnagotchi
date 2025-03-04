@@ -184,6 +184,7 @@ class BTManager(Thread):
                 self.last_timestamp = last_timestamp
                 self.driver_error = True
                 self.driver_state = DriverState.ERROR
+                logging.error(f"[BT-Tether] Kernel Drivers error: check dmesg")
             else:
                 self.driver_state = DriverState.OK
         return self.driver_state
@@ -217,6 +218,7 @@ class BTManager(Thread):
             result = bluetoothctl(["--timeout", "1", "info", self.mac])
         except Exception as e:
             self.bluetooth_state = BTState.ERROR
+            logging.error(f"[BT-Tether] Bluetooth error: {e}")
             return self.bluetooth_state
 
         self.bluetooth_state = BTState.NOTCONFIGURED
@@ -330,8 +332,10 @@ class BTManager(Thread):
                 self.device_state = DeviceState.DOWN
             else:
                 self.device_state = DeviceState.ERROR
+                logging.error(f"[BT-Tether] Network device error while reading NetworkManager device")
         except Exception as e:
             self.device_state = DeviceState.ERROR
+            logging.error(f"[BT-Tether] Network device error while reading NetworkManager device: {e}")
         return self.device_state
 
     def configure_device(self):
@@ -406,8 +410,10 @@ class BTManager(Thread):
                 self.connection_state = ConnectionState.DOWN
             else:
                 self.connection_state = ConnectionState.ERROR
+                logging.error(f"[BT-Tether] Network connection error while reading NetworkManager connection")
         except Exception as e:
             self.connection_state = ConnectionState.ERROR
+            logging.error(f"[BT-Tether] Network connection error while reading NetworkManager connection: {e}")
         return self.connection_state
 
     def configure_connection(self):
@@ -448,7 +454,7 @@ class BTManager(Thread):
             nmcli(["connection", "reload"])
             logging.info(f"[BT-Tether] Connection reloaded")
         except Exception as e:
-            logging.error(f"[BT-Tether] Error with connection reload")
+            logging.error(f"[BT-Tether] Error with connection reload: {e}")
 
     def up_connection(self):
         """
@@ -466,7 +472,7 @@ class BTManager(Thread):
                     nmcli(["connection", "up", f"{self.phone_name}"])
                     logging.info(f"[BT-Tether] Connection {self.phone_name} up")
                 except Exception as e:
-                    logging.error(f"[BT-Tether] Failed to up connection.")
+                    logging.error(f"[BT-Tether] Failed to up connection: {e}")
             case ConnectionState.ERROR:
                 logging.error(f"[BT-Tether] Error with connection ({self.phone_name})")
 
@@ -577,7 +583,7 @@ class BTTether(plugins.Plugin):
     """
 
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.6.2"
+    __version__ = "1.6.3"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
