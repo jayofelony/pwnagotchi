@@ -89,7 +89,7 @@ class Text(Widget):
                             oy = int((bh-nh)/2)
                             image = image.resize((nw,nh), Image.NEAREST)
                             self.offsets = [ox,oy]
-                            logging.info("Offsets %s" % (self.offsets))
+                            logging.debug("Offsets %s" % (self.offsets))
                         elif self.scale != 1.0:
                             new_w = int(image.size[0]*self.scale)
                             new_h = int(image.size[1]*self.scale)
