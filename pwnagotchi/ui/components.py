@@ -65,12 +65,12 @@ class Text(Widget):
             else:
                 self.image = Image.open(self.value)
                 # unsure what this is for
-                #self.image = self.image.convert('RGBA')
-                #self.pixels = self.image.load()
-                #for y in range(self.image.size[1]):
-                #    for x in range(self.image.size[0]):
-                #        if self.pixels[x,y][3] < 255:    # check alpha
-                #            self.pixels[x,y] = (255, 255, 255, 255)
+                self.image = self.image.convert('RGBA')
+                self.pixels = self.image.load()
+                for y in range(self.image.size[1]):
+                    for x in range(self.image.size[0]):
+                        if self.pixels[x,y][3] < 255:    # check alpha
+                            self.pixels[x,y] = (255, 255, 255, 255)
                 if self.color == 255:
                     self._image = ImageOps.colorize(self.image.convert(canvas.mode), black = "white", white = "black")
                 else:
