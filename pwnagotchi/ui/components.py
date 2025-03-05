@@ -45,7 +45,7 @@ class FilledRect(Widget):
 
 
 class Text(Widget):
-    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False):
+    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False, scale=1):
         super().__init__(position, color)
         self.value = value
         self.font = font
@@ -54,6 +54,7 @@ class Text(Widget):
         self.wrapper = TextWrapper(width=self.max_length, replace_whitespace=False) if wrap else None
         self.png = png
         self.image = None
+        self.scale = scale
 
     def draw(self, canvas, drawer):
         if self.value is not None:
@@ -74,9 +75,14 @@ class Text(Widget):
                                 pixels[x,y] = (255, 255, 255, 255)
                     if self.color == 255:
                         image = ImageOps.colorize(image.convert(canvas.mode), black = "white", white = "black")
+                    if self.scale != 1.0:
+                        new_w = int(image.size[0]*self.scale)
+                        new_h = int(image.size[1]*self.scale)
+                        image = image.resize((new_w, new_h))
                     self.image = image.convert(canvas.mode)
+
                 except Exception as e:
-                    logging.error("%s: %s" % (self.value, e))
+                    logging.exception("%s: %s" % (self.value, e))
                 if self.image:
                     canvas.paste(self.image, (self.xy[0], self.xy[1]))
 
