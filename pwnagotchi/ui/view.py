@@ -37,6 +37,12 @@ class View(object):
             self._black = 0x00
             self._white = 0xFF
 
+        if 'bgcolor' in config['ui']:
+            self._white = config['ui']['bgcolor']
+
+        if 'fgcolor' in config['ui']:
+            self._black = config['ui']['fgcolor']
+            
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
 
@@ -392,7 +398,8 @@ class View(object):
                 colormode = self._config.get('ui', {}).get('colormode', '1')
                 self._canvas = Image.new(colormode, (self._width, self._height), self._white)
                 drawer = ImageDraw.Draw(self._canvas)
-
+                drawer.font_mode = '1'
+                
                 plugins.on('ui_update', self)
 
                 for key, lv in state.items():

@@ -55,6 +55,8 @@ class Text(Widget):
         self.png = png
         self.image = None
         self.scale = scale
+        self.offsets = (0,0)
+        self.last_file = None
 
     def draw(self, canvas, drawer):
         if self.value is not None:
@@ -65,26 +67,41 @@ class Text(Widget):
                     text = self.value
                 drawer.text(self.xy, text, font=self.font, fill=self.color)
             else:
+                ox, oy = self.offsets
                 try:
-                    image = Image.open(self.value)
-                    image = image.convert('RGBA')
-                    pixels = image.load()
-                    for y in range(image.size[1]):
-                        for x in range(image.size[0]):
-                            if pixels[x,y][3] < 255:    # check alpha
-                                pixels[x,y] = (255, 255, 255, 255)
-                    if self.color == 255:
-                        image = ImageOps.colorize(image.convert(canvas.mode), black = "white", white = "black")
-                    if self.scale != 1.0:
-                        new_w = int(image.size[0]*self.scale)
-                        new_h = int(image.size[1]*self.scale)
-                        image = image.resize((new_w, new_h))
-                    self.image = image.convert(canvas.mode)
-
+                    if self.value != self.last_file:
+                        image = Image.open(self.value)
+                        image = image.convert('RGBA')
+                        pixels = image.load()
+                        for y in range(image.size[1]):
+                            for x in range(image.size[0]):
+                                if pixels[x,y][3] < 255:    # check alpha
+                                    pixels[x,y] = (255, 255, 255, 255)
+                        if self.color == 255:
+                            image = ImageOps.colorize(image.convert(canvas.mode), black = "white", white = "black")
+                        if len(self.xy) > 2:
+                            iw,ih = image.size
+                            bw,bh = (self.xy[2]-self.xy[0], self.xy[3]-self.xy[1])
+                            sc = min(float(bw/iw), float(bh/ih))
+                            nw = int(iw * sc)
+                            nh = int(ih * sc)
+                            ox = int((bw-nw)/2)
+                            oy = int((bh-nh)/2)
+                            image = image.resize((nw,nh), Image.NEAREST)
+                            self.offsets = [ox,oy]
+                            logging.info("Offsets %s" % (self.offsets))
+                        elif self.scale != 1.0:
+                            new_w = int(image.size[0]*self.scale)
+                            new_h = int(image.size[1]*self.scale)
+                            image = image.resize((new_w, new_h), resample=Resampling.NEAREST)
+                        self.image = image.convert(canvas.mode)
+                        self.last_file = self.value
+                    else:
+                        logging.debug("Not redrawing same image")
                 except Exception as e:
                     logging.exception("%s: %s" % (self.value, e))
                 if self.image:
-                    canvas.paste(self.image, (self.xy[0], self.xy[1]))
+                    canvas.paste(self.image, (self.xy[0]+self.offsets[0], self.xy[1]+self.offsets[1]))
 
 class LabeledValue(Widget):
     def __init__(self, label, value="", position=(0, 0), label_font=None, text_font=None, color=0, label_spacing=5):
