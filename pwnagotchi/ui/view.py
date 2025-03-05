@@ -77,8 +77,7 @@ class View(object):
 
             'face': Text(value=faces.SLEEP,
                          position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']),
-                         color=self._black, font=fonts.Huge, png=config['ui']['faces']['png'],
-                         bgcolor=self._white,
+                         color=self._black, bgcolor=self._white, font=fonts.Huge, png=config['ui']['faces']['png'],
                          scale=config['ui']['faces'].get('scale', 1),
                          colorize=config['ui']['faces'].get('colorize', True)),
 
