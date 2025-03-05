@@ -39,9 +39,11 @@ class View(object):
 
         if 'bgcolor' in config['ui']:
             self._white = config['ui']['bgcolor']
+            WHITE = config['ui']['bgcolor']
 
         if 'fgcolor' in config['ui']:
             self._black = config['ui']['fgcolor']
+            BLACK = config['ui']['fgcolor']
             
         # setup faces from the configuration in case the user customized them
         faces.load_from_config(config['ui']['faces'])
@@ -75,8 +77,10 @@ class View(object):
 
             'face': Text(value=faces.SLEEP,
                          position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']),
-                         color=BLACK, font=fonts.Huge, png=config['ui']['faces']['png'],
-                         scale=config['ui']['faces'].get('scale', 1)),
+                         color=self._black, font=fonts.Huge, png=config['ui']['faces']['png'],
+                         bgcolor=self._white,
+                         scale=config['ui']['faces'].get('scale', 1),
+                         colorize=config['ui']['faces'].get('colorize', True)),
 
             # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=BLACK),
             'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=BLACK),

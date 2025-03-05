@@ -45,7 +45,7 @@ class FilledRect(Widget):
 
 
 class Text(Widget):
-    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False, scale=1):
+    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False, scale=1, bgcolor="White", colorize=True):
         super().__init__(position, color)
         self.value = value
         self.font = font
@@ -53,8 +53,11 @@ class Text(Widget):
         self.max_length = max_length
         self.wrapper = TextWrapper(width=self.max_length, replace_whitespace=False) if wrap else None
         self.png = png
-        self.image = None
+        self.bgcolor=bgcolor
         self.scale = scale
+        self.colorize = colorize
+
+        self.image = None
         self.offsets = (0,0)
         self.last_file = None
 
@@ -71,14 +74,15 @@ class Text(Widget):
                 try:
                     if self.value != self.last_file:
                         image = Image.open(self.value)
+                        imode = image.mode
                         image = image.convert('RGBA')
                         pixels = image.load()
                         for y in range(image.size[1]):
                             for x in range(image.size[0]):
                                 if pixels[x,y][3] < 255:    # check alpha
                                     pixels[x,y] = (255, 255, 255, 255)
-                        if self.color == 255:
-                            image = ImageOps.colorize(image.convert(canvas.mode), black = "white", white = "black")
+                        if self.colorize:
+                            image = ImageOps.colorize(image.convert('L'), black = self.color, white = self.bgcolor)
                         if len(self.xy) > 2:
                             iw,ih = image.size
                             bw,bh = (self.xy[2]-self.xy[0], self.xy[3]-self.xy[1])
@@ -93,7 +97,7 @@ class Text(Widget):
                         elif self.scale != 1.0:
                             new_w = int(image.size[0]*self.scale)
                             new_h = int(image.size[1]*self.scale)
-                            image = image.resize((new_w, new_h), resample=Resampling.NEAREST)
+                            image = image.resize((new_w, new_h), Image.NEAREST)
                         self.image = image.convert(canvas.mode)
                         self.last_file = self.value
                     else:
