@@ -1,3 +1,4 @@
+import logging
 from PIL import Image, ImageOps
 from textwrap import TextWrapper
 
@@ -63,19 +64,19 @@ class Text(Widget):
                 drawer.text(self.xy, text, font=self.font, fill=self.color)
             else:
                 self.image = Image.open(self.value)
-                self.image = self.image.convert('RGBA')
-                self.pixels = self.image.load()
-                for y in range(self.image.size[1]):
-                    for x in range(self.image.size[0]):
-                        if self.pixels[x,y][3] < 255:    # check alpha
-                            self.pixels[x,y] = (255, 255, 255, 255)
+                # unsure what this is for
+                #self.image = self.image.convert('RGBA')
+                #self.pixels = self.image.load()
+                #for y in range(self.image.size[1]):
+                #    for x in range(self.image.size[0]):
+                #        if self.pixels[x,y][3] < 255:    # check alpha
+                #            self.pixels[x,y] = (255, 255, 255, 255)
                 if self.color == 255:
-                    self._image = ImageOps.colorize(self.image.convert('L'), black = "white", white = "black")
+                    self._image = ImageOps.colorize(self.image.convert(canvas.mode), black = "white", white = "black")
                 else:
                     self._image = self.image
-                self.image = self._image.convert('1')
-                canvas.paste(self.image, self.xy)
-
+                self.image = self._image.convert(canvas.mode)
+                canvas.paste(self.image, (self.xy[0], self.xy[1]))
 
 class LabeledValue(Widget):
     def __init__(self, label, value="", position=(0, 0), label_font=None, text_font=None, color=0, label_spacing=5):
