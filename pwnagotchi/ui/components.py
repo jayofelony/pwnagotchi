@@ -53,6 +53,7 @@ class Text(Widget):
         self.max_length = max_length
         self.wrapper = TextWrapper(width=self.max_length, replace_whitespace=False) if wrap else None
         self.png = png
+        self.image = None
 
     def draw(self, canvas, drawer):
         if self.value is not None:
@@ -64,22 +65,20 @@ class Text(Widget):
                 drawer.text(self.xy, text, font=self.font, fill=self.color)
             else:
                 try:
-                    self.image = Image.open(self.value)
+                    image = Image.open(self.value)
+                    image = image.convert('RGBA')
+                    pixels = image.load()
+                    for y in range(image.size[1]):
+                        for x in range(image.size[0]):
+                            if pixels[x,y][3] < 255:    # check alpha
+                                pixels[x,y] = (255, 255, 255, 255)
+                    if self.color == 255:
+                        image = ImageOps.colorize(image.convert(canvas.mode), black = "white", white = "black")
+                    self.image = image.convert(canvas.mode)
                 except Exception as e:
                     logging.error("%s: %s" % (self.value, e))
-                    return
-                self.image = self.image.convert('RGBA')
-                self.pixels = self.image.load()
-                for y in range(self.image.size[1]):
-                    for x in range(self.image.size[0]):
-                        if self.pixels[x,y][3] < 255:    # check alpha
-                            self.pixels[x,y] = (255, 255, 255, 255)
-                if self.color == 255:
-                    self._image = ImageOps.colorize(self.image.convert(canvas.mode), black = "white", white = "black")
-                else:
-                    self._image = self.image
-                self.image = self._image.convert(canvas.mode)
-                canvas.paste(self.image, (self.xy[0], self.xy[1]))
+                if self.image:
+                    canvas.paste(self.image, (self.xy[0], self.xy[1]))
 
 class LabeledValue(Widget):
     def __init__(self, label, value="", position=(0, 0), label_font=None, text_font=None, color=0, label_spacing=5):
