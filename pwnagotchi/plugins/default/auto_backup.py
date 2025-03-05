@@ -8,9 +8,9 @@ import socket
 
 class AutoBackup(plugins.Plugin):
     __author__ = 'WPA2'
-    __version__ = '1.1.1'
+    __version__ = '1.1.3'
     __license__ = 'GPL3'
-    __description__ = 'Backs up files when internet is available, using new file list and options.'
+    __description__ = 'Backs up files when internet is available, with support for excludes.'
 
     def __init__(self):
         self.ready = False
@@ -29,11 +29,9 @@ class AutoBackup(plugins.Plugin):
                 return
 
         # If no custom command(s) are provided, use the default plain tar command.
+        # The command includes a placeholder for {excludes} so that if no excludes are set, it will be empty.
         if 'commands' not in self.options or not self.options['commands']:
-            self.options['commands'] = ["tar cf {backup_file} {files}"]
-            # For a tar.gz archive, use:
-            # self.options['commands'] = ["tar czf {backup_file} {files}"]
-
+            self.options['commands'] = ["tar cf {backup_file} {excludes} {files}"]
         self.ready = True
         logging.info("AUTO-BACKUP: Successfully loaded.")
 
@@ -88,7 +86,7 @@ class AutoBackup(plugins.Plugin):
 
         if not self.is_backup_due():
             now = time.time()
-            # Log "backup not due" only once every 60 seconds
+            # Log "backup not due" only once every 60 seconds.
             if now - self.last_not_due_logged > 60:
                 logging.info("AUTO-BACKUP: Backup not due yet based on the interval.")
                 self.last_not_due_logged = now
@@ -100,6 +98,14 @@ class AutoBackup(plugins.Plugin):
             logging.warning("AUTO-BACKUP: No files found to backup.")
             return
         files_to_backup = " ".join(existing_files)
+
+        # Build excludes string if configured.
+        # Use get() so that if 'exclude' is missing or empty, we default to an empty list.
+        excludes = ""
+        exclude_list = self.options.get('exclude', [])
+        if exclude_list:
+            for pattern in exclude_list:
+                excludes += f" --exclude='{pattern}'"
 
         # Get the backup location from config.
         backup_location = self.options['backup_location']
@@ -121,7 +127,7 @@ class AutoBackup(plugins.Plugin):
 
             # Execute each backup command.
             for cmd in self.options['commands']:
-                formatted_cmd = cmd.format(backup_file=backup_file, files=files_to_backup)
+                formatted_cmd = cmd.format(backup_file=backup_file, files=files_to_backup, excludes=excludes)
                 logging.info(f"AUTO-BACKUP: Running command: {formatted_cmd}")
                 process = subprocess.Popen(
                     formatted_cmd,
