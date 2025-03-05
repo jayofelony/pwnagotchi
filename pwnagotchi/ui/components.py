@@ -63,8 +63,11 @@ class Text(Widget):
                     text = self.value
                 drawer.text(self.xy, text, font=self.font, fill=self.color)
             else:
-                self.image = Image.open(self.value)
-                # unsure what this is for
+                try:
+                    self.image = Image.open(self.value)
+                except Exception as e:
+                    logging.error("%s: %s" % (self.value, e))
+                    return
                 self.image = self.image.convert('RGBA')
                 self.pixels = self.image.load()
                 for y in range(self.image.size[1]):
