@@ -13,7 +13,6 @@ import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
 
-
 # We all love crazy regex patterns
 MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
 IP_PTTRN = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
@@ -126,12 +125,11 @@ def dmesg() -> str | None:
     return None
 
 
-@dataclass
-class BTDevice:
+@dataclass(slots=True)
+class BTPhone:
     """
-    Thread for checking kernel, bluetooth, NetworkMananger device and NetworkMananger connection.
-    If a kernel issue is detected, modules are reloaded properly.
-    This thread tries to keep the connection up.
+    Class for checking bluetooth, NetworkMananger device and NetworkMananger connection.
+    This class tries to keep the connection up.
     """
 
     phone_name: str
@@ -146,6 +144,7 @@ class BTDevice:
     bluetooth_state: BTState = BTState.NOTCONFIGURED
     device_state: DeviceState = DeviceState.DOWN
     connection_state: ConnectionState = ConnectionState.DOWN
+    header: str = ""
 
     def __post_init__(self):
         self.header = f"[BT-Tether][{self.phone_name}]"
@@ -434,6 +433,9 @@ class BTDevice:
 
     # ---------- Ping ----------
     def ping(self) -> bool:
+        """
+        Ping the gateway
+        """
         try:
             return ping(self.ip, self.gateway)
         except Exception as e:
@@ -505,26 +507,31 @@ class BTDevice:
             self.reconnect()
 
 
+@dataclass
 class BTManager(Thread):
     """
-    Thread for checking kernel, bluetooth, NetworkMananger device and NetworkMananger connection.
+    Thread for checking kernel and call phone.run().
     If a kernel issue is detected, modules are reloaded properly.
-    This thread tries to keep the connection up.
     """
+    phone: BTPhone = field(init=True)
+    # Kernel modules variables
+    # Assume the driver won't mess during loading
+    last_timestamp: str | None = None
+    driver_error: bool = False
+    driver_state: DriverState = DriverState.OK
+    
+    # Thread variables
+    ready: bool = False
+    running: bool = True
 
-    def __init__(self, phone: BTDevice):
-        super().__init__()
-        # Kernel modules variables
-        # Assume the driver won't mess during loading
+    header: str = "[BT-Tether][Manager]"
+
+    def __post_init__(self):
+        super(BTManager, self).__init__()
         self.last_timestamp = self.get_last_timestamp()
-        self.driver_error = False
-        self.driver_state = None
-        self.phone = phone
-        # Thread variables
-        self.ready = False
-        self.running = True
 
-        self.header = "[BT-Tether][Manager]"
+    def __hash__(self):
+        return super(BTManager, self).__hash__()
 
     def configure(self):
         """
@@ -539,7 +546,7 @@ class BTManager(Thread):
             logging.error(f"{self.header} Error while configuring")
 
     # ---------- KERNEL DRIVER ----------
-    def get_last_timestamp(self):
+    def get_last_timestamp(self) -> str | None:
         """
         Retreive last timestamp of a kernel error. Ex:
         Bluetooth: hci0: command 0xXXXX tx timeout
@@ -547,7 +554,9 @@ class BTManager(Thread):
         Bluetooth: hci0: killing stalled connection XX:XX:XX:XX:XX:XX
         """
         try:
-            return re.findall(KERN_ERROR_PTTRN, dmesg(), re.MULTILINE)[-1]
+            if not (result := dmesg()):
+                return None
+            return re.findall(KERN_ERROR_PTTRN, result, re.MULTILINE)[-1]
         except IndexError:
             return None
 
@@ -671,7 +680,7 @@ class BTManager(Thread):
         """
         self.running = False  # exit main loop
         try:
-            super().join(timeout)
+            super(BTManager, self).join(timeout)
         except RuntimeError:  # Handle coding bugs and ensure the thread exit
             pass
         self.down_all()
@@ -712,7 +721,7 @@ class BTTether(plugins.Plugin):
         self.btmanager.configure()
         logging.info(f"{self.header} Plugin configured")
 
-    def create_btdevice(self, options: dict) -> BTDevice | None:
+    def create_btdevice(self, options: dict) -> BTPhone | None:
         if not (phone_name := options.get("phone-name", None)):
             logging.error(f"{self.header} Phone name not provided")
             return None
@@ -767,18 +776,18 @@ class BTTether(plugins.Plugin):
 
         internet = self.options.get("internet", True)
         autoconnect = self.options.get("autoconnect", True)
-        return BTDevice(phone_name, mac, ip, gateway, dns, metric, internet, autoconnect)
+        return BTPhone(phone_name, mac, ip, gateway, dns, metric, internet, autoconnect)
 
     def on_ready(self, agent):
         """
         Turns bettercap ble.recon off.
         """
-        self.btmanager.start()
         try:
             logging.info(f"{self.header} Disabling bettercap's BLE module")
             agent.run("ble.recon off", verbose_errors=False)
         except Exception as e:
             pass
+        self.btmanager.start()
 
     def on_unload(self, ui):
         """
