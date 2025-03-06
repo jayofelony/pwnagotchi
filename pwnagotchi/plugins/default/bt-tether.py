@@ -460,6 +460,9 @@ class BTPhone:
             return
         time.sleep(2)
         self.up_connection()
+        time.sleep(2)
+        if self.check_connection() == ConnectionState.UP:
+            plugins.on("bluetooth_up", self.phone_name, self.mac)
 
     def down(self):
         """
@@ -471,6 +474,9 @@ class BTPhone:
         self.down_device()
         time.sleep(2)
         self.disconnect_bluetooth()
+        time.sleep(2)
+        if self.check_connection() == ConnectionState.DOWN:
+            plugins.on("bluetooth_down", self.phone_name, self.mac)
 
     def reload(self):
         self.down()
@@ -491,7 +497,18 @@ class BTPhone:
         """
         Check NetworkManager connection state.
         """
-        match self.check_connection():
+        last_connection_state = self.connection_state
+        connection_state = self.check_connection()
+
+        if last_connection_state != connection_state:
+            match last_connection_state, connection_state:
+                case ConnectionState.UP, _:
+                    plugins.on("bluetooth_down", self.phone_name, self.mac)
+                case _, ConnectionState.UP:
+                    plugins.on("bluetooth_up", self.phone_name, self.mac)
+                case _, _:
+                    pass
+        match connection_state:
             case ConnectionState.UP:
                 if not self.ping():
                     logging.error(f"{self.header}[Ping] No ping anwser. Reloading")
@@ -871,13 +888,11 @@ class BTTether(plugins.Plugin):
         """
         if not (self.btmanager and self.btmanager.ready):
             return
-        state, status = "", ""
+        state, status = "", None
         # Checking connection
         match self.btmanager.phone.connection_state:
             case ConnectionState.UP:
-                with ui._lock:
-                    ui.set("bluetooth", "U")
-                return
+                state = "U"
             case ConnectionState.ACTIVATING:
                 state, status = "A", "Connection activating"
             case ConnectionState.DOWN:
