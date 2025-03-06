@@ -507,7 +507,7 @@ class BTPhone:
             self.reconnect()
 
 
-@dataclass
+@dataclass(slots=True)
 class BTManager(Thread):
     """
     Thread for checking kernel and call phone.run().
@@ -600,30 +600,30 @@ class BTManager(Thread):
     # ---------- BLUETOOTH ----------
     def start_bluetooth(self):
         try:
-            logging.info(f"{self.header} Start bluetooth service")
+            logging.info(f"{self.header}[Bluetooth] Start bluetooth service")
             systemctl("start", "bluetooth")
             time.sleep(2)
             bluetoothctl(["power", "on"])
             bluetoothctl(["agent", "on"])
         except Exception as e:
-            logging.error(f"{self.header} Error while starting bluetooth: {e}")
+            logging.error(f"{self.header}[Bluetooth] Error while starting bluetooth: {e}")
 
     def stop_bluetooth(self):
         try:
-            logging.info(f"{self.header} Stoping bluetooth service")
+            logging.info(f"{self.header}[Bluetooth] Stoping bluetooth service")
             systemctl("stop", "bluetooth")
         except Exception as e:
-            logging.error(f"{self.header} Error while stoping bluetooth: {e}")
+            logging.error(f"{self.header}[Bluetooth] Error while stoping bluetooth: {e}")
 
     def restart_bluetooth(self):
         try:
-            logging.info(f"{self.header} Restarting bluetooth service")
+            logging.info(f"{self.header}[Bluetooth] Restarting bluetooth service")
             systemctl("restart", "bluetooth")
             time.sleep(2)
             bluetoothctl(["power", "on"])
             bluetoothctl(["agent", "on"])
         except Exception as e:
-            logging.error(f"{self.header} Error while restarting bluetooth: {e}")
+            logging.error(f"{self.header}[Bluetooth] Error while restarting bluetooth: {e}")
 
     # ---------- ALL UP and DOWN ----------
     def up_all(self, force=False):
