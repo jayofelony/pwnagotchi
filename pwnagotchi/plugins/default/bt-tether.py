@@ -3,8 +3,8 @@ import subprocess
 import re
 import time
 import os
-
-from threading import Thread, Lock
+from dataclasses import dataclass, field
+from threading import Thread
 from datetime import datetime, UTC
 from enum import Enum, auto
 from flask import abort, render_template_string
@@ -19,7 +19,7 @@ MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
 IP_PTTRN = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
 DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]?\s*)$"
 
-KERN_ERROR_PTTRN = r"^\[\s*(\d+\.\d+)\]\s+Bluetooth:\shci0:\s.+"
+KERN_ERROR_PTTRN = r"^\[\s*(\d+\.\d+)\]\s+Bluetooth:\shci0:\s.+.*(?:timeout|stalled)"
 
 
 class ConfigError(Exception):
@@ -65,149 +65,106 @@ class ConnectionState(Enum):
 
 
 # ---------- COMMAND HELPERS ----------
-def exec_cmd(cmd, args, pattern=None, silent=False, timeout=10):
+def exec_cmd(
+    cmd: str, args: list[str], silent: bool = False, timeout: int = 10
+) -> subprocess.CompletedProcess[str] | None:
     try:
-        result = subprocess.run(
+        return subprocess.run(
             [cmd] + args, check=True, capture_output=True, text=True, timeout=timeout
         )
-        if pattern:
-            return result.stdout.find(pattern)
-        return result.stdout
     except Exception as exp:
         if not silent:
             logging.debug(f"[BT-Tether] Error with {cmd}: {exp}")
             raise exp
+    return None
 
 
-def bluetoothctl(args, pattern=None):
-    return exec_cmd("bluetoothctl", args, pattern)
+def bluetoothctl(args: list[str], pattern: str | None = None) -> int | str | None:
+    result = exec_cmd("bluetoothctl", args)
+    if not result:
+        return None
+    if not pattern:
+        return result.stdout
+    return result.stdout.find(pattern)
 
 
-def nmcli(args, pattern=None):
-    return exec_cmd("nmcli", args, pattern)
+def nmcli(args: list[str], pattern: str | None = None) -> int | str | None:
+    result = exec_cmd("nmcli", args)
+    if not result:
+        return None
+    if not pattern:
+        return result.stdout
+    return result.stdout.find(pattern)
 
 
-def rmmod(module):
-    return exec_cmd("rmmod", ["-f", module], silent=True)
+def ping(interface: str, target: str) -> bool:
+    result = exec_cmd("ping", ["-c", "1", "-I", interface, target])
+    if result:
+        return result.returncode == 0
+    return False
 
 
-def modprobe(module):
-    return exec_cmd("modprobe", [module])
+def rmmod(module: str) -> None:
+    exec_cmd("rmmod", ["-f", module], silent=True)
 
 
-def hciconfig(command):
-    return exec_cmd("hciconfig", ["hci0", command])
+def modprobe(module: str) -> None:
+    exec_cmd("modprobe", [module])
 
 
-def systemctl(command, service):
-    return exec_cmd("systemctl", [command, service], timeout=30)
+def hciconfig(command: str) -> None:
+    exec_cmd("hciconfig", ["hci0", command])
 
 
-def dmesg():
-    return exec_cmd("dmesg", ["-l", "err", "-k"])
+def systemctl(command: str, service: str) -> None:
+    exec_cmd("systemctl", [command, service], timeout=30)
 
 
-class BTManager(Thread):
+def dmesg() -> str | None:
+    if result := exec_cmd("dmesg", ["-l", "err", "-k"]):
+        return result.stdout
+    return None
+
+
+@dataclass
+class BTDevice:
     """
     Thread for checking kernel, bluetooth, NetworkMananger device and NetworkMananger connection.
     If a kernel issue is detected, modules are reloaded properly.
     This thread tries to keep the connection up.
     """
 
-    def __init__(self, phone_name, mac, ip, gateway, dns, metric, internet, autoconnect):
-        super().__init__()
-        # phone  variables
-        self.phone_name = phone_name
-        self.mac = mac
-        self.ip = ip
-        self.gateway = gateway
-        self.dns = dns
-        self.metric = metric
-        self.internet = internet
-        self.autoconnect = autoconnect
-        self.last_reconnect = datetime(2025, 1, 1, 0, 0, tzinfo=UTC)
-        self.connection_state = None
-        self.device_state = None
-        self.bluetooth_state = None
+    phone_name: str
+    mac: str
+    ip: str
+    gateway: str
+    dns: str
+    metric: str
+    internet: str
+    autoconnect: str
+    last_reconnect: datetime = field(default_factory=lambda: datetime(2025, 1, 1, 0, 0, tzinfo=UTC))
+    bluetooth_state: BTState = BTState.NOTCONFIGURED
+    device_state: DeviceState = DeviceState.DOWN
+    connection_state: ConnectionState = ConnectionState.DOWN
 
-        # Kernel modules variables
-        # Assume the driver won't mess during loading
-        self.last_timestamp = self.get_last_timestamp()
-        self.driver_error = False
-        self.driver_state = None
-
-        # Thread variables
-        self.ready = False
-        self.running = True
-
-        self.configure()
+    def __post_init__(self):
+        self.header = f"[BT-Tether][{self.phone_name}]"
 
     def configure(self):
         """
         Check bluetooth pairing, configure NetworkMananger then tries to up all.
         """
         if not self.check_bluetooth_ready():
-            logging.error(f"[BT-Tether] Bluetooth pairing error")
+            logging.error(f"{self.header} Bluetooth pairing error")
             return
         try:
-            self.restart_bluetooth()
             self.configure_connection()
             self.configure_device()
             self.reload_connection()
-            self.ready = True
-            logging.info(f"[BT-Tether] Plugin configured")
-            self.up_all(force=True)
+            logging.info(f"{self.header} Phone configured")
         except ConfigError:
-            logging.error(f"[BT-Tether] Error while configuring connection or device")
-
-    # ---------- KERNEL DRIVER ----------
-    def get_last_timestamp(self):
-        """
-        Retreive last kernel error. Ex: Bluetooth: hci0 command XXXXX tx timeout"
-        """
-        result = dmesg()
-        try:
-            last_error = [l for l in result.split("\n") if l.find("Bluetooth: hci0") != -1][-1]
-            return re.match(KERN_ERROR_PTTRN, last_error).groups()[0]
-        except IndexError:
-            return None
-
-    def check_driver(self):
-        """
-        Checks if there is a new kernel issue.
-        """
-        if self.driver_error:
-            self.driver_state = DriverState.ERROR
-        else:
-            last_timestamp = self.get_last_timestamp()
-            if last_timestamp != self.last_timestamp:
-                self.last_timestamp = last_timestamp
-                self.driver_error = True
-                self.driver_state = DriverState.ERROR
-                logging.error(f"[BT-Tether] Kernel Drivers error: check dmesg")
-            else:
-                self.driver_state = DriverState.OK
-        return self.driver_state
-
-    def reload_drivers(self):
-        """
-        Reload kernel drivers by downing all, stoping daemon, removing modules,
-        then it reloads everything.
-        Can be removed in future version is the bug doesn't happen anymore
-        """
-        logging.info("[BT-Tether] Reloading kernel modules")
-        self.stop_bluetooth()
-        hciconfig("down")
-        for module in ["hci_uart", "btbcm", "bnep", "bluetooth"]:
-            rmmod(module)
-        for module in ["btbcm", "hci_uart", "bnep", "bluetooth"]:
-            modprobe(module)
-        hciconfig("up")
-        hciconfig("reset")
-        self.start_bluetooth()
-        systemctl("restart", "NetworkManager")
-        logging.info("[BT-Tether] Kernel modules reloaded")
-        self.driver_error = False
+            logging.error(f"{self.header} Error while configuring")
+            raise ConfigError
 
     # ---------- BLUETOOTH ----------
     def check_bluetooth(self):
@@ -218,7 +175,7 @@ class BTManager(Thread):
             result = bluetoothctl(["--timeout", "1", "info", self.mac])
         except Exception as e:
             self.bluetooth_state = BTState.ERROR
-            logging.error(f"[BT-Tether] Bluetooth error: {e}")
+            logging.error(f"{self.header}[Bluetooth] Error on check: {e}")
             return self.bluetooth_state
 
         self.bluetooth_state = BTState.NOTCONFIGURED
@@ -242,41 +199,18 @@ class BTManager(Thread):
             case BTState.CONNECTED | BTState.DISCONNECTED | BTState.CONFIGURED:
                 return True
             case BTState.TRUSTED:
-                logging.error(f"[BT-Tether] BT device ({self.mac}) trusted but not paired")
+                logging.error(
+                    f"{self.header}[Bluetooth] BT device trusted but not paired: {self.mac}"
+                )
             case BTState.PAIRED:
-                logging.error(f"[BT-Tether] BT device ({self.mac}) paired but not trusted")
+                logging.error(
+                    f"{self.header}[Bluetooth] BT device paired but not trusted: {self.mac}"
+                )
             case BTState.NOTCONFIGURED:
-                logging.error(f"[BT-Tether] BT device ({self.mac}) not configured")
+                logging.error(f"{self.header}[Bluetooth] BT device not configured: {self.mac}")
             case BTState.ERROR:
-                logging.error(f"[BT-Tether] Error with BT device ({self.mac})")
+                logging.error(f"{self.header}[Bluetooth] Error with BT device: {self.mac}")
         return False
-
-    def start_bluetooth(self):
-        try:
-            logging.info("[BT-Tether] Start bluetooth service")
-            systemctl("start", "bluetooth")
-            time.sleep(2)
-            bluetoothctl(["power", "on"])
-            bluetoothctl(["agent", "on"])
-        except Exception as e:
-            logging.error(f"[BT-Tether] Error while start bluetooth: {e}")
-
-    def stop_bluetooth(self):
-        try:
-            logging.info("[BT-Tether] Stoping bluetooth service")
-            systemctl("stop", "bluetooth")
-        except Exception as e:
-            logging.error(f"[BT-Tether] Error while stop bluetooth: {e}")
-
-    def restart_bluetooth(self):
-        try:
-            logging.info("[BT-Tether] Restarting bluetooth service")
-            systemctl("restart", "bluetooth")
-            time.sleep(2)
-            bluetoothctl(["power", "on"])
-            bluetoothctl(["agent", "on"])
-        except Exception as e:
-            logging.error(f"[BT-Tether] Error while restarting bluetooth: {e}")
 
     def connect_bluetooth(self):
         """
@@ -284,19 +218,21 @@ class BTManager(Thread):
         """
         match self.check_bluetooth():
             case BTState.CONNECTED:
-                logging.info(f"[BT-Tether] Bluetooth already up")
+                logging.info(f"{self.header} Bluetooth already up")
             case BTState.DISCONNECTED | BTState.CONFIGURED:
                 try:
                     if bluetoothctl(["connect", self.mac], "Connection successful") != -1:
-                        logging.info(f"[BT-Tether] BT device({self.mac}) connected")
+                        logging.info(f"{self.header}[Bluetooth] BT device connected")
                     else:
-                        logging.info(f"[BT-Tether] Failed to connect to BT device({self.mac})")
-                        logging.info(f"[BT-Tether] Let's try later")
+                        logging.info(
+                            f"{self.header}[Bluetooth] Failed to connect to BT device ({self.mac})"
+                        )
+                        logging.info(f"{self.header}[Bluetooth] Let's try later")
                 except Exception as e:
-                    logging.error("[BT-Tether] Bluetooth up failed")
-                    logging.error("[BT-Tether] Is tethering enabled on your phone?")
+                    logging.error(f"{self.header}[Bluetooth] Bluetooth up failed ({self.mac})")
+                    logging.error(f"{self.header}[Bluetooth] Is tethering enabled on your phone?")
             case BTState.ERROR | BTState.TRUSTED | BTState.PAIRED | BTState.NOTCONFIGURED:
-                logging.error(f"[BT-Tether] Error with BT device ({self.mac})")
+                logging.error(f"{self.header} Error with BT device ({self.mac})")
 
     def disconnect_bluetooth(self):
         """
@@ -307,13 +243,15 @@ class BTManager(Thread):
         try:
             bluetoothctl(["disconnect", f"{self.mac}"])
         except Exception as e:
-            logging.error(f"[BT-Tether] Failed to disconnect BT device ({self.mac}): {e}")
+            logging.error(
+                f"{self.header}[Bluetooth] Failed to disconnect BT device ({self.mac}): {e}"
+            )
 
     def get_bluetooth_config(self):
         try:
             return bluetoothctl(["info", self.mac])
         except Exception:
-            logging.error(f"[BT-Tether] Error while getting BT config ({self.mac})")
+            logging.error(f"{self.header}[Bluetooth] Error while getting BT config ({self.mac})")
             return None
 
     # ---------- DEVICE ----------
@@ -332,10 +270,10 @@ class BTManager(Thread):
                 self.device_state = DeviceState.DOWN
             else:
                 self.device_state = DeviceState.ERROR
-                logging.error(f"[BT-Tether] Network device error while reading NetworkManager device")
+                logging.error(f"{self.header}[Device] Error on check: {result}")
         except Exception as e:
             self.device_state = DeviceState.ERROR
-            logging.error(f"[BT-Tether] Network device error while reading NetworkManager device: {e}")
+            logging.error(f"{self.header}[Device] Error on check: {e}")
         return self.device_state
 
     def configure_device(self):
@@ -348,9 +286,9 @@ class BTManager(Thread):
                 nmcli(["device", "set", f"{self.mac}", "autoconnect", "yes", "managed", "yes"])
             else:
                 nmcli(["device", "set", f"{self.mac}", "autoconnect", "no", "managed", "yes"])
-            logging.info(f"[BT-Tether] Device ({self.mac}) configured")
+            logging.info(f"{self.header}[Device] Device ({self.mac}) configured")
         except Exception as e:
-            logging.error(f"[BT-Tether] Error while configuring device: {e}")
+            logging.error(f"{self.header}[Device] Error while configuring device ({self.mac}): {e}")
             raise ConfigError()
 
     def up_device(self):
@@ -359,18 +297,18 @@ class BTManager(Thread):
         """
         match self.check_device():
             case DeviceState.UP:
-                logging.info(f"[BT-Tether] Device already up")
+                logging.info(f"{self.header}[Device] Device already up")
             case DeviceState.CONNECTING:
-                logging.info(f"[BT-Tether] Device already trying to up")
+                logging.info(f"{self.header}[Device] Device already trying to up")
             case DeviceState.DOWN:
                 try:
                     nmcli(["device", "up", f"{self.mac}"])
-                    logging.info(f"[BT-Tether] Device {self.mac} up")
+                    logging.info(f"{self.header}[Device] Device {self.mac} up")
                 except Exception as e:
-                    logging.error(f"[BT-Tether] Failed to up device.")
+                    logging.error(f"{self.header}[Device] Failed to up device.")
                 self.check_device()
             case DeviceState.ERROR:
-                logging.error(f"[BT-Tether] Error with device ({self.mac})")
+                logging.error(f"{self.header}[Device] Error with device ({self.mac})")
 
     def down_device(self):
         """
@@ -381,13 +319,13 @@ class BTManager(Thread):
         try:
             nmcli(["device", "down", f"{self.mac}"])
         except Exception as e:
-            logging.error(f"[BT-Tether] Failed to down device ({self.mac}): {e}")
+            logging.error(f"{self.header}[Device] Failed to down device ({self.mac}): {e}")
 
     def get_device_config(self):
         try:
             return nmcli(["-w", "0", "device", "show", f"{self.mac}"])
         except Exception:
-            logging.error(f"[BT-Tether] Error while getting device config ({self.mac})")
+            logging.error(f"{self.header}[Device] Error on getting device config ({self.mac})")
             return None
 
     # ---------- CONNECTION ----------
@@ -410,10 +348,10 @@ class BTManager(Thread):
                 self.connection_state = ConnectionState.DOWN
             else:
                 self.connection_state = ConnectionState.ERROR
-                logging.error(f"[BT-Tether] Network connection error while reading NetworkManager connection")
+                logging.error(f"{self.header}[Connection] Error on check: {result}")
         except Exception as e:
             self.connection_state = ConnectionState.ERROR
-            logging.error(f"[BT-Tether] Network connection error while reading NetworkManager connection: {e}")
+            logging.error(f"{self.header}[Connection] Error on check: {result}: {e}")
         return self.connection_state
 
     def configure_connection(self):
@@ -440,21 +378,21 @@ class BTManager(Thread):
             else:
                 args += ["connection.autoconnect", "no"]
             nmcli(args)
-            logging.info(f"[BT-Tether] Connection ({self.phone_name}) configured")
+            logging.info(f"{self.header}[Connection] Connection configured")
         except Exception as e:
-            logging.error(f"[BT-Tether] Error while configuring connection: {e}")
+            logging.error(f"{self.header}[Connection] Error while configuring : {e}")
             raise ConfigError()
 
     def reload_connection(self):
         """
-        Reload  NetworkManager connection avec configuration
+        Reload NetworkManager connection avec configuration
         Used by configure.
         """
         try:
             nmcli(["connection", "reload"])
-            logging.info(f"[BT-Tether] Connection reloaded")
+            logging.info(f"{self.header}[Connection] Connection reloaded")
         except Exception as e:
-            logging.error(f"[BT-Tether] Error with connection reload: {e}")
+            logging.error(f"{self.header}[Connection] Error with connection reload: {e}")
 
     def up_connection(self):
         """
@@ -462,19 +400,19 @@ class BTManager(Thread):
         """
         match self.check_connection():
             case ConnectionState.UP:
-                logging.info(f"[BT-Tether] Connection already up")
+                logging.info(f"{self.header}[Connection] Connection already up")
                 return
             case ConnectionState.ACTIVATING:
-                logging.info(f"[BT-Tether] Connection already trying to up")
+                logging.info(f"{self.header}[Connection] Connection already trying to up")
                 return
             case ConnectionState.DOWN:
                 try:
                     nmcli(["connection", "up", f"{self.phone_name}"])
-                    logging.info(f"[BT-Tether] Connection {self.phone_name} up")
+                    logging.info(f"{self.header}[Connection] Connection up")
                 except Exception as e:
-                    logging.error(f"[BT-Tether] Failed to up connection: {e}")
+                    logging.error(f"{self.header}[Connection] Failed to up: {e}")
             case ConnectionState.ERROR:
-                logging.error(f"[BT-Tether] Error with connection ({self.phone_name})")
+                logging.error(f"{self.header}[Connection] Error with connection")
 
     def down_connection(self):
         """
@@ -485,24 +423,29 @@ class BTManager(Thread):
         try:
             nmcli(["connection", "down", f"{self.phone_name}"])
         except Exception as e:
-            logging.error(f"[BT-Tether] Failed to down connection ({self.phone_name}): {e}")
+            logging.error(f"{self.header}[Connection] Failed to down connection: {e}")
 
     def get_connection_config(self):
         try:
             return nmcli(["-w", "0", "connection", "show", self.phone_name])
         except Exception:
-            logging.error(f"[BT-Tether] Error while getting device config ({self.mac})")
+            logging.error(f"{self.header}[Connection] Error on getting connection config")
             return None
 
+    # ---------- Ping ----------
+    def ping(self) -> bool:
+        try:
+            return ping(self.ip, self.gateway)
+        except Exception as e:
+            logging.error(f"{self.header}[Connection] Ping error: {e}")
+        return False
+
     # ---------- ALL UP and DOWN ----------
-    def up_all(self, force=False):
+    def up(self, force=False):
         """
         Up all elements
         """
-        logging.info(f"[BT-Tether] Trying to connect to {self.phone_name}")
-        if self.check_driver() != DriverState.OK:
-            logging.error(f"[BT-Tether] Error with bluetooth driver")
-            return
+        logging.info(f"{self.header} Trying to connect")
         self.connect_bluetooth()
         time.sleep(2)
         if not force and self.check_bluetooth() != BTState.CONNECTED:
@@ -513,16 +456,21 @@ class BTManager(Thread):
         time.sleep(2)
         self.up_connection()
 
-    def down_all(self):
+    def down(self):
         """
         Down all elements
         """
-        logging.info("[BT-Tether] Unloading connection")
+        logging.info(f"{self.header} Unloading connection")
         self.down_connection()
         time.sleep(2)
         self.down_device()
         time.sleep(2)
         self.disconnect_bluetooth()
+
+    def reload(self):
+        self.down()
+        time.sleep(2)
+        self.up()
 
     def reconnect(self):
         """
@@ -531,19 +479,172 @@ class BTManager(Thread):
         if (datetime.now(tz=UTC) - self.last_reconnect).total_seconds() < 30:
             return
         self.last_reconnect = datetime.now(tz=UTC)
-        self.up_all()
+        self.up()
 
     # ---------- MAIN LOOP ----------
     def run(self):
         """
+        Check NetworkManager connection state.
+        """
+        match self.check_connection():
+            case ConnectionState.UP:
+                if not self.ping():
+                    logging.error(f"{self.header}[Ping] No ping anwser. Reloading")
+                    self.reload()
+                return
+            case ConnectionState.ACTIVATING:
+                return
+            case ConnectionState.DOWN:
+                pass
+            case ConnectionState.ERROR:
+                logging.error(f"{self.header} Error with connection ({self.phone_name}). Reloading")
+                self.reload()
+                return
+
+        if not self.autoconnect:  # if autoconnect=false, need to up the connection on loss
+            self.reconnect()
+
+
+class BTManager(Thread):
+    """
+    Thread for checking kernel, bluetooth, NetworkMananger device and NetworkMananger connection.
+    If a kernel issue is detected, modules are reloaded properly.
+    This thread tries to keep the connection up.
+    """
+
+    def __init__(self, phone: BTDevice):
+        super().__init__()
+        # Kernel modules variables
+        # Assume the driver won't mess during loading
+        self.last_timestamp = self.get_last_timestamp()
+        self.driver_error = False
+        self.driver_state = None
+        self.phone = phone
+        # Thread variables
+        self.ready = False
+        self.running = True
+
+        self.header = "[BT-Tether][Manager]"
+
+    def configure(self):
+        """
+        Check bluetooth pairing, configure NetworkMananger then tries to up all.
+        """
+        try:
+            self.restart_bluetooth()
+            self.phone.configure()
+            self.up_all(force=True)
+            self.ready = True
+        except ConfigError:
+            logging.error(f"{self.header} Error while configuring")
+
+    # ---------- KERNEL DRIVER ----------
+    def get_last_timestamp(self):
+        """
+        Retreive last timestamp of a kernel error. Ex:
+        Bluetooth: hci0: command 0xXXXX tx timeout
+        Bluetooth: hci0: link tx timeout
+        Bluetooth: hci0: killing stalled connection XX:XX:XX:XX:XX:XX
+        """
+        try:
+            return re.findall(KERN_ERROR_PTTRN, dmesg(), re.MULTILINE)[-1]
+        except IndexError:
+            return None
+
+    def check_driver(self):
+        """
+        Checks if there is a new kernel issue.
+        """
+        if self.driver_error:
+            self.driver_state = DriverState.ERROR
+        else:
+            last_timestamp = self.get_last_timestamp()
+            if last_timestamp != self.last_timestamp:
+                self.last_timestamp = last_timestamp
+                self.driver_error = True
+                self.driver_state = DriverState.ERROR
+                logging.error(f"{self.header}[Drivers] Kernel Drivers error: check dmesg")
+            else:
+                self.driver_state = DriverState.OK
+        return self.driver_state
+
+    def reload_drivers(self):
+        """
+        Reload kernel drivers by downing all, stoping daemon, removing modules,
+        then it reloads everything.
+        Can be removed in future version is the bug doesn't happen anymore
+        """
+        logging.info(f"{self.header}[Drivers] Reloading kernel modules")
+        self.stop_bluetooth()
+        hciconfig("down")
+        for module in ["hci_uart", "btbcm", "bnep", "bluetooth"]:
+            rmmod(module)
+        for module in ["btbcm", "hci_uart", "bnep", "bluetooth"]:
+            modprobe(module)
+        hciconfig("up")
+        hciconfig("reset")
+        self.start_bluetooth()
+        systemctl("restart", "NetworkManager")
+        logging.info(f"{self.header}[Drivers] Kernel modules reloaded")
+        self.driver_error = False
+
+    # ---------- BLUETOOTH ----------
+    def start_bluetooth(self):
+        try:
+            logging.info(f"{self.header} Start bluetooth service")
+            systemctl("start", "bluetooth")
+            time.sleep(2)
+            bluetoothctl(["power", "on"])
+            bluetoothctl(["agent", "on"])
+        except Exception as e:
+            logging.error(f"{self.header} Error while starting bluetooth: {e}")
+
+    def stop_bluetooth(self):
+        try:
+            logging.info(f"{self.header} Stoping bluetooth service")
+            systemctl("stop", "bluetooth")
+        except Exception as e:
+            logging.error(f"{self.header} Error while stoping bluetooth: {e}")
+
+    def restart_bluetooth(self):
+        try:
+            logging.info(f"{self.header} Restarting bluetooth service")
+            systemctl("restart", "bluetooth")
+            time.sleep(2)
+            bluetoothctl(["power", "on"])
+            bluetoothctl(["agent", "on"])
+        except Exception as e:
+            logging.error(f"{self.header} Error while restarting bluetooth: {e}")
+
+    # ---------- ALL UP and DOWN ----------
+    def up_all(self, force=False):
+        """
+        Up all elements
+        """
+        if self.check_driver() != DriverState.OK:
+            logging.error(f"{self.header} Error with bluetooth driver")
+            return
+        self.phone.up(force=force)
+
+    def down_all(self):
+        """
+        Down all elements
+        """
+        self.phone.down()
+
+    # ---------- MAIN LOOP ----------
+    def sleep(self, interval: int):
+        for _ in range(interval + 1):
+            if not self.running:
+                return
+            time.sleep(1)
+
+    def watchdog(self):
+        """
         Check kernel and NetworkManager connection state.
         """
-        logging.info("[BT-Tether] Starting watchdog")
-        if not self.ready:
-            logging.error("[BT-Tether] Thread not ready. Cancelling")
-            return
         while self.running:
-            time.sleep(10)
+            self.sleep(10)
             match self.check_driver():
                 case DriverState.OK:
                     pass
@@ -552,18 +653,17 @@ class BTManager(Thread):
                     self.reload_drivers()
                     self.up_all()
                     continue
+            self.phone.run()
 
-            match self.check_connection():
-                case ConnectionState.UP | ConnectionState.ACTIVATING:
-                    continue
-                case ConnectionState.DOWN:
-                    pass
-                case ConnectionState.ERROR:
-                    logging.error(f"[BT-Tether] Error with connection ({self.phone_name})")
-                    return
-
-            if not self.autoconnect:  # if autoconnect=false, need to up the connection on loss
-                self.reconnect()
+    def run(self):
+        logging.info(f"{self.header} Starting watchdog")
+        if not self.ready:
+            logging.error(f"{self.header} Thread not ready. Cancelling")
+            return
+        try:
+            self.watchdog()
+        except Exception as e:
+            logging.error(f"{self.header} Error on watchdog: {e}")
 
     def join(self, timeout=None):
         """
@@ -583,40 +683,47 @@ class BTTether(plugins.Plugin):
     """
 
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.6.3"
+    __version__ = "1.7.0"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
     def __init__(self):
         self.options = dict()
         self.btmanager = None
+        self.header = "[BT-Tether][Plugin]"
         try:
             template_file = os.path.dirname(os.path.realpath(__file__)) + "/" + "bt-tether.html"
             with open(template_file, "r") as fb:
                 self.template = fb.read()
         except Exception as e:
-            logging.error(f"[BT-Tether] Error loading template file {template_file}: {e}")
+            logging.error(f"{self.header} Error loading template file {template_file}: {e}")
             self.template = None
 
     def on_loaded(self):
-        logging.info(f"[BT-Tether] Plugin loaded. Version {self.__version__}")
+        logging.info(f"{self.header} Plugin loaded. Version {self.__version__}")
 
+    # ---------- CONFIGURATION ----------
     def on_config_changed(self, config):
         """
         Read config and starts BTManager
         """
-        logging.info(f"[BT-Tether] Reading configuration")
-        if not (phone_name := self.options.get("phone-name", None)):
-            logging.error("[BT-Tether] Phone name not provided")
-            return
+        phone = self.create_btdevice(self.options)
+        self.btmanager = BTManager(phone=phone)
+        self.btmanager.configure()
+        logging.info(f"{self.header} Plugin configured")
+
+    def create_btdevice(self, options: dict) -> BTDevice | None:
+        if not (phone_name := options.get("phone-name", None)):
+            logging.error(f"{self.header} Phone name not provided")
+            return None
         phone_name = f"{phone_name} Network"
 
-        mac = self.options.get("mac", None)
+        mac = options.get("mac", None)
         if not (mac and re.match(MAC_PTTRN, mac)):
-            logging.error("[BT-Tether] Error with mac address")
-            return
+            logging.error(f"{self.header} Error with mac address: {mac}")
+            return None
 
-        match self.options.get("phone", "").lower():
+        match options.get("phone", "").lower():
             case "android":
                 default_ip = "192.168.44.2"
                 default_gateway = "192.168.44.1"
@@ -624,57 +731,69 @@ class BTTether(plugins.Plugin):
                 default_ip = "172.20.10.2"
                 default_gateway = "172.20.10.1"
             case _:
-                logging.error("[BT-Tether] Phone type not supported")
-                return
+                logging.error(f"{self.header} Phone type not supported")
+                return None
 
-        ip = self.options.get("ip", None)
+        ip = options.get("ip", None)
         if not ip:
-            logging.info(f"[BT-Tether] No IP provided. Using default IP")
+            logging.info(f"{self.header} No IP provided, using default IP")
             ip = default_ip
         elif not re.match(IP_PTTRN, ip):
-            logging.error(f"[BT-Tether] Error whith configured IP: '{ip}'")
-            logging.error(f"[BT-Tether] Using default IP")
+            logging.error(f"{self.header} Error whith configured IP: '{ip}'")
+            logging.error(f"{self.header} Using default IP")
             ip = default_ip
 
-        gateway = self.options.get("gateway", None)
+        gateway = options.get("gateway", None)
         if not gateway:
-            logging.info(f"[BT-Tether] No gateway provided. Using default gateway")
+            logging.info(f"{self.header} No gateway provided. Using default gateway")
             gateway = default_gateway
         elif not re.match(IP_PTTRN, gateway):
-            logging.error(f"[BT-Tether] Error whith configured gateway: '{gateway}'")
-            logging.error(f"[BT-Tether] Using default gateway'")
+            logging.error(f"{self.header} Error whith configured gateway: '{gateway}'")
+            logging.error(f"{self.header} Using default gateway'")
             gateway = default_gateway
 
-        logging.info(f"[BT-Tether] IP: {ip}")
-        logging.info(f"[BT-Tether] Gateway: {gateway}")
+        logging.info(f"{self.header} IP: {ip}")
+        logging.info(f"{self.header} Gateway: {gateway}")
 
-        dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
+        dns = options.get("dns", "8.8.8.8 1.1.1.1")
         if not re.match(DNS_PTTRN, dns):
             if dns == "":
-                logging.error(f"[BT-Tether] Empty DNS setting")
+                logging.error(f"{self.header} Empty DNS setting")
             else:
-                logging.error(f"[BT-Tether] Wrong DNS setting: '{dns}'")
-            return
+                logging.error(f"{self.header} Wrong DNS setting: '{dns}'")
+            return None
         dns = re.sub("[\s,;]+", " ", dns).strip()  # DNS cleaning
         metric = self.options.get("metric", 200)
 
         internet = self.options.get("internet", True)
         autoconnect = self.options.get("autoconnect", True)
-
-        self.btmanager = BTManager(phone_name, mac, ip, gateway, dns, metric, internet, autoconnect)
-        logging.info(f"[BT-Tether] Plugin configured")
-        self.btmanager.start()
+        return BTDevice(phone_name, mac, ip, gateway, dns, metric, internet, autoconnect)
 
     def on_ready(self, agent):
         """
         Turns bettercap ble.recon off.
         """
+        self.btmanager.start()
         try:
-            logging.info(f"[BT-Tether] Disabling bettercap's BLE module")
+            logging.info(f"{self.header} Disabling bettercap's BLE module")
             agent.run("ble.recon off", verbose_errors=False)
         except Exception as e:
             pass
 
+    def on_unload(self, ui):
+        """
+        Stop  BTManager and remove UI elements.
+        """
+        with ui._lock:
+            try:
+                ui.remove_element("bluetooth")
+            except KeyError:
+                pass
+        if self.btmanager:
+            self.btmanager.join()
+        logging.info(f"{self.header} Plugin unloaded")
+
+    # ---------- UI ----------
     def on_ui_setup(self, ui):
         """
         Add the BT element to the UI
@@ -692,22 +811,6 @@ class BTTether(plugins.Plugin):
                 ),
             )
 
-    def on_unload(self, ui):
-        """
-        Stop  BTManager and remove UI elements.
-        """
-        with ui._lock:
-            try:
-                ui.remove_element("bluetooth")
-            except KeyError:
-                pass
-        try:
-            self.btmanager.join()
-        except AttributeError:
-            pass
-        logging.info("[BT-Tether] plugin unloaded")
-
-    # ---------- UI ----------
     def on_ui_update(self, ui):
         """
         Retreive BTManager state and display
@@ -716,7 +819,7 @@ class BTTether(plugins.Plugin):
             return
         state, status = "", ""
         # Checking connection
-        match self.btmanager.connection_state:
+        match self.btmanager.phone.connection_state:
             case ConnectionState.UP:
                 with ui._lock:
                     ui.set("bluetooth", "U")
@@ -737,7 +840,7 @@ class BTTether(plugins.Plugin):
             if status:
                 ui.set("status", status)
 
-    # ---------- WEB ----------
+    # ---------- WEB UI----------
     def on_webhook(self, path, request):
         """
         Handle web requests to show actual configuration
@@ -763,15 +866,16 @@ class BTTether(plugins.Plugin):
                     </html>"""
         if path == "/" or not path:
             bluetooth_header, bluetooth_config = split_config(
-                self.btmanager.get_bluetooth_config(), "Error while checking bluetoothctl"
+                self.btmanager.phone.get_bluetooth_config(), "Error while checking bluetoothctl"
             )
 
             device_header, device_config = split_config(
-                self.btmanager.get_device_config(), "Error while checking nmcli device"
+                self.btmanager.phone.get_device_config(), "Error while checking nmcli device"
             )
 
             connection_header, connection_config = split_config(
-                self.btmanager.get_connection_config(), "Error while checking nmcli connection"
+                self.btmanager.phone.get_connection_config(),
+                "Error while checking nmcli connection",
             )
 
             return render_template_string(
