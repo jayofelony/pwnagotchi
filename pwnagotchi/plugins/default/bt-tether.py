@@ -4,7 +4,7 @@ import re
 import time
 import os
 from dataclasses import dataclass, field
-from threading import Thread
+from threading import Thread, Event
 from datetime import datetime, UTC
 from enum import Enum, auto
 from flask import abort, render_template_string
@@ -33,8 +33,15 @@ class DriverState(Enum):
     OK = auto()
 
 
+class BluetoothdState(Enum):
+    """Bluetooth server states"""
+
+    ERROR = auto()
+    OK = auto()
+
+
 class BTState(Enum):
-    """Bluetooth states"""
+    """Bluetooth device states"""
 
     ERROR = auto()
     NOTCONFIGURED = auto()
@@ -64,18 +71,14 @@ class ConnectionState(Enum):
 
 
 # ---------- COMMAND HELPERS ----------
-def exec_cmd(
-    cmd: str, args: list[str], silent: bool = False, timeout: int = 10
-) -> subprocess.CompletedProcess[str] | None:
+def exec_cmd(cmd: str, args: list[str], timeout: int = 10) -> subprocess.CompletedProcess[str]:
     try:
         return subprocess.run(
             [cmd] + args, check=True, capture_output=True, text=True, timeout=timeout
         )
     except Exception as exp:
-        if not silent:
-            logging.debug(f"[BT-Tether] Error with {cmd}: {exp}")
-            raise exp
-    return None
+        logging.debug(f"[BT-Tether] Error with {cmd}: {exp}")
+        raise exp
 
 
 def bluetoothctl(args: list[str], pattern: str | None = None) -> int | str | None:
@@ -104,7 +107,7 @@ def ping(interface: str, target: str) -> bool:
 
 
 def rmmod(module: str) -> None:
-    exec_cmd("rmmod", ["-f", module], silent=True)
+    exec_cmd("rmmod", ["-f", module])
 
 
 def modprobe(module: str) -> None:
@@ -155,7 +158,7 @@ class BTPhone:
         """
         if not self.check_bluetooth_ready():
             logging.error(f"{self.header} Bluetooth pairing error")
-            return
+            raise ConfigError()
         try:
             self.configure_connection()
             self.configure_device()
@@ -173,8 +176,8 @@ class BTPhone:
         try:
             result = bluetoothctl(["--timeout", "1", "info", self.mac])
         except Exception as e:
-            self.bluetooth_state = BTState.ERROR
             logging.error(f"{self.header}[Bluetooth] Error on check: {e}")
+            self.bluetooth_state = BTState.ERROR
             return self.bluetooth_state
 
         self.bluetooth_state = BTState.NOTCONFIGURED
@@ -513,17 +516,18 @@ class BTManager(Thread):
     Thread for checking kernel and call phone.run().
     If a kernel issue is detected, modules are reloaded properly.
     """
+
     phone: BTPhone = field(init=True)
     # Kernel modules variables
     # Assume the driver won't mess during loading
     last_timestamp: str | None = None
     driver_error: bool = False
     driver_state: DriverState = DriverState.OK
-    
+
+    bluetoothd_state: BluetoothdState = BluetoothdState.OK
     # Thread variables
     ready: bool = False
-    running: bool = True
-
+    exit: Event = field(default_factory=lambda: Event())
     header: str = "[BT-Tether][Manager]"
 
     def __post_init__(self):
@@ -538,7 +542,7 @@ class BTManager(Thread):
         Check bluetooth pairing, configure NetworkMananger then tries to up all.
         """
         try:
-            self.restart_bluetooth()
+            self.restart_bluetoothd()
             self.phone.configure()
             self.up_all(force=True)
             self.ready = True
@@ -584,7 +588,7 @@ class BTManager(Thread):
         Can be removed in future version is the bug doesn't happen anymore
         """
         logging.info(f"{self.header}[Drivers] Reloading kernel modules")
-        self.stop_bluetooth()
+        self.stop_bluetoothd()
         hciconfig("down")
         for module in ["hci_uart", "btbcm", "bnep", "bluetooth"]:
             rmmod(module)
@@ -592,76 +596,117 @@ class BTManager(Thread):
             modprobe(module)
         hciconfig("up")
         hciconfig("reset")
-        self.start_bluetooth()
+        self.start_bluetoothd()
         systemctl("restart", "NetworkManager")
         logging.info(f"{self.header}[Drivers] Kernel modules reloaded")
         self.driver_error = False
 
     # ---------- BLUETOOTH ----------
-    def start_bluetooth(self):
+    def check_bluetoothd(self):
+        """
+        Check bluetoothd
+        """
         try:
-            logging.info(f"{self.header}[Bluetooth] Start bluetooth service")
+            bluetoothctl(["list"])
+            self.bluetoothd_state = BluetoothdState.OK
+        except Exception as e:
+            self.bluetoothd_state = BluetoothdState.ERROR
+            logging.error(f"{self.header}[Bluetoothd] Error on check: {e}")
+        return self.bluetoothd_state
+
+    def start_bluetoothd(self):
+        try:
+            logging.info(f"{self.header}[Bluetoothd] Start bluetooth service")
             systemctl("start", "bluetooth")
             time.sleep(2)
             bluetoothctl(["power", "on"])
             bluetoothctl(["agent", "on"])
         except Exception as e:
-            logging.error(f"{self.header}[Bluetooth] Error while starting bluetooth: {e}")
+            logging.error(f"{self.header}[Bluetoothd] Error while starting bluetooth: {e}")
 
-    def stop_bluetooth(self):
+    def stop_bluetoothd(self):
         try:
-            logging.info(f"{self.header}[Bluetooth] Stoping bluetooth service")
+            logging.info(f"{self.header}[Bluetoothd] Stoping bluetooth service")
             systemctl("stop", "bluetooth")
         except Exception as e:
-            logging.error(f"{self.header}[Bluetooth] Error while stoping bluetooth: {e}")
+            logging.error(f"{self.header}[Bluetoothd] Error while stoping bluetooth: {e}")
 
-    def restart_bluetooth(self):
+    def restart_bluetoothd(self):
         try:
-            logging.info(f"{self.header}[Bluetooth] Restarting bluetooth service")
+            logging.info(f"{self.header}[Bluetoothd] Restarting bluetooth service")
             systemctl("restart", "bluetooth")
             time.sleep(2)
             bluetoothctl(["power", "on"])
             bluetoothctl(["agent", "on"])
         except Exception as e:
-            logging.error(f"{self.header}[Bluetooth] Error while restarting bluetooth: {e}")
+            logging.error(f"{self.header}[Bluetoothd] Error while restarting bluetooth: {e}")
 
     # ---------- ALL UP and DOWN ----------
     def up_all(self, force=False):
         """
-        Up all elements
+        Up all phones
         """
-        if self.check_driver() != DriverState.OK:
-            logging.error(f"{self.header} Error with bluetooth driver")
-            return
         self.phone.up(force=force)
 
     def down_all(self):
         """
-        Down all elements
+        Down all phones
         """
         self.phone.down()
 
-    # ---------- MAIN LOOP ----------
-    def sleep(self, interval: int):
-        for _ in range(interval + 1):
-            if not self.running:
-                return
-            time.sleep(1)
+    def reload_all(self):
+        """
+        Reload all phones
+        """
+        logging.info(f"{self.header} Reloading connections")
+        self.down_all()
+        time.sleep(2)
+        self.up_all()
 
+    def reload_drivers_all(self):
+        """
+        Reload all phones
+        """
+        logging.info(f"{self.header} Reloading kernel modules and connections")
+        self.down_all()
+        time.sleep(2)
+        self.reload_drivers()
+        time.sleep(2)
+        self.up_all()
+
+    # ---------- MAIN LOOP ----------
     def watchdog(self):
         """
         Check kernel and NetworkManager connection state.
         """
-        while self.running:
-            self.sleep(10)
+        bluetoothd_restart_retries = 0
+        while not self.exit.is_set():
+            self.exit.wait(5)
             match self.check_driver():
                 case DriverState.OK:
                     pass
                 case DriverState.ERROR:
-                    self.down_all()
-                    self.reload_drivers()
-                    self.up_all()
+                    self.reload_drivers_all()
                     continue
+            self.exit.wait(5)
+            match self.check_bluetoothd():
+                case BluetoothdState.OK:
+                    bluetoothd_restart_retries = 0
+                case BluetoothdState.ERROR:
+                    if bluetoothd_restart_retries < 3:  # try to restart bluetooth service first
+                        bluetoothd_restart_retries += 1
+                        logging.info(
+                            f"{self.header} Trying to restart bluetooth service: {bluetoothd_restart_retries} tries"
+                        )
+                        self.restart_bluetoothd()
+                    else:  # reload drivers
+                        logging.info(
+                            f"{self.header} Number of retries exceeded ({bluetoothd_restart_retries} tries): Reloading all"
+                        )
+                        self.reload_drivers_all()
+                        bluetoothd_restart_retries = 0
+                    continue
+            self.exit.wait(5)
             self.phone.run()
 
     def run(self):
@@ -678,7 +723,7 @@ class BTManager(Thread):
         """
         End main loop and down all
         """
-        self.running = False  # exit main loop
+        self.exit.set()
         try:
             super(BTManager, self).join(timeout)
         except RuntimeError:  # Handle coding bugs and ensure the thread exit
