@@ -51,7 +51,7 @@ main.plugins.fix_services.enabled = true
 main.plugins.gdrivesync.enabled = false
 main.plugins.gdrivesync.backupfiles = ['']
 main.plugins.gdrivesync.backup_folder = "PwnagotchiBackups"
-main.plugin.gdrivesync.interval = 1
+main.plugins.gdrivesync.interval = 1
 
 main.plugins.gpio_buttons.enabled = false
 
