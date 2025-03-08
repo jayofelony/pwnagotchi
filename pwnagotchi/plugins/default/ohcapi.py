@@ -114,7 +114,7 @@ class ohcapi(plugins.Plugin):
             handshake_new = set(handshake_paths) - set(reported) - set(self.skip)
 
             if not handshake_new:
-                logging.info("[OHC NewAPI] No new PCAP files to process.")
+                logging.debug("[OHC NewAPI] No new PCAP files to process.")
                 return
             logging.info(f"[OHC NewAPI] Processing {len(handshake_new)} new PCAP handshakes.")
 
