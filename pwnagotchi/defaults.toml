@@ -1,22 +1,25 @@
-main.name = "pwnagotchi"
-main.lang = "en"
-main.whitelist = [
+[main]
+name = "pwnagotchi"
+lang = "en"
+whitelist = [
     "EXAMPLE_NETWORK",
     "ANOTHER_EXAMPLE_NETWORK",
     "fo:od:ba:be:fo:od",
     "fo:od:ba"
 ]
-main.confd = "/etc/pwnagotchi/conf.d/"
-main.custom_plugin_repos = [
+confd = "/etc/pwnagotchi/conf.d/"
+custom_plugin_repos = [
     "https://github.com/jayofelony/pwnagotchi-torch-plugins/archive/master.zip",
     "https://github.com/Sniffleupagus/pwnagotchi_plugins/archive/master.zip",
     "https://github.com/NeonLightning/pwny/archive/master.zip",
     "https://github.com/marbasec/UPSLite_Plugin_1_3/archive/master.zip",
     "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip",
-    "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip",
+    "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip"
 ]
+custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
-main.custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
+[main.plugins.auto-tune]
+enabled = true
 
 main.plugins.auto_backup.enabled = true
 main.plugins.auto_backup.interval = "daily"    # or "hourly", or a number (minutes)
@@ -41,172 +44,203 @@ main.plugins.auto_backup.files = [
 main.plugins.auto_backup.exclude = [ "/etc/pwnagotchi/logs/*",]
 main.plugins.auto_backup.commands = [ "tar cf {backup_file} {files}",]
 
-main.plugins.auto-tune.enabled = true
+[main.plugins.auto-update]
+enabled = true
+install = true
+interval = 1
+token = "" # Create a personal access token (classic) with scope set to public_repo to use the GitHub API
 
-main.plugins.auto-update.enabled = true
-main.plugins.auto-update.install = true
-main.plugins.auto-update.interval = 1
+[main.plugins.bt-tether]
+enabled = false
+phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
+mac = ""
+phone = "" # android or ios
+ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
+dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
 
-main.plugins.bt-tether.enabled = false
-main.plugins.bt-tether.phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
-main.plugins.bt-tether.mac = ""
-main.plugins.bt-tether.phone = "" # android or ios
-main.plugins.bt-tether.ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
-main.plugins.bt-tether.dns = "" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
+[main.plugins.fix_services]
+enabled = true
 
-main.plugins.fix_services.enabled = true
+[main.plugins.cache]
+enabled = true
 
-main.plugins.cache.enabled = true
+[main.plugins.gdrivesync]
+enabled = false
+backupfiles = [""]
+backup_folder = "PwnagotchiBackups"
+interval = 1
 
-main.plugins.gdrivesync.enabled = false
-main.plugins.gdrivesync.backupfiles = ['']
-main.plugins.gdrivesync.backup_folder = "PwnagotchiBackups"
-main.plugins.gdrivesync.interval = 1
+[main.plugins.gpio_buttons]
+enabled = false
 
-main.plugins.gpio_buttons.enabled = false
+[main.plugins.gps]
+enabled = false
+speed = 19200
+device = "/dev/ttyUSB0" # for GPSD: "localhost:2947"
 
-main.plugins.gps.enabled = false
-main.plugins.gps.speed = 19200
-main.plugins.gps.device = "/dev/ttyUSB0" # for GPSD: "localhost:2947"
+[main.plugins.gps_listener]
+enabled = false
 
-main.plugins.gps_listener.enabled = false
+[main.plugins.grid]
+enabled = true
+report = true
 
-main.plugins.grid.enabled = true
-main.plugins.grid.report = true
+[main.plugins.logtail]
+enabled = false
+max-lines = 10000
 
-main.plugins.logtail.enabled = false
-main.plugins.logtail.max-lines = 10000
+[main.plugins.memtemp]
+enabled = false
+scale = "celsius"
+orientation = "horizontal"
 
-main.plugins.memtemp.enabled = false
-main.plugins.memtemp.scale = "celsius"
-main.plugins.memtemp.orientation = "horizontal"
+[main.plugins.ohcapi]
+enabled = false
+api_key = "sk_your_api_key_here"
+receive_email = "yes"
 
-main.plugins.ohcapi.enabled = false
-main.plugins.ohcapi.api_key = "sk_your_api_key_here"
-main.plugins.ohcapi.receive_email = "yes"
+[main.plugins.pwndroid]
+enabled = false
+display = false # show coords on display
+display_altitude = false # show altitude on display
 
-main.plugins.pwndroid.enabled = false
-main.plugins.pwndroid.display = false # show coords on display
-main.plugins.pwndroid.display_altitude = false # show altitude on display
+[main.plugins.pisugarx]
+enabled = false
+rotation = false
+default_display = "percentage"
+lowpower_shutdown = true
+lowpower_shutdown_level = 10 # battery percent at which the device will turn off
+max_charge_voltage_protection = false #It will limit the battery voltage to about 80% to extend battery life
 
-main.plugins.pisugarx.enabled = false
-main.plugins.pisugarx.rotation = false
-main.plugins.pisugarx.default_display = "percentage"
-main.plugins.pisugarx.lowpower_shutdown = true
-main.plugins.pisugarx.lowpower_shutdown_level = 10 # battery percent at which the device will turn off
-main.plugins.pisugarx.max_charge_voltage_protection = false #It will limit the battery voltage to about 80% to extend battery life
+[main.plugins.session-stats]
+enabled = false
+save_directory = "/var/tmp/pwnagotchi/sessions/"
 
-main.plugins.session-stats.enabled = false
-main.plugins.session-stats.save_directory = "/var/tmp/pwnagotchi/sessions/"
+[main.plugins.ups_hat_c]
+enabled = false
+label_on = true  # show BAT label or just percentage
+shutdown = 5  # battery percent at which the device will turn off
+bat_x_coord = 140
+bat_y_coord = 0
 
-main.plugins.ups_hat_c.enabled = false
-main.plugins.ups_hat_c.label_on = true  # show BAT label or just percentage
-main.plugins.ups_hat_c.shutdown = 5  # battery percent at which the device will turn off
-main.plugins.ups_hat_c.bat_x_coord = 140
-main.plugins.ups_hat_c.bat_y_coord = 0
+[main.plugins.ups_lite]
+enabled = false
+shutdown = 2
 
-main.plugins.ups_lite.enabled = false
-main.plugins.ups_lite.shutdown = 2
+[main.plugins.webcfg]
+enabled = true
 
-main.plugins.webcfg.enabled = true
+[main.plugins.webgpsmap]
+enabled = false
 
-main.plugins.webgpsmap.enabled = false
+[main.plugins.wigle]
+enabled = false
+api_key = "" # mandatory
+cvs_dir = "/tmp" # optionnal, is set, the CVS is written to this directory
+donate = false # default: off
+timeout = 30 # default: 30
+position = [7, 85] # optionnal
 
-main.plugins.wigle.enabled = false
-main.plugins.wigle.api_key = "" # mandatory
-main.plugins.wigle.cvs_dir = "/tmp" # optionnal, is set, the CVS is written to this directory
-main.plugins.wigle.donate = false # default: off
-main.plugins.wigle.timeout = 30 # default: 30 
-main.plugins.wigle.position = [7, 85] # optionnal
+[main.plugins.wpa-sec]
+enabled = false
+api_key = ""
+api_url = "https://wpa-sec.stanev.org"
+download_results = false
+show_pwd = false
 
-main.plugins.wpa-sec.enabled = false
-main.plugins.wpa-sec.api_key = ""
-main.plugins.wpa-sec.api_url = "https://wpa-sec.stanev.org"
-main.plugins.wpa-sec.download_results = false
-main.plugins.wpa-sec.show_pwd = false
+iface = "wlan0mon"
+mon_start_cmd = "/usr/bin/monstart"
+mon_stop_cmd = "/usr/bin/monstop"
+mon_max_blind_epochs = 5
+no_restart = false
 
-main.iface = "wlan0mon"
-main.mon_start_cmd = "/usr/bin/monstart"
-main.mon_stop_cmd = "/usr/bin/monstop"
-main.mon_max_blind_epochs = 5
-main.no_restart = false
+[main.log]
+path = "/etc/pwnagotchi/log/pwnagotchi.log"
+path-debug = "/etc/pwnagotchi/log/pwnagotchi-debug.log"
 
-main.log.path = "/etc/pwnagotchi/log/pwnagotchi.log"
-main.log.path-debug = "/etc/pwnagotchi/log/pwnagotchi-debug.log"
-main.log.rotation.enabled = true
-main.log.rotation.size = "10M"
+[main.log.rotation]
+enabled = true
+size = "10M"
 
-personality.advertise = true
-personality.deauth = true
-personality.associate = true
-personality.channels = []
-personality.min_rssi = -200
-personality.ap_ttl = 120
-personality.sta_ttl = 300
-personality.recon_time = 30
-personality.max_inactive_scale = 2
-personality.recon_inactive_multiplier = 2
-personality.hop_recon_time = 10
-personality.min_recon_time = 5
-personality.max_interactions = 3
-personality.max_misses_for_recon = 5
-personality.excited_num_epochs = 10
-personality.bored_num_epochs = 15
-personality.sad_num_epochs = 25
-personality.bond_encounters_factor = 20000
-personality.throttle_a = 0.4
-personality.throttle_d = 0.9
+[personality]
+advertise = true
+deauth = true
+associate = true
+channels = []
+min_rssi = -200
+ap_ttl = 120
+sta_ttl = 300
+recon_time = 30
+max_inactive_scale = 2
+recon_inactive_multiplier = 2
+hop_recon_time = 10
+min_recon_time = 5
+max_interactions = 3
+max_misses_for_recon = 5
+excited_num_epochs = 10
+bored_num_epochs = 15
+sad_num_epochs = 25
+bond_encounters_factor = 20000
+throttle_a = 0.4
+throttle_d = 0.9
 
-ui.invert = false # false = black background, true = white background
-ui.cursor = true
-ui.fps = 0.0
-ui.font.name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
-ui.font.size_offset = 0 # will be added to the font size
+[ui]
+invert = false # false = black background, true = white background
+cursor = true
+fps = 0.0
 
-ui.faces.look_r = "( ⚆_⚆)"
-ui.faces.look_l = "(☉_☉ )"
-ui.faces.look_r_happy = "( ◕‿◕)"
-ui.faces.look_l_happy = "(◕‿◕ )"
-ui.faces.sleep = "(⇀‿‿↼)"
-ui.faces.sleep2 = "(≖‿‿≖)"
-ui.faces.awake = "(◕‿‿◕)"
-ui.faces.bored = "(-__-)"
-ui.faces.intense = "(°▃▃°)"
-ui.faces.cool = "(⌐■_■)"
-ui.faces.happy = "(•‿‿•)"
-ui.faces.excited = "(ᵔ◡◡ᵔ)"
-ui.faces.grateful = "(^‿‿^)"
-ui.faces.motivated = "(☼‿‿☼)"
-ui.faces.demotivated = "(≖__≖)"
-ui.faces.smart = "(✜‿‿✜)"
-ui.faces.lonely = "(ب__ب)"
-ui.faces.sad = "(╥☁╥ )"
-ui.faces.angry = "(-_-')"
-ui.faces.friend = "(♥‿‿♥)"
-ui.faces.broken = "(☓‿‿☓)"
-ui.faces.debug = "(#__#)"
-ui.faces.upload = "(1__0)"
-ui.faces.upload1 = "(1__1)"
-ui.faces.upload2 = "(0__1)"
-ui.faces.png = false
-ui.faces.position_x = 0
-ui.faces.position_y = 34
+[ui.font]
+name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
+size_offset = 0 # will be added to the font size
 
-ui.web.enabled = true
-ui.web.address = "::" # listening on both ipv4 and ipv6 - switch to 0.0.0.0 to listen on just ipv4
-ui.web.auth = false
-ui.web.username = "changeme" # if auth is true
-ui.web.password = "changeme" # if auth is true
-ui.web.origin = ""
-ui.web.port = 8080
-ui.web.on_frame = ""
+[ui.faces]
+look_r = "( ⚆_⚆)"
+look_l = "(☉_☉ )"
+look_r_happy = "( ◕‿◕)"
+look_l_happy = "(◕‿◕ )"
+sleep = "(⇀‿‿↼)"
+sleep2 = "(≖‿‿≖)"
+awake = "(◕‿‿◕)"
+bored = "(-__-)"
+intense = "(°▃▃°)"
+cool = "(⌐■_■)"
+happy = "(•‿‿•)"
+excited = "(ᵔ◡◡ᵔ)"
+grateful = "(^‿‿^)"
+motivated = "(☼‿‿☼)"
+demotivated = "(≖__≖)"
+smart = "(✜‿‿✜)"
+lonely = "(ب__ب)"
+sad = "(╥☁╥ )"
+angry = "(-_-')"
+friend = "(♥‿‿♥)"
+broken = "(☓‿‿☓)"
+debug = "(#__#)"
+upload = "(1__0)"
+upload1 = "(1__1)"
+upload2 = "(0__1)"
+png = false
+position_x = 0
+position_y = 34
 
-ui.display.enabled = false
-ui.display.rotation = 180
-ui.display.type = "waveshare_4"
+[ui.web]
+enabled = true
+address = "::" # listening on both ipv4 and ipv6 - switch to 0.0.0.0 to listen on just ipv4
+auth = false
+username = "changeme" # if auth is true
+password = "changeme" # if auth is true
+origin = ""
+port = 8080
+on_frame = ""
 
-bettercap.handshakes = "/home/pi/handshakes"
-bettercap.silence = [
+[ui.display]
+enabled = false
+rotation = 180
+type = "waveshare_4"
+
+[bettercap]
+handshakes = "/home/pi/handshakes"
+silence = [
     "ble.device.new",
     "ble.device.lost",
     "ble.device.service.discovered",
@@ -222,17 +256,21 @@ bettercap.silence = [
     "mod.started"
 ]
 
-fs.memory.enabled = true
-fs.memory.mounts.log.enabled = true
-fs.memory.mounts.log.mount = "/etc/pwnagotchi/log/"
-fs.memory.mounts.log.size = "50M"
-fs.memory.mounts.log.sync = 60
-fs.memory.mounts.log.zram = true
-fs.memory.mounts.log.rsync = true
+[fs.memory]
+enabled = true
 
-fs.memory.mounts.data.enabled = true
-fs.memory.mounts.data.mount = "/var/tmp/pwnagotchi"
-fs.memory.mounts.data.size = "10M"
-fs.memory.mounts.data.sync = 3600
-fs.memory.mounts.data.zram = true
-fs.memory.mounts.data.rsync = true
+[fs.memory.mounts.log]
+enabled = true
+mount = "/etc/pwnagotchi/log/"
+size = "50M"
+sync = 60
+zram = true
+rsync = true
+
+[fs.memory.mounts.data]
+enabled = true
+mount = "/var/tmp/pwnagotchi"
+size = "10M"
+sync = 3600
+zram = true
+rsync = true
