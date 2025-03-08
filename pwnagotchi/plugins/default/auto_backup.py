@@ -86,8 +86,8 @@ class AutoBackup(plugins.Plugin):
 
         if not self.is_backup_due():
             now = time.time()
-            # Log "backup not due" only once every 60 seconds.
-            if now - self.last_not_due_logged > 60:
+            # Log "backup not due" only once every 600 seconds.
+            if now - self.last_not_due_logged > 600:
                 logging.info("AUTO-BACKUP: Backup not due yet based on the interval.")
                 self.last_not_due_logged = now
             return

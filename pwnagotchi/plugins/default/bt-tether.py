@@ -247,7 +247,7 @@ class BTPhone:
 
     def connect_bluetooth(self):
         """
-        Check bluetooth status and tries to connect if necesary.
+        Check bluetooth status and tries to connect if necessary.
         """
         match self.check_bluetooth():
             case BTState.CONNECTED:

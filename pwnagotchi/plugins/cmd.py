@@ -106,20 +106,19 @@ def edit(args, config):
 
     plugin_config = {'main': {'plugins': {plugin: config['main']['plugins'][plugin]}}}
 
-    import toml
+    import tomlkit
     from subprocess import call
     from tempfile import NamedTemporaryFile
-    from pwnagotchi.utils import DottedTomlEncoder
 
     new_plugin_config = None
     with NamedTemporaryFile(suffix=".tmp", mode='r+t') as tmp:
-        tmp.write(toml.dumps(plugin_config, encoder=DottedTomlEncoder()))
+        tmp.write(tomlkit.dumps(plugin_config))
         tmp.flush()
         rc = call([editor, tmp.name])
         if rc != 0:
             return rc
         tmp.seek(0)
-        new_plugin_config = toml.load(tmp)
+        new_plugin_config = tomlkit.load(tmp)
 
     config['main']['plugins'][plugin] = new_plugin_config['main']['plugins'][plugin]
     save_config(config, args.user_config)

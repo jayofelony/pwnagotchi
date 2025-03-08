@@ -5,62 +5,12 @@ import subprocess
 
 import json
 import shutil
-import toml
 import sys
-import re
+import tomlkit
 
-from toml.encoder import TomlEncoder, _dump_str
 from zipfile import ZipFile
 from datetime import datetime
 from enum import Enum
-
-
-class DottedTomlEncoder(TomlEncoder):
-    """
-    Dumps the toml into the dotted-key format
-    """
-
-    def __init__(self, _dict=dict):
-        super(DottedTomlEncoder, self).__init__(_dict)
-
-    def dump_list(self, v):
-        retval = "["
-        # 1 line if its just 1 item; therefore no newline
-        if len(v) > 1:
-            retval += "\n"
-        for u in v:
-            retval += " " + str(self.dump_value(u)) + ",\n"
-        # 1 line if its just 1 item; remove newline
-        if len(v) <= 1:
-            retval = retval.rstrip("\n")
-        retval += "]"
-        return retval
-
-
-
-    def dump_sections(self, o, sup):
-        retstr = ""
-        pre = ""
-
-        if sup:
-            pre = sup + "."
-
-        for section, value in o.items():
-            section = str(section)
-            qsection = section
-            if not re.match(r'^[A-Za-z0-9_-]+$', section):
-                qsection = _dump_str(section)
-            if value is not None:
-                if isinstance(value, dict):
-                    toadd, _ = self.dump_sections(value, pre + qsection)
-                    retstr += toadd
-                    # separte sections
-                    if not retstr.endswith('\n\n'):
-                        retstr += '\n'
-                else:
-                    retstr += (pre + qsection + " = " + str(self.dump_value(value)) + '\n')
-        return retstr, self._dict()
-
 
 def parse_version(version):
     """
@@ -152,7 +102,8 @@ def keys_to_str(data):
 
 def save_config(config, target):
     with open(target, 'wt') as fp:
-        fp.write(toml.dumps(config, encoder=DottedTomlEncoder()))
+        fp.write(tomlkit.dumps(config))
+        #fp.write(toml.dumps(config, encoder=DottedTomlEncoder()))
     return True
 
 
@@ -202,7 +153,8 @@ def load_config(args):
 
     # load the defaults
     with open(args.config) as fp:
-        config = toml.load(fp)
+        config = tomlkit.load(fp)
+        #config = toml.load(fp)
 
     # load the user config
     try:
@@ -218,10 +170,12 @@ def load_config(args):
                 # convert int/float keys to str
                 user_config = keys_to_str(user_config)
                 # convert to toml but use loaded yaml
-                toml.dump(user_config, toml_file)
+                # toml.dump(user_config, toml_file)
+                tomlkit.dump(user_config, toml_file)
         elif os.path.exists(args.user_config):
             with open(args.user_config) as toml_file:
-                user_config = toml.load(toml_file)
+                # user_config = toml.load(toml_file)
+                user_config = tomlkit.load(toml_file)
 
         if user_config:
             config = merge_config(user_config, config)
@@ -235,7 +189,8 @@ def load_config(args):
         dropin += '*.toml' if dropin.endswith('/') else '/*.toml'  # only toml here; yaml is no more
         for conf in glob.glob(dropin):
             with open(conf) as toml_file:
-                additional_config = toml.load(toml_file)
+                # additional_config = toml.load(toml_file)
+                additional_config = tomlkit.load(toml_file)
                 config = merge_config(additional_config, config)
 
     # the very first step is to normalize the display name, so we don't need dozens of if/elif around
