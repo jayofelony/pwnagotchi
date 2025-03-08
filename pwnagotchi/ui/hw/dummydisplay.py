@@ -7,6 +7,7 @@ from pwnagotchi.ui.hw.base import DisplayImpl
 class DummyDisplay(DisplayImpl):
     def __init__(self, config):
         super(DummyDisplay, self).__init__(config, 'DummyDisplay')
+        self._display = self
 
     def layout(self):
         width = 480 if 'width' not in self.config else self.config['width']
@@ -25,7 +26,7 @@ class DummyDisplay(DisplayImpl):
         self._layout['friend_name'] = (int(width/12), int(height/10))
         self._layout['shakes'] = (0, height-int(height/25))
         self._layout['mode'] = (width-int(width/8), height - int (height/25))
-        lw, lh = fonts.Small.getbbox("W")
+        lw, lh = fonts.Small.getsize("W")
         self._layout['status'] = {
             'pos': (int(width/48), int(height/3)),
             'font': fonts.status_font(fonts.Small),
