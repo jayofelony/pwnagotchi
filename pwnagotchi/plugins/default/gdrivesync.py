@@ -205,7 +205,7 @@ class GdriveSync(plugins.Plugin):
             shutil.rmtree("/home/pi/backup")
             self.status.update()
             display = agent.view()
-            display.update(force=True, new_data={'Backing up to gdrive ...'})
+            display.update(force=True, new_data={"status": 'Backing up to gdrive ...'})
 
     def backup_files(self, paths, dest_path):
         for src_path in paths:
