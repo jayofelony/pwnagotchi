@@ -1,6 +1,11 @@
 [main]
 name = "pwnagotchi"
 lang = "en"
+iface = "wlan0mon"
+mon_start_cmd = "/usr/bin/monstart"
+mon_stop_cmd = "/usr/bin/monstop"
+mon_max_blind_epochs = 5
+no_restart = false
 whitelist = [
     "EXAMPLE_NETWORK",
     "ANOTHER_EXAMPLE_NETWORK",
