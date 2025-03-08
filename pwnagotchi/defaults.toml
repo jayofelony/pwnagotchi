@@ -58,14 +58,23 @@ token = "" # Create a personal access token (classic) with scope set to public_r
 
 [main.plugins.bt-tether]
 enabled = false
-phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
-mac = ""
-phone = "" # android or ios
-ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
-dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
+# default values applied to all phones
+dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider anonymous DNS like OpenNic :-)
 autoconnect = true # optional, default true. if true, uses nmcli autoconnect else, up by itself
 metric = 200 # optional, default: 200. Changes connection priority
 internet = true # optional, default true. Use phone as a gateway to Internet or just control
+
+phones = [{phone-name = "", mac = "", phone = "" }] # list of dict. You can overwrite a default value. Ex:"internet" = false 
+# Phone-name: name as shown on the phone i.e. "Pwnagotchi's Phone"
+# mac: phone mac adress
+# phone: android or ios
+# ip: optional pwnagotchi ip, default : 192.168.44.2 if android or 172.20.10.2 if ios
+
+# Kept for backwards compatibility
+phone-name = "" 
+mac = ""
+phone = "" 
+ip = "" 
 
 [main.plugins.fix_services]
 enabled = true
