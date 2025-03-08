@@ -42,8 +42,8 @@ files = [
   "/home/pi/.profile",
   "/home/pi/.wpa_sec_uploads"
 ]
-exclude = [ "/etc/pwnagotchi/logs/*",]
-commands = [ "tar cf {backup_file} {files}",]
+exclude = [ "/etc/pwnagotchi/logs/*"]
+commands = [ "tar cf {backup_file} {files}"]
 
 [main.plugins.auto-update]
 enabled = true
