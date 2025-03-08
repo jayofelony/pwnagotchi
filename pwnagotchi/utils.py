@@ -36,7 +36,9 @@ class DottedTomlEncoder(TomlEncoder):
         retval += "]"
         return retval
 
-    def dump_sections(self, o, sup):
+
+
+    """def dump_sections(self, o, sup):
         retstr = ""
         pre = ""
 
@@ -57,7 +59,7 @@ class DottedTomlEncoder(TomlEncoder):
                         retstr += '\n'
                 else:
                     retstr += (pre + qsection + " = " + str(self.dump_value(value)) + '\n')
-        return retstr, self._dict()
+        return retstr, self._dict()"""
 
 
 def parse_version(version):

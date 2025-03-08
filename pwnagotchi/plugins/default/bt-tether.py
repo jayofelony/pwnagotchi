@@ -3,11 +3,12 @@ import subprocess
 import re
 import time
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from threading import Thread, Event
 from datetime import datetime, UTC
 from enum import Enum, auto
-from flask import abort, render_template_string
+from copy import deepcopy
+from flask import render_template_string, render_template, abort
 import pwnagotchi.plugins as plugins
 import pwnagotchi.ui.fonts as fonts
 from pwnagotchi.ui.components import LabeledValue
@@ -18,28 +19,14 @@ MAC_PTTRN = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
 IP_PTTRN = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
 DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]?\s*)$"
 
-KERN_ERROR_PTTRN = r"^\[\s*(\d+\.\d+)\]\s+Bluetooth:\shci0:\s.+.*(?:timeout|stalled)"
+KERN_ERROR_PTTRN = r"^\[\s*(\d+\.\d+)\]\s+Bluetooth:\s(hci0:\s.+.*)"
 
 
 class ConfigError(Exception):
     pass
 
 
-# ---------- STATES ----------
-class DriverState(Enum):
-    """Kernel Module states"""
-
-    ERROR = auto()
-    OK = auto()
-
-
-class BluetoothdState(Enum):
-    """Bluetooth server states"""
-
-    ERROR = auto()
-    OK = auto()
-
-
+# ---------- PHONE STATES ----------
 class BTState(Enum):
     """Bluetooth device states"""
 
@@ -68,6 +55,28 @@ class ConnectionState(Enum):
     DOWN = auto()
     ACTIVATING = auto()
     UP = auto()
+
+
+# ---------- WATCHDOG STATES ----------
+class DriverState(Enum):
+    """Kernel Module states"""
+
+    ERROR = auto()
+    OK = auto()
+
+
+class BluetoothdState(Enum):
+    """Bluetooth server states"""
+
+    ERROR = auto()
+    OK = auto()
+
+
+class WatchdogState(Enum):
+    """Watchdog states"""
+
+    ERROR = auto()
+    OK = auto()
 
 
 # ---------- COMMAND HELPERS ----------
@@ -135,22 +144,44 @@ class BTPhone:
     This class tries to keep the connection up.
     """
 
-    phone_name: str
-    mac: str
-    ip: str
-    gateway: str
-    dns: str
-    metric: str
-    internet: str
-    autoconnect: str
-    last_reconnect: datetime = field(default_factory=lambda: datetime(2025, 1, 1, 0, 0, tzinfo=UTC))
-    bluetooth_state: BTState = BTState.NOTCONFIGURED
-    device_state: DeviceState = DeviceState.DOWN
-    connection_state: ConnectionState = ConnectionState.DOWN
-    header: str = ""
+    phone_name: str = field(compare=True)
+    mac: str = field(compare=True)
+    phone: str = field(compare=True)
+    ip: str = field(compare=False)
+    gateway: str = field(compare=False)
+    dns: str = field(compare=False)
+    metric: str = field(compare=False)
+    internet: str = field(compare=False)
+    autoconnect: str = field(compare=False)
+    last_reconnect: datetime = field(
+        default_factory=lambda: datetime(2025, 1, 1, 0, 0, tzinfo=UTC), compare=False
+    )
+    bluetooth_state: BTState = field(default=BTState.NOTCONFIGURED, compare=False)
+    device_state: DeviceState = field(default=DeviceState.DOWN, compare=False)
+    connection_state: ConnectionState = field(default=ConnectionState.DOWN, compare=False)
+    up_date: datetime | None = None
+    header: str = field(default="", compare=False)
 
     def __post_init__(self):
         self.header = f"[BT-Tether][{self.phone_name}]"
+        logging.info(f"{self.header} IP: {self.ip}, Gateway: {self.gateway}, MAC: {self.mac}")
+
+    @property
+    def up_date_ago(self) -> tuple[int, int] | None:
+        if self.up_date:
+            seconds = round((datetime.now(tz=UTC) - self.up_date).total_seconds())
+            return (seconds // 60, seconds % 60)
+        return None
+
+    @property
+    def phone_network(self):
+        return f"{self.phone_name} Network"
+
+    def is_up(self):
+        return self.connection_state == ConnectionState.UP
+
+    def is_up_or_activating(self):
+        return self.connection_state in [ConnectionState.UP, ConnectionState.ACTIVATING]
 
     def configure(self):
         """
@@ -231,8 +262,9 @@ class BTPhone:
                         )
                         logging.info(f"{self.header}[Bluetooth] Let's try later")
                 except Exception as e:
-                    logging.error(f"{self.header}[Bluetooth] Bluetooth up failed ({self.mac})")
-                    logging.error(f"{self.header}[Bluetooth] Is tethering enabled on your phone?")
+                    logging.error(
+                        f"{self.header}[Bluetooth] Bluetooth up failed ({self.mac}). Is tethering enabled on your phone?"
+                    )
             case BTState.ERROR | BTState.TRUSTED | BTState.PAIRED | BTState.NOTCONFIGURED:
                 logging.error(f"{self.header} Error with BT device ({self.mac})")
 
@@ -336,7 +368,7 @@ class BTPhone:
         Check NetworkManager connection state
         """
         try:
-            args = ["-w", "0", "-g", "GENERAL.STATE", "connection", "show", self.phone_name]
+            args = ["-w", "0", "-g", "GENERAL.STATE", "connection", "show", self.phone_network]
             result = nmcli(args)
             if result.find("activated") != -1:
                 self.connection_state = ConnectionState.UP
@@ -353,7 +385,7 @@ class BTPhone:
                 logging.error(f"{self.header}[Connection] Error on check: {result}")
         except Exception as e:
             self.connection_state = ConnectionState.ERROR
-            logging.error(f"{self.header}[Connection] Error on check: {result}: {e}")
+            logging.error(f"{self.header}[Connection] Error on check: {e}")
         return self.connection_state
 
     def configure_connection(self):
@@ -362,10 +394,11 @@ class BTPhone:
         Used by configure
         """
         try:
-            args = ["connection", "modify", f"{self.phone_name}"]
+            args = ["connection", "modify", f"{self.phone_network}"]
             args += ["connection.type", "bluetooth"]
             args += ["bluetooth.type", "panu"]
             args += ["bluetooth.bdaddr", f"{self.mac}"]
+
             args += ["ipv4.method", "manual"]
             args += ["ipv4.dns", f"{self.dns}"]
             args += ["ipv4.addresses", f"{self.ip}/24"]
@@ -374,9 +407,10 @@ class BTPhone:
                 args += ["ipv4.gateway", f"{self.gateway}"]
             else:
                 args += ["ipv4.gateway", ""]
+
             if self.autoconnect:
                 args += ["connection.autoconnect", "yes"]
-                args += ["connection.autoconnect-retries", "0"]
+                args += ["connection.autoconnect-retries", "5"]
             else:
                 args += ["connection.autoconnect", "no"]
             nmcli(args)
@@ -409,7 +443,7 @@ class BTPhone:
                 return
             case ConnectionState.DOWN:
                 try:
-                    nmcli(["connection", "up", f"{self.phone_name}"])
+                    nmcli(["connection", "up", f"{self.phone_network}"])
                     logging.info(f"{self.header}[Connection] Connection up")
                 except Exception as e:
                     logging.error(f"{self.header}[Connection] Failed to up: {e}")
@@ -423,13 +457,13 @@ class BTPhone:
         if self.check_connection() == ConnectionState.DOWN:
             return
         try:
-            nmcli(["connection", "down", f"{self.phone_name}"])
+            nmcli(["connection", "down", f"{self.phone_network}"])
         except Exception as e:
             logging.error(f"{self.header}[Connection] Failed to down connection: {e}")
 
     def get_connection_config(self):
         try:
-            return nmcli(["-w", "0", "connection", "show", self.phone_name])
+            return nmcli(["-w", "0", "connection", "show", self.phone_network])
         except Exception:
             logging.error(f"{self.header}[Connection] Error on getting connection config")
             return None
@@ -442,33 +476,34 @@ class BTPhone:
         try:
             return ping(self.ip, self.gateway)
         except Exception as e:
-            logging.error(f"{self.header}[Connection] Ping error: {e}")
+            pass
         return False
 
     # ---------- ALL UP and DOWN ----------
-    def up(self, force=False):
+    def up(self):
         """
         Up all elements
         """
-        logging.info(f"{self.header} Trying to connect")
+        logging.info(f"{self.header} Trying to up the connection")
         self.connect_bluetooth()
         time.sleep(2)
-        if not force and self.check_bluetooth() != BTState.CONNECTED:
+        if self.check_bluetooth() != BTState.CONNECTED:
             return
         self.up_device()
-        if not force and self.check_device() != DeviceState.UP:
+        if self.check_device() != DeviceState.UP:
             return
         time.sleep(2)
         self.up_connection()
         time.sleep(2)
         if self.check_connection() == ConnectionState.UP:
-            plugins.on("bluetooth_up", self.phone_name, self.mac)
+            self.up_date = datetime.now(tz=UTC)
+            plugins.on("bluetooth_up", asdict(self))
 
     def down(self):
         """
         Down all elements
         """
-        logging.info(f"{self.header} Unloading connection")
+        logging.info(f"{self.header} Downing the connection")
         self.down_connection()
         time.sleep(2)
         self.down_device()
@@ -476,12 +511,8 @@ class BTPhone:
         self.disconnect_bluetooth()
         time.sleep(2)
         if self.check_connection() == ConnectionState.DOWN:
-            plugins.on("bluetooth_down", self.phone_name, self.mac)
-
-    def reload(self):
-        self.down()
-        time.sleep(2)
-        self.up()
+            self.up_date = None
+            plugins.on("bluetooth_down", asdict(self))
 
     def reconnect(self):
         """
@@ -493,38 +524,45 @@ class BTPhone:
         self.up()
 
     # ---------- MAIN LOOP ----------
-    def run(self):
+    def run(self, active: bool) -> ConnectionState:
         """
         Check NetworkManager connection state.
         """
+        self.check_bluetooth()
+        self.check_device()
         last_connection_state = self.connection_state
         connection_state = self.check_connection()
+        if not active:
+            return self.connection_state
 
         if last_connection_state != connection_state:
             match last_connection_state, connection_state:
                 case ConnectionState.UP, _:
-                    plugins.on("bluetooth_down", self.phone_name, self.mac)
+                    plugins.on("bluetooth_down", asdict(self))
                 case _, ConnectionState.UP:
-                    plugins.on("bluetooth_up", self.phone_name, self.mac)
+                    plugins.on("bluetooth_up", asdict(self))
                 case _, _:
                     pass
         match connection_state:
             case ConnectionState.UP:
                 if not self.ping():
-                    logging.error(f"{self.header}[Ping] No ping anwser. Reloading")
-                    self.reload()
-                return
+                    logging.error(f"{self.header}[Ping] No ping anwser. Going down")
+                    self.down()
+                return self.connection_state
             case ConnectionState.ACTIVATING:
-                return
+                return self.connection_state
             case ConnectionState.DOWN:
                 pass
             case ConnectionState.ERROR:
-                logging.error(f"{self.header} Error with connection ({self.phone_name}). Reloading")
-                self.reload()
-                return
+                logging.error(
+                    f"{self.header} Error with connection ({self.phone_network}). Reloading"
+                )
+                self.down()
+                return self.connection_state
 
         if not self.autoconnect:  # if autoconnect=false, need to up the connection on loss
             self.reconnect()
+        return self.connection_state
 
 
 @dataclass(slots=True)
@@ -534,14 +572,16 @@ class BTManager(Thread):
     If a kernel issue is detected, modules are reloaded properly.
     """
 
-    phone: BTPhone = field(init=True)
+    phones: dict[str, BTPhone] = field(default_factory=dict)
+    active_phone: str | None = None
     # Kernel modules variables
-    # Assume the driver won't mess during loading
+    # Assume the drivers won't mess during loading
     last_timestamp: str | None = None
-    driver_error: bool = False
-    driver_state: DriverState = DriverState.OK
+    drivers_error: bool = False
+    drivers_state: DriverState = DriverState.OK
 
     bluetoothd_state: BluetoothdState = BluetoothdState.OK
+    bluetoothd_restart_retries: int = 0
     # Thread variables
     ready: bool = False
     exit: Event = field(default_factory=lambda: Event())
@@ -549,10 +589,17 @@ class BTManager(Thread):
 
     def __post_init__(self):
         super(BTManager, self).__init__()
-        self.last_timestamp = self.get_last_timestamp()
+        self.last_timestamp, _ = self.get_last_timestamp()
 
     def __hash__(self):
         return super(BTManager, self).__hash__()
+
+    def append_phone(self, phone: BTPhone) -> None:
+        for key in self.phones:
+            if self.phones[key] == phone:
+                logging.error(f"{self.header} {phone.phone_name} Allready exists")
+                return
+        self.phones[phone.phone_name] = phone
 
     def configure(self):
         """
@@ -560,14 +607,14 @@ class BTManager(Thread):
         """
         try:
             self.restart_bluetoothd()
-            self.phone.configure()
-            self.up_all(force=True)
+            for key in self.phones:
+                self.phones[key].configure()
             self.ready = True
         except ConfigError:
             logging.error(f"{self.header} Error while configuring")
 
-    # ---------- KERNEL DRIVER ----------
-    def get_last_timestamp(self) -> str | None:
+    # ---------- KERNEL DRIVERS ----------
+    def get_last_timestamp(self) -> tuple[str | None, str | None]:
         """
         Retreive last timestamp of a kernel error. Ex:
         Bluetooth: hci0: command 0xXXXX tx timeout
@@ -576,27 +623,28 @@ class BTManager(Thread):
         """
         try:
             if not (result := dmesg()):
-                return None
-            return re.findall(KERN_ERROR_PTTRN, result, re.MULTILINE)[-1]
+                return (None, None)
+            timestamp, message = re.findall(KERN_ERROR_PTTRN, result, re.MULTILINE)[-1]
+            return (timestamp, message)
         except IndexError:
-            return None
+            return (None, None)
 
-    def check_driver(self):
+    def check_drivers(self):
         """
         Checks if there is a new kernel issue.
         """
-        if self.driver_error:
-            self.driver_state = DriverState.ERROR
+        if self.drivers_error:
+            self.drivers_state = DriverState.ERROR
         else:
-            last_timestamp = self.get_last_timestamp()
+            last_timestamp, message = self.get_last_timestamp()
             if last_timestamp != self.last_timestamp:
                 self.last_timestamp = last_timestamp
-                self.driver_error = True
-                self.driver_state = DriverState.ERROR
-                logging.error(f"{self.header}[Drivers] Kernel Drivers error: check dmesg")
+                self.drivers_error = True
+                self.drivers_state = DriverState.ERROR
+                logging.error(f"{self.header}[Drivers] Kernel Drivers error(dmesg): {message}")
             else:
-                self.driver_state = DriverState.OK
-        return self.driver_state
+                self.drivers_state = DriverState.OK
+        return self.drivers_state
 
     def reload_drivers(self):
         """
@@ -616,7 +664,7 @@ class BTManager(Thread):
         self.start_bluetoothd()
         systemctl("restart", "NetworkManager")
         logging.info(f"{self.header}[Drivers] Kernel modules reloaded")
-        self.driver_error = False
+        self.drivers_error = False
 
     # ---------- BLUETOOTH ----------
     def check_bluetoothd(self):
@@ -659,79 +707,131 @@ class BTManager(Thread):
             logging.error(f"{self.header}[Bluetoothd] Error while restarting bluetooth: {e}")
 
     # ---------- ALL UP and DOWN ----------
-    def up_all(self, force=False):
+    def up_one_phone(self) -> str | None:
         """
-        Up all phones
+        Up one phones
         """
-        self.phone.up(force=force)
+        for key in self.phones:
+            if not self.active_phone:
+                logging.info(f"{self.header} Trying to activate phone: {key}")
+                self.phones[key].up()
+                if self.phones[key].is_up():
+                    self.active_phone = key
+                    continue
+            self.phones[key].down()
+        if self.active_phone:
+            logging.info(f"{self.header} Current active connection: {self.active_phone}")
+        else:
+            logging.info(f"{self.header} No active connection")
+        return self.active_phone
 
-    def down_all(self):
+    def down(self):
         """
         Down all phones
         """
-        self.phone.down()
+        for key in self.phones:
+            self.phones[key].down()
+        self.active_phone = None
 
-    def reload_all(self):
-        """
-        Reload all phones
-        """
-        logging.info(f"{self.header} Reloading connections")
-        self.down_all()
-        time.sleep(2)
-        self.up_all()
-
-    def reload_drivers_all(self):
+    def full_reload_drivers(self):
         """
         Reload all phones
         """
         logging.info(f"{self.header} Reloading kernel modules and connections")
-        self.down_all()
-        time.sleep(2)
+        self.down()
         self.reload_drivers()
-        time.sleep(2)
-        self.up_all()
 
     # ---------- MAIN LOOP ----------
+    def drivers_watchdog(self) -> WatchdogState:
+        match self.check_drivers():
+            case DriverState.OK:
+                return WatchdogState.OK
+            case DriverState.ERROR:
+                self.full_reload_drivers()
+                return WatchdogState.ERROR
+        return WatchdogState.OK
+
+    def bluetoothd_watchdog(self) -> WatchdogState:
+        match self.check_bluetoothd():
+            case BluetoothdState.OK:
+                self.bluetoothd_restart_retries = 0
+                return WatchdogState.OK
+            case BluetoothdState.ERROR:
+                if self.bluetoothd_restart_retries < 3:  # try to restart bluetooth service first
+                    self.bluetoothd_restart_retries += 1
+                    logging.info(
+                        f"{self.header}[Bluetoothd] Trying to restart bluetooth service: {self.bluetoothd_restart_retries} tries"
+                    )
+                    self.restart_bluetoothd()
+                else:  # reload drivers
+                    logging.info(
+                        f"{self.header}[Bluetoothd] Number of retries exceeded ({self.bluetoothd_restart_retries} tries): Reloading all"
+                    )
+                    self.full_reload_drivers()
+                    self.bluetoothd_restart_retries = 0
+                    return WatchdogState.ERROR
+        return WatchdogState.OK
+
+    def phone_watchdog(self) -> WatchdogState:
+        # Check for multiple connections
+        nb = 0
+        for key in self.phones:
+            self.phones[key].check_connection()
+            if self.phones[key].is_up_or_activating():
+                nb += 1
+        if nb > 1:
+            logging.error(f"{self.header}[Phones] Multiple connections at the same time: {nb}")
+            self.active_phone = None
+
+        # RUN
+        if self.active_phone:
+            for key in self.phones:
+                self.phones[key].run(self.active_phone == key)
+            if self.phones[self.active_phone].is_up_or_activating():
+                return WatchdogState.OK
+        uptime_str = ""
+        if self.active_phone and (uptime_ago := self.phones[self.active_phone].up_date_ago):
+            uptime_str = f" (uptime:{uptime_ago[0]}min {uptime_ago[1]}s)"
+            logging.error(
+                f"{self.header}[Phones] Connection lost with {self.active_phone}{uptime_str}"
+            )
+
+        # No active connection, try to up one
+        self.active_phone = None
+        if self.up_one_phone():
+            return WatchdogState.OK
+        return WatchdogState.ERROR
+
     def watchdog(self):
         """
         Check kernel and NetworkManager connection state.
         """
-        bluetoothd_restart_retries = 0
+        nb_tries = 0
+        time_sleep = 10
         while not self.exit.is_set():
-            self.exit.wait(5)
-            match self.check_driver():
-                case DriverState.OK:
-                    pass
-                case DriverState.ERROR:
-                    self.reload_drivers_all()
-                    continue
-            self.exit.wait(5)
-            match self.check_bluetoothd():
-                case BluetoothdState.OK:
-                    bluetoothd_restart_retries = 0
-                case BluetoothdState.ERROR:
-                    if bluetoothd_restart_retries < 3:  # try to restart bluetooth service first
-                        bluetoothd_restart_retries += 1
-                        logging.info(
-                            f"{self.header} Trying to restart bluetooth service: {bluetoothd_restart_retries} tries"
-                        )
-                        self.restart_bluetoothd()
-                    else:  # reload drivers
-                        logging.info(
-                            f"{self.header} Number of retries exceeded ({bluetoothd_restart_retries} tries): Reloading all"
-                        )
-                        self.reload_drivers_all()
-                        bluetoothd_restart_retries = 0
-                    continue
-            self.exit.wait(5)
-            self.phone.run()
+            for func in [self.drivers_watchdog, self.bluetoothd_watchdog, self.phone_watchdog]:
+                if self.exit.wait(10):
+                    return
+                if func() == WatchdogState.ERROR:
+                    nb_tries += 1
+                    break
+            else:
+                nb_tries = 0
+                time_sleep = 10
+            if nb_tries == 3:
+                logging.error(f"{self.header}[Watchdog] Multiple errors. Let's wait {time_sleep}s")
+                self.down()
+                nb_tries = 0
+                time_sleep = min(time_sleep * 2, 60)
+                self.exit.wait(time_sleep)
 
     def run(self):
         logging.info(f"{self.header} Starting watchdog")
         if not self.ready:
-            logging.error(f"{self.header} Thread not ready. Cancelling")
+            logging.critical(f"{self.header} Thread not ready. Cancelling")
             return
         try:
+            self.up_one_phone()
             self.watchdog()
         except Exception as e:
             logging.error(f"{self.header} Error on watchdog: {e}")
@@ -745,7 +845,12 @@ class BTManager(Thread):
             super(BTManager, self).join(timeout)
         except RuntimeError:  # Handle coding bugs and ensure the thread exit
             pass
-        self.down_all()
+        self.down()
+
+    # ---------- CONNECTION STATE ----------
+    def get_connection_state(self) -> ConnectionState:
+        state = max([phone.connection_state.value for phone in self.phones.values()])
+        return ConnectionState(state)
 
 
 class BTTether(plugins.Plugin):
@@ -760,6 +865,7 @@ class BTTether(plugins.Plugin):
 
     def __init__(self):
         self.options = dict()
+        self.ip_end = 2
         self.btmanager = None
         self.header = "[BT-Tether][Plugin]"
         try:
@@ -778,67 +884,91 @@ class BTTether(plugins.Plugin):
         """
         Read config and starts BTManager
         """
-        phone = self.create_btdevice(self.options)
-        self.btmanager = BTManager(phone=phone)
+        self.btmanager = BTManager()
+        default_options = self.read_options(self.options)
+        if "phone-name" in self.options and (
+            phone := self.create_btdevice(self.options, default_options)
+        ):
+            self.btmanager.append_phone(phone)
+
+        if phones := self.options.get("phones", None):
+            if not isinstance(phones, list):
+                logging.error(f"{self.header} Phones options error, must be a list of dict")
+            for phone_options in phones:
+                if not isinstance(phone_options, dict):
+                    logging.error(f"{self.header} Phones options error, must be a list of dict")
+                if phone := self.create_btdevice(phone_options, default_options):
+                    self.btmanager.append_phone(phone)
         self.btmanager.configure()
+        self.btmanager.start()
         logging.info(f"{self.header} Plugin configured")
 
-    def create_btdevice(self, options: dict) -> BTPhone | None:
+    def read_mandatory_options(self, options: dict) -> dict | None:
+        # Phone Name
         if not (phone_name := options.get("phone-name", None)):
-            logging.error(f"{self.header} Phone name not provided")
             return None
-        phone_name = f"{phone_name} Network"
 
+        # MAC
         mac = options.get("mac", None)
         if not (mac and re.match(MAC_PTTRN, mac)):
-            logging.error(f"{self.header} Error with mac address: {mac}")
+            logging.error(f"{self.header}[{phone_name}] Error with mac address: {mac}")
             return None
 
-        match options.get("phone", "").lower():
+        # PHONE + IP + GATEWAY
+        phone = options.get("phone", "").lower()
+        match phone:
             case "android":
-                default_ip = "192.168.44.2"
+                default_ip = f"192.168.44.{self.ip_end}"
                 default_gateway = "192.168.44.1"
             case "ios":
-                default_ip = "172.20.10.2"
+                default_ip = f"172.20.10.{self.ip_end}"
                 default_gateway = "172.20.10.1"
             case _:
-                logging.error(f"{self.header} Phone type not supported")
+                logging.error(f"{self.header}[{phone_name}] Phone type {phone} not supported")
                 return None
-
         ip = options.get("ip", None)
         if not ip:
-            logging.info(f"{self.header} No IP provided, using default IP")
             ip = default_ip
+            self.ip_end += 1
         elif not re.match(IP_PTTRN, ip):
-            logging.error(f"{self.header} Error whith configured IP: '{ip}'")
-            logging.error(f"{self.header} Using default IP")
+            logging.error(f"{self.header}[{phone_name}] Error with IP: '{ip}'. Using default")
             ip = default_ip
+            self.ip_end += 1
 
         gateway = options.get("gateway", None)
         if not gateway:
-            logging.info(f"{self.header} No gateway provided. Using default gateway")
             gateway = default_gateway
         elif not re.match(IP_PTTRN, gateway):
-            logging.error(f"{self.header} Error whith configured gateway: '{gateway}'")
-            logging.error(f"{self.header} Using default gateway'")
+            logging.error(
+                f"{self.header}[{phone_name}] Error with gateway: '{gateway}'. Using default"
+            )
             gateway = default_gateway
+        return dict(phone_name=phone_name, mac=mac, phone=phone, ip=ip, gateway=gateway)
 
-        logging.info(f"{self.header} IP: {ip}")
-        logging.info(f"{self.header} Gateway: {gateway}")
+    def read_options(
+        self, options: dict, defaults: dict[str, str | int | bool] | None = None
+    ) -> dict[str, str | int | bool]:
+        DEFAULT_DNS = "8.8.8.8 1.1.1.1"
+        if not defaults:
+            defaults = dict(dns=DEFAULT_DNS, metric=200, internet=True, autoconnect=False)
 
-        dns = options.get("dns", "8.8.8.8 1.1.1.1")
+        dns = options.get("dns", defaults["dns"])
         if not re.match(DNS_PTTRN, dns):
-            if dns == "":
-                logging.error(f"{self.header} Empty DNS setting")
-            else:
-                logging.error(f"{self.header} Wrong DNS setting: '{dns}'")
-            return None
+            logging.error(f"{self.header} Wrong DNS setting: '{dns}'. Using default")
+            dns = DEFAULT_DNS
         dns = re.sub("[\s,;]+", " ", dns).strip()  # DNS cleaning
-        metric = self.options.get("metric", 200)
+        metric = self.options.get("metric", defaults["metric"])
+        internet = self.options.get("internet", defaults["internet"])
+        autoconnect = self.options.get("autoconnect", defaults["autoconnect"])
+        return dict(dns=dns, metric=metric, internet=internet, autoconnect=autoconnect)
 
-        internet = self.options.get("internet", True)
-        autoconnect = self.options.get("autoconnect", True)
-        return BTPhone(phone_name, mac, ip, gateway, dns, metric, internet, autoconnect)
+    def create_btdevice(
+        self, options: dict[str, str | int | bool], default_options: dict[str, str | int | bool]
+    ) -> BTPhone | None:
+        if not (phone_options := self.read_mandatory_options(options)):
+            return None
+        phone_options.update(self.read_options(options, default_options))
+        return BTPhone(**phone_options)
 
     def on_ready(self, agent):
         """
@@ -849,7 +979,6 @@ class BTTether(plugins.Plugin):
             agent.run("ble.recon off", verbose_errors=False)
         except Exception as e:
             pass
-        self.btmanager.start()
 
     def on_unload(self, ui):
         """
@@ -890,9 +1019,10 @@ class BTTether(plugins.Plugin):
             return
         state, status = "", None
         # Checking connection
-        match self.btmanager.phone.connection_state:
+        match self.btmanager.get_connection_state():
             case ConnectionState.UP:
                 state = "U"
+                status = f"Active conn.:\n{self.btmanager.active_phone}"
             case ConnectionState.ACTIVATING:
                 state, status = "A", "Connection activating"
             case ConnectionState.DOWN:
@@ -901,8 +1031,8 @@ class BTTether(plugins.Plugin):
                 state, status = "E", "Connection error"
 
         # Checking drivers
-        if self.btmanager.driver_state == DriverState.ERROR:
-            state, status = "K", "Driver error"
+        if self.btmanager.drivers_state == DriverState.ERROR:
+            state, status = "K", "Drivers error"
 
         with ui._lock:
             ui.set("bluetooth", state)
@@ -914,47 +1044,25 @@ class BTTether(plugins.Plugin):
         """
         Handle web requests to show actual configuration
         """
-
-        def split_config(item, default_header):
-            if item:
-                header = item.replace("\t", "").split("\n")[0]
-                config = [tuple(i.split(": ")) for i in item.replace("\t", "").split("\n")[1:]]
-                return header, config
-            return default_header, []
-
         if not (self.btmanager and self.btmanager.ready):
-            return """<html>
-                        <head><title>BT-tether: Error</title></head>
-                        <body><code>Plugin not ready</code></body>
-                    </html>"""
-
+            return render_template(
+                "status.html", title="Error", go_back_after=10, message="Plugin not ready"
+            )
         if not self.template:
-            return """<html>
-                        <head><title>BT-tether: Error</title></head>
-                        <body><code>Template not loaded</code></body>
-                    </html>"""
+            return render_template(
+                "status.html", title="Error", go_back_after=10, message="Template not loaded"
+            )
         if path == "/" or not path:
-            bluetooth_header, bluetooth_config = split_config(
-                self.btmanager.phone.get_bluetooth_config(), "Error while checking bluetoothctl"
-            )
-
-            device_header, device_config = split_config(
-                self.btmanager.phone.get_device_config(), "Error while checking nmcli device"
-            )
-
-            connection_header, connection_config = split_config(
-                self.btmanager.phone.get_connection_config(),
-                "Error while checking nmcli connection",
-            )
-
-            return render_template_string(
-                self.template,
-                title="BT-Tether",
-                bluetooth_header=bluetooth_header,
-                bluetooth_config=bluetooth_config,
-                device_header=device_header,
-                device_config=device_config,
-                connection_header=connection_header,
-                connection_config=connection_config,
-            )
+            try:
+                return render_template_string(
+                    self.template,
+                    title="BT-Tether",
+                    phones=deepcopy(self.btmanager.phones),
+                    active_phone=self.btmanager.active_phone,
+                )
+            except Exception as e:
+                logging.error(f"{self.header}[WEB] Error while rendering template: {e}")
+                return render_template(
+                    "status.html", title="Error", go_back_after=10, message=f"Rendering error: {e}"
+                )
         abort(404)
