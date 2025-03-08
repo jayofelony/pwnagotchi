@@ -14,7 +14,7 @@ import pwnagotchi.plugins as plugins
 from pwnagotchi.utils import StatusFile, parse_version as version_to_tuple
 
 
-def check(version, repo, native=True):
+def check(version, repo, native=True, token=""):
     logging.debug("checking remote version for %s, local is %s" % (repo, version))
     info = {
         'repo': repo,
@@ -25,7 +25,21 @@ def check(version, repo, native=True):
         'arch': platform.machine()
     }
 
-    resp = requests.get("https://api.github.com/repos/%s/releases/latest" % repo)
+    headers = {}
+    if token != "":
+        headers['Authorization'] = f'token {token}'
+        resp = requests.get(f"https://api.github.com/repos/{repo}/releases/latest", headers=headers)
+    else:
+        resp = requests.get(f"https://api.github.com/repos/{repo}/releases/latest")
+
+
+    if resp.status_code != 200:
+        logging.error(f"[Auto-Update] Failed to get latest release for {repo}: {resp.status_code}")
+        return info
+
+    remaining_requests = resp.headers.get('X-RateLimit-Remaining')
+    logging.debug(f"[Auto-Update] Requests remaining: {remaining_requests}")
+
     latest = resp.json()
     info['available'] = latest_ver = latest['tag_name'].replace('v', '')
     is_armhf = info['arch'].startswith('arm')
@@ -214,7 +228,7 @@ class AutoUpdate(plugins.Plugin):
                 ]
 
                 for repo, local_version, is_native, svc_name in to_check:
-                    info = check(local_version, repo, is_native)
+                    info = check(local_version, repo, is_native, self.options['token'])
                     if info['url'] is not None:
 
                         logging.warning(

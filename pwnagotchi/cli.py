@@ -3,7 +3,7 @@ import argparse
 import time
 import signal
 import sys
-import toml
+import tomlkit
 import requests
 import os
 import re
@@ -14,7 +14,7 @@ from pwnagotchi.google import cmd as google_cmd
 from pwnagotchi.plugins import cmd as plugins_cmd
 from pwnagotchi import log
 from pwnagotchi import fs
-from pwnagotchi.utils import DottedTomlEncoder, parse_version as version_to_tuple
+from pwnagotchi.utils import parse_version as version_to_tuple
 
 
 def pwnagotchi_cli():
@@ -188,12 +188,14 @@ def pwnagotchi_cli():
                     if pwn_name == "":
                         pwn_name = "Pwnagotchi"
                         print("I shall go by Pwnagotchi from now on!")
-                        pwn_name = f"main.name = \"{pwn_name}\"\n"
+                        pwn_name = (f"[main]\n"
+                                    f"name = \"{pwn_name}\"\n")
                         f.write(pwn_name)
                     else:
                         if is_valid_hostname(pwn_name):
                             print(f"I shall go by {pwn_name} from now on!")
-                            pwn_name = f"main.name = \"{pwn_name}\"\n"
+                            pwn_name = (f"[main]\n"
+                                        f"name = \"{pwn_name}\"\n")
                             f.write(pwn_name)
                         else:
                             print("You have chosen an invalid name. Please start over.")
@@ -204,7 +206,7 @@ def pwnagotchi_cli():
                                           "Be sure to use digits as your answer.\n\n"
                                           "Amount of networks: ")
                     if int(pwn_whitelist) > 0:
-                        f.write("main.whitelist = [\n")
+                        f.write("whitelist = [\n")
                         for x in range(int(pwn_whitelist)):
                             ssid = input("SSID (Name): ")
                             bssid = input("BSSID (MAC): ")
@@ -216,42 +218,45 @@ def pwnagotchi_cli():
                     pwn_bluetooth = input("Do you want to enable BT-Tether?\n\n"
                                           "[Y/N] ")
                     if pwn_bluetooth.lower() in ('y', 'yes'):
-                        f.write("main.plugins.bt-tether.enabled = true\n\n")
+                        f.write("[main.plugins.bt-tether]\n"
+                                "enabled = true\n\n")
                         pwn_bluetooth_phone_name = input("What name uses your phone, check settings?\n\n")
                         if pwn_bluetooth_phone_name != "":
-                            f.write(f"main.plugins.bt-tether.phone-name = \"{pwn_bluetooth_phone_name}\"\n")
+                            f.write(f"phone-name = \"{pwn_bluetooth_phone_name}\"\n")
                         pwn_bluetooth_device = input("What device do you use? android or ios?\n\n"
                                                      "Device: ")
                         if pwn_bluetooth_device != "":
                             if pwn_bluetooth_device != "android" and pwn_bluetooth_device != "ios":
                                 print("You have chosen an invalid device. Please start over.")
                                 exit()
-                            f.write(f"main.plugins.bt-tether.phone = \"{pwn_bluetooth_device.lower()}\"\n")
+                            f.write(f"phone = \"{pwn_bluetooth_device.lower()}\"\n")
                             if pwn_bluetooth_device == "android":
-                                f.write("main.plugins.bt-tether.ip = \"192.168.44.44\"\n")
+                                f.write("ip = \"192.168.44.44\"\n")
                             elif pwn_bluetooth_device == "ios":
-                                f.write("main.plugins.bt-tether.ip = \"172.20.10.6\"\n")
+                                f.write("ip = \"172.20.10.6\"\n")
                         pwn_bluetooth_mac = input("What is the bluetooth MAC of your device?\n\n"
                                                   "MAC: ")
                         if pwn_bluetooth_mac != "":
-                            f.write(f"main.plugins.bt-tether.mac = \"{pwn_bluetooth_mac}\"\n")
+                            f.write(f"mac = \"{pwn_bluetooth_mac}\"\n")
                     # set up display settings
                     pwn_display_enabled = input("Do you want to enable a display?\n\n"
                                                 "[Y/N]: ")
                     if pwn_display_enabled.lower() in ('y', 'yes'):
-                        f.write("ui.display.enabled = true\n")
+                        f.write("[ui.display]\n"
+                                "enabled = true\n")
                         pwn_display_type = input("What display do you use?\n\n"
                                                  "Be sure to check for the correct display type @ \n"
                                                  "https://github.com/jayofelony/pwnagotchi/blob/master/pwnagotchi/utils.py#L240-L501\n\n"
                                                  "Display type: ")
                         if pwn_display_type != "":
-                            f.write(f"ui.display.type = \"{pwn_display_type}\"\n")
+                            f.write(f"type = \"{pwn_display_type}\"\n")
                         pwn_display_invert = input("Do you want to invert the display colors?\n"
                                                    "N = Black background\n"
                                                    "Y = White background\n\n"
                                                    "[Y/N]: ")
                         if pwn_display_invert.lower() in ('y', 'yes'):
-                            f.write("ui.invert = true\n")
+                            f.write("[ui]\n"
+                                    "invert = true\n")
                     f.close()
                     if pwn_bluetooth.lower() in ('y', 'yes'):
                         if pwn_bluetooth_device.lower == "android":
@@ -301,7 +306,7 @@ def pwnagotchi_cli():
     config = utils.load_config(args)
 
     if args.print_config:
-        print(toml.dumps(config, encoder=DottedTomlEncoder()))
+        print(tomlkit.dumps(config))
         sys.exit(0)
 
     from pwnagotchi.identity import KeyPair
