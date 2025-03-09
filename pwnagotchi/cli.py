@@ -48,7 +48,8 @@ def pwnagotchi_cli():
         logging.info("entering auto mode ...")
 
         agent.mode = 'auto'
-        agent.last_session.parse(agent.view(), args.skip_session)  # show stats in AUTO
+        if agent.config().get('STATS_ON_AUTO', False):
+            agent.last_session.parse(agent.view(), args.skip_session)  # show stats in AUTO
         agent.start()
 
         while True:

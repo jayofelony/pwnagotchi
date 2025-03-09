@@ -3,6 +3,8 @@ import time
 import re
 import os
 import logging
+import logging.handlers
+import syslog
 import shutil
 import gzip
 import warnings
@@ -220,7 +222,8 @@ def setup_logging(args, config):
     filenameDebug = cfg['path-debug']
 
     #global formatter
-    formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(threadName)s] : %(message)s")
+    formatter = logging.Formatter(cfg.get("format", "[%(asctime)s] [%(levelname)s] [%(threadName)s] : %(message)s"))
+
     logger = logging.getLogger()
     
     for handler in logger.handlers:
@@ -230,32 +233,36 @@ def setup_logging(args, config):
     
     logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-    if filename:
+    if filename and filename != "":
         # since python default log rotation might break session data in different files,
         # we need to do log rotation ourselves
         log_rotation(filename, cfg)
+    if filenameDebug and filenameDebug != "":
         log_rotation(filenameDebug, cfg)
 
     
     
         # File handler for logging all normal messages
-    file_handler = logging.FileHandler(filename) #creates new
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    if filename and filename != "":
+        file_handler = logging.FileHandler(filename) #creates new
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+    else:
+        syslog_handler = logging.handlers.SysLogHandler(address='/dev/log', facility=syslog.LOG_USER)
+        syslog_handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
+        syslog_handler.setFormatter(formatter)
+        logger.addHandler(syslog_handler)
+
+    
 
     # File handler for logging all debug messages
-    file_handler = logging.FileHandler(filenameDebug) #creates new
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    if filenameDebug and filenameDebug != "":
+        file_handler = logging.FileHandler(filenameDebug) #creates new
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
-    # Console handler for logging debug messages if args.debug is true else just log normal
-    #console_handler = logging.StreamHandler() #creates new
-    #console_handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
-    #console_handler.setFormatter(formatter)
-    #logger.addHandler(console_handler)
-    
     if not args.debug:
         # disable scapy and tensorflow logging
         logging.getLogger("scapy").disabled = True

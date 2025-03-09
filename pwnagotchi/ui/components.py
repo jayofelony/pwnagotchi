@@ -1,14 +1,22 @@
+import logging
 from PIL import Image, ImageOps
 from textwrap import TextWrapper
 
 
 class Widget(object):
-    def __init__(self, xy, color=0):
+    def __init__(self, xy, color=0, bgcolor="white"):
         self.xy = xy
         self.color = color
+        self.bgcolor = bgcolor
 
     def draw(self, canvas, drawer):
         raise Exception("not implemented")
+
+    def setColor(self, color):
+        self.color = color
+
+    def setBackground(self, color):
+        self.bgcolor = color
 
 # canvas.paste: https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.paste
 # takes mask variable, to identify color system. (not used for pwnagotchi yet)
@@ -44,14 +52,20 @@ class FilledRect(Widget):
 
 
 class Text(Widget):
-    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False):
-        super().__init__(position, color)
+    def __init__(self, value="", position=(0, 0), font=None, color=0, bgcolor="white", wrap=False, max_length=0, png=False, scale=1, colorize=True):
+        super().__init__(position, color, bgcolor)
         self.value = value
         self.font = font
         self.wrap = wrap
         self.max_length = max_length
         self.wrapper = TextWrapper(width=self.max_length, replace_whitespace=False) if wrap else None
         self.png = png
+        self.scale = scale
+        self.colorize = colorize
+
+        self.image = None
+        self.offsets = (0,0)
+        self.last_file = None
 
     def draw(self, canvas, drawer):
         if self.value is not None:
@@ -62,20 +76,45 @@ class Text(Widget):
                     text = self.value
                 drawer.text(self.xy, text, font=self.font, fill=self.color)
             else:
-                self.image = Image.open(self.value)
-                self.image = self.image.convert('RGBA')
-                self.pixels = self.image.load()
-                for y in range(self.image.size[1]):
-                    for x in range(self.image.size[0]):
-                        if self.pixels[x,y][3] < 255:    # check alpha
-                            self.pixels[x,y] = (255, 255, 255, 255)
-                if self.color == 255:
-                    self._image = ImageOps.colorize(self.image.convert('L'), black = "white", white = "black")
-                else:
-                    self._image = self.image
-                self.image = self._image.convert('1')
-                canvas.paste(self.image, self.xy)
+                ox, oy = self.offsets
+                try:
+                    if self.value != self.last_file:
+                        image = Image.open(self.value)
+                        image = image.convert('RGBA')
+                        pixels = image.load()
+                        for y in range(image.size[1]):
+                            for x in range(image.size[0]):
+                                if pixels[x,y][3] < 255:    # check alpha
+                                    pixels[x,y] = (255, 255, 255, 255)
+                        self.raw_image = image.copy()
+                    else:
+                        logging.debug("Not reloading same image")
+                        image = self.raw_image.copy()
 
+                    if self.colorize:
+                        logging.debug("Colorizing %s from (%s, %s)" % (self.value, self.color, self.bgcolor))
+                        image = ImageOps.colorize(image.convert('L'), black = self.color, white = self.bgcolor)
+                    if len(self.xy) > 2:
+                        iw,ih = image.size
+                        bw,bh = (self.xy[2]-self.xy[0], self.xy[3]-self.xy[1])
+                        sc = min(float(bw/iw), float(bh/ih))
+                        nw = int(iw * sc)
+                        nh = int(ih * sc)
+                        ox = int((bw-nw)/2)
+                        oy = int((bh-nh)/2)
+                        image = image.resize((nw,nh), Image.NEAREST)
+                        self.offsets = [ox,oy]
+                        logging.debug("Offsets %s" % (self.offsets))
+                    elif self.scale != 1.0:
+                        new_w = int(image.size[0]*self.scale)
+                        new_h = int(image.size[1]*self.scale)
+                        image = image.resize((new_w, new_h), Image.NEAREST)
+                    self.image = image.convert(canvas.mode)
+                    self.last_file = self.value
+                except Exception as e:
+                    logging.exception("%s: %s" % (self.value, e))
+                if self.image:
+                    canvas.paste(self.image, (self.xy[0]+self.offsets[0], self.xy[1]+self.offsets[1]))
 
 class LabeledValue(Widget):
     def __init__(self, label, value="", position=(0, 0), label_font=None, text_font=None, color=0, label_spacing=5):

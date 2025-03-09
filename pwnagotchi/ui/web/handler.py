@@ -25,6 +25,7 @@ from flask import abort
 from flask import redirect
 from flask import render_template, render_template_string
 
+from io import BytesIO
 
 class Handler:
     def __init__(self, config, agent, app):
@@ -64,14 +65,11 @@ class Handler:
     def with_auth(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not self._config['auth']:
-                return f(*args, **kwargs)
-            else:
-                auth = request.authorization
-                if not auth or not auth.username or not auth.password or not self._check_creds(auth.username,
-                                                                                               auth.password):
-                    return Response('Unauthorized', 401, {'WWW-Authenticate': 'Basic realm="Unauthorized"'})
-                return f(*args, **kwargs)
+            auth = request.authorization
+            if not auth or not auth.username or not auth.password or not self._check_creds(auth.username,
+                                                                                           auth.password):
+                return Response('Unauthorized', 401, {'WWW-Authenticate': 'Basic realm="Unauthorized"'})
+            return f(*args, **kwargs)
 
         return wrapper
 
@@ -235,4 +233,10 @@ class Handler:
     # serve the PNG file with the display image
     def ui(self):
         with web.frame_lock:
-            return send_file(web.frame_path, mimetype='image/png')
+            if self._agent._view and self._agent._view._web_canvas:
+                imgIO = BytesIO()
+                self._agent._view._web_canvas.save(imgIO, 'PNG')
+                imgIO.seek(0)
+                return send_file(imgIO, mimetype='image/png')
+            else:
+                return send_file(web.frame_path, mimetype='image/png')
