@@ -47,7 +47,10 @@ class PluginEventQueue(threading.Thread):
 
     def __del__(self):
         self.keep_going = False
-        self._worker_thread.join()
+        try:
+            self._worker_thread.join()
+        except AttributeError:
+            pass
         if self.load_handler:
             self.load_handler.join()
 

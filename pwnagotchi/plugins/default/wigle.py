@@ -80,6 +80,7 @@ class Wigle(plugins.Plugin):
         self.last_stat = datetime.now(tz=UTC)
         self.ui_counter = 0
 
+    # ---------- LOAD AND CONFIG ----------
     def on_loaded(self):
         logging.info("[WIGLE] plugin loaded.")
 
@@ -101,9 +102,7 @@ class Wigle(plugins.Plugin):
         logging.info("[WIGLE] Ready for wardriving!!!")
         self.get_statistics(force=True)
 
-    def on_webhook(self, path, request):
-        return make_response(redirect("https://www.wigle.net/", code=302))
-
+    # ---------- PROCESS PCAP/GPS FILES ----------
     def get_new_gps_files(self, reported):
         all_gps_files = glob(os.path.join(self.handshake_dir, "*.gps.json"))
         all_gps_files += glob(os.path.join(self.handshake_dir, "*.geo.json"))
@@ -186,7 +185,8 @@ class Wigle(plugins.Plugin):
             logging.debug(f"[WIGLE] {sc_e}")
             return None
         return pcap_data
-
+    
+    # ---------- CSV GENERATION AND SAVING ----------
     def generate_csv(self, data):
         date = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{pwnagotchi.name()}_{date}.csv"
@@ -240,6 +240,7 @@ class Wigle(plugins.Plugin):
         except Exception as exp:
             logging.error(f"[WIGLE] Error while writing CSV file(skipping): {exp}")
 
+    # ---------- SEND TO WIGLE ----------
     def post_wigle(self, reported, cvs_filename, cvs_content, no_err_entries):
         try:
             json_res = requests.post(
@@ -284,6 +285,7 @@ class Wigle(plugins.Plugin):
             self.post_wigle(reported, cvs_filename, cvs_content, no_err_entries)
             display.on_normal()
 
+    # ---------- STATISTICS ----------
     def request_statistics(self, url):
         try:
             return requests.get(
@@ -335,6 +337,7 @@ class Wigle(plugins.Plugin):
             else:
                 self.get_statistics()
 
+    # ---------- UI ----------
     def on_ui_setup(self, ui):
         with ui._lock:
             ui.add_element(
@@ -369,3 +372,6 @@ class Wigle(plugins.Plugin):
             elif self.ui_counter == 5:
                 msg = f"Grp rank:{self.statistics.grouprank}"
             ui.set("wigle", msg)
+
+    def on_webhook(self, path, request):
+        return make_response(redirect("https://www.wigle.net/", code=302))
