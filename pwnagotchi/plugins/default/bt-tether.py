@@ -497,7 +497,7 @@ class BTPhone:
         time.sleep(2)
         if self.check_connection() == ConnectionState.UP:
             self.up_date = datetime.now(tz=UTC)
-            plugins.on("bluetooth_up", asdict(self))
+            
 
     def down(self):
         """
@@ -512,7 +512,7 @@ class BTPhone:
         time.sleep(2)
         if self.check_connection() == ConnectionState.DOWN:
             self.up_date = None
-            plugins.on("bluetooth_down", asdict(self))
+        
 
     def reconnect(self):
         """
@@ -530,19 +530,10 @@ class BTPhone:
         """
         self.check_bluetooth()
         self.check_device()
-        last_connection_state = self.connection_state
         connection_state = self.check_connection()
         if not active:
             return self.connection_state
 
-        if last_connection_state != connection_state:
-            match last_connection_state, connection_state:
-                case ConnectionState.UP, _:
-                    plugins.on("bluetooth_down", asdict(self))
-                case _, ConnectionState.UP:
-                    plugins.on("bluetooth_up", asdict(self))
-                case _, _:
-                    pass
         match connection_state:
             case ConnectionState.UP:
                 if not self.ping():
@@ -717,8 +708,11 @@ class BTManager(Thread):
                 self.phones[key].up()
                 if self.phones[key].is_up():
                     self.active_phone = key
+                    plugins.on("bluetooth_up", asdict(self.phones[key]))
                     continue
             self.phones[key].down()
+            plugins.on("bluetooth_down", asdict(self.phones[key]))
+
         if self.active_phone:
             logging.info(f"{self.header} Current active connection: {self.active_phone}")
         else:
@@ -1022,7 +1016,7 @@ class BTTether(plugins.Plugin):
         match self.btmanager.get_connection_state():
             case ConnectionState.UP:
                 state = "U"
-                status = f"Active conn.:\n{self.btmanager.active_phone}"
+                status = f"Active phone:\n{self.btmanager.active_phone}"
             case ConnectionState.ACTIVATING:
                 state, status = "A", "Connection activating"
             case ConnectionState.DOWN:
