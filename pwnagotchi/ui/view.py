@@ -53,6 +53,7 @@ class View(object):
         self._config = config
         self._canvas = None
         self._web_canvas = None
+        self._next_png_time = 0
         self._frozen = False
         self._lock = Lock()
         self._voice = Voice(lang=config['main']['lang'])
@@ -409,10 +410,15 @@ class View(object):
                     # lv is a ui element
                     lv.draw(self._canvas, drawer)
 
-                #web.update_frame(self._canvas)
                 self._web_canvas = self._canvas.copy()
+                if time.time() > self._next_png_time:
+                    self._next_png_time = time.time() + self._config['ui'].get('png_seconds', 0)
+                    web.update_frame(self._canvas)
 
                 for cb in self._render_cbs:
                     cb(self._canvas)
 
                 self._state.reset()
+
+    def get_current_image(self):
+        return self._web_canvas.copy()
