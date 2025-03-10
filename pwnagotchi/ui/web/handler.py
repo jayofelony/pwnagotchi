@@ -25,6 +25,7 @@ from flask import abort
 from flask import redirect
 from flask import render_template, render_template_string
 
+from io import BytesIO
 
 class Handler:
     def __init__(self, config, agent, app):
@@ -235,4 +236,12 @@ class Handler:
     # serve the PNG file with the display image
     def ui(self):
         with web.frame_lock:
-            return send_file(web.frame_path, mimetype='image/png')
+            try:
+                imgIO = BytesIO()
+                self._agent._view.get_current_image().save(imgIO, 'PNG')
+                imgIO.seek(0)
+                return send_file(imgIO, mimetype='image/png')
+            except Exception as e:
+                logging.error(e)
+                return send_file(web.frame_path, mimetype='image/png')
+
