@@ -2,11 +2,15 @@ import hashlib
 import time
 import re
 import os
+import sys
 import logging
+import logging.handlers
+import syslog
 import shutil
 import gzip
 import warnings
 from datetime import datetime
+from dateutil import parser as date_parser
 
 from pwnagotchi.voice import Voice
 from pwnagotchi.mesh.peer import Peer
@@ -30,6 +34,7 @@ class LastSession(object):
         self.config = config
         self.voice = Voice(lang=config['main']['lang'])
         self.path = config['main']['log']['path']
+        self.log_type = config['main']['log']['type'].lower()
         self.last_session = []
         self.last_session_id = ''
         self.last_saved_session_id = ''
@@ -64,10 +69,19 @@ class LastSession(object):
             self.last_saved_session_id = self.last_session_id
 
     def _parse_datetime(self, dt):
-        dt = dt.split('.')[0]
-        dt = dt.split(',')[0]
-        dt = datetime.strptime(dt.split('.')[0], '%Y-%m-%d %H:%M:%S')
-        return time.mktime(dt.timetuple())
+        try:
+            return time.mktime(date_parser.parse(dt))
+        except ValueError as ve:
+            logging.debug("%s: %s %s" % (dt,ve, sys.exc_info()))
+            dt = dt.split('.')[0]
+            dt = dt.split(',')[0]
+            try:
+                dt = datetime.strptime(dt.split('.')[0], '%Y-%m-%d %H:%M:%S')
+                return time.mktime(dt.timetuple())
+            except Exception as e:
+                # not a date
+                logging.debug("%s: %s" % (sys.exc_info(), e))
+                return time.time()
 
     def _parse_stats(self):
         self.duration = ''
@@ -91,7 +105,6 @@ class LastSession(object):
             parts = line.split(']')
             if len(parts) < 2:
                 continue
-
             try:
                 line_timestamp = parts[0].strip('[')
                 line = ']'.join(parts[1:])
@@ -173,6 +186,8 @@ class LastSession(object):
     def parse(self, ui, skip=False):
         if skip:
             logging.debug("skipping parsing of the last session logs ...")
+        elif self.log_type in ['syslog', 'console']:
+            logging.info("skipping last session stats with %s logging" % self.log_type)
         else:
             logging.debug("reading last session logs ...")
 
@@ -220,43 +235,56 @@ def setup_logging(args, config):
     filenameDebug = cfg['path-debug']
 
     #global formatter
+    formatter = logging.Formatter(cfg.get("format", "[%(asctime)s] [%(levelname)s] [%(threadName)s] : %(message)s"))
+    print("Format: %s" % cfg.get("format","<none>"))
+
     formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(threadName)s] : %(message)s")
+
     logger = logging.getLogger()
+
+    dbg = args.debug or cfg.get('debug', False)
     
     for handler in logger.handlers:
-        handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
+        handler.setLevel(logging.DEBUG if dbg else logging.INFO)
         handler.setFormatter(formatter)
-    
-    
-    logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
-
-    if filename:
-        # since python default log rotation might break session data in different files,
-        # we need to do log rotation ourselves
-        log_rotation(filename, cfg)
-        log_rotation(filenameDebug, cfg)
 
     
-    
-        # File handler for logging all normal messages
-    file_handler = logging.FileHandler(filename) #creates new
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    logger.setLevel(logging.DEBUG if dbg else logging.INFO)
+    log_type = cfg.get("type", "files").strip().lower()    # files, syslog or console
 
-    # File handler for logging all debug messages
-    file_handler = logging.FileHandler(filenameDebug) #creates new
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    if log_type == "syslog":
+        syslog_handler = logging.handlers.SysLogHandler(address='/dev/log', facility=syslog.LOG_USER)
+        syslog_handler.setLevel(logging.DEBUG if dbg else logging.INFO)
+        syslog_handler.setFormatter(formatter)
+        logger.addHandler(syslog_handler)
 
-    # Console handler for logging debug messages if args.debug is true else just log normal
-    #console_handler = logging.StreamHandler() #creates new
-    #console_handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
-    #console_handler.setFormatter(formatter)
-    #logger.addHandler(console_handler)
+    elif log_type == "console":
+        # Console handler for logging debug messages if args.debug is true else just log normal
+        console_handler = logging.StreamHandler() #creates new
+        console_handler.setLevel(logging.DEBUG if dbg else logging.INFO)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+    else: # default is using file and debug file
+        if filename:
+            # since python default log rotation might break session data in different files,
+            # we need to do log rotation ourselves
+            log_rotation(filename, cfg)
+            # File handler for logging all normal messages
+            file_handler = logging.FileHandler(filename) #creates new
+            file_handler.setLevel(logging.INFO)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+
+        if filenameDebug:
+            log_rotation(filenameDebug, cfg)
+            # File handler for logging all debug messages
+            file_handler = logging.FileHandler(filenameDebug) #creates new
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
     
-    if not args.debug:
+    if not dbg:
         # disable scapy and tensorflow logging
         logging.getLogger("scapy").disabled = True
         # https://stackoverflow.com/questions/15777951/how-to-suppress-pandas-future-warning
