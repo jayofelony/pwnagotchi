@@ -368,10 +368,14 @@ class BTPhone:
         Check NetworkManager connection state
         """
         try:
+            last_connection_state = self.connection_state
             args = ["-w", "0", "-g", "GENERAL.STATE", "connection", "show", self.phone_network]
             result = nmcli(args)
             if result.find("activated") != -1:
                 self.connection_state = ConnectionState.UP
+                if not self.ping():
+                    logging.error(f"{self.header}[Ping] No ping anwser.")
+                    self.connection_state = ConnectionState.ERROR
             elif result.find("activating") != -1:
                 self.connection_state = ConnectionState.ACTIVATING
             elif (
@@ -497,7 +501,6 @@ class BTPhone:
         time.sleep(2)
         if self.check_connection() == ConnectionState.UP:
             self.up_date = datetime.now(tz=UTC)
-            
 
     def down(self):
         """
@@ -512,7 +515,6 @@ class BTPhone:
         time.sleep(2)
         if self.check_connection() == ConnectionState.DOWN:
             self.up_date = None
-        
 
     def reconnect(self):
         """
@@ -535,20 +537,12 @@ class BTPhone:
             return self.connection_state
 
         match connection_state:
-            case ConnectionState.UP:
-                if not self.ping():
-                    logging.error(f"{self.header}[Ping] No ping anwser. Going down")
-                    self.down()
-                return self.connection_state
-            case ConnectionState.ACTIVATING:
+            case ConnectionState.UP | ConnectionState.ACTIVATING:
                 return self.connection_state
             case ConnectionState.DOWN:
                 pass
             case ConnectionState.ERROR:
-                logging.error(
-                    f"{self.header} Error with connection ({self.phone_network}). Reloading"
-                )
-                self.down()
+                logging.error(f"{self.header} Error with connection ({self.phone_network}).")
                 return self.connection_state
 
         if not self.autoconnect:  # if autoconnect=false, need to up the connection on loss
@@ -564,7 +558,7 @@ class BTManager(Thread):
     """
 
     phones: dict[str, BTPhone] = field(default_factory=dict)
-    active_phone: str | None = None
+    current_phone: str | None = None
     # Kernel modules variables
     # Assume the drivers won't mess during loading
     last_timestamp: str | None = None
@@ -703,21 +697,21 @@ class BTManager(Thread):
         Up one phones
         """
         for key in self.phones:
-            if not self.active_phone:
+            if not self.current_phone:
                 logging.info(f"{self.header} Trying to activate phone: {key}")
                 self.phones[key].up()
                 if self.phones[key].is_up():
-                    self.active_phone = key
+                    self.current_phone = key
                     plugins.on("bluetooth_up", asdict(self.phones[key]))
                     continue
             self.phones[key].down()
             plugins.on("bluetooth_down", asdict(self.phones[key]))
 
-        if self.active_phone:
-            logging.info(f"{self.header} Current active connection: {self.active_phone}")
+        if self.current_phone:
+            logging.info(f"{self.header} Current connection: {self.current_phone}")
         else:
-            logging.info(f"{self.header} No active connection")
-        return self.active_phone
+            logging.info(f"{self.header} No current connection")
+        return self.current_phone
 
     def down(self):
         """
@@ -725,7 +719,8 @@ class BTManager(Thread):
         """
         for key in self.phones:
             self.phones[key].down()
-        self.active_phone = None
+            plugins.on("bluetooth_down", asdict(self.phones[key]))
+        self.current_phone = None
 
     def full_reload_drivers(self):
         """
@@ -775,23 +770,23 @@ class BTManager(Thread):
                 nb += 1
         if nb > 1:
             logging.error(f"{self.header}[Phones] Multiple connections at the same time: {nb}")
-            self.active_phone = None
+            self.current_phone = None
 
         # RUN
-        if self.active_phone:
+        if self.current_phone:
             for key in self.phones:
-                self.phones[key].run(self.active_phone == key)
-            if self.phones[self.active_phone].is_up_or_activating():
+                self.phones[key].run(self.current_phone == key)
+            if self.phones[self.current_phone].is_up_or_activating():
                 return WatchdogState.OK
         uptime_str = ""
-        if self.active_phone and (uptime_ago := self.phones[self.active_phone].up_date_ago):
+        if self.current_phone and (uptime_ago := self.phones[self.current_phone].up_date_ago):
             uptime_str = f" (uptime:{uptime_ago[0]}min {uptime_ago[1]}s)"
             logging.error(
-                f"{self.header}[Phones] Connection lost with {self.active_phone}{uptime_str}"
+                f"{self.header}[Phones] Connection lost with {self.current_phone}{uptime_str}"
             )
 
-        # No active connection, try to up one
-        self.active_phone = None
+        # No current connection, try to up one
+        self.current_phone = None
         if self.up_one_phone():
             return WatchdogState.OK
         return WatchdogState.ERROR
@@ -853,7 +848,7 @@ class BTTether(plugins.Plugin):
     """
 
     __author__ = "Jayofelony, modified my fmatray"
-    __version__ = "1.7.0"
+    __version__ = "1.7.1"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
@@ -1016,7 +1011,7 @@ class BTTether(plugins.Plugin):
         match self.btmanager.get_connection_state():
             case ConnectionState.UP:
                 state = "U"
-                status = f"Active phone:\n{self.btmanager.active_phone}"
+                status = f"Current phone:\n{self.btmanager.current_phone}"
             case ConnectionState.ACTIVATING:
                 state, status = "A", "Connection activating"
             case ConnectionState.DOWN:
@@ -1052,7 +1047,7 @@ class BTTether(plugins.Plugin):
                     self.template,
                     title="BT-Tether",
                     phones=deepcopy(self.btmanager.phones),
-                    active_phone=self.btmanager.active_phone,
+                    current_phone=self.btmanager.current_phone,
                 )
             except Exception as e:
                 logging.error(f"{self.header}[WEB] Error while rendering template: {e}")

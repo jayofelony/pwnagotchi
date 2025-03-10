@@ -120,7 +120,7 @@ searchInput.onkeyup = function() {
     {% for key in phones %}
     <tr>
         <td data-label="phone">
-            {% if key == active_phone %}
+            {% if key == current_phone %}
             {% set header_class="used" %}
             {% else %}
             {% set header_class="notused" %}
