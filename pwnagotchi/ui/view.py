@@ -399,7 +399,7 @@ class View(object):
                     lv.draw(self._canvas, drawer)
 
                 self._show_canvas = self._canvas.copy()
-                if time.time() > self._next_save_png:
+                if self._config['ui'].get('png_period', 0) >= 0 and time.time() > self._next_save_png:
                     self._next_save_png = time.time() + self._config['ui'].get('png_period', 0)
                     web.update_frame(self._canvas)
 
