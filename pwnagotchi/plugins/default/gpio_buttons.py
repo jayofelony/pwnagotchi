@@ -20,17 +20,18 @@ eg: "sudo systemctl stop pwnagotchi && sudo pwnagotchi --clear && sudo shutdown 
 
 config.toml
 
-main.plugins.gpio_buttons.enabled = false
-#main.plugins.gpio_buttons.gpios.5 = "GPIO Pin 5 Triggered" #physical pin 29 - unused but constant false triggers.
-main.plugins.gpio_buttons.gpios.6 = "GPIO Pin 6 Triggered" #physical pin 31
-main.plugins.gpio_buttons.gpios.16 = "GPIO Pin 16 Triggered" #physical pin 36
-#main.plugins.gpio_buttons.gpios.17 = "GPIO Pin 17 Triggered" #physical pin 11 - used by Waveshare eInk hat
-main.plugins.gpio_buttons.gpios.22 = "GPIO Pin 22 Triggered" #physical pin 15
-main.plugins.gpio_buttons.gpios.23 = "GPIO Pin 23 Triggered" #physical pin 16
-#main.plugins.gpio_buttons.gpios.24 = "GPIO Pin 24 Triggered" #physical pin 18 - used by Waveshare eInk hat
-#main.plugins.gpio_buttons.gpios.25 = "GPIO Pin 25 Triggered" #physical pin 22 - used by Waveshare eInk hat
-main.plugins.gpio_buttons.gpios.26 = "GPIO Pin 26 Triggered" #physical pin 37
-#main.plugins.gpio_buttons.gpios.27 = "GPIO Pin 27 Triggered" #physical pin 13 - used by Waveshare GPS LC29
+[main.plugins.gpio_buttons]
+enabled = false
+#gpios.5 = "GPIO Pin 5 Triggered" #physical pin 29 - unused but constant false triggers.
+gpios.6 = "GPIO Pin 6 Triggered" #physical pin 31
+gpios.16 = "GPIO Pin 16 Triggered" #physical pin 36
+#gpios.17 = "GPIO Pin 17 Triggered" #physical pin 11 - used by Waveshare eInk hat
+gpios.22 = "GPIO Pin 22 Triggered" #physical pin 15
+gpios.23 = "GPIO Pin 23 Triggered" #physical pin 16
+#gpios.24 = "GPIO Pin 24 Triggered" #physical pin 18 - used by Waveshare eInk hat
+#gpios.25 = "GPIO Pin 25 Triggered" #physical pin 22 - used by Waveshare eInk hat
+gpios.26 = "GPIO Pin 26 Triggered" #physical pin 37
+#gpios.27 = "GPIO Pin 27 Triggered" #physical pin 13 - used by Waveshare GPS LC29
 """
 
 class GPIOButtons(plugins.Plugin):
