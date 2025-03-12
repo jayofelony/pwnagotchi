@@ -13,8 +13,8 @@ from json.decoder import JSONDecodeError
 
 class WpaSec(plugins.Plugin):
     __author__ = '33197631+dadav@users.noreply.github.com'
-    __editor__ = 'jayofelony'
-    __version__ = '2.1.1'
+    __editor__ = 'jayofelony, Boris Badenov'
+    __version__ = '2.1.2'
     __license__ = 'GPL3'
     __description__ = 'This plugin automatically uploads handshakes to https://wpa-sec.stanev.org'
 
@@ -152,10 +152,13 @@ class WpaSec(plugins.Plugin):
     def on_ui_setup(self, ui):
         if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
             # Setup for horizontal orientation with adjustable positions
-            x_position = 0  # X position for both SSID and password
-            ssid_y_position = 95  # Y position for SSID
-            ssid_position = (x_position, ssid_y_position)
-            ui.add_element('pass', LabeledValue(color=BLACK, label='', value='', position=ssid_position,
+            try:
+                pos = self.options['position'].split(',')
+                pos = [int(x.strip()) for x in pos]
+            except Exception:
+                pos = (0, 95)
+
+            ui.add_element('pass', LabeledValue(color=BLACK, label='', value='', position=(pos[0], pos[1]),
                                                 label_font=fonts.Bold, text_font=fonts.Small))
 
     def on_unload(self, ui):

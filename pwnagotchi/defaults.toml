@@ -146,10 +146,10 @@ enabled = false
 [main.plugins.wigle]
 enabled = false
 api_key = "" # mandatory
-cvs_dir = "/tmp" # optionnal, is set, the CVS is written to this directory
+cvs_dir = "/tmp" # optional, is set, the CVS is written to this directory
 donate = false # default: off
 timeout = 30 # default: 30
-position = [7, 85] # optionnal
+position = [7, 85] # optional
 
 [main.plugins.wpa-sec]
 enabled = false
@@ -157,6 +157,7 @@ api_key = ""
 api_url = "https://wpa-sec.stanev.org"
 download_results = false
 show_pwd = false
+position = "0,95" # if show_pwd is true
 
 iface = "wlan0mon"
 mon_start_cmd = "/usr/bin/monstart"
@@ -200,7 +201,7 @@ cursor = true
 fps = 0.0
 
 [ui.font]
-name = "DejaVuSansMono" # for japanese: fonts-japanese-gothic
+name = "DejaVuSansMono" # for Japanese: fonts-japanese-gothic
 size_offset = 0 # will be added to the font size
 
 [ui.faces]
