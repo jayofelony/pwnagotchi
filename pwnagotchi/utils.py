@@ -151,10 +151,33 @@ def load_config(args):
             print("!!! file in %s is different than release defaults, overwriting !!!" % args.config)
             shutil.copy(ref_defaults_file, args.config)
 
+
+    def load_toml_file(filename):
+        """Load toml data from a file. Use toml for dotted, tomlkit for nice formatted"""
+        with open(filename) as fp:
+            text = fp.read()
+        # look for "[main]". if not there, then load
+        # dotted toml with toml instead of tomlkit
+        if text.find("[main]") != -1:
+            return tomlkit.loads(text)
+        else:
+            print("Converting dotted toml %s: %s" % (filename, text[0:100]))
+            import toml
+            data = toml.loads(text)
+            # save original as a backup
+            try:
+                backup = filename + ".ORIG"
+                os.rename(filename, backup)
+                with open(filename, "w") as fp2:
+                    tomlkit.dump(data, fp2)
+                print("Converted to new format. Original saved at %s" % backup)
+            except Exception as e:
+                print("Unable to convert %s to new format: %s" % (backup, e))
+            return data
+
     # load the defaults
-    with open(args.config) as fp:
-        config = tomlkit.load(fp)
-        #config = toml.load(fp)
+    config = load_toml_file(args.config)
+
 
     # load the user config
     try:
@@ -173,9 +196,7 @@ def load_config(args):
                 # toml.dump(user_config, toml_file)
                 tomlkit.dump(user_config, toml_file)
         elif os.path.exists(args.user_config):
-            with open(args.user_config) as toml_file:
-                # user_config = toml.load(toml_file)
-                user_config = tomlkit.load(toml_file)
+            user_config = load_toml_file(args.user_config)
 
         if user_config:
             config = merge_config(user_config, config)
@@ -188,10 +209,8 @@ def load_config(args):
     if dropin and os.path.isdir(dropin):
         dropin += '*.toml' if dropin.endswith('/') else '/*.toml'  # only toml here; yaml is no more
         for conf in glob.glob(dropin):
-            with open(conf) as toml_file:
-                # additional_config = toml.load(toml_file)
-                additional_config = tomlkit.load(toml_file)
-                config = merge_config(additional_config, config)
+            additional_config = load_toml_file(conf)
+            config = merge_config(additional_config, config)
 
     # the very first step is to normalize the display name, so we don't need dozens of if/elif around
     # Dummy Display -------------------------------------------------------------------
