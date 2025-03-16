@@ -119,7 +119,7 @@ lowpower_shutdown_level = 10 # battery percent at which the device will turn off
 max_charge_voltage_protection = false #It will limit the battery voltage to about 80% to extend battery life
 
 [main.plugins.pwncrack]
-enabled = true
+enabled = false
 key = ""
 
 [main.plugins.session-stats]
