@@ -243,11 +243,23 @@ def setup_logging(args, config):
     
     
         # File handler for logging all normal messages
-    if filename and filename != "":
+    if not cfg.get('syslog', False):
+        syslog_handler = logging.handlers.SysLogHandler(address='/dev/log', facility=syslog.LOG_USER)
+        syslog_handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
+        syslog_handler.setFormatter(formatter)
+        logger.addHandler(syslog_handler)
+    elif filename and filename != "":
         file_handler = logging.FileHandler(filename) #creates new
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
+        # File handler for logging all debug messages
+        if filenameDebug and filenameDebug != "":
+            file_handler = logging.FileHandler(filenameDebug) #creates new
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+
     else:
         syslog_handler = logging.handlers.SysLogHandler(address='/dev/log', facility=syslog.LOG_USER)
         syslog_handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
@@ -255,13 +267,6 @@ def setup_logging(args, config):
         logger.addHandler(syslog_handler)
 
     
-
-    # File handler for logging all debug messages
-    if filenameDebug and filenameDebug != "":
-        file_handler = logging.FileHandler(filenameDebug) #creates new
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
 
     if not args.debug:
         # disable scapy and tensorflow logging
