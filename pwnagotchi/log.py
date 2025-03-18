@@ -243,7 +243,7 @@ def setup_logging(args, config):
     
     
         # File handler for logging all normal messages
-    if not cfg.get('syslog', False):
+    if cfg.get('syslog', False):
         syslog_handler = logging.handlers.SysLogHandler(address='/dev/log', facility=syslog.LOG_USER)
         syslog_handler.setLevel(logging.DEBUG if args.debug else logging.INFO)
         syslog_handler.setFormatter(formatter)
