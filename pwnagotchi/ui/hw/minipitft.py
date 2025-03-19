@@ -40,17 +40,3 @@ class MiniPitft(st7789_display):
 
         return self._layout
 
-    def XXinitialize(self):
-        logging.info("Initializing Adafruit Mini Pi Tft 240x240")
-        logging.info("Available pins for GPIO Buttons: 23, 24")
-        logging.info("Backlight pin available on GPIO 22")        
-        logging.info("I2C bus available on stemma QT header")
-        #from pwnagotchi.ui.hw.libs.adafruit.minipitft.ST7789 import ST7789
-        from pwnagotchi.ui.hw.libs.ST7789 import ST7789
-        self._display = ST7789(0,0,25,22)
-
-    def XXrender(self, canvas):
-        self._display.display(canvas)
-
-    def XXclear(self):
-        self._display.clear()
