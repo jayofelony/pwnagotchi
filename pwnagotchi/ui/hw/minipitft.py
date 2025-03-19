@@ -7,12 +7,15 @@
 import logging
 
 import pwnagotchi.ui.fonts as fonts
-from pwnagotchi.ui.hw.base import DisplayImpl
+from pwnagotchi.ui.hw.st7789 import st7789_display
 
-
-class MiniPitft(DisplayImpl):
+class MiniPitft(st7789_display):
     def __init__(self, config):
         super(MiniPitft, self).__init__(config, 'minipitft')
+        self.defaults['dc'] = 25
+        self.defaults['bl'] = 22
+        self.defaults['width'] = 240
+        self.defaults['height'] = 240
 
     def layout(self):
         fonts.setup(10, 9, 10, 35, 25, 9)
@@ -37,16 +40,17 @@ class MiniPitft(DisplayImpl):
 
         return self._layout
 
-    def initialize(self):
+    def XXinitialize(self):
         logging.info("Initializing Adafruit Mini Pi Tft 240x240")
         logging.info("Available pins for GPIO Buttons: 23, 24")
         logging.info("Backlight pin available on GPIO 22")        
         logging.info("I2C bus available on stemma QT header")
-        from pwnagotchi.ui.hw.libs.adafruit.minipitft.ST7789 import ST7789
+        #from pwnagotchi.ui.hw.libs.adafruit.minipitft.ST7789 import ST7789
+        from pwnagotchi.ui.hw.libs.ST7789 import ST7789
         self._display = ST7789(0,0,25,22)
 
-    def render(self, canvas):
+    def XXrender(self, canvas):
         self._display.display(canvas)
 
-    def clear(self):
+    def XXclear(self):
         self._display.clear()
