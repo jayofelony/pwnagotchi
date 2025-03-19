@@ -257,6 +257,9 @@ class Display(View):
     def is_spotpear154lcd(self):
         return self._implementation.name == 'spotpear154lcd'
 
+    def is_ST7789(self):
+        return self._implementation.name == 'st7789'
+    
     def is_displayhatmini(self):
         return self._implementation.name == 'displayhatmini'
     

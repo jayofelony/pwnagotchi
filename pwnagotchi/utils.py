@@ -305,6 +305,9 @@ def load_config(args):
     elif config['ui']['display']['type'] in ('tftbonnet'):
         config['ui']['display']['type'] = 'tftbonnet'
 
+    elif config['ui']['display']['type'] in ('st7789', 'ST7789'):
+        config['ui']['display']['type'] = 'st7789'
+
     elif config['ui']['display']['type'] in ('waveshareoledlcd'):
         config['ui']['display']['type'] = 'waveshareoledlcd'
 
