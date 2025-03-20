@@ -170,12 +170,6 @@ api_url = "https://wpa-sec.stanev.org"
 download_results = false
 show_pwd = false
 
-iface = "wlan0mon"
-mon_start_cmd = "/usr/bin/monstart"
-mon_stop_cmd = "/usr/bin/monstop"
-mon_max_blind_epochs = 5
-no_restart = false
-
 [main.log]
 path = "/etc/pwnagotchi/log/pwnagotchi.log"
 path-debug = "/etc/pwnagotchi/log/pwnagotchi-debug.log"
