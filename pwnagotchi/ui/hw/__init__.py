@@ -1,4 +1,7 @@
+import logging
+
 def display_for(config):
+    logging.warn("\t\t\t%s" % (config['ui']['display']))
     # config has been normalized already in utils.load_config
     if config['ui']['display']['type'] == 'inky':
         from pwnagotchi.ui.hw.inky import Inky
@@ -91,6 +94,14 @@ def display_for(config):
     elif config['ui']['display']['type'] == 'spotpear154lcd':
         from pwnagotchi.ui.hw.spotpear154lcd import Spotpear154lcd
         return Spotpear154lcd(config)
+
+    elif config['ui']['display']['type'] == 'st7789':
+      try:  
+        from pwnagotchi.ui.hw.st7789 import st7789_display
+        
+        return st7789_display(config)
+      except Exception as e:
+          logging.exception(e)
 
     elif config['ui']['display']['type'] == 'displayhatmini':
         from pwnagotchi.ui.hw.displayhatmini import DisplayHatMini

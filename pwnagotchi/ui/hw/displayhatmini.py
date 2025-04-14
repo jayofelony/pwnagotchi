@@ -1,11 +1,14 @@
 import logging
 import pwnagotchi.ui.fonts as fonts
-from pwnagotchi.ui.hw.base import DisplayImpl
+from pwnagotchi.ui.hw.st7789 import st7789_display
 
-class DisplayHatMini(DisplayImpl):
+class DisplayHatMini(st7789_display):
     def __init__(self, config):
         super(DisplayHatMini, self).__init__(config, 'displayhatmini')
         self._display = None
+        self.defaults['cs'] = 1
+        self.defaults['dc'] = 9
+        self.defaults['bl'] = 13
 
     def layout(self):
         fonts.setup(12, 10, 12, 70, 25, 9)
@@ -28,18 +31,3 @@ class DisplayHatMini(DisplayImpl):
             'max': 20
         }
         return self._layout
-
-    def initialize(self):
-        logging.info("Initializing Display Hat Mini")
-        logging.info("Available pins for GPIO Buttons A/B/X/Y: 5, 6, 16, 24")
-        logging.info("Available pins for RGB Led: 17, 27, 22")
-        logging.info("Backlight pin available on GPIO 13")
-        logging.info("I2C bus available on stemma QT and Breakout Garden headers")
-        from pwnagotchi.ui.hw.libs.pimoroni.displayhatmini.ST7789 import ST7789
-        self._display = ST7789(0,1,9,13)
-
-    def render(self, canvas):
-        self._display.display(canvas)
-
-    def clear(self):
-        self._display.clear()

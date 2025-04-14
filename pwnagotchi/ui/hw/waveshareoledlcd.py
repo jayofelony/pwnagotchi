@@ -17,12 +17,14 @@
 import logging
 
 import pwnagotchi.ui.fonts as fonts
-from pwnagotchi.ui.hw.base import DisplayImpl
+from pwnagotchi.ui.hw.st7789 import st7789_display
 
 
-class Waveshareoledlcd(DisplayImpl):
+class Waveshareoledlcd(st7789_display):
     def __init__(self, config):
         super(Waveshareoledlcd, self).__init__(config, 'waveshareoledlcd')
+        self.defaults['dc'] = 22
+        self.defaults['bl'] = 18
 
     def layout(self):
         fonts.setup(12, 10, 12, 70, 25, 9)
@@ -47,14 +49,3 @@ class Waveshareoledlcd(DisplayImpl):
 
         return self._layout
 
-    def initialize(self):
-        logging.info("initializing Waveshare OLED/LCD hat")
-        logging.info("Available pins for GPIO Buttons K1/K2/K3/K4: 4, 17, 23, 24")
-        from pwnagotchi.ui.hw.libs.waveshare.oled.oledlcd.ST7789 import ST7789
-        self._display = ST7789(0,0,22,18)
-
-    def render(self, canvas):
-        self._display.display(canvas)
-
-    def clear(self):
-        self._display.clear()

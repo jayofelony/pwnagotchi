@@ -257,6 +257,9 @@ class Display(View):
     def is_spotpear154lcd(self):
         return self._implementation.name == 'spotpear154lcd'
 
+    def is_ST7789(self):
+        return self._implementation.name == 'st7789'
+    
     def is_displayhatmini(self):
         return self._implementation.name == 'displayhatmini'
     
@@ -319,7 +322,7 @@ class Display(View):
     def image(self):
         img = None
         if self._canvas is not None:
-            img = self._canvas if self._rotation == 0 else self._canvas.rotate(-self._rotation)
+            img = self._canvas if self._rotation == 0 else self._canvas.rotate(-self._rotation, expand=True)
         return img
 
     def _render_thread(self):
@@ -338,7 +341,7 @@ class Display(View):
             logging.error("%s" % e)
 
         if self._enabled:
-            self._canvas = (img if self._rotation == 0 else img.rotate(self._rotation))
+            self._canvas = (img if self._rotation == 0 else img.rotate(self._rotation, expand=True))
             if self._implementation is not None:
                 self._canvas_next = self._canvas
                 self._canvas_next_event.set()

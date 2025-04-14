@@ -29,7 +29,7 @@ def decode(r, verbose_errors=True):
             err = "error %d: %s" % (r.status_code, r.text.strip())
             if verbose_errors:
                 logging.info(err)
-            raise Exception(err)
+                #raise Exception(err)
         return r.text
 
 
