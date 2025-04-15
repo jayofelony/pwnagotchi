@@ -4,10 +4,17 @@ from textwrap import TextWrapper
 
 
 class Widget(object):
-    def __init__(self, xy, color=0, bgcolor="white"):
+    def __init__(self, xy, color=0, bgcolor="white", click_url=None):
         self.xy = xy
         self.color = color
         self.bgcolor = bgcolor
+        self.click_url = click_url
+
+    def set_click_url(self, url):
+        self.click_url = url
+
+    def get_click_url(self):
+        return self.click_url
 
     def draw(self, canvas, drawer):
         raise Exception("not implemented")
@@ -17,6 +24,32 @@ class Widget(object):
 
     def setBackground(self, color):
         self.bgcolor = color
+
+    def get_text_box(self, text, font):
+        w = 0
+        h = 0
+        for li in text.split("\n"):
+            li = li.strip()
+            met = font.getmetrics()
+            bbox = font.getbbox(li)
+            w = max(w, bbox[2])
+            h += met[0] + met[1]
+        return (0, 0, w, h)
+
+    def get_bb(self):
+        if len(self.xy) == 4:
+            return self.xy
+        elif len(self.xy) == 2:  # upper left
+            if hasattr(self, 'image') and self.image:
+                w,h = self.image.size
+                return (self.xy[0], self.xy[1], self.xy[0]+w, self.xy[1]+h)
+            elif hasattr(self, 'value') and hasattr(self, 'font'):
+                # split value into lines and figure it out
+                bb = self.get_text_box(self.value, self.font)
+                return (self.xy[0], self.xy[1], self.xy[0] + bb[2], self.xy[1] + bb[3])
+            else:
+                bb = self.get_text_box(self.value)
+                return (self.xy[0], self.xy[1], self.xy[0] + bb[2], self.xy[1] + bb[3])
 
 # canvas.paste: https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.paste
 # takes mask variable, to identify color system. (not used for pwnagotchi yet)
@@ -132,3 +165,14 @@ class LabeledValue(Widget):
             pos = self.xy
             drawer.text(pos, self.label, font=self.label_font, fill=self.color)
             drawer.text((pos[0] + self.label_spacing + 5 * len(self.label), pos[1]), self.value, font=self.text_font, fill=self.color)
+
+    def get_bb(self):
+        w = self.label_spacing
+        h = 0
+        bb = self.get_text_box(self.label, self.label_font)
+        w += bb[2]
+        h = bb[3]
+
+        bb = self.get_text_box(self.value, self.text_font)
+        w += bb[2]
+        h = max(h, bb[3])

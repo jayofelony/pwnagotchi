@@ -534,6 +534,18 @@ def iface_channels(ifname):
             pass
     return channels
 
+# is this point(x,y) in box (x1, y1, x2, y2), x2>x1, y2>y1
+def pointInBox(point, box):
+    try:
+        logging.debug("is %s in %s" % (repr(point), repr(box)))
+        if len(box) == 4:
+            return (point[0] >= box[0] and point[0] <= box[2] and point[1] >= box[1] and point[1] <= box[3])
+        else:
+            logging.error("Unknown box size. return False")
+            return False
+    except Exception as e:
+        logging.exception("Point: %s, Box: %s, error: %s" % (point, box, repr(e)))
+        return False
 
 class WifiInfo(Enum):
     """

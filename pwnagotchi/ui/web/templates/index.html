@@ -8,15 +8,28 @@
 {% block script %}
 window.onload = function() {
     var image = document.getElementById("ui");
+    var link = document.getElementById("touch_ui_link");
+    link.href = "/clickui/" + image.offsetWidth+ "x" + image.offsetHeight;
+
     function updateImage() {
         image.src = image.src.split("?")[0] + "?" + new Date().getTime();
+        link.href = "/clickui/" + image.offsetWidth+ "x" + image.offsetHeight;
     }
     setInterval(updateImage, 1000);
+}
+
+window.onresize = function() {
+    var img = document.getElementById("ui");
+    if (img.naturalWidth == 0) {
+        return
+    }
+    var link = document.getElementById("touch_ui_link");
+    link.href = "/clickui/" + img.offsetWidth+ "x" + img.offsetHeight;
 }
 {% endblock %}
 
 {% block content %}
-<img class="ui-image pixelated" src="/ui" id="ui"/>
+<a href="/clickui" id='touch_ui_link'><img class="ui-image pixelated" src="/ui" id="ui" ismap></a>
 <div data-role="navbar">
 	<ul>
 		<li>

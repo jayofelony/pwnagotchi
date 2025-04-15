@@ -1,3 +1,4 @@
+import logging
 from threading import Lock
 
 
@@ -30,6 +31,23 @@ class State(object):
     def get(self, key):
         with self._lock:
             return self._state[key].value if key in self._state else None
+
+    def get_map_actions(self):
+        actions = []
+
+        # get UI element actions
+        for key, lv in self._state.items():
+            try:
+                link = lv.get_click_url()
+                if link:
+                    bb = lv.get_bb()
+                    shape = 'rect'
+                    actions.append((shape, ','.join(map(str,bb)), key, link))
+            except Exception as e:
+                logging.exception("Error getting action for %s: %s" % (key, e))
+
+        actions.reverse()
+        return actions
 
     def reset(self):
         with self._lock:
