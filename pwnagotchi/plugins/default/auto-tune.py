@@ -2,6 +2,7 @@ import logging
 import random
 import time
 import html
+import os
 
 import pwnagotchi.plugins as plugins
 from pwnagotchi.ui.components import LabeledValue
@@ -13,10 +14,9 @@ from pwnagotchi.utils import save_config, merge_config
 from flask import abort
 from flask import render_template_string
 
-
 class auto_tune(plugins.Plugin):
     __author__ = 'Sniffleupagus'
-    __version__ = '1.0.0'
+    __version__ = '1.0.4'
     __license__ = 'GPL3'
     __description__ = 'A plugin that adjust AUTO mode parameters'
 
@@ -28,37 +28,9 @@ class auto_tune(plugins.Plugin):
     # - count (default +1) - how much to add to the count for this chisto[stat][channel]
     #           for example, on_bcap_wifi_ap_new, use the default value, but on_bcap_wifi_ap_lost use -1
     #           to count current APs per channel
-    def __init__(self):
-        self._histogram = {'loops': 0}  # count APs per epoch
-
-        self._chistos = {'_all_actions': {-1: 0}}  # arbitrary session stats per channel
-
-        # plugin data
-        self._unscanned_channels = []  # temporary set of channels to pull "extra_channels" from
-        self._active_channels = []  # list of channels with APs found in last scan
-        self._known_aps = {}  # dict of all APs by normalized name+mac
-        self._known_clients = {}  # dict of all clients by normalized APmac+STAmac (many clients to not have names)
-        self._agent = None
-
-        self.descriptions = {  # descriptions of personality variables displayed in webui
-            "advertise": "enable/disable advertising to mesh peers",
-            "deauth": "enable/disable deauthentication attacks",
-            "associate": "enable/disable association attacks",
-            "throttle_a": "delay after an associate. Some delay seems to reduce nexmon crashes",
-            "throttle_d": "delay after a deauthenticate. Delay helps reduce nexmon crashes",
-            "assoc_prob": "probability of trying an associate attack. Set lower to spread out interaction instead of hitting all APs every time until max_interactions",
-            "deauth_prob": "probability of trying a deauth. will spread the 'max_interactions' over a longer time",
-            "min_rssi": "ignore APs with signal weaker than this value. lower values will attack more distant APs",
-            "recon_time": "duration of the bettercap channel hopping scan phase, to discover APs before sending attacks",
-            "min_recon_time": "time spent on each occupied channel per epoch, sending attacks and waiting for handshakes. and epoch is recon_time + #channels * min_recon_time seconds long",
-            "ap_ttl": "APs that have not been seen since this many seconds are ignored. Shorten this if you are moving, to not try to scan APs that are no longer in range.",
-            "sta_ttl": "Clients older than this will ignored",
-        }
-        self.options = dict()
-
     def incrementChisto(self, stat, channel, count=1):
         if stat not in self._chistos:
-            self._chistos[stat] = {-1: 0}
+            self._chistos[stat] = { -1: 0}
 
         if channel not in self._chistos[stat]:
             self._chistos[stat][channel] = count
@@ -67,22 +39,22 @@ class auto_tune(plugins.Plugin):
 
         # count all actions per channel, to get a full channel list
         if channel not in self._chistos['_all_actions']:
-            self._chistos['_all_actions'][channel] = 1
+            self._chistos['_all_actions'][channel] = count
         else:
-            self._chistos['_all_actions'][channel] += 1
+            self._chistos['_all_actions'][channel] += count
 
         # track total on channel -1
         self._chistos[stat][-1] += count
-        self._chistos['_all_actions'][-1] += 1
+        self._chistos['_all_actions'][-1] += count
 
-    def showChistos(self, stats=None, sort_key='_all_actions'):  # stats is list of specific to show, else all
+    def showChistos(self, stats = None, sort_key='_all_actions'): # stats is list of specific to show, else all
         ret = ""
         if not stats:
             stats = self._chistos.keys()
             logging.debug("Using keys: %s" % repr(stats))
         try:
             if sort_key in self._chistos:
-                channel_order = sorted(self._chistos[sort_key].items(), key=lambda x: x[1], reverse=True)
+                channel_order = sorted(self._chistos[sort_key].items(), key=lambda x:x[1], reverse = True)
             else:
                 channel_order = self._agent._supported_channels
             logging.debug("Channel Order: %s" % repr(channel_order))
@@ -122,8 +94,7 @@ class auto_tune(plugins.Plugin):
             return ret
         except Exception as e:
             eret = "<h2>Channel Statistics Error</h2>\n"
-            eret += "<h3>Progress:</h3>\n<pre>%s</pre>\n<h3>Exception dump:</h3>\n<pre>%s</pre>\n" % (
-            html.escape(ret), html.escape(repr(e)))
+            eret += "<h3>Progress:</h3>\n<pre>%s</pre>\n<h3>Exception dump:</h3>\n<pre>%s</pre>\n" % (html.escape(ret), html.escape(repr(e)))
             logging.exception(e)
 
     def normalize(self, name):
@@ -136,6 +107,41 @@ class auto_tune(plugins.Plugin):
             return 'HIDDEN'
         return str.lower(''.join(c for c in name if c.isalnum()))
 
+    def __init__(self):
+        self._histogram = {'loops': 0 } # count APs per epoch
+
+        self._chistos = { '_all_actions' : { -1:0 } }  # arbitrary session stats per channel
+
+        # plugin data
+        self.ep_data = {}
+        self.last_shake = {'time': time.time()}
+        self._unscanned_channels = [] # temporary set of channels to pull "extra_channels" from
+        self._active_channels = []    # list of channels with APs found in last scan
+        self._known_aps = {}          # dict of all APs by normalized name+mac
+        self._known_clients = {}      # dict of all clients by normalized APmac+STAmac (many clients to not have names)
+        self._agent = None            # local copy of the pwnagotchi agent, available after on_ready
+
+        self._orig_mode = 'AUTO'
+
+        self.descriptions = {         # descriptions of personality variables displayed in webui
+            "advertise": "enable/disable advertising to mesh peers",
+            "deauth" : "enable/disable deauthentication attacks",
+            "associate" : "enable/disable association attacks",
+            "throttle_a" : "delay after an associate. Some delay seems to reduce nexmon crashes",
+            "throttle_d" : "delay after a deauthenticate. Delay helps reduce nexmon crashes",
+            "assoc_prob" : "probability of trying an associate attack. Set lower to spread out interaction instead of hitting all APs every time until max_interactions",
+            "deauth_prob" : "probability of trying a deauth. will spread the 'max_interactions' over a longer time",
+            "min_rssi" : "ignore APs with signal weaker than this value. lower values will attack more distant APs",
+            "recon_time" : "duration of the bettercap channel hopping scan phase, to discover APs before sending attacks",
+            "min_recon_time" : "time spent on each occupied channel per epoch, sending attacks and waiting for handshakes. and epoch is recon_time + #channels * min_recon_time seconds long",
+            "hop_recon_time" : "time spent on channel after sending deauths. usually longer than min_recon_time",
+            "max_interactions" : "number of times to perform attacks on an AP, per session",
+            "max_inactive_scale" : "after this many inactive epochs, multiply recon_time by recon_inactive_multiplier for modified strategy",
+            "recon_inactive_multiplier" : "if inactive too long, modify recon duration to scan longer (1-10)",
+            "ap_ttl" : "APs that have not been seen since this many seconds are ignored. Shorten this if you are moving, to not try to scan APs that are no longer in range.",
+            "sta_ttl" : "Clients older than this will ignored",
+        }
+
 
     def showEditForm(self, request):
         path = request.path if request.path.endswith("/update") else "%s/update" % request.path
@@ -146,7 +152,7 @@ class auto_tune(plugins.Plugin):
         form_data = request.values.items()
 
         for secname, sec in [["Personality", self._agent._config['personality']],
-                             ["AUTO Tune", self._agent._config['main']['plugins']['auto-tune']]]:
+                             ["AUTO Tune", self._agent._config['main']['plugins']['auto_tune']]]:
             ret += '<h2>%s Variables</h2>' % secname
             ret += '<table>\n'
             ret += '<tr align=left><th>Parameter</th><th>Value</th><th>Description</th></tr>\n'
@@ -159,17 +165,14 @@ class auto_tune(plugins.Plugin):
                     if cls == "bool":
                         ret += '<th>%s</th><td style="white-space:nowrap; vertical-align:top;">' % (p)
                         checked = " checked" if sec[p] else ""
-                        ret += '<input type=radio id="%s" name="%s" value="%s" %s>&nbsp;True<br>' % (
-                        iname, iname, "True", checked)
+                        ret += '<input type=radio id="%s" name="%s" value="%s" %s>&nbsp;True<br>' % (iname, iname, "True", checked)
                         checked = " checked" if not sec[p] else ""
-                        ret += '<input type=radio id="%s" name="%s" value="%s" %s>&nbsp;False' % (
-                        iname, iname, "False", checked)
+                        ret += '<input type=radio id="%s" name="%s" value="%s" %s>&nbsp;False' % (iname, iname, "False", checked)
                         ret += "</td>"
                     else:
-                        ret += '<th>%s</th>' % p
-                        ret += '<td><input type=text id="%s" name="%s" size="5" value="%s"></td>' % (
-                        iname, iname, sec[p])
-                        # ret += '<tr><th>%s</th>' % ("" if p not in self.descriptions else self.descriptions[p])
+                        ret += '<th>%s</th>' % (p)
+                        ret += '<td><input type=text id="%s" name="%s" size="5" value="%s"></td>' % (iname, iname, sec[p])
+                        #ret += '<tr><th>%s</th>' % ("" if p not in self.descriptions else self.descriptions[p])
                     if p in self.descriptions:
                         ret += "<td>%s</td>" % self.descriptions[p]
                     ret += '</tr>\n'
@@ -184,18 +187,18 @@ class auto_tune(plugins.Plugin):
         histo = self._histogram
         nloops = int(histo["loops"])
         if nloops > 0:
-            ret += "<h2>APs per Channel over %s epochs</h2>" % nloops
+            ret += "<h2>APs per Channel over %s epochs</h2>" % (nloops)
             ret += "<table border=1 spacing=4 cellspacing=1>"
             chans = "<tr><th>Channel</th>"
             totals = "<tr><th>APs seen</th>"
             vals = "<tr><th>Avg APs/epoch</th>"
 
-            for (ch, count) in sorted(histo.items(), key=lambda x: x[1], reverse=True):
+            for (ch, count) in sorted(histo.items(), key=lambda x:x[1], reverse = True):
                 if ch == "loops":
                     pass
                 else:
-                    weight = float(count) / nloops
-                    # ret +="<tr><th>%d</th><td>%0.2f</td>" % (ch, count)
+                    weight = float(count)/nloops
+                    #ret +="<tr><th>%d</th><td>%0.2f</td>" % (ch, count)
                     chans += "<th>%s</th>" % ch
                     totals += "<td align=right>%d</td>" % count
                     vals += "<td align=right>%0.1f</td>" % weight
@@ -218,31 +221,31 @@ class auto_tune(plugins.Plugin):
             ret += "<h2>Interactions per endpoint</h2>"
             ret += "<p><b>Encounters</b> is how many different times this AP has been seen, then not seen, then seen again. Interactions should be the sum of assoc and deauth attacks. All are per session stats. <b>Age</b> is seconds since AP was last seen by the plugin.</p>"
             ret += "<table border=1 spacing=4 cellspacing=4 cellpadding=4>"
-            ret += "<tr><th>Hostname</th><th>MAC</th><th>Channel</th><th>Age</th><th>RSSI</th><th>Encounters</th><th>Associates</th><th>Deauths</th><th>Handshakes</th><th>Interactions</th></tr>"
-            for (id, ap) in sorted(self._known_aps.items(), key=lambda x: x[1]['AT_lastseen'], reverse=True):
+            ret += "<tr><th>Hostname</th><th>MAC</th><th>Channel</th><th>Age</th><th>last time</th><th>RSSI</th><th>Encounters</th><th>Associates</th><th>Deauths</th><th>Handshakes</th><th>Interactions</th></tr>"
+            for (id, ap) in sorted(self._known_aps.items(), key=lambda x:(int(x[1]['AT_lastseen']),x[1]['rssi']), reverse=True):
                 lmac = ap['mac'].lower()
                 if ap['hostname'] == "<hidden>" and not self.options['show_hidden']:
                     logging.debug("Skipping %s '%s'" % (ap['hostname'], lmac))
                     numHidden += 1
-                    continue  # skip hidden APs
+                    continue # skip hidden APs
                 elif ap['hostname'] == '' and not self.options['show_hidden']:
                     logging.debug("Skipping no-name %s '%s'" % (ap['hostname'], lmac))
                     numHidden += 1
-                    continue  # skip hidden APs
-                elif ap['hostname'] is None and not self.options['show_hidden']:
+                    continue # skip hidden APs
+                elif ap['hostname'] == None and not self.options['show_hidden']:
                     logging.debug("Skipping None %s '%s'" % (ap['hostname'], lmac))
                     numHidden += 1
-                    continue  # skip hidden APs
+                    continue # skip hidden APs
                 else:
                     numVisible += 1
                     logging.debug("Not skipping '%s'" % ap['hostname'])
                 if ap['AT_visible']:
                     ret += "<tr><td>%s</td>" % html.escape(ap['hostname'])
                 else:
-                    ret += "<tr><td><i>%s</i></td>" % html.escape(
-                        ap['hostname'])  # italicise hosts not currently visible
+                    ret += "<tr><td><i>%s</i></td>" % html.escape(ap['hostname'])   # italicise hosts not currently visible
                 ret += "<td>%s</td><td>%s</td>" % (ap['mac'], ap['channel'])
-                ret += "<td>%d</td>" % int(now - ap['AT_lastseen'])  # time since last interaction
+                ret += "<td>%d</td>" % int(now - ap['AT_lastseen'])                 # time since last interaction
+                ret += "<td>%s</td>" % ap['AT_lastseen']                 # time since last interaction
                 ret += "<td>%s</td>" % ap['rssi']
                 for t in ['seen', 'assoc', 'deauth', 'handshake']:
                     tag = 'AT_' + t
@@ -255,13 +258,52 @@ class auto_tune(plugins.Plugin):
                 else:
                     ret += "<td>no attacks yet</td>"
                 ret += "</tr>\n"
-            #            for (mac, count) in sorted(self._agent._history.items(), key=lambda x:x[1], reverse = True):
-            #                ret += "<tr><td>%s</td><td>%s</td><td></td><td>%s</td></tr>" % (mac, mac, count)
+#            for (mac, count) in sorted(self._agent._history.items(), key=lambda x:x[1], reverse = True):
+#                ret += "<tr><td>%s</td><td>%s</td><td></td><td>%s</td></tr>" % (mac, mac, count)
             ret += "</table>\n"
             if numHidden:
                 ret += "%s visible, %s hidden networks<p>" % (numVisible, numHidden)
 
         return ret
+
+    ProfileDir = "/etc/pwnagotchi/auto_tune/"
+    try:
+        os.mkdir(ProfileDir)
+    except OSError as error:
+        logging.debug(error)
+
+    def load_profile(self, profile_name):
+        if not self._agent:
+            return
+        file = os.path.join(ProfileDir, "%s.txt" % profile_name)
+        if os.path.isFile(file):
+            with open(file, 'r') as f:
+                profile = json.load(f)
+            logging.info("Read profile:")
+            if 'ops' in profile:
+                for k,v in profile['ops'].items():
+                    logging.info("Option %s = %s" % (k,v))
+                    self.options[k] = v
+            if 'personality' in profile:
+                for k,v in profile['personality'].items():
+                    logging.info("Option %s = %s" % (k,v))
+                    self._agent._config['personality'][k] = v
+
+    def save_profile(self, profile_name):
+        if not self._agent:
+            return
+        profile = { 'ops':{}, 'personality':{} }
+        for op in self.options:
+            profile['ops'][op] = self.options[op]
+        for p in self._agent._config['personality']:
+            profile['personality'][p] = self._agent._config['personality'][p]
+
+        file = os.path.join(ProfileDir, "%s.txt" % profile_name)
+        try:
+            with open(file, 'w') as f:
+                f.write(json.dumps(profile, indent=2))
+        except Exception as e:
+            logging.exception(e)
 
     def update_parameter(self, cfg, parameter, vtype, val, ret):
         changed = False
@@ -317,14 +359,14 @@ class auto_tune(plugins.Plugin):
                 # other paths here
             elif request.method == "POST":
                 ret = '<html><head><title>AUTO Tune</title><meta name="csrf_token" content="{{ csrf_token() }}"></head>'
-                if path == "update":  # update settings that changed, save to json file
+                if path == "update": # update settings that changed, save to json file
                     ret = '<html><head><title>AUTO Tune Update!</title><meta name="csrf_token" content="{{ csrf_token() }}"></head>'
                     ret += "<body><h1>AUTO Tune Update</h1>"
                     ret += "<h2>Processing changes</h2><ul>"
                     changed = False
                     for (key, val) in request.values.items():
                         if key != "":
-                            # ret += "%s -> %s<br>\n" % (key,val)
+                            #ret += "%s -> %s<br>\n" % (key,val)
                             try:
                                 if key.startswith('newval,'):
                                     (tag, value, parameter, vtype) = key.split(",", 4)
@@ -334,18 +376,17 @@ class auto_tune(plugins.Plugin):
 
                                     if parameter in self._agent._config['personality']:
                                         logging.debug("Personality update")
-                                        chg = self.update_parameter(self._agent._config['personality'], parameter,
-                                                                    vtype, val, ret)
+                                        chg = self.update_parameter(self._agent._config['personality'], parameter, vtype, val, ret)
                                     elif parameter in self.options:
                                         logging.debug("plugin settings update")
                                         chg = self.update_parameter(self.options, parameter, vtype, val, ret)
                                     else:
-                                        ret += "<li><b>Skipping unknown %s</b> -> %s\n" % (key, val)
+                                        ret += "<li><b>Skipping unknown %s</b> -> %s\n" % (key,val)
                                     if chg:
                                         ret += "<li>%s: %s -> %s\n" % (parameter, value, val)
                                     changed = changed or chg
                                 else:
-                                    pass  # ret += "No update %s -> %s<br>\n" % (key, val)
+                                    pass # ret += "No update %s -> %s<br>\n" % (key, val)
                             except Exception as e:
                                 ret += "</code><h2>Error</h2><pre>%s</pre><p><code>" % repr(e)
                                 logging.exception(e)
@@ -372,9 +413,9 @@ class auto_tune(plugins.Plugin):
     # called when the plugin is loaded
     def on_loaded(self):
         try:
-            defaults = {'show_hidden': False,
-                        'reset_history': True,
-                        'extra_channels': 15,
+            defaults = { 'show_hidden': False,
+                         'reset_history': True,
+                         'extra_channels': 3,
                         }
 
             for d in defaults:
@@ -389,6 +430,57 @@ class auto_tune(plugins.Plugin):
             self._agent._history = {}  # clear "max_interactions" data
             self._agent.run("wifi.recon clear")
             self._agent.run("wifi.clear")
+            channels = agent._config['personality'].get('channels', [1,6,11])
+            self._agent.run("wifi.recon.channel %s" % (','.join(map(str,channels))))
+        if agent._config.get('ai', {}).get('enabled', False):
+            logging.info("Auto_Tune is inactive when AI is enabled.")
+        else:
+            logging.info("Auto_Tune is active! options = %s" % repr(self.options))
+
+    # called before the plugin is unloaded
+    def on_unload(self, ui):
+        ui.set('mode', self._orig_mode)
+        if hasattr(ui._state._state['mode'], 'set_click_url'):
+            ui._state._state['mode'].set_click_url('http://pwnagotchi.org')
+
+    def on_ui_setup(self, ui):
+        self._ui = ui
+        self._orig_mode = ui.get('mode')
+
+        if self._orig_mode != 'MANU':
+            ui.set('mode', 'AT')
+
+        if hasattr(ui._state._state['mode'], 'set_click_url'):
+            ui._state._state['mode'].set_click_url('/plugins/auto_tune')
+
+    def on_ui_update(self, ui):
+        try:
+            if self._orig_mode != 'MANU':
+                stats = self._chistos
+                mode = 'E%4s|%2ds' % (self.ep_data.get('epoch', 'ST'), int(self.ep_data.get('duration_secs', 0)))
+                ui.set('mode', mode)
+
+                if self._agent and self._agent._last_pwnd:
+                    lt = int(time.time() - self.last_shake.get('time', time.time()))
+                    if lt == 0:
+                        lt = ""
+                    elif lt >= 60 * 60:
+                        hours = int(lt / 3600)
+                        mins = int((lt % 3600) / 60)
+                        lt = "@%d:%02d" % (hours, mins)
+                    elif lt >= 100:
+                        lt = "@%dm%02d" % (int(lt / 60), lt % 60)
+                    else:
+                        lt = "@%ss" % lt
+                    pwnd_len = 22 - len(lt)
+
+                    shakes = '%d/%s %s%s' % (len(self._agent._handshakes),
+                                               self._agent._total_u_shakes if hasattr(self._agent, '_total_u_shakes') else pwnagotchi.utils.total_unique_handshakes(self._agent._config['bettercap']['handshakes']),
+                                               self._agent._last_pwnd[:pwnd_len].strip(),
+                                               lt)
+                    ui.set('shakes', shakes)
+        except Exception as e:
+            logging.exception(e)
 
     # called when the agent refreshed its access points list
     def on_wifi_update(self, agent, access_points):
@@ -396,6 +488,11 @@ class auto_tune(plugins.Plugin):
         try:
             active_channels = []
             self._histogram["loops"] = self._histogram["loops"] + 1
+
+            # mark all as not visible, then scan through
+            for id,ap in self._known_aps.items():
+                ap['AT_visible'] = False
+
             for ap in access_points:
                 self.markAPSeen(ap, 'wifi_update')
                 ch = ap['channel']
@@ -404,36 +501,42 @@ class auto_tune(plugins.Plugin):
                     active_channels.append(ch)
                     if ch in self._unscanned_channels:
                         self._unscanned_channels.remove(ch)
-                self._histogram[ch] = 1 if ch not in self._histogram else self._histogram[ch] + 1
+                self._histogram[ch] = 1 if ch not in self._histogram else self._histogram[ch]+1
 
             self._active_channels = active_channels
-            logging.info("Histo: %s" % repr(self._histogram))
+            logging.debug("Histo: %s" % repr(self._histogram))
         except Exception as e:
             logging.exception(e)
 
     # called when the agent refreshed an unfiltered access point list
     # this list contains all access points that were detected BEFORE filtering
-    # def on_unfiltered_ap_list(self, agent, access_points):
+    #def on_unfiltered_ap_list(self, agent, access_points):
     #    pass
 
     # called when an epoch is over (where an epoch is a single loop of the main algorithm)
     def on_epoch(self, agent, epoch, epoch_data):
         # pick set of channels for next time
+        if agent._config.get('ai', {}).get('enabled', False):
+            return
+
+        self.ep_data = epoch_data
+        self.ep_data['epoch'] = epoch
+
         try:
             next_channels = self._active_channels.copy()
             n = 3 if "extra_channels" not in self.options else self.options["extra_channels"]
             if len(self._unscanned_channels) == 0:
                 if "restrict_channels" in self.options:
-                    logging.info("Repopulating from restricted list")
+                    logging.debug("Repopulating from restricted list")
                     self._unscanned_channels = self.options["restrict_channels"].copy()
                 elif hasattr(agent, "_allowed_channels"):
-                    logging.info("Repopulating from allowed list: %s" % agent._allowed_channels)
+                    logging.debug("Repopulating from allowed list: %s" % agent._allowed_channels)
                     self._unscanned_channels = agent._allowed_channels.copy()
                 elif hasattr(agent, "_supported_channels"):
-                    logging.info("Repopulating from supported list")
+                    logging.debug("Repopulating from supported list")
                     self._unscanned_channels = agent._supported_channels.copy()
                 else:
-                    logging.info("Repopulating unscanned list")
+                    logging.debug("Repopulating unscanned list")
                     self._unscanned_channels = pwnagotchi.utils.iface_channels(agent._config['main']['iface'])
 
             for i in range(n):
@@ -443,8 +546,7 @@ class auto_tune(plugins.Plugin):
                     next_channels.append(ch)
             # update live config
             agent._config['personality']['channels'] = next_channels
-            logging.info("Active: %s, Next scan: %s, yet unscanned: %d %s" % (
-            self._active_channels, next_channels, len(self._unscanned_channels), self._unscanned_channels))
+            logging.info("Active: %s, Next scan: %s, yet unscanned: %d %s" % (self._active_channels, next_channels, len(self._unscanned_channels), self._unscanned_channels))
         except Exception as e:
             logging.exception(e)
 
@@ -455,9 +557,9 @@ class auto_tune(plugins.Plugin):
             apID = apname + '-' + apmac
             channel = access_point['channel']
 
-            contextlabel = " on " + context if context else ""
+            contextlabel = " on "+context if context else ""
             tag = 'AT_' + context if context else 'AT_seen'
-
+            
             if apID not in self._known_aps:
                 # first time seen this AP
                 self._known_aps[apID] = access_point.copy()
@@ -468,22 +570,22 @@ class auto_tune(plugins.Plugin):
                 self.incrementChisto('Unique APs', channel)
                 self.incrementChisto('Current APs', channel)
 
-                logging.info("New AP%s: %s" % (contextlabel, apID))
+                logging.debug("New AP%s: %s" % (contextlabel, apID))
             else:
                 # seen before, merge info
                 for p in access_point:
                     self._known_aps[apID][p] = access_point[p]
 
                 # if wasn't visible, increment current count
-                if not self._known_aps[apID]['AT_visible']:
+                if self._known_aps[apID]['AT_visible'] == False:
                     self._known_aps[apID]['AT_visible'] = True
                     self._known_aps[apID]['AT_seen'] += 1
                     self.incrementChisto('Current APs', channel)
 
                 # increment context count in the AP data
-                self._known_aps[apID][tag] = 1 if tag not in self._known_aps[apID] else self._known_aps[apID][tag] + 1
+                self._known_aps[apID][tag] = 1 if tag not in self._known_aps[apID] else self._known_aps[apID][tag]+1
                 if not context:
-                    logging.info("Returning AP: %s" % apID)
+                    logging.debug("Returning AP: %s" % (apID))
 
             self._known_aps[apID]['AT_lastseen'] = time.time()
             return True
@@ -519,6 +621,9 @@ class auto_tune(plugins.Plugin):
         try:
             self.incrementChisto('Handshakes', access_point['channel'])
             self.markAPSeen(access_point, "handshake")
+            self.last_shake = {'time':time.time(),
+                               'ap':access_point,
+                               'cl':client_station}
         except Exception as e:
             logging.exception(e)
 
@@ -529,7 +634,6 @@ class auto_tune(plugins.Plugin):
             apmac = self.normalize(ap['mac'])
             apID = apname + '-' + apmac
             channel = ap['channel']
-
             self.markAPSeen(ap)
 
         except Exception as e:
@@ -547,8 +651,9 @@ class auto_tune(plugins.Plugin):
                 self.incrementChisto('Missed joins', channel)
                 logging.warn("Unknown AP '%s' seen leaving" % apID)
             else:
-                if not self._known_aps[apID]['AT_visible']:
+                if self._known_aps[apID]['AT_visible'] == False:
                     self.incrementChisto('Missed rejoins', channel)
+                    self.incrementChisto('Current APs', channel, -1)
                     logging.warn("AP '%s' already gone", apID)
                 else:
                     self._known_aps[apID]['AT_visible'] = False
@@ -556,6 +661,13 @@ class auto_tune(plugins.Plugin):
 
         except Exception as e:
             logging.exception(repr(e))
+
+    def on_bcap_wifi_ap_updated(self, agent, event):
+        try:
+            ap = event['data']
+            logging.info("AP Updated: %s" % repr(event))
+        except Exception as e:
+            logging.exception("AP Updated: %s, %s" % (repr(event), repr(e)))
 
     def on_bcap_wifi_client_new(self, agent, event):
         try:
@@ -565,6 +677,7 @@ class auto_tune(plugins.Plugin):
             clmac = self.normalize(cl['mac'])
             clID = clmac + '-' + apmac
             channel = ap['channel']
+            #logging.info("Client: %s" % repr(cl))
         except Exception as e:
             logging.exception(repr(e))
 
