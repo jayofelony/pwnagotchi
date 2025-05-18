@@ -125,7 +125,7 @@ DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\
 
 
 class BTTether(plugins.Plugin):
-    __author__ = "Jayofelony, modified my fmatray"
+    __author__ = "Jayofelony, modified my fmatray and Jalopy"
     __version__ = "1.4"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
@@ -190,7 +190,9 @@ class BTTether(plugins.Plugin):
         dns = re.sub("[\s,;]+", " ", dns).strip()  # DNS cleaning
 
         try:
-            # Configure connection. Metric is set to 200 to prefer connection over USB
+	        # Configure prefered connection. Metric is set dynamically via config option to prefer either Bluetooth or USB.
+            prefer_bt = self.options.get("prefer-bluetooth", False)
+            metric = "50" if prefer_bt else "200"
             self.nmcli(
                 [
                     "connection", "modify", f"{self.phone_name}",
@@ -203,7 +205,7 @@ class BTTether(plugins.Plugin):
                     "ipv4.dns", f"{dns}",
                     "ipv4.addresses", f"{address}/24",
                     "ipv4.gateway", f"{gateway}",
-                    "ipv4.route-metric", "200",
+                    "ipv4.route-metric", f"{metric}",
                 ]
             )
             # Configure Device to autoconnect
