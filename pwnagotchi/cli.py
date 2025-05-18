@@ -218,7 +218,7 @@ def pwnagotchi_cli():
                                           "[Y/N] ")
                     if pwn_bluetooth.lower() in ('y', 'yes'):
                         f.write("[main.plugins.bt-tether]\n"
-                                "enabled = true\n\n")
+                                "enabled = true\n")
                         pwn_bluetooth_phone_name = input("What name uses your phone, check settings?\n\n")
                         if pwn_bluetooth_phone_name != "":
                             f.write(f"phone-name = \"{pwn_bluetooth_phone_name}\"\n")
@@ -237,6 +237,13 @@ def pwnagotchi_cli():
                                                   "MAC: ")
                         if pwn_bluetooth_mac != "":
                             f.write(f"mac = \"{pwn_bluetooth_mac}\"\n")
+                        # add prefer-bluetooth option -- Jalopy added this
+                        pwn_bluetooth_prefer = input("Do you want to prefer Bluetooth tether over USB tether for networking?\n\n"
+                                                 "This changes the routing priority. (Y/N): ")
+                        if pwn_bluetooth_prefer.lower() in ("y", "yes"):
+                            f.write("prefer-bluetooth = true\n")
+                        else:
+                            f.write("prefer-bluetooth = false\n")
                     # set up display settings
                     pwn_display_enabled = input("Do you want to enable a display?\n\n"
                                                 "[Y/N]: ")
