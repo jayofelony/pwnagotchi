@@ -125,8 +125,8 @@ DNS_PTTRN = r"^\s*((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*[ ,;]\s*)+((\d{1,3}\.\
 
 
 class BTTether(plugins.Plugin):
-    __author__ = "Jayofelony, modified my fmatray and Jalopy"
-    __version__ = "1.4"
+    __author__ = "Jayofelony, modified by fmatray and Jalopy"
+    __version__ = "1.5"
     __license__ = "GPL3"
     __description__ = "A new BT-Tether plugin"
 
