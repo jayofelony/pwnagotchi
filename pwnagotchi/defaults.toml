@@ -63,6 +63,7 @@ mac = ""
 phone = "" # android or ios
 ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
 dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
+prefer-bluetooth = false # optional, set to "true" to prefer Bluetooth tethering, set to "false" to prefer USB tethering
 
 [main.plugins.fix_services]
 enabled = true
