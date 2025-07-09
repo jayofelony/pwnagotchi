@@ -260,7 +260,7 @@ class auto_tune(plugins.Plugin):
 
         # Add presets section
         ret += '<div class="preset-section">'
-        ret += '<h2>Presets! (Use "update" below before saving.</h2>'
+        ret += '<h2>Presets! (Use "update" below before saving and after loading.)</h2>'
         ret += '<table class="preset-table">'
         ret += '<tr><td style="width: 150px;">Preset Name:</td><td><input type="text" name="preset_name" size="30" placeholder="Enter preset name"></td></tr>'
         ret += '<tr><td>Available Presets:</td><td>'
