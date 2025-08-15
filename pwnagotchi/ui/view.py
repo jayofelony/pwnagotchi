@@ -49,8 +49,14 @@ class View(object):
         self._voice = Voice(lang=config['main']['lang'])
         self._implementation = impl
         self._layout = impl.layout()
-        self._width = self._layout['width']
-        self._height = self._layout['height']
+        self._rotation = config['ui']['display'].get('rotation',0)
+        if (self._rotation/90)%2 == 0:
+            self._width = self._layout['width']
+            self._height = self._layout['height']
+        else:
+            self._width = self._layout['height']
+            self._height = self._layout['width']
+
         self._state = State(state={
             'channel': LabeledValue(color=BLACK, label='CH', value='00', position=self._layout['channel'],
                                     label_font=fonts.Bold,

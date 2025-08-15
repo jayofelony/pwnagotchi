@@ -1,7 +1,6 @@
 import os
 import logging
 import requests
-import subprocess
 from datetime import datetime
 from threading import Lock
 from pwnagotchi.utils import StatusFile, remove_whitelisted

@@ -521,6 +521,7 @@ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE
 QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE
 DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
+
 ### 16. Limitation of Liability.
 
 IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY
@@ -532,13 +533,28 @@ OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERA
 WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
-### 17. Interpretation of Sections 15 and 16.
+**ADDITIONAL PWNAGOTCHI PROJECT DISCLAIMERS:**
 
-If the disclaimer of warranty and limitation of liability provided above cannot be
-given local legal effect according to their terms, reviewing courts shall apply local
-law that most closely approximates an absolute waiver of all civil liability in
-connection with the Program, unless a warranty or assumption of liability accompanies
-a copy of the Program in return for a fee.
+THE PWNAGOTCHI PROJECT, ITS MAINTAINERS, CONTRIBUTORS, AND DISTRIBUTORS (COLLECTIVELY, "PROJECT PARTIES") PROVIDE THIS SOFTWARE FOR EDUCATIONAL AND RESEARCH PURPOSES ONLY. BY USING THIS SOFTWARE, YOU ACKNOWLEDGE AND ACCEPT THE FOLLOWING ADDITIONAL TERMS:
+
+**SCOPE OF LIABILITY DISCLAIMER:** The Project Parties specifically disclaim liability for:
+(A) Damage to or loss of any property, including computer hardware, network equipment, electronic devices, or any other physical or digital property;
+(B) Unauthorized access to or modification of networks, systems, or data;
+(C) Legal consequences arising from the use, misuse, or distribution of the software;
+(D) Breach of any terms of service, acceptable use policies, or applicable laws or regulations;
+(E) Any claims, demands, or causes of action brought by third parties.
+
+**NO SUPPORT OBLIGATION:** The Project Parties have no obligation to provide support, maintenance, updates, or modifications to the software, nor any responsibility to assist in the reversal, remediation, or repair of any damages or adverse effects caused by the use of the software.
+
+**USER RESPONSIBILITY AND INDEMNIFICATION:** By using, modifying, or distributing the software, you acknowledge that you do so at your own risk and will be solely responsible for any consequences arising from such use. You agree to indemnify, defend, and hold harmless the Project Parties from any claims, damages, costs, and expenses (including reasonable attorneys' fees) arising from or relating to your use of the software.
+
+**LEGAL COMPLIANCE DISCLAIMER:** Users are solely responsible for ensuring their use of the software complies with all applicable local, state, national, and international laws and regulations. The Project Parties make no representations or warranties regarding the legality of the software's use in any jurisdiction.
+
+**PROFESSIONAL ADVICE DISCLAIMER:** This software is provided for educational and research purposes only and does not constitute professional security advice, consultation, or services. Users should not rely on this software as a substitute for professional security assessment or consultation.
+
+**CONTRIBUTION DISCLAIMER:** All contributors to this project, including but not limited to code contributors, documentation contributors, and other participants, disclaim liability for their contributions to the same extent as the Project Parties under these terms.
+
+**TIME LIMITATION:** To the maximum extent permitted by applicable law, any claims against the Project Parties must be brought within one (1) year after the cause of action arose, regardless of when the claimant discovered or should have discovered the cause of action.
 
 END OF TERMS AND CONDITIONS
 

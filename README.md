@@ -39,4 +39,4 @@ https://pwnagotchi.org
 
 ## License
 
-`pwnagotchi` created by [@evilsocket](https://twitter.com/evilsocket) and updated by [us](https://github.com/jayofelony/pwnagotchi/graphs/contributors). It is released under the GPL3 license.
+`pwnagotchi` created by [@evilsocket](https://x.com/evilsocket) and updated by [us](https://github.com/jayofelony/pwnagotchi/graphs/contributors). It is released under the GPL3 license.

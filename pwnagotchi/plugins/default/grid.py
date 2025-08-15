@@ -44,7 +44,7 @@ def parse_pcap(filename):
 
 class Grid(plugins.Plugin):
     __author__ = 'evilsocket@gmail.com'
-    __version__ = '1.0.1'
+    __version__ = '1.1.0'
     __license__ = 'GPL3'
     __description__ = 'This plugin signals the unit cryptographic identity and list of pwned networks and list of pwned ' \
                       'networks to opwngrid.xyz '
@@ -68,6 +68,11 @@ class Grid(plugins.Plugin):
 
     def on_loaded(self):
         logging.info("grid plugin loaded.")
+
+    def on_webhook(self, path, request):
+        from flask import make_response, redirect
+        response = make_response(redirect("https://opwngrid.xyz", code=302))
+        return response
 
     def set_reported(self, reported, net_id):
         if net_id not in reported:

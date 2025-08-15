@@ -5,60 +5,12 @@ import subprocess
 
 import json
 import shutil
-import toml
 import sys
-import re
+import tomlkit
 
-from toml.encoder import TomlEncoder, _dump_str
 from zipfile import ZipFile
 from datetime import datetime
 from enum import Enum
-
-
-class DottedTomlEncoder(TomlEncoder):
-    """
-    Dumps the toml into the dotted-key format
-    """
-
-    def __init__(self, _dict=dict):
-        super(DottedTomlEncoder, self).__init__(_dict)
-
-    def dump_list(self, v):
-        retval = "["
-        # 1 line if its just 1 item; therefore no newline
-        if len(v) > 1:
-            retval += "\n"
-        for u in v:
-            retval += " " + str(self.dump_value(u)) + ",\n"
-        # 1 line if its just 1 item; remove newline
-        if len(v) <= 1:
-            retval = retval.rstrip("\n")
-        retval += "]"
-        return retval
-
-    def dump_sections(self, o, sup):
-        retstr = ""
-        pre = ""
-
-        if sup:
-            pre = sup + "."
-
-        for section, value in o.items():
-            section = str(section)
-            qsection = section
-            if not re.match(r'^[A-Za-z0-9_-]+$', section):
-                qsection = _dump_str(section)
-            if value is not None:
-                if isinstance(value, dict):
-                    toadd, _ = self.dump_sections(value, pre + qsection)
-                    retstr += toadd
-                    # separte sections
-                    if not retstr.endswith('\n\n'):
-                        retstr += '\n'
-                else:
-                    retstr += (pre + qsection + " = " + str(self.dump_value(value)) + '\n')
-        return retstr, self._dict()
-
 
 def parse_version(version):
     """
@@ -150,7 +102,8 @@ def keys_to_str(data):
 
 def save_config(config, target):
     with open(target, 'wt') as fp:
-        fp.write(toml.dumps(config, encoder=DottedTomlEncoder()))
+        fp.write(tomlkit.dumps(config))
+        #fp.write(toml.dumps(config, encoder=DottedTomlEncoder()))
     return True
 
 
@@ -198,9 +151,33 @@ def load_config(args):
             print("!!! file in %s is different than release defaults, overwriting !!!" % args.config)
             shutil.copy(ref_defaults_file, args.config)
 
+
+    def load_toml_file(filename):
+        """Load toml data from a file. Use toml for dotted, tomlkit for nice formatted"""
+        with open(filename) as fp:
+            text = fp.read()
+        # look for "[main]". if not there, then load
+        # dotted toml with toml instead of tomlkit
+        if text.find("[main]") != -1:
+            return tomlkit.loads(text)
+        else:
+            print("Converting dotted toml %s: %s" % (filename, text[0:100]))
+            import toml
+            data = toml.loads(text)
+            # save original as a backup
+            try:
+                backup = filename + ".ORIG"
+                os.rename(filename, backup)
+                with open(filename, "w") as fp2:
+                    tomlkit.dump(data, fp2)
+                print("Converted to new format. Original saved at %s" % backup)
+            except Exception as e:
+                print("Unable to convert %s to new format: %s" % (backup, e))
+            return data
+
     # load the defaults
-    with open(args.config) as fp:
-        config = toml.load(fp)
+    config = load_toml_file(args.config)
+
 
     # load the user config
     try:
@@ -216,10 +193,10 @@ def load_config(args):
                 # convert int/float keys to str
                 user_config = keys_to_str(user_config)
                 # convert to toml but use loaded yaml
-                toml.dump(user_config, toml_file)
+                # toml.dump(user_config, toml_file)
+                tomlkit.dump(user_config, toml_file)
         elif os.path.exists(args.user_config):
-            with open(args.user_config) as toml_file:
-                user_config = toml.load(toml_file)
+            user_config = load_toml_file(args.user_config)
 
         if user_config:
             config = merge_config(user_config, config)
@@ -232,9 +209,8 @@ def load_config(args):
     if dropin and os.path.isdir(dropin):
         dropin += '*.toml' if dropin.endswith('/') else '/*.toml'  # only toml here; yaml is no more
         for conf in glob.glob(dropin):
-            with open(conf) as toml_file:
-                additional_config = toml.load(toml_file)
-                config = merge_config(additional_config, config)
+            additional_config = load_toml_file(conf)
+            config = merge_config(additional_config, config)
 
     # the very first step is to normalize the display name, so we don't need dozens of if/elif around
     # Dummy Display -------------------------------------------------------------------
@@ -564,7 +540,8 @@ class WifiInfo(Enum):
     ESSID = 1
     ENCRYPTION = 2
     CHANNEL = 3
-    RSSI = 4
+    FREQUENCY = 4
+    RSSI = 5
 
 
 class FieldNotFoundError(Exception):
@@ -594,9 +571,6 @@ def extract_from_pcap(path, fields):
     """
     results = dict()
     for field in fields:
-        if not isinstance(field, WifiInfo):
-            raise TypeError("Invalid field")
-
         subtypes = set()
 
         if field == WifiInfo.BSSID:
@@ -606,10 +580,9 @@ def extract_from_pcap(path, fields):
             packets = sniff(offline=path, filter=bpf_filter)
             try:
                 for packet in packets:
-                    if packet.haslayer(Dot11Beacon):
-                        if hasattr(packet[Dot11], 'addr3'):
-                            results[field] = packet[Dot11].addr3
-                            break
+                    if packet.haslayer(Dot11Beacon) and hasattr(packet[Dot11], 'addr3'):
+                        results[field] = packet[Dot11].addr3
+                        break
                 else:  # magic
                     raise FieldNotFoundError("Could not find field [BSSID]")
             except Exception:
@@ -654,6 +627,14 @@ def extract_from_pcap(path, fields):
                 results[field] = freq_to_channel(packets[0][RadioTap].ChannelFrequency)
             except Exception:
                 raise FieldNotFoundError("Could not find field [CHANNEL]")
+        elif field == WifiInfo.FREQUENCY:
+            from scapy.layers.dot11 import sniff, RadioTap
+            from pwnagotchi.mesh.wifi import freq_to_channel
+            packets = sniff(offline=path, count=1)
+            try:
+                results[field] = packets[0][RadioTap].ChannelFrequency
+            except Exception:
+                raise FieldNotFoundError("Could not find field [FREQUENCY]")
         elif field == WifiInfo.RSSI:
             from scapy.layers.dot11 import sniff, RadioTap
             from pwnagotchi.mesh.wifi import freq_to_channel
@@ -662,7 +643,8 @@ def extract_from_pcap(path, fields):
                 results[field] = packets[0][RadioTap].dBm_AntSignal
             except Exception:
                 raise FieldNotFoundError("Could not find field [RSSI]")
-
+        else:
+            raise TypeError("Invalid field")
     return results
 
 

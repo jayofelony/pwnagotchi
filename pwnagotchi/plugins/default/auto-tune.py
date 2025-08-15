@@ -2,6 +2,8 @@ import logging
 import random
 import time
 import html
+import os
+import json
 
 import pwnagotchi.plugins as plugins
 from pwnagotchi.ui.components import LabeledValue
@@ -16,7 +18,7 @@ from flask import render_template_string
 
 class auto_tune(plugins.Plugin):
     __author__ = 'Sniffleupagus'
-    __version__ = '1.0.0'
+    __version__ = '1.0.1'
     __license__ = 'GPL3'
     __description__ = 'A plugin that adjust AUTO mode parameters'
 
@@ -55,6 +57,118 @@ class auto_tune(plugins.Plugin):
             "sta_ttl": "Clients older than this will ignored",
         }
         self.options = dict()
+        self.presets_dir = os.path.expanduser("~/auto-tune-presets")
+        self._ensure_presets_dir()
+
+    def _ensure_presets_dir(self):
+        """Ensure the presets directory exists"""
+        try:
+            if not os.path.exists(self.presets_dir):
+                os.makedirs(self.presets_dir, mode=0o755)
+                logging.info(f"Created presets directory: {self.presets_dir}")
+        except OSError as e:
+            logging.error(f"Failed to create presets directory {self.presets_dir}: {str(e)}")
+            raise e
+            
+    def _get_preset_files(self):
+        """Get list of available preset files"""
+        try:
+            self._ensure_presets_dir()
+            preset_files = []
+            for filename in os.listdir(self.presets_dir):
+                if filename.endswith('.json'):
+                    preset_files.append(filename[:-5])  # Remove .json extension
+            return sorted(preset_files)
+        except OSError as e:
+            logging.error(f"Error reading presets directory: {str(e)}")
+            return []
+    
+    def _save_preset(self, preset_name):
+        """Save current configuration as a preset"""
+        try:
+            self._ensure_presets_dir()
+            preset_data = {
+                'personality': {},
+                'plugin_settings': {},
+                'timestamp': time.time(),
+                'version': '1.0'
+            }
+            
+            # Save personality settings
+            for param in self._agent._config['personality']:
+                if type(self._agent._config['personality'][param]) in [int, str, float, bool]:
+                    preset_data['personality'][param] = self._agent._config['personality'][param]
+            
+            # Save plugin settings
+            for param in self.options:
+                if type(self.options[param]) in [int, str, float, bool]:
+                    preset_data['plugin_settings'][param] = self.options[param]
+            
+            preset_file = os.path.join(self.presets_dir, f"{preset_name}.json")
+            with open(preset_file, 'w') as f:
+                json.dump(preset_data, f, indent=2)
+            
+            logging.info(f"Preset '{preset_name}' saved successfully to {preset_file}")
+            return True
+        except Exception as e:
+            logging.error(f"Error saving preset '{preset_name}': {str(e)}")
+            raise e
+    
+    def _load_preset(self, preset_name):
+        """Load a preset configuration"""
+        preset_file = os.path.join(self.presets_dir, f"{preset_name}.json")
+        if not os.path.exists(preset_file):
+            return False, "Preset file not found"
+        
+        try:
+            with open(preset_file, 'r') as f:
+                preset_data = json.load(f)
+            
+            changes_made = []
+            
+            # Load personality settings
+            if 'personality' in preset_data:
+                for param, value in preset_data['personality'].items():
+                    if param in self._agent._config['personality']:
+                        old_value = self._agent._config['personality'][param]
+                        if old_value != value:
+                            self._agent._config['personality'][param] = value
+                            changes_made.append(f"personality.{param}: {old_value} -> {value}")
+            
+            # Load plugin settings
+            if 'plugin_settings' in preset_data:
+                for param, value in preset_data['plugin_settings'].items():
+                    if param in self.options:
+                        old_value = self.options[param]
+                        if old_value != value:
+                            self.options[param] = value
+                            changes_made.append(f"plugin.{param}: {old_value} -> {value}")
+            
+            if changes_made:
+                logging.info(f"Preset '{preset_name}' loaded with changes: {', '.join(changes_made)}")
+                return True, f"Preset '{preset_name}' loaded successfully with {len(changes_made)} changes"
+            else:
+                return True, f"Preset '{preset_name}' loaded (no changes needed)"
+                
+        except Exception as e:
+            logging.error(f"Error loading preset '{preset_name}': {str(e)}")
+            return False, f"Error loading preset: {str(e)}"
+    
+    def _delete_preset(self, preset_name):
+        """Delete a preset file"""
+        try:
+            self._ensure_presets_dir()
+            preset_file = os.path.join(self.presets_dir, f"{preset_name}.json")
+            if os.path.exists(preset_file):
+                os.remove(preset_file)
+                logging.info(f"Preset '{preset_name}' deleted successfully")
+                return True
+            else:
+                logging.warning(f"Preset file '{preset_file}' not found for deletion")
+                return False
+        except Exception as e:
+            logging.error(f"Error deleting preset '{preset_name}': {str(e)}")
+            return False
 
     def incrementChisto(self, stat, channel, count=1):
         if stat not in self._chistos:
@@ -125,6 +239,7 @@ class auto_tune(plugins.Plugin):
             eret += "<h3>Progress:</h3>\n<pre>%s</pre>\n<h3>Exception dump:</h3>\n<pre>%s</pre>\n" % (
             html.escape(ret), html.escape(repr(e)))
             logging.exception(e)
+            return eret
 
     def normalize(self, name):
         """
@@ -142,6 +257,25 @@ class auto_tune(plugins.Plugin):
 
         ret = '<form method=post action="%s">' % path
         ret += '<input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">'
+
+        # Add presets section
+        ret += '<div class="preset-section">'
+        ret += '<h2>Presets! (Use "update" below before saving and after loading.)</h2>'
+        ret += '<table class="preset-table">'
+        ret += '<tr><td style="width: 150px;">Preset Name:</td><td><input type="text" name="preset_name" size="30" placeholder="Enter preset name"></td></tr>'
+        ret += '<tr><td>Available Presets:</td><td>'
+        ret += '<select name="selected_preset" size="1" style="width: 200px;">'
+        ret += '<option value="">Select a preset...</option>'
+        for preset in self._get_preset_files():
+            ret += '<option value="%s">%s</option>' % (preset, preset)
+        ret += '</select></td></tr>'
+        ret += '<tr><td colspan="2" class="preset-buttons">'
+        ret += '<input type="submit" name="save_preset" value="Save Preset" onclick="return validatePresetName();"> '
+        ret += '<input type="submit" name="load_preset" value="Load Preset" onclick="return validatePresetSelection();"> '
+        ret += '<input type="submit" name="delete_preset" value="Delete Preset" onclick="return validatePresetSelection() && confirm(\'Are you sure you want to delete this preset?\');">'
+        ret += '</td></tr>'
+        ret += '</table>'
+        ret += '</div><hr>'
 
         form_data = request.values.items()
 
@@ -305,6 +439,33 @@ class auto_tune(plugins.Plugin):
                 if path == "/" or not path:
                     logging.debug("webhook called")
                     ret = '<html><head><title>AUTO Tune</title><meta name="csrf_token" content="{{ csrf_token() }}"></head>'
+                    ret += '<style>'
+                    ret += '.preset-section { background-color: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }'
+                    ret += '.preset-table { width: 100%; }'
+                    ret += '.preset-table td { padding: 5px; }'
+                    ret += '.preset-buttons { margin-top: 10px; }'
+                    ret += '.preset-buttons input { margin-right: 10px; padding: 5px 10px; }'
+                    ret += '.success { color: green; font-weight: bold; padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 3px; }'
+                    ret += '.error { color: red; font-weight: bold; padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 3px; }'
+                    ret += '</style>'
+                    ret += '<script>'
+                    ret += 'function validatePresetName() {'
+                    ret += '  var presetName = document.getElementsByName("preset_name")[0].value.trim();'
+                    ret += '  if (presetName === "") {'
+                    ret += '    alert("Please enter a preset name");'
+                    ret += '    return false;'
+                    ret += '  }'
+                    ret += '  return true;'
+                    ret += '}'
+                    ret += 'function validatePresetSelection() {'
+                    ret += '  var selectedPreset = document.getElementsByName("selected_preset")[0].value;'
+                    ret += '  if (selectedPreset === "") {'
+                    ret += '    alert("Please select a preset");'
+                    ret += '    return false;'
+                    ret += '  }'
+                    ret += '  return true;'
+                    ret += '}'
+                    ret += '</script>'
                     ret += "<body><h1>AUTO Tune</h1><p>"
                     ret += self.showEditForm(request)
 
@@ -320,6 +481,41 @@ class auto_tune(plugins.Plugin):
                 if path == "update":  # update settings that changed, save to json file
                     ret = '<html><head><title>AUTO Tune Update!</title><meta name="csrf_token" content="{{ csrf_token() }}"></head>'
                     ret += "<body><h1>AUTO Tune Update</h1>"
+                    
+                    # Handle preset operations
+                    if 'save_preset' in request.values and 'preset_name' in request.values:
+                        preset_name = request.values['preset_name'].strip()
+                        if preset_name:
+                            try:
+                                self._save_preset(preset_name)
+                                ret += "<div class='success'>Preset '%s' saved successfully!</div>" % preset_name
+                            except Exception as e:
+                                ret += "<div class='error'>Error saving preset: %s</div>" % str(e)
+                        else:
+                            ret += "<div class='error'>Please enter a preset name</div>"
+                    
+                    elif 'load_preset' in request.values and 'selected_preset' in request.values:
+                        preset_name = request.values['selected_preset']
+                        if preset_name:
+                            success, message = self._load_preset(preset_name)
+                            if success:
+                                ret += "<div class='success'>%s</div>" % message
+                                save_config(self._agent._config, "/etc/pwnagotchi/config.toml")
+                            else:
+                                ret += "<div class='error'>%s</div>" % message
+                        else:
+                            ret += "<div class='error'>Please select a preset to load</div>"
+                    
+                    elif 'delete_preset' in request.values and 'selected_preset' in request.values:
+                        preset_name = request.values['selected_preset']
+                        if preset_name:
+                            if self._delete_preset(preset_name):
+                                ret += "<div class='success'>Preset '%s' deleted successfully!</div>" % preset_name
+                            else:
+                                ret += "<div class='error'>Error deleting preset '%s'</div>" % preset_name
+                        else:
+                            ret += "<div class='error'>Please select a preset to delete</div>"
+                    
                     ret += "<h2>Processing changes</h2><ul>"
                     changed = False
                     for (key, val) in request.values.items():
@@ -375,6 +571,7 @@ class auto_tune(plugins.Plugin):
             defaults = {'show_hidden': False,
                         'reset_history': True,
                         'extra_channels': 15,
+                        'show_interactions': False,
                         }
 
             for d in defaults:
