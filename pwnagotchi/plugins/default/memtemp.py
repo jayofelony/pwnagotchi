@@ -131,7 +131,7 @@ class MemTemp(plugins.Plugin):
                 h_pos = (pos[0], pos[1])
         except Exception:
             # Set default position based on screen type
-            if ui.is_waveshare_v2():
+            if ui.is_waveshare_v2() or ui.is_waveshare_v3() or ui.is_waveshare_v4():
                 h_pos = (175, 84)
                 v_pos = (197, 74)
             elif ui.is_waveshare_v1():
