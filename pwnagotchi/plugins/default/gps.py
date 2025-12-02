@@ -77,7 +77,7 @@ class GPS(plugins.Plugin):
             alt_pos = (pos[0] + 5, pos[1] + (2 * line_spacing))
         except Exception:
             # Set default value based on display type
-            if ui.is_waveshare_v2():
+            if ui.is_waveshare_v2() or ui.is_waveshare_v3() or ui.is_waveshare_v4():
                 lat_pos = (127, 74)
                 lon_pos = (122, 84)
                 alt_pos = (127, 94)
