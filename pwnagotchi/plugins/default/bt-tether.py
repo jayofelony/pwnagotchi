@@ -164,48 +164,93 @@ class BTTether(plugins.Plugin):
         if not ("mac" in self.options and re.match(MAC_PTTRN, self.options["mac"])):
             logging.error("[BT-Tether] Error with mac address")
             return
-
         if not ("phone" in self.options and self.options["phone"].lower() in ["android", "ios"]):
             logging.error("[BT-Tether] Phone type not supported")
             return
+
+        # Determine IP method: "auto" for DHCP, "manual" for static IP
+        ip_method = self.options.get("ip-method", "").lower()
+
         if self.options["phone"].lower() == "android":
-            address = self.options.get("ip", "192.168.44.2")
-            gateway = self.options.get("gateway", "192.168.44.1")
+            # Default to DHCP for Android (Android 11+ randomizes tethering subnet)
+            if ip_method not in ["auto", "manual"]:
+                ip_method = "auto"
+                logging.info("[BT-Tether] Defaulting to DHCP mode for Android phones.")
+            elif ip_method == "auto":
+                logging.info("[BT-Tether] DHCP mode may not work reliably with Android 11+ devices due to randomized subnets.")
+            elif ip_method == "manual":
+                logging.info("[BT-Tether] Using manual IP mode with Android may lead to connectivity issues if the subnet does not match the phone's tethering subnet.")
+                
+                address = self.options.get("ip", "192.168.44.2")
+                gateway = self.options.get("gateway", "192.168.44.1")
+
         elif self.options["phone"].lower() == "ios":
+            # Default to manual for iOS (consistent subnet)
+            if ip_method not in ["auto", "manual"]:
+                ip_method = "manual"
+                
             address = self.options.get("ip", "172.20.10.2")
             gateway = self.options.get("gateway", "172.20.10.1")
-        if not re.match(IP_PTTRN, address):
+
+        # Only validate IP address for manual mode
+        if ip_method == "manual" and not re.match(IP_PTTRN, address):
             logging.error(f"[BT-Tether] IP error: {address}")
             return
 
         self.phone_name = self.options["phone-name"] + " Network"
         self.mac = self.options["mac"]
+
+        # DNS handling - required for manual mode, optional for auto mode
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
-        if not re.match(DNS_PTTRN, dns):
-            if dns == "":
-                logging.error(f"[BT-Tether] Empty DNS setting")
+        if ip_method == "manual":
+            if not dns or not re.match(DNS_PTTRN, dns):
+                logging.error(f"[BT-Tether] DNS required for manual IP mode: '{dns}'")
+                return
+            dns = re.sub(r"[\s,;]+", " ", dns).strip()
+        elif dns:
+            # DHCP mode - DNS override is optional
+            if re.match(DNS_PTTRN, dns):
+                dns = re.sub(r"[\s,;]+", " ", dns).strip()
             else:
-                logging.error(f"[BT-Tether] Wrong DNS setting: '{dns}'")
-            return
-        dns = re.sub("[\s,;]+", " ", dns).strip()  # DNS cleaning
+                dns = ""  # Invalid/empty DNS in DHCP mode = use phone's DNS
 
         try:
             # Configure connection. Metric is set to 200 to prefer connection over USB
-            self.nmcli(
-                [
+            if ip_method == "auto":
+                # DHCP configuration - let NetworkManager handle IP assignment
+                nmcli_args = [
                     "connection", "modify", f"{self.phone_name}",
                     "connection.type", "bluetooth",
                     "bluetooth.type", "panu",
                     "bluetooth.bdaddr", f"{self.mac}",
                     "connection.autoconnect", "yes",
                     "connection.autoconnect-retries", "0",
-                    "ipv4.method", "manual",
-                    "ipv4.dns", f"{dns}",
-                    "ipv4.addresses", f"{address}/24",
-                    "ipv4.gateway", f"{gateway}",
+                    "ipv4.method", "auto",
                     "ipv4.route-metric", "200",
                 ]
-            )
+                # Allow optional DNS override even in DHCP mode
+                if dns:
+                    nmcli_args.extend(["ipv4.dns", f"{dns}"])
+                self.nmcli(nmcli_args)
+                logging.info(f"[BT-Tether] Using DHCP for IP configuration")
+            else:
+                # Manual/static IP configuration
+                self.nmcli(
+                    [
+                        "connection", "modify", f"{self.phone_name}",
+                        "connection.type", "bluetooth",
+                        "bluetooth.type", "panu",
+                        "bluetooth.bdaddr", f"{self.mac}",
+                        "connection.autoconnect", "yes",
+                        "connection.autoconnect-retries", "0",
+                        "ipv4.method", "manual",
+                        "ipv4.dns", f"{dns}",
+                        "ipv4.addresses", f"{address}/24",
+                        "ipv4.gateway", f"{gateway}",
+                        "ipv4.route-metric", "200",
+                    ]
+                )
+                logging.info(f"[BT-Tether] Using static IP: {address}")
             # Configure Device to autoconnect
             self.nmcli([
                 "device", "set", f"{self.mac}",
