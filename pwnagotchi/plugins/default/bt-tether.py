@@ -168,43 +168,71 @@ class BTTether(plugins.Plugin):
             logging.error("[BT-Tether] Phone type not supported")
             return
 
-        # Determine IP method: "auto" for DHCP, "manual" for static IP
+        # Get IP configuration options
+        # Supports: 'static' for static IP, 'dhcp' for DHCP
         ip_method = self.options.get("ip-method", "").lower()
+        ip_address = self.options.get("ip", "")
+        gateway = self.options.get("gateway", "")
 
-        if self.options["phone"].lower() == "android":
-            # Default to DHCP for Android (Android 11+ randomizes tethering subnet)
-            if ip_method not in ["auto", "manual"]:
-                ip_method = "auto"
-                logging.info("[BT-Tether] Defaulting to DHCP mode for Android phones.")
-            elif ip_method == "auto":
-                logging.info("[BT-Tether] DHCP mode may not work reliably with Android 11+ devices due to randomized subnets.")
-            elif ip_method == "manual":
-                logging.info("[BT-Tether] Using manual IP mode with Android may lead to connectivity issues if the subnet does not match the phone's tethering subnet.")
-                
-                address = self.options.get("ip", "192.168.44.2")
-                gateway = self.options.get("gateway", "192.168.44.1")
+        # Normalize empty strings and whitespace
+        ip_address = ip_address.strip() if ip_address else ""
+        gateway = gateway.strip() if gateway else ""
 
-        elif self.options["phone"].lower() == "ios":
-            # Default to manual for iOS (consistent subnet)
-            if ip_method not in ["auto", "manual"]:
-                ip_method = "manual"
-                
-            address = self.options.get("ip", "172.20.10.2")
-            gateway = self.options.get("gateway", "172.20.10.1")
+        # Determine IP mode based on configuration
+        # Priority: explicit ip+gateway > ip-method setting > phone-type defaults
+        if ip_address and gateway:
+            # Case 1: Both ip and gateway explicitly provided = static mode
+            use_static = True
+            if ip_method == "dhcp":
+                logging.warning(
+                    "[BT-Tether] ip and gateway provided, ignoring ip-method='dhcp', using static IP"
+                )
+            logging.info(f"[BT-Tether] Using static IP: {ip_address}, gateway: {gateway}")
 
-        # Only validate IP address for manual mode
-        if ip_method == "manual" and not re.match(IP_PTTRN, address):
-            logging.error(f"[BT-Tether] IP error: {address}")
-            return
+        elif ip_method == "dhcp" and not ip_address and not gateway:
+            # Case 2: DHCP explicitly requested with no static config
+            use_static = False
+            logging.info("[BT-Tether] Using DHCP mode for IP configuration")
+
+        elif ip_method == "static":
+            # Case 3: Static mode explicitly requested - use defaults if ip/gateway not fully provided
+            use_static = True
+            if self.options["phone"].lower() == "android":
+                ip_address = ip_address or "192.168.44.2"
+                gateway = gateway or "192.168.44.1"
+            else:  # iOS
+                ip_address = ip_address or "172.20.10.2"
+                gateway = gateway or "172.20.10.1"
+            logging.info(f"[BT-Tether] Using static IP with defaults: {ip_address}, gateway: {gateway}")
+
+        else:
+            # Case 4: No explicit config - fall back to static IP defaults (backwards compatible)
+            use_static = True
+            if self.options["phone"].lower() == "android":
+                ip_address = "192.168.44.2"
+                gateway = "192.168.44.1"
+            else:  # iOS uses consistent 172.20.10.0/28 subnet
+                ip_address = "172.20.10.2"
+                gateway = "172.20.10.1"
+            logging.info(f"[BT-Tether] Using static IP defaults: {ip_address}, gateway: {gateway}")
+
+        # Validate IP addresses for static mode
+        if use_static:
+            if not re.match(IP_PTTRN, ip_address):
+                logging.error(f"[BT-Tether] Invalid IP address: {ip_address}")
+                return
+            if not re.match(IP_PTTRN, gateway):
+                logging.error(f"[BT-Tether] Invalid gateway: {gateway}")
+                return
 
         self.phone_name = self.options["phone-name"] + " Network"
         self.mac = self.options["mac"]
 
-        # DNS handling - required for manual mode, optional for auto mode
+        # DNS handling - required for static mode, optional for DHCP mode
         dns = self.options.get("dns", "8.8.8.8 1.1.1.1")
-        if ip_method == "manual":
+        if use_static:
             if not dns or not re.match(DNS_PTTRN, dns):
-                logging.error(f"[BT-Tether] DNS required for manual IP mode: '{dns}'")
+                logging.error(f"[BT-Tether] DNS required for static IP mode: '{dns}'")
                 return
             dns = re.sub(r"[\s,;]+", " ", dns).strip()
         elif dns:
@@ -216,7 +244,7 @@ class BTTether(plugins.Plugin):
 
         try:
             # Configure connection. Metric is set to 200 to prefer connection over USB
-            if ip_method == "auto":
+            if not use_static:
                 # DHCP configuration - let NetworkManager handle IP assignment
                 nmcli_args = [
                     "connection", "modify", f"{self.phone_name}",
@@ -226,15 +254,19 @@ class BTTether(plugins.Plugin):
                     "connection.autoconnect", "yes",
                     "connection.autoconnect-retries", "0",
                     "ipv4.method", "auto",
+                    "ipv4.addresses", "",  # Clear any stale static addresses
+                    "ipv4.gateway", "",    # Clear any stale gateway
                     "ipv4.route-metric", "200",
                 ]
                 # Allow optional DNS override even in DHCP mode
                 if dns:
                     nmcli_args.extend(["ipv4.dns", f"{dns}"])
+                else:
+                    nmcli_args.extend(["ipv4.dns", ""])  # Clear stale DNS, use DHCP-provided
                 self.nmcli(nmcli_args)
-                logging.info(f"[BT-Tether] Using DHCP for IP configuration")
+                logging.info("[BT-Tether] NetworkManager configured for DHCP")
             else:
-                # Manual/static IP configuration
+                # Static IP configuration
                 self.nmcli(
                     [
                         "connection", "modify", f"{self.phone_name}",
@@ -245,12 +277,12 @@ class BTTether(plugins.Plugin):
                         "connection.autoconnect-retries", "0",
                         "ipv4.method", "manual",
                         "ipv4.dns", f"{dns}",
-                        "ipv4.addresses", f"{address}/24",
+                        "ipv4.addresses", f"{ip_address}/24",
                         "ipv4.gateway", f"{gateway}",
                         "ipv4.route-metric", "200",
                     ]
                 )
-                logging.info(f"[BT-Tether] Using static IP: {address}")
+                logging.info(f"[BT-Tether] NetworkManager configured for static IP: {ip_address}")
             # Configure Device to autoconnect
             self.nmcli([
                 "device", "set", f"{self.mac}",
@@ -283,6 +315,8 @@ class BTTether(plugins.Plugin):
         with ui._lock:
             ui.remove_element("bluetooth")
         try:
+            logging.info(f"[BT-Tether] Disconnecting from {self.phone_name}")
+
             self.nmcli(["connection", "down", f"{self.phone_name}"])
         except Exception as e:
             logging.error(f"[BT-Tether] Failed to disconnect from device: {e}")
