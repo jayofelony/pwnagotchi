@@ -59,6 +59,32 @@ class Voice:
         return random.choice([
             self._('I\'m bored ...'),
             self._('Let\'s go for a walk!')])
+            self._('Nothing interesting happening…'),
+            self._('Do you wanna do something fun?'),
+            self._('I need some stimulation.'),
+            self._('This is kinda dull.'),
+            self._('Got any ideas?'),
+            self._('I could use some excitement.'),
+            self._('Time is moving sooo slowly.'),
+            self._('Let\'s find something to do.'),
+            self._('I feel restless.'),
+            self._('Anything new going on?'),
+            self._('I don’t like doing nothing.'),
+            self._('Maybe we should explore a bit.'),
+            self._('I’m losing my mind from boredom.'),
+            self._('Let’s shake things up!'),
+            self._('I need a distraction.'),
+            self._('Can we do literally anything else?'),
+            self._('I’m running out of things to think about.'),
+            self._('I could do this all day… but I’d rather not.'),
+            self._('Boredom level: critical.')]),
+            self._('Wake me up when something happens.'),
+            self._('Standing by…'),
+            self._('Waiting for orders.'),
+            self._('Still waiting for things to do'),
+            self._('Guess I’ll just stand here dramatically.'),
+            self._('Awaiting something worth doing.')
+        ])
 
     def on_motivated(self, reward):
         return random.choice([
