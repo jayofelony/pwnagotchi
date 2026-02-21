@@ -165,6 +165,20 @@ class Voice:
             self._('Hello there, {what}').format(what=what),
             self._('Mind if I join, {what}?').format(what=what),
             self._('Rise and Shine Mr. {what}!').format(what=what), # Half Life
+            self._('Connecting to {what}…').format(what=what),
+            self._('Handshake time with {what}.').format(what=what),
+            self._('Nice signal you got there, {what}.').format(what=what),
+            self._('Let’s link up, {what}.').format(what=what),
+            self._('Joining the party at {what}.').format(what=what),
+            self._('Establishing connection with {what}.').format(what=what),
+            self._('Access requested: {what}.').format(what=what),
+            self._('Opening comms with {what}.').format(what=what),
+            self._('Synchronizing with {what}.').format(what=what),
+            self._('We meet at last, {what}.').format(what=what),
+            self._('Signal locked on {what}.').format(what=what),
+            self._('Making contact with {what}.').format(what=what),
+            self._('Link established with {what}.').format(what=what),
+            self._('Ready to talk, {what}.').format(what=what),
         ])
 
     def on_deauth(self, sta):
