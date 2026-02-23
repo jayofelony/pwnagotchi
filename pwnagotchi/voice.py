@@ -38,6 +38,9 @@ class Voice:
     def on_keys_generation(self):
         return random.choice([
             self._('Generating keys, do not turn off ...'),
+            self._("Generating keys. This is the part where you get coffee."),
+            self._("Strong keys take time..."),
+            self._("One key to rule them all..."), # Lord of the Rings
             self._('Are you the keymaster?'), # Ghostbusters
             self._('I am the keymaster!'), # Ghostbusters
         ])
