@@ -17,8 +17,19 @@ class Voice:
     def custom(self, s):
         return s
 
-    def default(self):
-        return self._('ZzzzZZzzzzZzzz')
+    def on_sleeping(self):
+    return random.choice([
+        self._('ZzzzZZzzzzZzzz'),
+        self._('Dreaming of handshakes...'),
+        self._('Counting captured handshakes...'),
+        self._('Recharging entropy...'),
+        self._('Do not disturb. Unless you have a handshake.'),
+        self._('The cake is still a lie...'),  # Portal
+        self._('Insert Coin...'), # Arcade
+        self._('Resting at Poké Center.'),  # Pokémon
+        self._('Respawn point set...'),  # Minecraft
+        self._('Wake me when you need me.'),  # Halo
+    ])
 
     def on_starting(self):
         return random.choice([
