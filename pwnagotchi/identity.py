@@ -56,7 +56,7 @@ class KeyPair(object):
                 try:
                     os.remove(self.priv_path)
                     os.remove(self.pub_path)
-                except:
+                except Exception:  # FIX B4: was bare except
                     pass
 
             # no exception, keys loaded correctly.

@@ -1,46 +1,55 @@
-{% extends "base.html" %}
-{% set active_page = "inbox" %}
+{% extends "base.html" %} {% set active_page = "inbox" %} {% block title %} {{
+name }} Inbox {% endblock %} {% block script %} autoRefresh(15000);
+filterList('.search-box input', '.inbox li'); {% endblock %} {% block content %}
+<div class="search-box">
+  <input type="text" placeholder="Search inbox..." />
+</div>
 
-{% block title %}
-{{ name }} Inbox
-{% endblock %}
-
-{% block script %}
-$(function() {
-    setTimeout(function(){
-        window.location.reload(true);
-    }, 15000);
-});
-{% endblock %}
-
-{% block content %}
-<ul class="inbox" data-role="listview" data-filter="true" data-filter-placeholder="Search inbox..." data-inset="true">
-    {% for message in inbox.messages %}
-    <li class="message">
-        <a href="/inbox/{{ message.id }}" class="{{ 'unread' if not message.seen_at else 'read' }}">
-            <h2>{{ message.sender_name }}@{{ message.sender }}</h2>
-            <p>
-                Received
-                <time class="timeago" datetime="{{ message.created_at }}">{{ message.created_at }}</time>
-                {% if message.seen_at %}, seen
-                <time class="timeago" datetime="{{ message.seen_at }}">{{ message.seen_at }}</time>
-                {% endif %}.
-            </p>
-        </a>
-    </li>
-    {% endfor %}
+<ul class="inbox">
+  {% for message in inbox.messages %}
+  <li class="message {{ 'unread' if not message.seen_at else 'read' }}">
+    <a href="/inbox/{{ message.id }}">
+      <div class="list-item-primary">
+        {{ message.sender_name }}@{{ message.sender }}
+      </div>
+      <div class="list-item-secondary">
+        Received
+        <time class="timeago" datetime="{{ message.created_at }}"
+          >{{ message.created_at }}</time
+        >
+        {% if message.seen_at %}, seen
+        <time class="timeago" datetime="{{ message.seen_at }}"
+          >{{ message.seen_at }}</time
+        >{% endif %}
+      </div>
+    </a>
+  </li>
+  {% endfor %}
 </ul>
 
 {% if inbox.pages > 1 %}
-<div data-role="navbar">
-    <ul>
-        {% if page > 1 %}
-        <li><a href="/inbox?p={{ page - 1 }}" class="ui-btn">Prev</a></li>
-        {% endif %}
-        {% if page < inbox.pages %}
-        <li><a href="/inbox?p={{ page + 1 }}" class="ui-btn">Next</a></li>
-        {% endif %}
-    </ul>
+<div class="pagination">
+  {% if page > 1 %}
+  <div class="page-item">
+    <a href="/inbox?p={{ page - 1 }}" class="page-link">← Previous</a>
+  </div>
+  {% else %}
+  <div class="page-item disabled">
+    <span class="page-link">← Previous</span>
+  </div>
+  {% endif %}
+  <div
+    class="page-item"
+    style="padding: 0 1rem; display: flex; align-items: center"
+  >
+    Page {{ page }} of {{ inbox.pages }}
+  </div>
+  {% if page < inbox.pages %}
+  <div class="page-item">
+    <a href="/inbox?p={{ page + 1 }}" class="page-link">Next →</a>
+  </div>
+  {% else %}
+  <div class="page-item disabled"><span class="page-link">Next →</span></div>
+  {% endif %}
 </div>
-{% endif %}
-{% endblock %}
+{% endif %} {% endblock %}
