@@ -1,12 +1,15 @@
 <html>
   <head>
-      <title>{{ title }}</title>
-      <meta http-equiv="refresh" content="{{ go_back_after }};URL=/">
-      <link rel="stylesheet" type="text/css" href="/css/style.css"/>
+    <title>{{ title }}</title>
+    <meta http-equiv="refresh" content="{{ go_back_after }};URL=/" />
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
   </head>
   <body>
     <div class="status">
-        {{ message }}
+      <h2>{{ message }}</h2>
+      <p style="font-size: 0.9rem">
+        Redirecting to home in {{ go_back_after }} seconds...
+      </p>
     </div>
   </body>
 </html>

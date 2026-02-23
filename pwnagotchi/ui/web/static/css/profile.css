@@ -1,0 +1,51 @@
+/* ============================================
+   Profile Page Styling
+   ============================================ */
+
+/* Profile page styling */
+#profile .card {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+#profile .card > div {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #333;
+}
+
+#profile .card > div:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+#profile label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-pixel);
+}
+
+#profile h4 {
+  font-size: 1.4rem;
+  margin: 0.5rem 0 0 0;
+  color: var(--accent);
+}
+
+#profile pre {
+  font-size: 0.8rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#qrcode {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}

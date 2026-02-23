@@ -18,6 +18,13 @@ max_queue = 10000
 min_sleep = 0.5
 max_sleep = 5.0
 
+# FIX B2: constants for run() retry logic
+MAX_RETRIES = 10
+BACKOFF_BASE = 2.0
+
+# FIX B3: consecutive websocket OSError failures before triggering restart
+MAX_WS_ERRORS = 5
+
 
 def decode(r, verbose_errors=True):
     try:
@@ -53,20 +60,8 @@ class Client(object):
     async def start_websocket(self, consumer):
         s = "%s/events" % self.websocket
 
-        # More modern version of the approach below
-        # logging.info("Creating new websocket...")
-        # async for ws in websockets.connect(s):
-        #     try:
-        #         async for msg in ws:
-        #             try:
-        #                 await consumer(msg)
-        #             except Exception as ex:
-        #                     logging.debug("Error while parsing event (%s)", ex)
-        #     except websockets.exceptions.ConnectionClosedError:
-        #         sleep_time = max_sleep*random.random()
-        #         logging.warning('Retrying websocket connection in {} sec'.format(sleep_time))
-        #         await asyncio.sleep(sleep_time)
-        #         continue
+        # FIX B3: track consecutive OSError failures before escalating to restart
+        oserror_count = 0
 
         # restarted every time the connection fails
         while True:
@@ -74,6 +69,8 @@ class Client(object):
             try:
                 async with websockets.connect(s, ping_interval=ping_interval, ping_timeout=ping_timeout,
                                               max_queue=max_queue) as ws:
+                    # reset error counter on successful connect
+                    oserror_count = 0
                     # listener loop
                     while True:
                         try:
@@ -88,31 +85,44 @@ class Client(object):
                                 await asyncio.wait_for(pong, timeout=ping_timeout)
                                 logging.warning('[bettercap] ping OK, keeping connection alive...')
                                 continue
-                            except:
-                                sleep_time = min_sleep + max_sleep*random.random()
+                            except Exception:
+                                # FIX B4: replaced bare except with except Exception
+                                sleep_time = min_sleep + max_sleep * random.random()
                                 logging.warning('[bettercap] ping error - retrying connection in {} sec'.format(sleep_time))
                                 await asyncio.sleep(sleep_time)
                                 break
             except ConnectionRefusedError:
-                sleep_time = min_sleep + max_sleep*random.random()
+                sleep_time = min_sleep + max_sleep * random.random()
                 logging.warning('[bettercap] nobody seems to be listening at the bettercap endpoint...')
                 logging.warning('[bettercap] retrying connection in {} sec'.format(sleep_time))
                 await asyncio.sleep(sleep_time)
                 continue
             except OSError:
-                logging.warning('connection to the bettercap endpoint failed...')
-                pwnagotchi.restart("AUTO")
+                # FIX B3: count consecutive failures, only restart after MAX_WS_ERRORS
+                oserror_count += 1
+                logging.warning('[bettercap] connection to the bettercap endpoint failed (failure %d/%d)...',
+                                oserror_count, MAX_WS_ERRORS)
+                if oserror_count >= MAX_WS_ERRORS:
+                    logging.error('[bettercap] too many consecutive websocket failures, restarting...')
+                    pwnagotchi.restart("AUTO")
+                else:
+                    sleep_time = min_sleep + max_sleep * random.random()
+                    logging.warning('[bettercap] retrying websocket in %.1fs', sleep_time)
+                    await asyncio.sleep(sleep_time)
+                    continue
 
     def run(self, command, verbose_errors=True):
-        while True:
+        # FIX B2: replace infinite while True loop with bounded retry + exponential backoff
+        for attempt in range(MAX_RETRIES):
             try:
                 r = requests.post("%s/session" % self.url, auth=self.auth, json={'cmd': command})
-            except requests.exceptions.ConnectionError as e:
-                sleep_time = min_sleep + max_sleep*random.random()
-                logging.warning("[bettercap] can't run my request... connection to the bettercap endpoint failed...")
-                logging.warning('[bettercap] retrying run in {} sec'.format(sleep_time))
+                return decode(r, verbose_errors=verbose_errors)
+            except requests.exceptions.ConnectionError:
+                sleep_time = min(BACKOFF_BASE ** attempt, 30)
+                logging.warning(
+                    "[bettercap] can't run my request... connection failed (attempt %d/%d), retrying in %.1fs",
+                    attempt + 1, MAX_RETRIES, sleep_time)
                 sleep(sleep_time)
-            else:
-                break
 
-        return decode(r, verbose_errors=verbose_errors)
+        logging.critical('[bettercap] unreachable after %d attempts, restarting...', MAX_RETRIES)
+        pwnagotchi.restart('AUTO')
