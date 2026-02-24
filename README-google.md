@@ -1,44 +1,70 @@
-Before you enable the gdrivesync plugin follow these guidelines.
+Before you enable the gdrivesync plugin, follow these guidelines.
+
+---
 
 # Authentication
-Drive API requires OAuth2.0 for authentication. PyDrive2 makes your life much easier by handling complex authentication steps for you.
 
-Go to [APIs Console](https://console.developers.google.com/iam-admin/projects) and make your own project.
+The Google Drive API requires OAuth 2.0 for authentication. PyDrive2 makes this much easier by handling the complex authentication steps for you.
 
-Search for ‘Google Drive API’, select the entry, and click ‘Enable’.
+1. Go to the [APIs Console](https://console.developers.google.com/iam-admin/projects) and create a new project.
 
-Select ‘Credentials’ from the left menu, click ‘Create Credentials’, select ‘OAuth client ID’.
+2. Search for **Google Drive API**, select the entry, and click **Enable**.
 
-Now, the product name and consent screen need to be set -> click ‘Configure consent screen’ and follow the instructions. Once finished:
+3. Select **Credentials** from the left menu.
 
-Select ‘Application type’ to be Desktop application.
+4. Click **Create Credentials** and select **OAuth client ID**.
 
-Enter an appropriate name.
+5. You must now configure the consent screen:
 
-Input http://localhost/ for ‘Authorized redirect URIs’.
+   * Click **Configure consent screen**.
+   * Follow the instructions to complete the setup.
 
-Select the correct oauth scope:
+6. Once finished:
 
-    - drive
-    - drive.install
+   * Select **Application type** and choose **Desktop application**.
+   * Enter an appropriate name.
+   * Enter `http://localhost/` for **Authorized redirect URIs**.
+   * Select the correct OAuth scopes:
 
-Click ‘Create’.
+     * `drive`
+     * `drive.install`
 
-Click ‘Download JSON’ and copy the contents to /root/client_secrets.json.
+7. Click **Create**.
 
-Then copy your client_id and client_secret to /root/settings.yaml
+8. Click **Download JSON** and copy the contents to:
 
-# Login to google
+   ```
+   /root/client_secrets.json
+   ```
 
-When you have done this please run the following command in your ssh shell:
+9. Copy your `client_id` and `client_secret` into:
 
-`sudo pwnagotchi google login`
+   ```
+   /root/settings.yaml
+   ```
 
-And follow the steps, after which you can enable the plugin and let the magic begin.
+---
+
+# Login to Google
+
+After completing the steps above, run the following command in your SSH shell:
+
+```
+sudo pwnagotchi google login
+```
+
+Follow the on-screen instructions. Once completed, you can enable the plugin and let the magic begin.
+
+---
 
 # Functionality
-Set a backup folder in config file
 
-It will then upload a zip file there of all your backup files.
+1. Set a backup folder in the config file.
 
-If you have a new device you only need to log in with Google and enable the plugin, it will then download the previously made backup and reboot.
+2. The plugin will upload a ZIP file containing all your backup files to that folder.
+
+3. If you set up a new device, simply log in with Google and enable the plugin. It will automatically download the previously created backup and reboot the device.
+
+---
+
+If you would like, I can also format this in proper GitHub-flavored Markdown with badges, notes, and troubleshooting sections.
