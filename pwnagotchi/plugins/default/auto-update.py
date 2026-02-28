@@ -72,7 +72,7 @@ def check(version, repo, native=True, token=""):
 
 
 def make_path_for(name):
-    path = os.path.join("/home/pi/", name)
+    path = os.path.join("/opt/", name)
     if os.path.exists(path):
         logging.debug("[update] deleting %s" % path)
         shutil.rmtree(path, ignore_errors=True, onerror=None)
@@ -155,7 +155,7 @@ def install(display, update):
         try:
             # Activate the virtual environment and install the package
             subprocess.run(
-                ["bash", "-c", f"source /home/pi/.pwn/bin/activate && pip install {source_path}"],
+                ["bash", "-c", f"source /opt/.pwn/bin/activate && pip install {source_path}"],
                 check=True
             )
 

@@ -16,19 +16,19 @@ block script %}{% endblock %} {% block content %}
         <span class="badge version">{{ loaded[name].__version__ }}</span>
         {% endif %}
       </div>
-      <div class="author">
-        {% if name in loaded and loaded[name].__author__ is defined %} {{
-        loaded[name].__author__ }} {% endif %}
-      </div>
-      <div class="plugin-badges">
-        {% if name in default_plugins %}
-        <span class="badge default">DEFAULT</span>
-        {% endif %}
-      </div>
-      {% if has_info %}
+      {% if name in loaded %} {% if has_info %}
       <span class="tooltiptext">{{ loaded[name].__description__ }}</span>
       {% else %}
       <span class="tooltiptext">Description unable to load yet.</span>
+      {% endif %} {% endif %}
+    </div>
+    <div class="author">
+      {% if name in loaded and loaded[name].__author__ is defined %} {{
+      loaded[name].__author__ }} {% endif %}
+    </div>
+    <div class="plugin-badges">
+      {% if name in default_plugins %}
+      <span class="badge default">DEFAULT</span>
       {% endif %}
     </div>
     <div>

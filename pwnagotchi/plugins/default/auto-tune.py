@@ -57,7 +57,7 @@ class auto_tune(plugins.Plugin):
             "sta_ttl": "Clients older than this will ignored",
         }
         self.options = dict()
-        self.presets_dir = os.path.expanduser("~/auto-tune-presets")
+        self.presets_dir = os.path.expanduser("/etc/pwnagotchi/auto-tune-presets")
         self._ensure_presets_dir()
 
     def _ensure_presets_dir(self):

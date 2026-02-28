@@ -34,7 +34,7 @@ class WpaSec(plugins.Plugin):
         self._init_db()
         
     def _init_db(self):
-        db_conn = sqlite3.connect('/home/pi/.wpa_sec_db')
+        db_conn = sqlite3.connect('/etc/pwnagotchi/.wpa_sec_db')
         db_conn.execute('pragma journal_mode=wal')
         with db_conn:
             db_conn.execute('''
@@ -72,7 +72,7 @@ class WpaSec(plugins.Plugin):
         if not remove_whitelisted([filename], config['main']['whitelist']):
             return
         
-        db_conn = sqlite3.connect('/home/pi/.wpa_sec_db')
+        db_conn = sqlite3.connect('/etc/pwnagotchi/.wpa_sec_db')
         with db_conn:
             db_conn.execute('''
                 INSERT INTO handshakes (path, status)
@@ -93,7 +93,7 @@ class WpaSec(plugins.Plugin):
             display = agent.view()
             
             try:
-                db_conn = sqlite3.connect('/home/pi/.wpa_sec_db')
+                db_conn = sqlite3.connect('/etc/pwnagotchi/.wpa_sec_db')
                 cursor = db_conn.cursor()
                 
                 cursor.execute('SELECT path FROM handshakes WHERE status = ?', (self.Status.TOUPLOAD.value,))
@@ -264,7 +264,7 @@ class WpaSec(plugins.Plugin):
 
     def on_ui_update(self, ui):
         if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
-            file_path = '/home/pi/handshakes/wpa-sec.cracked.potfile'
+            file_path = '/etc/pwnagotchi/handshakes/wpa-sec.cracked.potfile'
             try:
                 with open(file_path, 'r') as file:
                     # Read all lines and extract the required fields

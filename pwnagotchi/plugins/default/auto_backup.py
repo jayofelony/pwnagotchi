@@ -20,20 +20,13 @@ class AutoBackup(plugins.Plugin):
 
     # Hardcoded defaults for Pwnagotchi
     DEFAULT_FILES = [
-        "/root/settings.yaml",
-        "/root/client_secrets.json",
         "/root/.api-report.json",
         "/root/.ssh",
         "/root/.bashrc",
         "/root/.profile",
         "/root/peers",
         "/etc/pwnagotchi/",
-        "/usr/local/share/pwnagotchi/custom-plugins",
         "/etc/ssh/",
-        "/home/pi/handshakes/",
-        "/home/pi/.bashrc",
-        "/home/pi/.profile",
-        "/home/pi/.wpa_sec_uploads",
     ]
 
     DEFAULT_INTERVAL_SECONDS = 60 * 60  # 60 minutes

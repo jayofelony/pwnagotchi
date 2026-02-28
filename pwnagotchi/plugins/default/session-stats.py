@@ -491,7 +491,7 @@ class SessionStats(plugins.Plugin):
     )
     DEFAULT_UPDATE_INTERVAL = 15  # RPi-friendly: 15 sec = 4 disk writes/min
     DEFAULT_SAVE_PATH = (
-        "/home/pi/pwnagotchi/sessions/"  # Standard location for user data
+        "/etc/pwnagotchi/sessions/"  # Standard location for user data
     )
 
     def __init__(self):

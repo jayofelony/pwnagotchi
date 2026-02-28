@@ -21,14 +21,14 @@ custom_plugin_repos = [
     "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip",
     "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip"
 ]
-custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
+custom_plugins = "/etc/pwnagotchi/custom-plugins/"
 
 [main.plugins.auto-tune]
 enabled = true
 
 [main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
 enabled = true
-backup_location = "/home/pi/backups"
+backup_location = "/etc/pwnagotchi/backups"
 
 [main.plugins.auto-update]
 enabled = true
@@ -41,7 +41,7 @@ enabled = false  # Enable the plugin
 # Display Settings
 show_on_screen = true  # Master switch: enable/disable all on-screen display (default: true)
 show_mini_status = true  # Show compact mini status indicator (single letter) (default: true)
-mini_status_position = null  # Position [x, y] for mini status (null = auto top-right)
+mini_status_position = [110, 0]  # Position [x, y] for mini status (default: [110, 0])
 show_detailed_status = true  # Show detailed status line with IP (default: true)
 detailed_status_position = [0, 82]  # Position for detailed status (default: [0, 82])
 
@@ -234,7 +234,7 @@ rotation = 180
 type = "waveshare_4"
 
 [bettercap]
-handshakes = "/home/pi/handshakes"
+handshakes = "/etc/pwnagotchi/handshakes"
 silence = [
     "ble.device.new",
     "ble.device.lost",

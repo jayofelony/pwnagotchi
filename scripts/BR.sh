@@ -82,14 +82,9 @@ do_backup() {
 /root/.ssh
 /root/.bashrc
 /root/.profile
-/home/pi/handshakes
 /root/peers
 /etc/pwnagotchi/
-/usr/local/share/pwnagotchi/custom-plugins
 /etc/ssh/
-/home/pi/.bashrc
-/home/pi/.profile
-/home/pi/.wpa_sec_uploads
 "
   # Convert multiline variable into a space-separated list
   FILES_TO_BACKUP=$(echo "$FILES_TO_BACKUP" | tr '\n' ' ')
