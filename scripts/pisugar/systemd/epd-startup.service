@@ -1,0 +1,14 @@
+[Unit]
+Description=E-ink boot indicator (Waveshare V4)
+DefaultDependencies=no
+After=local-fs.target
+Before=pwnagotchi.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/pi/.pwn/bin/python3 /usr/local/bin/epd-startup.py
+TimeoutStartSec=30
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
