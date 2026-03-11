@@ -37,9 +37,14 @@ class FixServices(plugins.Plugin):
         self.isReloadingMon = False
         self.connection = None
         self.LASTTRY = 0
+        self._consecutive_failures = 0
         self.is_disabled = self._check_external_adapter()
 
-    def _check_external_adapter(self): 
+    def _get_cooldown(self):
+        """Return cooldown in seconds with exponential backoff: 180, 360, 720, 1440, 2880 (max ~48 min)."""
+        return 180 * (2 ** min(self._consecutive_failures, 4))
+
+    def _check_external_adapter(self):
         """
         Check if an external WiFi adapter is being used instead of the onboard brcmfmac chip.
         Returns True if external adapter detected (plugin should be disabled), False otherwise.
@@ -163,7 +168,7 @@ class FixServices(plugins.Plugin):
                                                 stdout=subprocess.PIPE).stdout))[-10:])
         # don't check if we ran a reset recently
         logging.debug("[Fix_Services]**** epoch")
-        if time.time() - self.LASTTRY > 180:
+        if time.time() - self.LASTTRY > self._get_cooldown():
             # get last 10 lines
             display = agent.view() if hasattr(agent, 'view') else None
 
@@ -189,15 +194,18 @@ class FixServices(plugins.Plugin):
                     result = agent.run("wifi.recon off; wifi.recon on")
                     if result.get("success"):
                         logging.debug("[Fix_Services] wifi.recon flip: success!")
+                        self._consecutive_failures = 0
                         if display:
                             display.update(force=True, new_data={"status": "Wifi recon flipped!",
                                                                  "face": faces.COOL})
                         else:
                             logging.debug("Wifi recon flipped")
                     else:
+                        self._consecutive_failures += 1
                         logging.warning("[Fix_Services] wifi.recon flip: FAILED: %s" % repr(result))
 
                 except Exception as err:
+                    self._consecutive_failures += 1
                     logging.error("[Fix_Services wifi.recon flip] %s" % repr(err))
 
             # Look for pattern 3
@@ -290,7 +298,7 @@ class FixServices(plugins.Plugin):
             return
         # avoid overlapping restarts, but allow it if it's been a while
         # (in case the last attempt failed before resetting "isReloadingMon")
-        if self.isReloadingMon and (time.time() - self.LASTTRY) < 180:
+        if self.isReloadingMon and (time.time() - self.LASTTRY) < self._get_cooldown():
             logging.debug("[Fix_Services] Duplicate attempt ignored")
         else:
             self.isReloadingMon = True
@@ -423,6 +431,7 @@ class FixServices(plugins.Plugin):
                 result = connection.run("wifi.clear; wifi.recon on")
 
                 if result.get("success"):
+                    self._consecutive_failures = 0
                     if display:
                         display.update(force=True, new_data={"status": "I can see again! (probably)",
                                                              "face": faces.HAPPY})
@@ -431,6 +440,7 @@ class FixServices(plugins.Plugin):
                     logging.debug("[Fix_Services] wifi.recon on")
                     self.LASTTRY = time.time() + 120  # 2-minute pause until next time.
                 else:
+                    self._consecutive_failures += 1
                     logging.error("[Fix_Services] wifi.recon did not start up")
                     self.LASTTRY = time.time() - 300  # failed, so try again ASAP
                     self.isReloadingMon = False
