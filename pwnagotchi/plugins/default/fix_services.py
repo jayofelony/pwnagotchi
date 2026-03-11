@@ -154,16 +154,17 @@ class FixServices(plugins.Plugin):
     def on_epoch(self, agent, epoch, epoch_data):
         if self.is_disabled:
             return
-        last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
-                                                                 stdout=subprocess.PIPE).stdout))[-10:])
-        other_last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10'],
-                                                                       stdout=subprocess.PIPE).stdout))[-10:])
-        other_other_last_lines = ''.join(
-            list(TextIOWrapper(subprocess.Popen(['tail', '-n10', '/etc/pwnagotchi/log/pwnagotchi.log'],
-                                                stdout=subprocess.PIPE).stdout))[-10:])
         # don't check if we ran a reset recently
         logging.debug("[Fix_Services]**** epoch")
         if time.time() - self.LASTTRY > 180:
+            # Only read logs when cooldown has expired (avoids 3 subprocess calls per epoch)
+            last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
+                                                                     stdout=subprocess.PIPE).stdout))[-10:])
+            other_last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10'],
+                                                                           stdout=subprocess.PIPE).stdout))[-10:])
+            other_other_last_lines = ''.join(
+                list(TextIOWrapper(subprocess.Popen(['tail', '-n10', '/etc/pwnagotchi/log/pwnagotchi.log'],
+                                                    stdout=subprocess.PIPE).stdout))[-10:])
             # get last 10 lines
             display = agent.view() if hasattr(agent, 'view') else None
 
