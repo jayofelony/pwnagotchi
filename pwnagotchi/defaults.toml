@@ -26,6 +26,21 @@ custom_plugins = "/etc/pwnagotchi/custom-plugins/"
 [main.plugins.auto-tune]
 enabled = true
 
+[main.plugins.angryoxide]
+enabled = false
+binary = "/usr/local/bin/angryoxide"
+interface = "auto"
+mode = "auto"
+rate = 2
+auto_target = true
+target_list = ""
+nodeauth = false
+output_dir = "/tmp/angryoxide"
+epoch_interval = 1
+max_burst_seconds = 60
+min_rssi = -70
+disable_bettercap_attacks = true
+
 [main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
 enabled = true
 backup_location = "/etc/pwnagotchi/backups"
