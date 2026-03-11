@@ -90,6 +90,15 @@ class FixServices(plugins.Plugin):
             logging.error(f"[Fix_Services] Error detecting WiFi adapter: {e}. Plugin will be disabled.")
             return True
 
+    def _has_sudo(self):
+        """Check if we can run sudo without a password prompt."""
+        try:
+            result = subprocess.run(['sudo', '-n', 'true'],
+                                    capture_output=True, timeout=5)
+            return result.returncode == 0
+        except Exception:
+            return False
+
     def on_loaded(self):
         """
         Gets called when the plugin gets loaded
@@ -350,6 +359,11 @@ class FixServices(plugins.Plugin):
                 pass
 
             logging.debug("[Fix_Services] Now trying modprobe -r")
+
+            if not self._has_sudo():
+                logging.error("[Fix_Services] No passwordless sudo available — cannot reload brcmfmac, rebooting")
+                pwnagotchi.reboot()
+                return
 
             # Try this sequence 3 times until it is reloaded
             #
