@@ -49,6 +49,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
         if not os.path.exists(config['bettercap']['handshakes']):
             os.makedirs(config['bettercap']['handshakes'])
 
+        self._load_existing_handshakes()
+
         logging.info("%s@%s (v%s)", pwnagotchi.name(), self.fingerprint(), pwnagotchi.__version__)
         for _, plugin in plugins.loaded.items():
             logging.debug("plugin '%s' v%s", plugin.__class__.__name__, plugin.__version__)
@@ -398,6 +400,36 @@ class Agent(Client, Automata, AsyncAdvertiser):
 
     def restart_module(self, module):
         self.run('%s off; %s on' % (module, module))
+
+    def _load_existing_handshakes(self):
+        """Scan the handshakes directory for existing .pcap files and pre-populate
+        _handshakes so that _has_handshake() returns True for APs we already captured.
+        Filenames follow the pattern SSID_bssid.pcap where bssid has no colons."""
+        hs_dir = self._config['bettercap']['handshakes']
+        loaded = 0
+        try:
+            for fname in os.listdir(hs_dir):
+                if not fname.endswith('.pcap') or fname.endswith('.pcap.failed'):
+                    continue
+                fpath = os.path.join(hs_dir, fname)
+                if os.path.getsize(fpath) == 0:
+                    continue
+                # parse bssid from filename: SSID_bssid.pcap
+                base = fname[:-5]  # strip .pcap
+                parts = base.rsplit('_', 1)
+                if len(parts) != 2 or len(parts[1]) != 12:
+                    continue
+                raw_mac = parts[1].lower()
+                ap_mac = ':'.join(raw_mac[i:i+2] for i in range(0, 12, 2))
+                # use a synthetic key so _has_handshake can find it
+                key = "xx:xx:xx:xx:xx:xx -> %s" % ap_mac
+                if key not in self._handshakes:
+                    self._handshakes[key] = {'file': fpath, 'ap': ap_mac, 'preloaded': True}
+                    loaded += 1
+        except Exception as e:
+            logging.error("[agent] failed to load existing handshakes: %s", e)
+        if loaded > 0:
+            logging.info("[agent] pre-loaded %d existing handshakes from disk", loaded)
 
     def _has_handshake(self, bssid):
         for key in self._handshakes:
