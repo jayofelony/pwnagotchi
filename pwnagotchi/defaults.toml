@@ -28,18 +28,14 @@ enabled = true
 
 [main.plugins.angryoxide]
 enabled = false
-binary = "/usr/local/bin/angryoxide"
-interface = "auto"
-mode = "auto"
-rate = 2
-auto_target = true
-target_list = ""
-nodeauth = false
+binary = "/usr/bin/angryoxide"
+interface = "auto"          # "auto" uses wlan0mon, or specify interface name
+rate = 2                    # attack speed: 1=slow, 2=normal, 3=aggressive
+target_list = ""            # optional file with target MACs/SSIDs (one per line)
+disable_deauth = false      # true = PMKID-only (no deauth attacks)
+disable_pmkid = false       # true = deauth-only (no PMKID attempts)
 output_dir = "/tmp/angryoxide"
-epoch_interval = 1
-max_burst_seconds = 60
-min_rssi = -70
-disable_bettercap_attacks = true
+channels = ""               # optional: "1,6,11" — blank = all channels (autohunt)
 
 [main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
 enabled = true
