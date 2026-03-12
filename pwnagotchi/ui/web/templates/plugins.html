@@ -20,7 +20,8 @@ Plugins
     text-align: center;
     border-radius: 10px;
     border: 2px solid black;
-    padding: 20px 0;
+    padding: 10px;
+    font-size: 12px;
 
     position: absolute;
     z-index: 1;
@@ -33,6 +34,15 @@ Plugins
     visibility: visible;
   }
 
+  .plugin-badges { margin: 2px 0; }
+  .badge-sm { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-sm.community { background: #2196F3; color: #fff; }
+  .badge-sm.default { background: #999; color: #fff; }
+  .badge-sm.version { background: #4CAF50; color: #fff; }
+  .filter-bar { display: flex; gap: 8px; margin: 8px; flex-wrap: wrap; }
+  .filter-btn { padding: 4px 12px; border: 1px solid #bbb; border-radius: 16px; background: #eee; cursor: pointer; font-size: 12px; color: #555; }
+  .filter-btn:hover { background: #ddd; }
+  .filter-btn.active { background: #3388cc; color: #fff; border-color: #3388cc; }
   </style>
 {% endblock %}
 
@@ -71,20 +81,51 @@ $(function(){
         });
     });
 });
+function filterPlugins(category) {
+    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+    event.target.classList.add('active');
+    document.querySelectorAll('.plugins-box').forEach(function(box) {
+        if (category === 'all') { box.style.display = ''; return; }
+        if (category === 'enabled') { box.style.display = box.querySelector('input[type=checkbox]').checked ? '' : 'none'; return; }
+        if (category === 'disabled') { box.style.display = !box.querySelector('input[type=checkbox]').checked ? '' : 'none'; return; }
+        if (category === 'community') { box.style.display = box.dataset.source === 'community' ? '' : 'none'; return; }
+        if (category === 'default') { box.style.display = box.dataset.source === 'default' ? '' : 'none'; return; }
+    });
+}
 {% endblock %}
 {% block content %}
+<div class="filter-bar">
+    <span class="filter-btn active" onclick="filterPlugins('all')">All ({{ database.keys()|list|length }})</span>
+    <span class="filter-btn" onclick="filterPlugins('enabled')">Enabled ({{ loaded.keys()|list|length }})</span>
+    <span class="filter-btn" onclick="filterPlugins('disabled')">Disabled ({{ database.keys()|list|length - loaded.keys()|list|length }})</span>
+    {% if custom_plugins is defined %}
+    <span class="filter-btn" onclick="filterPlugins('community')">Community ({{ custom_plugins|length }})</span>
+    <span class="filter-btn" onclick="filterPlugins('default')">Default ({{ database.keys()|list|length - custom_plugins|length }})</span>
+    {% endif %}
+</div>
 <div id="container">
     {% for name in database.keys() | sort %}
-        {% set has_info = name in loaded and loaded[name].__description__ is defined %}
-        <div class="plugins-box">
+        {% set is_custom = custom_plugins is defined and name in custom_plugins %}
+        {% set desc = all_descriptions[name] if all_descriptions is defined and name in all_descriptions else '' %}
+        <div class="plugins-box" data-source="{{ 'community' if is_custom else 'default' }}">
             <div class="tooltip">
                 <h4>
                     <a {% if name in loaded and loaded[name].on_webhook is defined %} href="/plugins/{{name}}" {% endif %}>{{name}}</a>
                 </h4>
-                {% if has_info %}
-                    <span class="tooltiptext">{{ loaded[name].__description__ }}</span>
+                {% if desc %}
+                    <span class="tooltiptext">{{ desc }}</span>
                 {% else %}
-                    <span class="tooltiptext">Description can't be loaded yet.</span>
+                    <span class="tooltiptext">No description available.</span>
+                {% endif %}
+            </div>
+            <div class="plugin-badges">
+                {% if is_custom %}
+                <span class="badge-sm community">community</span>
+                {% else %}
+                <span class="badge-sm default">default</span>
+                {% endif %}
+                {% if all_versions is defined and name in all_versions %}
+                <span class="badge-sm version">{{ all_versions[name] }}</span>
                 {% endif %}
             </div>
             <form method="POST" action="/plugins/toggle">
@@ -92,11 +133,14 @@ $(function(){
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="plugin" value="{{ name }}"/>
             </form>
-            <form method="POST" action="/plugins/upgrade">
-                <input type="submit" name="upgrade" value="Upgrade">
+            {% if is_custom %}
+            {% set has_upgrade = upgradable is defined and name in upgradable %}
+            <form method="POST" action="/plugins/upgrade" onsubmit="return confirm('Upgrade {{name}}? This will download the latest version from the repo and overwrite the current file.');">
+                <input type="submit" name="upgrade" value="{{ 'Update Available' if has_upgrade else 'Upgrade' }}" style="{{ 'background-color: #4CAF50; color: white; font-weight: bold;' if has_upgrade else '' }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="plugin" value="{{ name }}"/>
             </form>
+            {% endif %}
         </div>
     {% endfor %}
 </div>

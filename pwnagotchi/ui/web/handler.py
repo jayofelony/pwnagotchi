@@ -1,3 +1,4 @@
+import re
 import logging
 import os
 import base64
@@ -182,7 +183,57 @@ class Handler:
 
     def plugins(self, name, subpath):
         if name is None:
-            return render_template('plugins.html', loaded=plugins.loaded, database=plugins.database)
+            custom_path = pwnagotchi.config.get('main', {}).get('custom_plugins', '')
+            custom_plugins = {name for name, fpath in plugins.database.items() if custom_path and custom_path in fpath}
+            # Extract descriptions from source files for all plugins (including disabled)
+            all_descriptions = {}
+            for pname, fpath in plugins.database.items():
+                if pname in plugins.loaded and plugins.loaded[pname] is not None and hasattr(plugins.loaded[pname], '__description__'):
+                    all_descriptions[pname] = plugins.loaded[pname].__description__
+                else:
+                    try:
+                        with open(fpath) as pf:
+                            txt = pf.read(3000)
+                        m = re.search(r'__description__\s*=\s*[\x27\x22]{1,3}(.+?)[\x27\x22]{1,3}', txt)
+                        if m:
+                            all_descriptions[pname] = m.group(1)
+                    except Exception:
+                        pass
+            # Extract versions from source files too
+            all_versions = {}
+            for pname, fpath in plugins.database.items():
+                if pname in plugins.loaded and plugins.loaded[pname] is not None and hasattr(plugins.loaded[pname], '__version__'):
+                    all_versions[pname] = plugins.loaded[pname].__version__
+                else:
+                    try:
+                        with open(fpath) as pf:
+                            txt = pf.read(3000)
+                        m = re.search(r'__version__\s*=\s*[\x27\x22]{1,3}(.+?)[\x27\x22]{1,3}', txt)
+                        if m:
+                            all_versions[pname] = m.group(1)
+                    except Exception:
+                        pass
+            # Check which custom plugins have upgrades available
+            avail_dir = '/usr/local/share/pwnagotchi/available-plugins/'
+            upgradable = set()
+            for pname in custom_plugins:
+                installed_ver = all_versions.get(pname)
+                avail_path = os.path.join(avail_dir, pname + '.py')
+                if os.path.exists(avail_path):
+                    try:
+                        with open(avail_path) as af:
+                            atxt = af.read(3000)
+                        m = re.search(r'__version__\s*=\s*[\x27\x22]{1,3}(.+?)[\x27\x22]{1,3}', atxt)
+                        if m and installed_ver:
+                            from packaging.version import Version
+                            try:
+                                if Version(m.group(1)) > Version(installed_ver):
+                                    upgradable.add(pname)
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+            return render_template('plugins.html', loaded=plugins.loaded, database=plugins.database, custom_plugins=custom_plugins, all_descriptions=all_descriptions, all_versions=all_versions, upgradable=upgradable)
 
         if name == 'toggle' and request.method == 'POST':
             checked = True if 'enabled' in request.form else False
