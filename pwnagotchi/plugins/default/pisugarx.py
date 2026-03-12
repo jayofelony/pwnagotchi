@@ -191,7 +191,12 @@ class PiSugarServer:
                     else:
                         self.set_battery_allow_charging()
 
-                if self.model == 'PiSugar3' or not self.max_charge_voltage_protection:
+                if self.model == 'PiSugar3':
+                    # PiSugar3 MCU provides firmware-calculated battery percentage
+                    # at register 0x2A, which is more accurate than voltage curve
+                    # interpolation since it accounts for load and charging state.
+                    self.battery_level = min(self.i2creg[0x2A], 100)
+                elif not self.max_charge_voltage_protection:
                     self.voltage_history.append(self.battery_voltage)
                     self.battery_level = self.convert_battery_voltage_to_level()
 
@@ -660,7 +665,7 @@ class PiSugarServer:
 
 class PiSugar(plugins.Plugin):
     __author__ = "jayofelony"
-    __version__ = "1.2"
+    __version__ = "1.2.1"
     __license__ = "GPL3"
     __description__ = (
         "A plugin that will add a voltage indicator for the PiSugar batteries. "
