@@ -1,0 +1,10 @@
+[Unit]
+Description=Run PiSugar 3 MCU watchdog every 15 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=15s
+Unit=pisugar-watchdog.service
+
+[Install]
+WantedBy=timers.target

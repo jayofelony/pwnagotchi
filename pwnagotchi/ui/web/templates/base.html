@@ -1,86 +1,73 @@
-<!DOCTYPE html>
-<html>
-{% block head %}
-<head>
+<!doctype html>
+<html lang="en">
+  {% block head %}
+  <head>
     {% block meta %}
-    <meta charset="utf-8">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#007bff" />
+    <meta name="description" content="Pwnagotchi Web Interface" />
     {% endblock %}
 
-    <title>
-        {% block title %}
-        {% endblock %}
-    </title>
+    <title>{% block title %}{% endblock %}</title>
 
     {% block styles %}
-    <link rel="stylesheet" href="/js/jquery.mobile/jquery.mobile-1.4.5.min.css"/>
-    <link rel="stylesheet" type="text/css" href="/css/style.css"/>
-    <link rel="apple-touch-icon" href="/images/pwnagotchi.png">
-    <link rel="icon" type="image/png" href="/images/pwnagotchi.png">    
-    {% endblock %}
-
-</head>
-{% endblock %}
-
-{% block body %}
-<body>
-<div data-role="page">
-
-    {% if error %}
-    <div id="error" class="error ui-content" data-role="popup" data-overlay-theme="a" data-theme="b">
-        <p>{{ error }}</p>
-    </div>
-    <script>
-        $(function(){
-            $("#error").popup("open");
-        });
-    </script>
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="/css/theme.css" />
+    {% if active_page == 'profile' %}
+    <link rel="stylesheet" type="text/css" href="/css/profile.css" />
+    {% elif active_page in ['inbox', 'new'] %}
+    <link rel="stylesheet" type="text/css" href="/css/inbox.css" />
+    {% elif active_page == 'plugins' %}
+    <link rel="stylesheet" type="text/css" href="/css/plugins.css" />
     {% endif %}
+    <link rel="apple-touch-icon" href="/images/pwnagotchi.png" />
+    <link rel="icon" type="image/png" href="/images/pwnagotchi.png" />
+    {% endblock %}
+  </head>
 
-    {% set navigation = [
-        ( '/', 'home', 'eye', 'Home' ),
-        ( '/inbox', 'inbox', 'bars', 'Inbox' ),
-        ( '/inbox/new', 'new', 'mail', 'New' ),
-        ( '/inbox/profile', 'profile', 'info', 'Profile' ),
-        ( '/inbox/peers', 'peers', 'user', 'Peers' ),
-        ( '/plugins', 'plugins', 'grid', 'Plugins' ),
-    ] %}
-    {% set active_page = active_page|default('inbox') %}
+  {% endblock %} {% block body %}
+  <body>
+    <div class="page-container">
+      {% if error %}
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          showToast("{{ error }}", 5000, "error");
+        });
+      </script>
+      {% endif %} {% set navigation = [ ( '/', 'home', 'Home' ), ( '/inbox',
+      'inbox', 'Inbox' ), ( '/inbox/new', 'new', 'New' ), ( '/inbox/profile',
+      'profile', 'Profile' ), ( '/inbox/peers', 'peers', 'Peers' ), (
+      '/plugins', 'plugins', 'Plugins' ), ] %} {% set active_page =
+      active_page|default('inbox') %}
 
-    <div data-role="footer">
-        <div data-role="navbar" data-iconpos="left">
-            <ul>
-                {% for href, id, icon, caption in navigation %}
-                    <li class="navitem">
-                       <a href="{{ href }}" id="{{ id }}" data-icon="{{ icon }}" class="{{ 'ui-btn-active' if active_page == id }}">{{ caption }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+      <div class="page-content">{% block content %} {% endblock %}</div>
+
+      <footer class="page-footer">
+        <nav class="navbar">
+          {% for href, id, caption in navigation %}
+          <li class="navbar-item">
+            <a
+              href="{{ href }}"
+              id="{{ id }}"
+              class="{% if active_page == id %}active{% endif %}"
+            >
+              <span class="navbar-icon"></span>
+              <span>{{ caption }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </nav>
+      </footer>
     </div>
 
-    {% block content %}
+    {% block scripts %}
+    <script src="/js/kjua.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+      {% block script %}{% endblock %}
+    </script>
     {% endblock %}
-
-</div>
-{% block scripts %}
-<script type="text/javascript" src="/js/jquery-1.12.4.min.js"></script>
-<script type="text/javascript" src="/js/jquery.mobile/jquery.mobile-1.4.5.min.js"></script>
-<script type="text/javascript" src="/js/jquery.timeago.js"></script>
-<script type="text/javascript" src="/js/kjua-0.9.0.min.js"></script>
-<script type="text/javascript">
-    $.mobile.ajaxEnabled = false;
-    $.mobile.pushStateEnabled = false;
-
-    jQuery(document).ready(function() {
-      jQuery("time.timeago").timeago();
-    });
-
-    {% block script %}
-    {% endblock %}
-</script>
-{% endblock %}
-</body>
-{% endblock %}
+  </body>
+  {% endblock %}
 </html>

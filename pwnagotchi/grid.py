@@ -1,6 +1,5 @@
 import subprocess
 import requests
-import json
 import logging
 
 import pwnagotchi
@@ -17,7 +16,7 @@ def is_connected():
         r = requests.get(host, headers=headers, timeout=(30.0, 60.0))
         if r.json().get('isUp'):
             return True
-    except:
+    except Exception:
         pass
     return False
 
@@ -37,7 +36,8 @@ def call(path, obj=None):
 
 
 def advertise(enabled=True):
-    return call("/mesh/%s" % 'true' if enabled else 'false')
+    # FIX B1: parentheses around ternary ensure correct string interpolation
+    return call("/mesh/%s" % ('true' if enabled else 'false'))
 
 
 def set_advertisement_data(data):
@@ -62,12 +62,8 @@ def closest_peer():
 
 
 def update_data(last_session):
-    brain = {}
-    try:
-        with open('/root/brain.json') as fp:
-            brain = json.load(fp)
-    except:
-        pass
+    # REMOVED: brain.json loading - file is never created by the noai fork
+    # REMOVED: AI session fields (train_epochs, avg_reward, min_reward, max_reward) - always zero without AI
     enabled = [name for name, options in pwnagotchi.config['main']['plugins'].items() if
                'enabled' in options and options['enabled']]
     language = pwnagotchi.config['main']['lang']
@@ -77,10 +73,6 @@ def update_data(last_session):
         'session': {
             'duration': last_session.duration,
             'epochs': last_session.epochs,
-            'train_epochs': last_session.train_epochs,
-            'avg_reward': last_session.avg_reward,
-            'min_reward': last_session.min_reward,
-            'max_reward': last_session.max_reward,
             'deauthed': last_session.deauthed,
             'associated': last_session.associated,
             'handshakes': last_session.handshakes,

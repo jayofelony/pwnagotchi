@@ -4,7 +4,6 @@ import os
 import re
 import logging
 import asyncio
-#import _thread
 import threading
 import subprocess
 
@@ -146,7 +145,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
         channels = self._config['personality']['channels']
 
         if self._epoch.inactive_for >= max_inactive:
-            recon_time *= recon_mul
+            recon_time = min(recon_time * recon_mul, recon_time + 15)
 
         self._view.set('channel', '*')
 
@@ -170,7 +169,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
         return self._access_points
 
     def get_access_points(self):
-        whitelist = self._config['main']['whitelist']
+        whitelist = set(e.lower() if isinstance(e, str) else e for e in self._config['main']['whitelist'])
         aps = []
         try:
             s = self.session()
@@ -178,7 +177,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
             for ap in s['wifi']['aps']:
                 if ap['encryption'] == '' or ap['encryption'] == 'OPEN':
                     continue
-                elif ap['hostname'] in whitelist or ap['mac'][:13].lower() in whitelist or ap['mac'].lower() in whitelist:
+                elif ap['hostname'] in whitelist or ap['mac'].lower() in whitelist:
                     continue
                 else:
                     aps.append(ap)
@@ -215,8 +214,19 @@ class Agent(Client, Automata, AsyncAdvertiser):
             else:
                 grouped[ch].append(ap)
 
-        # sort by more populated channels
-        return sorted(grouped.items(), key=lambda kv: len(kv[1]), reverse=True)
+        # interleave populated and sparse channels for balanced coverage
+        by_count = sorted(grouped.items(), key=lambda kv: len(kv[1]), reverse=True)
+        if len(by_count) <= 2:
+            return by_count
+        heavy = by_count[:len(by_count)//2]
+        light = by_count[len(by_count)//2:]
+        result = []
+        while heavy or light:
+            if heavy:
+                result.append(heavy.pop(0))
+            if light:
+                result.append(light.pop(0))
+        return result
 
     def _find_ap_sta_in(self, station_mac, ap_mac, session):
         for ap in session['wifi']['aps']:
@@ -292,18 +302,23 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 self._started_at = data['started_at']
                 self._epoch.epoch = data['epoch']
                 self._handshakes = data['handshakes']
-                self._history = data['history']
+                # backward compat: old format stored {mac: count}, new stores {mac: {count, first_seen}}
+                raw_history = data['history']
+                self._history = {}
+                for k, v in raw_history.items():
+                    if isinstance(v, dict):
+                        self._history[k] = v
+                    else:
+                        self._history[k] = {'count': v, 'first_seen': time.time()}
                 self._last_pwnd = data['last_pwnd']
 
                 if delete:
                     logging.info("deleting %s", RECOVERY_DATA_FILE)
                     os.unlink(RECOVERY_DATA_FILE)
-        except:
-            if not no_exceptions:
+        except Exception:  # FIX B4: was bare except, now catches Exception only
                 raise
 
     def start_session_fetcher(self):
-        #_thread.start_new_thread(self._fetch_stats, ())
         threading.Thread(target=self._fetch_stats, args=(), name="Session Fetcher", daemon=True).start()
 
     def _fetch_stats(self):
@@ -352,6 +367,20 @@ class Agent(Client, Automata, AsyncAdvertiser):
             filename = jmsg['data']['file']
             sta_mac = jmsg['data']['station']
             ap_mac = jmsg['data']['ap']
+
+            # Check if the AP is whitelisted before processing the handshake.
+            # get_access_points() already filters whitelisted APs from attacks,
+            # but bettercap still passively captures handshakes from all networks.
+            whitelist = set(e.lower() if isinstance(e, str) else e for e in self._config['main']['whitelist'])
+            if ap_mac.lower() in whitelist:
+                logging.debug("ignoring handshake from whitelisted AP %s", ap_mac)
+                try:
+                    os.remove(filename)
+                except OSError:
+                    pass
+                self._update_handshakes(0)
+                return
+
             key = "%s -> %s" % (sta_mac, ap_mac)
             if key not in self._handshakes:
                 self._handshakes[key] = jmsg
@@ -363,6 +392,16 @@ class Agent(Client, Automata, AsyncAdvertiser):
                     plugins.on('handshake', self, filename, ap_mac, sta_mac)
                 else:
                     (ap, sta) = ap_and_station
+                    # Also check whitelist by hostname (users may whitelist by name)
+                    if ap['hostname'].lower() in whitelist:
+                        logging.debug("ignoring handshake from whitelisted AP %s (%s)", ap['hostname'], ap_mac)
+                        try:
+                            os.remove(filename)
+                        except OSError:
+                            pass
+                        del self._handshakes[key]
+                        self._update_handshakes(0)
+                        return
                     self._last_pwnd = ap['hostname'] if ap['hostname'] != '' and ap[
                         'hostname'] != '<hidden>' else ap_mac
                     logging.warning(
@@ -387,7 +426,6 @@ class Agent(Client, Automata, AsyncAdvertiser):
 
     def start_event_polling(self):
         # start a thread and pass in the mainloop
-        #_thread.start_new_thread(self._event_poller, (asyncio.get_event_loop(),))
         threading.Thread(target=self._event_poller, args=(asyncio.get_event_loop(),), name="Event Polling", daemon=True).start()
 
     def is_module_running(self, module):
@@ -404,8 +442,11 @@ class Agent(Client, Automata, AsyncAdvertiser):
         self.run('%s off; %s on' % (module, module))
 
     def _has_handshake(self, bssid):
+        bssid_lower = bssid.lower()
         for key in self._handshakes:
-            if bssid.lower() in key:
+            # key format is 'sta_mac -> ap_mac'
+            parts = key.lower().split(' -> ')
+            if bssid_lower in parts:
                 return True
         return False
 
@@ -413,14 +454,20 @@ class Agent(Client, Automata, AsyncAdvertiser):
         if self._has_handshake(who):
             return False
 
-        elif who not in self._history:
-            self._history[who] = 1
+        now = time.time()
+        if who not in self._history:
+            self._history[who] = {'count': 1, 'first_seen': now}
             return True
 
-        else:
-            self._history[who] += 1
+        entry = self._history[who]
+        # reset interaction count after 5 minutes to allow retrying
+        if now - entry['first_seen'] > 300:
+            entry['count'] = 1
+            entry['first_seen'] = now
+            return True
 
-        return self._history[who] < self._config['personality']['max_interactions']
+        entry['count'] += 1
+        return entry['count'] < self._config['personality']['max_interactions']
 
     def associate(self, ap, throttle=-1):
         if self.is_stale():

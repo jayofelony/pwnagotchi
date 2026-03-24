@@ -85,7 +85,7 @@ if errorlevel 1 (
 )
 
 echo [INFO] Backing up %UNIT_HOSTNAME% to %OUTPUT% ... >> "%LOGFILE%"
-set "FILES_TO_BACKUP=/root/settings.yaml /root/client_secrets.json /root/auto-tune-presets /root/.ssh /root/.api-report.json /root/.bashrc /root/.profile /home/pi/handshakes /root/peers /etc/pwnagotchi/ /usr/local/share/pwnagotchi/custom-plugins /etc/ssh/ /home/pi/.bashrc /home/pi/.profile /home/pi/.wpa_sec_uploads"
+set "FILES_TO_BACKUP=/root/settings.yaml /root/client_secrets.json /root/auto-tune-presets /root/.ssh /root/.api-report.json /root/.bashrc /root/.profile /root/peers /etc/pwnagotchi/ /etc/ssh/"
 
 ssh %UNIT_USERNAME%@%UNIT_HOSTNAME% "sudo tar -cf - %FILES_TO_BACKUP% | gzip -9" > "%OUTPUT%" 2>> "%LOGFILE%"
 if errorlevel 1 (

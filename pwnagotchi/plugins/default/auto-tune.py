@@ -57,7 +57,7 @@ class auto_tune(plugins.Plugin):
             "sta_ttl": "Clients older than this will ignored",
         }
         self.options = dict()
-        self.presets_dir = os.path.expanduser("~/auto-tune-presets")
+        self.presets_dir = os.path.expanduser("/etc/pwnagotchi/auto-tune-presets")
         self._ensure_presets_dir()
 
     def _ensure_presets_dir(self):
@@ -385,7 +385,7 @@ class auto_tune(plugins.Plugin):
                     else:
                         ret += "<td></td>"
                 if lmac in self._agent._history:
-                    ret += "<td>%s</td>" % self._agent._history[lmac]
+                    entry = self._agent._history[lmac]; ret += "<td>%s</td>" % (entry["count"] if isinstance(entry, dict) else entry)
                 else:
                     ret += "<td>no attacks yet</td>"
                 ret += "</tr>\n"
@@ -488,9 +488,9 @@ class auto_tune(plugins.Plugin):
                         if preset_name:
                             try:
                                 self._save_preset(preset_name)
-                                ret += "<div class='success'>Preset '%s' saved successfully!</div>" % preset_name
+                                ret += "<div class='success'>Preset '%s' saved successfully!</div>" % html.escape(preset_name)
                             except Exception as e:
-                                ret += "<div class='error'>Error saving preset: %s</div>" % str(e)
+                                ret += "<div class='error'>Error saving preset: %s</div>" % html.escape(str(e))
                         else:
                             ret += "<div class='error'>Please enter a preset name</div>"
                     
@@ -510,9 +510,9 @@ class auto_tune(plugins.Plugin):
                         preset_name = request.values['selected_preset']
                         if preset_name:
                             if self._delete_preset(preset_name):
-                                ret += "<div class='success'>Preset '%s' deleted successfully!</div>" % preset_name
+                                ret += "<div class='success'>Preset '%s' deleted successfully!</div>" % html.escape(preset_name)
                             else:
-                                ret += "<div class='error'>Error deleting preset '%s'</div>" % preset_name
+                                ret += "<div class='error'>Error deleting preset '%s'</div>" % html.escape(preset_name)
                         else:
                             ret += "<div class='error'>Please select a preset to delete</div>"
                     
@@ -570,7 +570,7 @@ class auto_tune(plugins.Plugin):
         try:
             defaults = {'show_hidden': False,
                         'reset_history': True,
-                        'extra_channels': 15,
+                        'extra_channels': 5,
                         'show_interactions': False,
                         }
 
@@ -639,7 +639,7 @@ class auto_tune(plugins.Plugin):
                     self._unscanned_channels.remove(ch)
                     next_channels.append(ch)
             # update live config
-            agent._config['personality']['channels'] = next_channels
+            agent._config['personality']['channels'] = list(dict.fromkeys(next_channels))
             logging.info("Active: %s, Next scan: %s, yet unscanned: %d %s" % (
             self._active_channels, next_channels, len(self._unscanned_channels), self._unscanned_channels))
         except Exception as e:
@@ -742,11 +742,11 @@ class auto_tune(plugins.Plugin):
 
             if apID not in self._known_aps:
                 self.incrementChisto('Missed joins', channel)
-                logging.warn("Unknown AP '%s' seen leaving" % apID)
+                logging.warning("Unknown AP '%s' seen leaving" % apID)
             else:
                 if not self._known_aps[apID]['AT_visible']:
                     self.incrementChisto('Missed rejoins', channel)
-                    logging.warn("AP '%s' already gone", apID)
+                    logging.warning("AP '%s' already gone", apID)
                 else:
                     self._known_aps[apID]['AT_visible'] = False
                     self.incrementChisto('Current APs', channel, -1)

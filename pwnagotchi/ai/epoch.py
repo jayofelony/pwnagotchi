@@ -4,9 +4,10 @@ import logging
 
 import pwnagotchi
 import pwnagotchi.utils as utils
-import pwnagotchi.mesh.wifi as wifi
 
-from pwnagotchi.ai.reward import RewardFunction
+# REMOVED: from pwnagotchi.ai.reward import RewardFunction
+# The RewardFunction computed a reward score that was logged but never consumed
+# by any decision-making logic after AI removal. Removed to eliminate dead CPU work.
 
 
 class Epoch(object):
@@ -44,7 +45,7 @@ class Epoch(object):
         # number of peers seen during this epoch
         self.num_peers = 0
         # cumulative bond factor
-        self.tot_bond_factor = 0.0  # cum_bond_factor sounded worse ...
+        self.tot_bond_factor = 0.0
         # average bond factor
         self.avg_bond_factor = 0.0
         # any activity at all during this epoch?
@@ -55,29 +56,27 @@ class Epoch(object):
         self.epoch_duration = 0
         # https://www.metageek.com/training/resources/why-channels-1-6-11.html
         self.non_overlapping_channels = {1: 0, 6: 0, 11: 0}
-        # observation vectors
-        self._observation = {
-            'aps_histogram': [0.0] * wifi.NumChannels,
-            'sta_histogram': [0.0] * wifi.NumChannels,
-            'peers_histogram': [0.0] * wifi.NumChannels
-        }
-        self._observation_ready = threading.Event()
+        # REMOVED: observation histogram vectors (_observation, _observation_ready)
+        # These were 14-element float arrays per channel computed every observe() call,
+        # feeding a neural network that no longer exists.
         self._epoch_data = {}
         self._epoch_data_ready = threading.Event()
-        self._reward = RewardFunction()
+        # REMOVED: self._reward = RewardFunction()
 
     def wait_for_epoch_data(self, with_observation=True, timeout=None):
-        # if with_observation:
-        #    self._observation_ready.wait(timeout)
-        #    self._observation_ready.clear()
+        # REMOVED: observation wait (was already commented out in original)
         self._epoch_data_ready.wait(timeout)
         self._epoch_data_ready.clear()
-        return self._epoch_data if with_observation is False else {**self._observation, **self._epoch_data}
+        # REMOVED: merging histogram observation vectors - just return epoch data
+        return self._epoch_data
 
     def data(self):
         return self._epoch_data
 
     def observe(self, aps, peers):
+        # REMOVED: histogram computation (aps_histogram, sta_histogram, peers_histogram)
+        # These were normalised channel observation vectors for the neural network.
+        # Kept: the non-histogram peer/AP accounting the mood system depends on.
         num_aps = len(aps)
         if num_aps == 0:
             self.blind_for += 1
@@ -92,38 +91,8 @@ class Epoch(object):
         self.tot_bond_factor = sum((peer.encounters for peer in peers)) / bond_unit_scale
         self.avg_bond_factor = self.tot_bond_factor / num_peers
 
-        num_aps = len(aps) + 1e-10
-        num_sta = sum(len(ap['clients']) for ap in aps) + 1e-10
-        aps_per_chan = [0.0] * wifi.NumChannels
-        sta_per_chan = [0.0] * wifi.NumChannels
-        peers_per_chan = [0.0] * wifi.NumChannels
-
-        for ap in aps:
-            ch_idx = ap['channel'] - 1
-            try:
-                aps_per_chan[ch_idx] += 1.0
-                sta_per_chan[ch_idx] += len(ap['clients'])
-            except IndexError:
-                logging.error("got data on channel %d, we can store %d channels" % (ap['channel'], wifi.NumChannels))
-
-        for peer in peers:
-            try:
-                peers_per_chan[peer.last_channel - 1] += 1.0
-            except IndexError:
-                logging.error(
-                    "got peer data on channel %d, we can store %d channels" % (peer.last_channel, wifi.NumChannels))
-
-        # normalize
-        aps_per_chan = [e / num_aps for e in aps_per_chan]
-        sta_per_chan = [e / num_sta for e in sta_per_chan]
-        peers_per_chan = [e / num_peers for e in peers_per_chan]
-
-        self._observation = {
-            'aps_histogram': aps_per_chan,
-            'sta_histogram': sta_per_chan,
-            'peers_histogram': peers_per_chan
-        }
-        self._observation_ready.set()
+        # REMOVED: per-channel histogram normalisation loops
+        # REMOVED: self._observation update and self._observation_ready.set()
 
     def track(self, deauth=False, assoc=False, handshake=False, hop=False, sleep=False, miss=False, inc=1):
         if deauth:
@@ -205,12 +174,13 @@ class Epoch(object):
             'temperature': temp
         }
 
-        self._epoch_data['reward'] = self._reward(self.epoch + 1, self._epoch_data)
+        # REMOVED: self._epoch_data['reward'] = self._reward(self.epoch + 1, self._epoch_data)
+
         self._epoch_data_ready.set()
 
         logging.info("[epoch %d] duration=%s slept_for=%s blind=%d sad=%d bored=%d inactive=%d active=%d peers=%d tot_bond=%.2f "
                      "avg_bond=%.2f hops=%d missed=%d deauths=%d assocs=%d handshakes=%d cpu=%d%% mem=%d%% "
-                     "temperature=%dC reward=%s" % (
+                     "temperature=%dC" % (
                          self.epoch,
                          utils.secs_to_hhmmss(self.epoch_duration),
                          utils.secs_to_hhmmss(self.num_slept),
@@ -229,8 +199,7 @@ class Epoch(object):
                          self.num_shakes,
                          cpu * 100,
                          mem * 100,
-                         temp,
-                         self._epoch_data['reward']))
+                         temp))
 
         self.epoch += 1
         self.epoch_started = now
