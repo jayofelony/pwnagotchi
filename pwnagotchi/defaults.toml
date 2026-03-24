@@ -59,6 +59,9 @@ enabled = true
 [main.plugins.cache]
 enabled = true
 
+[main.plugins.handshakes-dl]
+enabled = true
+
 [main.plugins.gpio_buttons]
 enabled = false
 
