@@ -228,17 +228,9 @@ class FixServices(plugins.Plugin):
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
-            # Look for pattern 5
-            elif len(self.pattern5.findall(other_other_last_lines)) >= 1:
-                logging.debug("[Fix_Services] Bettercap has crashed!")
-                if hasattr(agent, 'view'):
-                    display.set('status', 'Restarting pwnagotchi!')
-                    display.update(force=True)
-                subprocess.run(["systemctl", "restart", "bettercap"], timeout=30)
-                pwnagotchi.restart("AUTO")
-
-            # Look for pattern 6
-            elif len(self.pattern6.findall(other_other_last_lines)) >= 1:
+            # Look for patterns 5 or 6 (bettercap crash / Go panic)
+            elif (self.pattern5.findall(other_other_last_lines) or
+                  self.pattern6.findall(other_other_last_lines)):
                 logging.debug("[Fix_Services] Bettercap has crashed!")
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting pwnagotchi!')
