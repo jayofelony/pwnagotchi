@@ -44,7 +44,7 @@ class FilledRect(Widget):
 
 
 class Text(Widget):
-    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False):
+    def __init__(self, value="", position=(0, 0), font=None, color=0, wrap=False, max_length=0, png=False, scale=1):
         super().__init__(position, color)
         self.value = value
         self.font = font
@@ -52,6 +52,7 @@ class Text(Widget):
         self.max_length = max_length
         self.wrapper = TextWrapper(width=self.max_length, replace_whitespace=False) if wrap else None
         self.png = png
+        self.scale = scale
 
     def draw(self, canvas, drawer):
         if self.value is not None:
@@ -67,15 +68,29 @@ class Text(Widget):
                 self.pixels = self.image.load()
                 for y in range(self.image.size[1]):
                     for x in range(self.image.size[0]):
-                        if self.pixels[x,y][3] < 255:    # check alpha
-                            self.pixels[x,y] = (255, 255, 255, 255)
+                        if self.pixels[x, y][3] < 255:
+                            self.pixels[x, y] = (255, 255, 255, 255)
                 if self.color == 255:
-                    self._image = ImageOps.colorize(self.image.convert('L'), black = "white", white = "black")
+                    self._image = ImageOps.colorize(self.image.convert('L'), black="white", white="black")
                 else:
                     self._image = self.image
-                self.image = self._image.convert('1')
+                if self.scale != 1:
+                    width, height = self._image.size
+                    new_width = int(width * self.scale)
+                    new_height = int(height * self.scale)
+                    scaled_image = Image.new('RGBA', (new_width, new_height))
+                    original_pixels = self._image.load()
+                    scaled_pixels = scaled_image.load()
+                    for y in range(new_height):
+                        for x in range(new_width):
+                            original_x = x // self.scale
+                            original_y = y // self.scale
+                            scaled_pixels[x, y] = original_pixels[original_x, original_y]
+                    self.image = scaled_image
+                else:
+                    self.image = self._image
+                self.image = self.image.convert('1')
                 canvas.paste(self.image, self.xy)
-
 
 class LabeledValue(Widget):
     def __init__(self, label, value="", position=(0, 0), label_font=None, text_font=None, color=0, label_spacing=5):

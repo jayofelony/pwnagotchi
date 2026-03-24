@@ -212,6 +212,7 @@ broken = ["(☓‿‿☓)"]
 debug = ["(#__#)"]
 upload = ["(1__0)", "(1__1)", "(0__1)"]
 png = false
+scale = 1
 position_x = 0
 position_y = 34
 
