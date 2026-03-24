@@ -218,6 +218,8 @@ def load_config(args):
         config['ui']['display']['type'] = 'dummydisplay'
 
     # NON E-INK DISPLAYS---------------------------------------------------------------
+    elif config['ui']['display']['type'] in 'whisplay':
+        config['ui']['display']['type'] = 'whisplay'
     elif config['ui']['display']['type'] in ('wavesharelcd0in96', 'wslcd0in96'):
         config['ui']['display']['type'] = 'wavesharelcd0in96'
 

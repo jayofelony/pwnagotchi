@@ -26,6 +26,9 @@ class Display(View):
         )
         self._render_thread_instance.start()
 
+    def is_whisplay(self):
+        return self._implementation.name == 'whisplay'
+
     def is_lcdhat(self):
         return self._implementation.name == 'lcdhat'
 
