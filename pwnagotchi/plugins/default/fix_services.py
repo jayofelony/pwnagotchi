@@ -13,6 +13,9 @@ from pwnagotchi import plugins
 import pwnagotchi.ui.faces as faces
 from pwnagotchi.bettercap import Client
 
+from pwnagotchi.ui.components import Text
+from pwnagotchi.ui.view import BLACK
+import pwnagotchi.ui.fonts as fonts
 
 
 class FixServices(plugins.Plugin):
