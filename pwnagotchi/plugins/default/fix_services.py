@@ -453,6 +453,15 @@ class FixServices(plugins.Plugin):
     def on_ui_setup(self, ui):
         if self.is_disabled:
             return
+        with ui._lock:
+            # add custom UI elements
+            if "position" in self.options:
+                pos = self.options['position'].split(',')
+                pos = [int(x.strip()) for x in pos]
+            else:
+                pos = (ui.width() / 2 + 35, ui.height() - 11)
+
+            logging.debug("Got here")
 
     # called when the ui is updated
     def on_ui_update(self, ui):
