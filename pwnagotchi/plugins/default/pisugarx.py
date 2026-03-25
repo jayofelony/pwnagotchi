@@ -1,7 +1,4 @@
 import logging
-import json
-import os
-from datetime import datetime
 
 from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
@@ -15,9 +12,6 @@ from flask import render_template_string
 from collections import deque
 
 import threading
-
-PISUGAR_CONFIG = "/etc/pisugar-server/config.json"
-
 PiSugar_addresses = {
     "PiSugar2": 0x75,  # PiSugar2\2Plus
     "PiSugar3": 0x57,  # PiSugar3\3Plus
@@ -265,16 +259,6 @@ class PiSugarServer:
             logging.debug(f"PiSugar2 GPIO initialization complete")
         pass
 
-    @staticmethod
-    def _bcd_to_dec(bcd):
-        """Convert BCD-encoded byte to decimal."""
-        return (bcd & 0x0F) + ((bcd >> 4) * 10)
-
-    @staticmethod
-    def _dec_to_bcd(dec):
-        """Convert decimal value to BCD-encoded byte."""
-        return (dec % 10) | ((dec // 10) << 4)
-
     def convert_battery_voltage_to_level(self):
         """
         Convert battery voltage to battery percentage.
@@ -355,11 +339,7 @@ class PiSugarServer:
 
         :return: Battery current in amperes.
         """
-        if self.model == 'PiSugar3' and len(self.i2creg) > 0x27:
-            high = self.i2creg[0x26]
-            low = self.i2creg[0x27]
-            return ((high << 8) | low) / 1000.0
-        return 0.0
+        pass
 
     def get_battery_allow_charging(self):
         """
@@ -371,10 +351,7 @@ class PiSugarServer:
 
     def set_battery_allow_charging(self):
         if self.model == 'PiSugar3':
-            self._bus.write_byte_data(self.address, 0x0B, 0x29)  # Unlock
-            ctr1 = self._bus.read_byte_data(self.address, 0x02)
-            self._bus.write_byte_data(self.address, 0x02, ctr1 | 0x40)  # Set bit 6
-            self._bus.write_byte_data(self.address, 0x0B, 0x00)  # Lock
+            pass
         elif self.model == 'PiSugar2':
             # Disable gpio2 output
             self._bus.write_byte_data(self.address, 0x54, self._bus.read_byte_data(
@@ -400,10 +377,7 @@ class PiSugarServer:
 
     def set_battery_notallow_charging(self):
         if self.model == 'PiSugar3':
-            self._bus.write_byte_data(self.address, 0x0B, 0x29)  # Unlock
-            ctr1 = self._bus.read_byte_data(self.address, 0x02)
-            self._bus.write_byte_data(self.address, 0x02, ctr1 & 0xBF)  # Clear bit 6
-            self._bus.write_byte_data(self.address, 0x0B, 0x00)  # Lock
+            pass
         elif self.model == 'PiSugar2':
             # Disable gpio2 output
             self._bus.write_byte_data(self.address, 0x54, self._bus.read_byte_data(
@@ -433,9 +407,7 @@ class PiSugarServer:
 
         :return: Charging range string.
         """
-        if self.max_charge_voltage_protection:
-            return f"0-{self.max_protection_level}%"
-        return "0-100%"
+        pass
 
     def get_battery_full_charge_duration(self):
         """
@@ -443,7 +415,7 @@ class PiSugarServer:
 
         :return: Duration in seconds.
         """
-        return 'N/A'
+        pass
 
     def get_battery_safe_shutdown_level(self):
         """
@@ -451,9 +423,7 @@ class PiSugarServer:
 
         :return: Safe shutdown level as a percentage.
         """
-        if self.lowpower_shutdown:
-            return self.lowpower_shutdown_level
-        return None
+        pass
 
     def get_battery_safe_shutdown_delay(self):
         """
@@ -461,9 +431,7 @@ class PiSugarServer:
 
         :return: Delay in seconds.
         """
-        if self.model == 'PiSugar3':
-            return 10  # Fixed 10s delay configured in shutdown()
-        return 0
+        pass
 
     def get_battery_auto_power_on(self):
         """
@@ -471,9 +439,7 @@ class PiSugarServer:
 
         :return: True if enabled, False otherwise.
         """
-        if self.model == 'PiSugar3' and len(self.i2creg) > 0x02:
-            return (self.i2creg[0x02] & 0x10) != 0  # Bit 4 of CTR1
-        return False
+        pass
 
     def get_battery_soft_poweroff(self):
         """
@@ -481,96 +447,49 @@ class PiSugarServer:
 
         :return: True if enabled, False otherwise.
         """
-        if self.model == 'PiSugar3' and len(self.i2creg) > 0x03:
-            return (self.i2creg[0x03] & 0x10) != 0  # Bit 4 of CTR2
-        return False
+        pass
 
     def get_system_time(self):
         """
-        Get the RTC time as an ISO-format string.
+        Get the system time.
 
         :return: System time string.
         """
-        if self.model == 'PiSugar3' and len(self.i2creg) > 0x37:
-            year = self._bcd_to_dec(self.i2creg[0x31]) + 2000
-            month = self._bcd_to_dec(self.i2creg[0x32])
-            day = self._bcd_to_dec(self.i2creg[0x33])
-            hour = self._bcd_to_dec(self.i2creg[0x35])
-            minute = self._bcd_to_dec(self.i2creg[0x36])
-            second = self._bcd_to_dec(self.i2creg[0x37])
-            return f"{year:04d}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:{second:02d}"
-        return None
+        pass
 
     def get_rtc_adjust_ppm(self):
         """
-        Get the RTC frequency compensation in PPM.
+        Get the RTC adjust PPM.
 
-        :return: RTC adjust PPM value (float).
+        :return: RTC adjust PPM value.
         """
-        if self.model == 'PiSugar3' and len(self.i2creg) > 0x3B:
-            comm = self.i2creg[0x3A]
-            diff = self.i2creg[0x3B]
-            comm_value = comm & 0x0F
-            direction_positive = (comm & 0x80) != 0
-            diff_value = diff & 0x1F
-            adj = comm_value * 32.0 + diff_value
-            ppm = adj * 30.517 / 32000000.0
-            return round(ppm if direction_positive else -ppm, 4)
-        return None
+        pass
 
     def get_rtc_alarm_repeat(self):
         """
         Get the RTC alarm repeat setting.
 
-        :return: RTC alarm repeat string (e.g. 'Mon,Wed,Fri 08:30:00' or 'Disabled').
+        :return: RTC alarm repeat string.
         """
-        if self.model == 'PiSugar3' and len(self.i2creg) > 0x47:
-            alarm_enabled = (self.i2creg[0x40] & 0x80) != 0
-            if not alarm_enabled:
-                return "Disabled"
-            weekday_repeat = self.i2creg[0x44]
-            hour = self._bcd_to_dec(self.i2creg[0x45])
-            minute = self._bcd_to_dec(self.i2creg[0x46])
-            second = self._bcd_to_dec(self.i2creg[0x47])
-            day_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-            days = [day_names[i] for i in range(7) if weekday_repeat & (1 << i)]
-            repeat_str = ",".join(days) if days else "Once"
-            return f"{repeat_str} {hour:02d}:{minute:02d}:{second:02d}"
-        return None
+        pass
 
     def get_tap_enable(self, tap):
         """
         Check if a specific tap (single, double, long) is enabled.
-        Reads from pisugar-power-manager config file.
 
         :param tap: Type of tap ('single', 'double', 'long').
         :return: True if enabled, False otherwise.
         """
-        try:
-            if os.path.exists(PISUGAR_CONFIG):
-                with open(PISUGAR_CONFIG, 'r') as f:
-                    config = json.load(f)
-                return config.get(f"{tap}_tap_enable", False)
-        except (IOError, json.JSONDecodeError) as e:
-            logging.debug(f"[PiSugarX] Failed to read tap config: {e}")
-        return False
+        pass
 
     def get_tap_shell(self, tap):
         """
         Get the shell command associated with a specific tap.
-        Reads from pisugar-power-manager config file.
 
         :param tap: Type of tap ('single', 'double', 'long').
         :return: Shell command string.
         """
-        try:
-            if os.path.exists(PISUGAR_CONFIG):
-                with open(PISUGAR_CONFIG, 'r') as f:
-                    config = json.load(f)
-                return config.get(f"{tap}_tap_shell", "")
-        except (IOError, json.JSONDecodeError) as e:
-            logging.debug(f"[PiSugarX] Failed to read tap config: {e}")
-        return ""
+        pass
 
     def get_anti_mistouch(self):
         """
@@ -578,9 +497,7 @@ class PiSugarServer:
 
         :return: True if enabled, False otherwise.
         """
-        if self.model == 'PiSugar3' and len(self.i2creg) > 0x02:
-            return (self.i2creg[0x02] & 0x08) != 0  # Bit 3 of CTR1
-        return False
+        pass
 
     def get_temperature(self):
         """
@@ -604,32 +521,13 @@ class PiSugarServer:
 
         :return: True if charging, False otherwise.
         """
-        return self.power_plugged and self.allow_charging
+        pass
 
     def rtc_web(self):
         """
-        Synchronize RTC with system time when internet is available.
-        Writes current time as BCD to PiSugar3 RTC registers.
+        Synchronize RTC with web time.
         """
-        if self.model == 'PiSugar3':
-            try:
-                now = datetime.now()
-                self._bus.write_byte_data(self.address, 0x0B, 0x29)  # Unlock
-                self._bus.write_byte_data(self.address, 0x31, self._dec_to_bcd(now.year % 100))
-                self._bus.write_byte_data(self.address, 0x32, self._dec_to_bcd(now.month))
-                self._bus.write_byte_data(self.address, 0x33, self._dec_to_bcd(now.day))
-                self._bus.write_byte_data(self.address, 0x34, self._dec_to_bcd(now.isoweekday() % 7))
-                self._bus.write_byte_data(self.address, 0x35, self._dec_to_bcd(now.hour))
-                self._bus.write_byte_data(self.address, 0x36, self._dec_to_bcd(now.minute))
-                self._bus.write_byte_data(self.address, 0x37, self._dec_to_bcd(now.second))
-                self._bus.write_byte_data(self.address, 0x0B, 0x00)  # Lock
-                logging.debug("[PiSugarX] RTC synced with system time")
-            except Exception as e:
-                logging.error(f"[PiSugarX] Failed to sync RTC: {e}")
-                try:
-                    self._bus.write_byte_data(self.address, 0x0B, 0x00)  # Re-lock on error
-                except Exception:
-                    pass
+        pass
 
 
 
