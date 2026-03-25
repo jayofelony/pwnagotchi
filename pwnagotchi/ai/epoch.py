@@ -6,8 +6,6 @@ import pwnagotchi
 import pwnagotchi.utils as utils
 import pwnagotchi.mesh.wifi as wifi
 
-from pwnagotchi.ai.reward import RewardFunction
-
 
 class Epoch(object):
     def __init__(self, config):
@@ -64,7 +62,6 @@ class Epoch(object):
         self._observation_ready = threading.Event()
         self._epoch_data = {}
         self._epoch_data_ready = threading.Event()
-        self._reward = RewardFunction()
 
     def wait_for_epoch_data(self, with_observation=True, timeout=None):
         # if with_observation:
@@ -205,12 +202,11 @@ class Epoch(object):
             'temperature': temp
         }
 
-        self._epoch_data['reward'] = self._reward(self.epoch + 1, self._epoch_data)
         self._epoch_data_ready.set()
 
         logging.info("[epoch %d] duration=%s slept_for=%s blind=%d sad=%d bored=%d inactive=%d active=%d peers=%d tot_bond=%.2f "
                      "avg_bond=%.2f hops=%d missed=%d deauths=%d assocs=%d handshakes=%d cpu=%d%% mem=%d%% "
-                     "temperature=%dC reward=%s" % (
+                     "temperature=%dC" % (
                          self.epoch,
                          utils.secs_to_hhmmss(self.epoch_duration),
                          utils.secs_to_hhmmss(self.num_slept),
@@ -229,8 +225,7 @@ class Epoch(object):
                          self.num_shakes,
                          cpu * 100,
                          mem * 100,
-                         temp,
-                         self._epoch_data['reward']))
+                         temp,))
 
         self.epoch += 1
         self.epoch_started = now

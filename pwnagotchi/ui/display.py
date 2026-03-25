@@ -29,6 +29,9 @@ class Display(View):
     def is_lcdhat(self):
         return self._implementation.name == 'lcdhat'
 
+    def is_whisplay(self):
+        return self._implementation.name == 'whisplay'
+
     def is_wavesharelcd0in96(self):
         return self._implementation.name == 'wavesharelcd0in96'
 
