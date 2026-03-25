@@ -189,7 +189,6 @@ class FixServices(plugins.Plugin):
 
             logging.debug("[Fix_Services]**** checking")
             if len(self.pattern.findall(last_lines)) >= 1:
-                self.LASTTRY = time.time()
                 subprocess.check_output("monstop", shell=True)
                 subprocess.check_output("monstart", shell=True)
                 display.set('status', 'Wifi channel stuck. Restarting recon.')
@@ -198,7 +197,6 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 2
             elif len(self.pattern2.findall(other_last_lines)) >= 5:
-                self.LASTTRY = time.time()
                 logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
@@ -222,7 +220,6 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 3
             elif len(self.pattern3.findall(other_last_lines)) >= 1:
-                self.LASTTRY = time.time()
                 logging.debug("[Fix_Services] Firmware has halted or crashed. Restarting wlan0mon.")
                 if hasattr(agent, 'view'):
                     display.set('status', 'Firmware has halted or crashed. Restarting wlan0mon.')
@@ -236,7 +233,6 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 4
             elif len(self.pattern4.findall(other_other_last_lines)) >= 3:
-                self.LASTTRY = time.time()
                 logging.debug("[Fix_Services] wlan0 is down!")
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting wlan0 now!')
@@ -260,7 +256,6 @@ class FixServices(plugins.Plugin):
 
             # Look for pattern 7
             elif len(self.pattern7.findall(other_other_last_lines)) >= 1:
-                self.LASTTRY = time.time()
                 logging.debug("[Fix_Services] Monitor mode failed!")
                 try:
                     result = agent.run("wifi.recon off; wifi.recon on")
