@@ -6,7 +6,7 @@
       <paths name="pwnagotchi">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/pi/.pwn/lib/python3.13" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/opt/.pwn/lib/python3.13/site-packages" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

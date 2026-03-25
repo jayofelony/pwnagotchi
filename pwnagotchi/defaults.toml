@@ -222,6 +222,12 @@ origin = ""
 port = 8080
 on_frame = ""
 
+[ui.web.theme]
+# Theme customization for the web interface. Use RGB values for the accent color.
+accent_r = 76
+accent_g = 175
+accent_b = 80
+
 [ui.display]
 enabled = false
 rotation = 180
