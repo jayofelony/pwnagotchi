@@ -727,12 +727,9 @@ class PiSugar(plugins.Plugin):
             f"[PiSugarX] Rotation is {'enabled' if self.rotation_enabled else 'disabled'}.")
         logging.info(
             f"[PiSugarX] Default display (when rotation disabled): {self.default_display}")
-        if self.ps is not None:
-            self.ps.lowpower_shutdown = self.options.get('lowpower_shutdown', False)
-            self.ps.lowpower_shutdown_level = self.options.get('lowpower_shutdown_level', 10)
-            self.ps.max_charge_voltage_protection = self.options.get('max_charge_voltage_protection', False)
-        else:
-            logging.warning("[PiSugarX] PiSugar not connected during on_loaded, skipping config")
+        self.ps.lowpower_shutdown = self.options['lowpower_shutdown']
+        self.ps.lowpower_shutdown_level = self.options['lowpower_shutdown_level']
+        self.ps.max_charge_voltage_protection = self.options['max_charge_voltage_protection']
 
     def on_ready(self, agent):
         try:
@@ -941,13 +938,11 @@ class PiSugar(plugins.Plugin):
             capacity = 0
             voltage = 0.00
             temp = 0
-            logging.debug("[PiSugarX] PiSugar is not ready")
+            logging.info(f"[PiSugarX] PiSugar is not ready")
 
-        # Check if battery is plugged in (only when ready and ps is available)
-        battery_plugged = False
-        if self.ready and self.ps is not None:
-            battery_plugged = self.safe_get(
-                self.ps.get_battery_power_plugged, default=False)
+        # Check if battery is plugged in
+        battery_plugged = self.safe_get(
+            self.ps.get_battery_power_plugged, default=False)
 
         if battery_plugged:
             # If plugged in, display "CHG"
