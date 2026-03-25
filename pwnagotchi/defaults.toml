@@ -30,22 +30,16 @@ enabled = true
 enabled = false
 interval = "daily"    # or "hourly", or a number (minutes)
 max_tries = 0
-backup_location = "/home/pi/"
+backup_location = "/etc/pwnagotchi/"
 files = [
-  "/root/settings.yaml",
-  "/root/client_secrets.json",
   "/root/.api-report.json",
   "/root/.ssh",
   "/root/.bashrc",
   "/root/.profile",
-  "/home/pi/handshakes",
-  "/root/peers",
   "/etc/pwnagotchi/",
-  "/usr/local/share/pwnagotchi/custom-plugins",
+  "/root/peers",
   "/etc/ssh/",
-  "/home/pi/.bashrc",
-  "/home/pi/.profile",
-  "/home/pi/.wpa_sec_uploads"
+  "/root/.auto-backup"
 ]
 exclude = [ "/etc/pwnagotchi/logs/*"]
 commands = [ "tar cf {backup_file} {files}"]
@@ -58,24 +52,18 @@ token = "" # Create a personal access token (classic) with scope set to public_r
 
 [main.plugins.bt-tether]
 enabled = false
-phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
-mac = ""
-phone = "" # android or ios
-ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
-gateway = "" #optional, default : 192.168.44.1 if android or 172.20.10.2 if ios
-dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
+auto_reconnect = true                    # Auto reconnect on disconnect (default: true)
+show_on_screen = true                    # Master switch: show status on display
+show_mini_status = true                  # Show mini status indicator (C/N/P/D)
+mini_status_position = [110, 0]          # Position for mini status
+show_detailed_status = true              # Show detailed status line with IP
+detailed_status_position = [0, 82]       # Position for detailed status line
 
 [main.plugins.fix_services]
 enabled = true
 
 [main.plugins.cache]
 enabled = true
-
-[main.plugins.gdrivesync]
-enabled = false
-backupfiles = [""]
-backup_folder = "PwnagotchiBackups"
-interval = 1
 
 [main.plugins.gpio_buttons]
 enabled = false
@@ -84,9 +72,6 @@ enabled = false
 enabled = false
 speed = 19200
 device = "/dev/ttyUSB0" # for GPSD: "localhost:2947"
-
-[main.plugins.gps_listener]
-enabled = false
 
 [main.plugins.grid]
 enabled = true
@@ -126,7 +111,7 @@ key = ""
 
 [main.plugins.session-stats]
 enabled = false
-save_directory = "/var/tmp/pwnagotchi/sessions/"
+save_directory = "/etc/pwnagotchi/sessions/"
 
 [main.plugins.ups_hat_c]
 enabled = false
@@ -243,7 +228,7 @@ rotation = 180
 type = "waveshare_4"
 
 [bettercap]
-handshakes = "/home/pi/handshakes"
+handshakes = "/etc/pwnagotchi/handshakes"
 silence = [
     "ble.device.new",
     "ble.device.lost",

@@ -18,10 +18,10 @@ class ohcapi(plugins.Plugin):
         self.ready = False
         self.lock = Lock()
         try:
-            self.report = StatusFile('/root/handshakes/.ohc_uploads', data_format='json')
+            self.report = StatusFile('/etc/pwnagotchi/handshakes/.ohc_uploads', data_format='json')
         except JSONDecodeError:
             os.remove('/root/.ohc_newapi_uploads')
-            self.report = StatusFile('/root/handshakes/.ohc_uploads', data_format='json')
+            self.report = StatusFile('/etc/pwnagotchi/handshakes/.ohc_uploads', data_format='json')
         self.skip = list()
         self.last_run = 0  # Track last time periodic tasks were run
         self.internet_active = False  # Track whether internet is currently available
