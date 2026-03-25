@@ -70,7 +70,7 @@ def pwnagotchi_cli():
                         # deauth all client stations in order to get a full handshake
                         for sta in ap['clients']:
                             agent.deauth(ap, sta)
-                            time.sleep(0.3)  # reduced delay between deauths
+                            time.sleep(1)  # delay to not trigger nexmon firmware bugs
 
                 # An interesting effect of this:
                 #

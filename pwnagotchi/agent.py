@@ -145,7 +145,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
         channels = self._config['personality']['channels']
 
         if self._epoch.inactive_for >= max_inactive:
-            recon_time = min(recon_time * recon_mul, recon_time + 15)
+            recon_time *= recon_mul
 
         self._view.set('channel', '*')
 
@@ -169,7 +169,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
         return self._access_points
 
     def get_access_points(self):
-        whitelist = set(e.lower() if isinstance(e, str) else e for e in self._config['main']['whitelist'])
+        whitelist = self._config['main']['whitelist']
         aps = []
         try:
             s = self.session()
@@ -177,7 +177,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
             for ap in s['wifi']['aps']:
                 if ap['encryption'] == '' or ap['encryption'] == 'OPEN':
                     continue
-                elif ap['hostname'] in whitelist or ap['mac'].lower() in whitelist:
+                elif ap['hostname'] in whitelist or ap['mac'][:13].lower() in whitelist or ap['mac'].lower() in whitelist:
                     continue
                 else:
                     aps.append(ap)
@@ -214,19 +214,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
             else:
                 grouped[ch].append(ap)
 
-        # interleave populated and sparse channels for balanced coverage
-        by_count = sorted(grouped.items(), key=lambda kv: len(kv[1]), reverse=True)
-        if len(by_count) <= 2:
-            return by_count
-        heavy = by_count[:len(by_count)//2]
-        light = by_count[len(by_count)//2:]
-        result = []
-        while heavy or light:
-            if heavy:
-                result.append(heavy.pop(0))
-            if light:
-                result.append(light.pop(0))
-        return result
+        # sort by more populated channels
+        return sorted(grouped.items(), key=lambda kv: len(kv[1]), reverse=True)
 
     def _find_ap_sta_in(self, station_mac, ap_mac, session):
         for ap in session['wifi']['aps']:
@@ -302,14 +291,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 self._started_at = data['started_at']
                 self._epoch.epoch = data['epoch']
                 self._handshakes = data['handshakes']
-                # backward compat: old format stored {mac: count}, new stores {mac: {count, first_seen}}
-                raw_history = data['history']
-                self._history = {}
-                for k, v in raw_history.items():
-                    if isinstance(v, dict):
-                        self._history[k] = v
-                    else:
-                        self._history[k] = {'count': v, 'first_seen': time.time()}
+                self._history = data['history']
                 self._last_pwnd = data['last_pwnd']
 
                 if delete:
@@ -442,11 +424,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
         self.run('%s off; %s on' % (module, module))
 
     def _has_handshake(self, bssid):
-        bssid_lower = bssid.lower()
         for key in self._handshakes:
-            # key format is 'sta_mac -> ap_mac'
-            parts = key.lower().split(' -> ')
-            if bssid_lower in parts:
+            if bssid.lower() in key:
                 return True
         return False
 
@@ -454,20 +433,14 @@ class Agent(Client, Automata, AsyncAdvertiser):
         if self._has_handshake(who):
             return False
 
-        now = time.time()
-        if who not in self._history:
-            self._history[who] = {'count': 1, 'first_seen': now}
+        elif who not in self._history:
+            self._history[who] = 1
             return True
 
-        entry = self._history[who]
-        # reset interaction count after 5 minutes to allow retrying
-        if now - entry['first_seen'] > 300:
-            entry['count'] = 1
-            entry['first_seen'] = now
-            return True
+        else:
+            self._history[who] += 1
 
-        entry['count'] += 1
-        return entry['count'] < self._config['personality']['max_interactions']
+        return self._history[who] < self._config['personality']['max_interactions']
 
     def associate(self, ap, throttle=-1):
         if self.is_stale():
