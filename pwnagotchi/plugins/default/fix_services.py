@@ -28,15 +28,6 @@ class FixServices(plugins.Plugin):
     Automatically disables itself when an external WiFi adapter is detected instead of the onboard brcmfmac chip.
     """
 
-    _IFACE_RE = re.compile(r'^[a-zA-Z0-9_-]{1,15}$')
-
-    @classmethod
-    def _validate_iface(cls, name):
-        """Validate a Linux network interface name."""
-        if not cls._IFACE_RE.match(name):
-            raise ValueError('Invalid interface name: %r' % name)
-        return name
-
     def __init__(self):
         self.options = dict()
         self.pattern = re.compile(r'ieee80211 phy0: brcmf_cfg80211_add_iface: iface validation failed: err=-95')
@@ -117,7 +108,6 @@ class FixServices(plugins.Plugin):
         last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
                                                                  stdout=subprocess.PIPE).stdout))[-10:])
         try:
-            self._validate_iface("wlan0mon")
             cmd_output = subprocess.check_output("ip link show wlan0mon", shell=True)
             logging.debug("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
             if ",UP," in str(cmd_output):
