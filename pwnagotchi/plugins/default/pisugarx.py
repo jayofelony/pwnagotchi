@@ -777,11 +777,11 @@ class PiSugar(plugins.Plugin):
                     battery_auto_power_on = self.safe_get(
                         self.ps.get_battery_auto_power_on, default=False)
                     battery_soft_poweroff = self.safe_get(
-                        self.ps.get_battery_soft_poweroff, default=False) if model == 'PiSugar3' else False
+                        self.ps.get_battery_soft_poweroff, default=False) if model == 'Pisugar 3' else False
                     system_time = self.safe_get(
                         self.ps.get_system_time, default='N/A')
                     rtc_adjust_ppm = self.safe_get(
-                        self.ps.get_rtc_adjust_ppm, default='Not supported') if model == 'PiSugar3' else 'Not supported'
+                        self.ps.get_rtc_adjust_ppm, default='Not supported') if model == 'Pisugar 3' else 'Not supported'
                     rtc_alarm_repeat = self.safe_get(
                         self.ps.get_rtc_alarm_repeat, default='N/A')
                     single_tap_enabled = self.safe_get(
@@ -797,7 +797,7 @@ class PiSugar(plugins.Plugin):
                     long_tap_shell = self.safe_get(
                         lambda: self.ps.get_tap_shell(tap='long'), default='N/A')
                     anti_mistouch = self.safe_get(
-                        self.ps.get_anti_mistouch, default=False) if model == 'PiSugar3' else False
+                        self.ps.get_anti_mistouch, default=False) if model == 'Pisugar 3' else False
                     temperature = self.safe_get(
                         self.ps.get_temperature, default='N/A')
 
@@ -866,7 +866,7 @@ class PiSugar(plugins.Plugin):
                                 <tr><td>Battery Safe Shutdown Level</td><td>{battery_safe_shutdown_level}</td></tr>
                                 <tr><td>Battery Safe Shutdown Delay</td><td>{battery_safe_shutdown_delay} seconds</td></tr>
                                 <tr><td>Battery Auto Power On</td><td>{"Yes" if battery_auto_power_on else "No"}</td></tr>
-                                <tr><td>Battery Soft Power Off Enabled</td><td>{"Yes" if battery_soft_poweroff and model == 'PiSugar3' else "No"}</td></tr>
+                                <tr><td>Battery Soft Power Off Enabled</td><td>{"Yes" if battery_soft_poweroff and model == 'Pisugar 3' else "No"}</td></tr>
                                 <tr><td>System Time</td><td>{system_time}</td></tr>
                                 <tr><td>RTC Adjust PPM</td><td>{rtc_adjust_ppm}</td></tr>
                                 <tr><td>RTC Alarm Repeat</td><td>{rtc_alarm_repeat}</td></tr>
@@ -876,7 +876,7 @@ class PiSugar(plugins.Plugin):
                                 <tr><td>Single Tap Shell</td><td>{single_tap_shell}</td></tr>
                                 <tr><td>Double Tap Shell</td><td>{double_tap_shell}</td></tr>
                                 <tr><td>Long Tap Shell</td><td>{long_tap_shell}</td></tr>
-                                <tr><td>Mis Touch Protection Enabled</td><td>{"Yes" if anti_mistouch and model == "PiSugar3" else "No"}</td></tr>
+                                <tr><td>Mis Touch Protection Enabled</td><td>{"Yes" if anti_mistouch and model == "Pisugar 3" else "No"}</td></tr>
                                 <tr><td>Battery Temperature</td><td>{temperature} °C</td></tr>
                             </tbody>
                         </table>
