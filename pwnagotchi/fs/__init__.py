@@ -3,6 +3,7 @@ import re
 import tempfile
 import contextlib
 import shutil
+#import _thread
 import threading
 import logging
 
@@ -86,6 +87,7 @@ def setup_mounts(config):
             logging.debug("[FS] Starting thread to sync %s (interval: %d)",
                         options['mount'], interval)
             threading.Thread(target=m.daemonize, args=(interval,),name="File Sys", daemon=True).start()
+            #_thread.start_new_thread(m.daemonize, (interval,))
         else:
             logging.debug("[FS] Not syncing %s, because interval is 0",
             options['mount'])

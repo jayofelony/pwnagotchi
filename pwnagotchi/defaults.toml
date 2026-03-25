@@ -21,14 +21,34 @@ custom_plugin_repos = [
     "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip",
     "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip"
 ]
-custom_plugins = "/etc/pwnagotchi/custom-plugins/"
+custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 
 [main.plugins.auto-tune]
 enabled = true
 
-[main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
-enabled = true
-backup_location = "/etc/pwnagotchi/backups"
+[main.plugins.auto_backup]
+enabled = false
+interval = "daily"    # or "hourly", or a number (minutes)
+max_tries = 0
+backup_location = "/home/pi/"
+files = [
+  "/root/settings.yaml",
+  "/root/client_secrets.json",
+  "/root/.api-report.json",
+  "/root/.ssh",
+  "/root/.bashrc",
+  "/root/.profile",
+  "/home/pi/handshakes",
+  "/root/peers",
+  "/etc/pwnagotchi/",
+  "/usr/local/share/pwnagotchi/custom-plugins",
+  "/etc/ssh/",
+  "/home/pi/.bashrc",
+  "/home/pi/.profile",
+  "/home/pi/.wpa_sec_uploads"
+]
+exclude = [ "/etc/pwnagotchi/logs/*"]
+commands = [ "tar cf {backup_file} {files}"]
 
 [main.plugins.auto-update]
 enabled = true
@@ -37,27 +57,25 @@ interval = 1
 token = "" # Create a personal access token (classic) with scope set to public_repo to use the GitHub API
 
 [main.plugins.bt-tether]
-enabled = false  # Enable the plugin
-# Display Settings
-show_on_screen = true  # Master switch: enable/disable all on-screen display (default: true)
-show_mini_status = true  # Show compact mini status indicator (single letter) (default: true)
-mini_status_position = [110, 0]  # Position [x, y] for mini status (default: [110, 0])
-show_detailed_status = true  # Show detailed status line with IP (default: true)
-detailed_status_position = [0, 82]  # Position for detailed status (default: [0, 82])
-
-# Auto-Reconnect Settings
-auto_reconnect = true  # Automatically reconnect when connection drops (default: true)
-reconnect_interval = 60  # Check connection every N seconds (default: 60)
-reconnect_failure_cooldown = 300  # Cooldown after max failures in seconds (default: 300 = 5 minutes)
-
-# Discord Notifications (Optional)
-discord_webhook_url = "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"  # Send IP notifications to Discord (optional)
+enabled = false
+phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
+mac = ""
+phone = "" # android or ios
+ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
+gateway = "" #optional, default : 192.168.44.1 if android or 172.20.10.2 if ios
+dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
 
 [main.plugins.fix_services]
 enabled = true
 
 [main.plugins.cache]
 enabled = true
+
+[main.plugins.gdrivesync]
+enabled = false
+backupfiles = [""]
+backup_folder = "PwnagotchiBackups"
+interval = 1
 
 [main.plugins.gpio_buttons]
 enabled = false
@@ -122,9 +140,6 @@ enabled = false
 shutdown = 2
 
 [main.plugins.webcfg]
-enabled = true
-
-[main.plugins.pwnstore_ui]
 enabled = true
 
 [main.plugins.webgpsmap]
@@ -198,18 +213,17 @@ cool = ["(⌐■_■)", "(단__단)"]
 happy = ["(•‿‿•)", "(^‿‿^)", "(^◡◡^)"]
 excited = ["(ᵔ◡◡ᵔ)", "(✜‿‿✜)"]
 grateful = ["(^‿‿^)"]
-motivated = ["(☼‿‿☼)", "(★‿★)", "(•̀ᴗ•́)"]
-demotivated = ["(≖__≖)", "(￣ヘ￣)", "(¬､¬)"]
+motivated = ["(☼‿‿☼)"]
+demotivated = ["(≖__≖)"]
 smart = ["(✜‿‿✜)"]
-lonely = ["(ب__ب)", "(｡•́︿•̀｡)", "(︶︹︺)"]
-sad = ["(╥☁╥ )", "(╥﹏╥)", "(ಥ﹏ಥ)"]
+lonely = ["(ب__ب)"]
+sad = ["(╥☁╥ )"]
 angry = ["(-_-')", "(⇀__⇀)", "(`___´)"]
 friend = ["(♥‿‿♥)", "(♡‿‿♡)", "(♥‿♥ )", "(♥ω♥ )"]
 broken = ["(☓‿‿☓)"]
 debug = ["(#__#)"]
 upload = ["(1__0)", "(1__1)", "(0__1)"]
 png = false
-scale = 1
 position_x = 0
 position_y = 34
 
@@ -223,19 +237,13 @@ origin = ""
 port = 8080
 on_frame = ""
 
-[ui.web.theme]
-# Theme customization for the web interface. Use RGB values for the accent color.
-accent_r = 76
-accent_g = 175
-accent_b = 80
-
 [ui.display]
 enabled = false
 rotation = 180
 type = "waveshare_4"
 
 [bettercap]
-handshakes = "/etc/pwnagotchi/handshakes"
+handshakes = "/home/pi/handshakes"
 silence = [
     "ble.device.new",
     "ble.device.lost",

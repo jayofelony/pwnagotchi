@@ -4,10 +4,6 @@ def display_for(config):
         from pwnagotchi.ui.hw.inky import Inky
         return Inky(config)
 
-    elif config['ui']['display']['type'] == 'whisplay':
-        from pwnagotchi.ui.hw.whisplay import Whisplay
-        return Whisplay(config)
-
     elif config['ui']['display']['type'] == 'inkyv2':
         from pwnagotchi.ui.hw.inkyv2 import InkyV2
         return InkyV2(config)

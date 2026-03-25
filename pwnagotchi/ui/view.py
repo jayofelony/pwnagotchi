@@ -1,3 +1,4 @@
+# import _thread
 import threading
 import logging
 import random
@@ -72,11 +73,8 @@ class View(object):
             'line2': Line(self._layout['line2'], color=BLACK),
 
             'face': Text(value=faces.SLEEP,
-                        position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']),
-                        color=BLACK, font=fonts.Huge,
-                        png=config['ui']['faces']['png'],
-                        scale = config['ui']['faces'].get('scale', 1)
-                        ),
+                         position=(config['ui']['faces']['position_x'], config['ui']['faces']['position_y']),
+                         color=BLACK, font=fonts.Huge, png=config['ui']['faces']['png']),
 
             # 'friend_face': Text(value=None, position=self._layout['friend_face'], font=fonts.Bold, color=BLACK),
             'friend_name': Text(value=None, position=self._layout['friend_face'], font=fonts.BoldSmall, color=BLACK),
