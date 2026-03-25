@@ -191,9 +191,8 @@ class PiSugarServer:
                     else:
                         self.set_battery_allow_charging()
 
-                if self.model == 'PiSugar3' or not self.max_charge_voltage_protection:
-                    self.voltage_history.append(self.battery_voltage)
-                    self.battery_level = self.convert_battery_voltage_to_level()
+                self.voltage_history.append(self.battery_voltage)
+                self.battery_level = self.convert_battery_voltage_to_level()
 
                 if self.lowpower_shutdown:
                     if self.battery_level < self.lowpower_shutdown_level:
