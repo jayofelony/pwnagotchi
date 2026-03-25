@@ -182,7 +182,7 @@ class FixServices(plugins.Plugin):
             cooldown_ok = time.time() - self.LASTTRY > 180
         if cooldown_ok:
             # get last 10 lines
-            display = agent.view() if hasattr(agent, 'view') else None
+            display = agent.view()
 
             logging.debug("[Fix_Services]**** checking")
             if len(self.pattern.findall(last_lines)) >= 1:
