@@ -1,7 +1,0 @@
-[Unit]
-Description=PiSugar 3 MCU watchdog
-After=pisugar-server.service
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/pisugar-watchdog.sh
