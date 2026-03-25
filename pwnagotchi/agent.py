@@ -349,20 +349,6 @@ class Agent(Client, Automata, AsyncAdvertiser):
             filename = jmsg['data']['file']
             sta_mac = jmsg['data']['station']
             ap_mac = jmsg['data']['ap']
-
-            # Check if the AP is whitelisted before processing the handshake.
-            # get_access_points() already filters whitelisted APs from attacks,
-            # but bettercap still passively captures handshakes from all networks.
-            whitelist = set(e.lower() if isinstance(e, str) else e for e in self._config['main']['whitelist'])
-            if ap_mac.lower() in whitelist:
-                logging.debug("ignoring handshake from whitelisted AP %s", ap_mac)
-                try:
-                    os.remove(filename)
-                except OSError:
-                    pass
-                self._update_handshakes(0)
-                return
-
             key = "%s -> %s" % (sta_mac, ap_mac)
             if key not in self._handshakes:
                 self._handshakes[key] = jmsg
@@ -374,16 +360,6 @@ class Agent(Client, Automata, AsyncAdvertiser):
                     plugins.on('handshake', self, filename, ap_mac, sta_mac)
                 else:
                     (ap, sta) = ap_and_station
-                    # Also check whitelist by hostname (users may whitelist by name)
-                    if ap['hostname'].lower() in whitelist:
-                        logging.debug("ignoring handshake from whitelisted AP %s (%s)", ap['hostname'], ap_mac)
-                        try:
-                            os.remove(filename)
-                        except OSError:
-                            pass
-                        del self._handshakes[key]
-                        self._update_handshakes(0)
-                        return
                     self._last_pwnd = ap['hostname'] if ap['hostname'] != '' and ap[
                         'hostname'] != '<hidden>' else ap_mac
                     logging.warning(
