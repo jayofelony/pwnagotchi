@@ -73,7 +73,7 @@ TEMPLATE = """
         .stat-card:hover {
             border-color: var(--accent);
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.1);
         }
 
         .stat-label {
@@ -133,7 +133,7 @@ TEMPLATE = """
 
         div.chart:hover {
             border-color: var(--accent);
-            box-shadow: 0 8px 25px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.1);
         }
 
         div.chart canvas {
@@ -240,14 +240,6 @@ TEMPLATE = """
         }
     }
 
-    function getTransparentColor(color) {
-        // Convert rgb() to rgba() with 0.2 opacity, or append hex opacity
-        if (color.startsWith('rgb(')) {
-            return color.replace('rgb(', 'rgba(').replace(')', ', 0.2)');
-        }
-        return color + '33'; // hex format
-    }
-
     function createChart(elementId, title, data) {
         const container = document.getElementById(elementId);
         if (!container || !data.values || data.values.length === 0) return;
@@ -269,7 +261,7 @@ TEMPLATE = """
                 label: data.labels[index],
                 data: chartData,
                 borderColor: color,
-                backgroundColor: getTransparentColor(color),
+                backgroundColor: color + '33',
                 borderWidth: 2,
                 fill: true,
                 tension: 0.1,
@@ -361,15 +353,7 @@ TEMPLATE = """
     }
 
     function getChartColor(index) {
-        // Get accent color from CSS root variables
-        const root = document.documentElement;
-        const r = getComputedStyle(root).getPropertyValue('--accent-r').trim();
-        const g = getComputedStyle(root).getPropertyValue('--accent-g').trim();
-        const b = getComputedStyle(root).getPropertyValue('--accent-b').trim();
-        const accentColor = `rgb(${r},${g},${b})`;
-        // Use accent color as first chart color, then secondary colors
-        const colors = [accentColor, '#ff9800', '#2196f3', '#f44336', '#9c27b0', '#00bcd4'];
-        return colors[index % colors.length];
+        return ['#4caf50', '#ff9800', '#2196f3', '#f44336', '#9c27b0', '#00bcd4'][index % 6];
     }
 
     async function updateStats() {

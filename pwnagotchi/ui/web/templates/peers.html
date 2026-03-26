@@ -1,21 +1,24 @@
-{% extends "base.html" %}
-{% set active_page = "peers" %}
+{% extends "base.html" %} {% set active_page = "peers" %} {% block title %} {{
+name }} Peers {% endblock %} {% block script %} filterList('.search-box input',
+'.peers li'); {% endblock %} {% block content %}
+<div class="search-box">
+  <input type="text" placeholder="Search peers..." />
+</div>
 
-{% block title %}
-{{ name }} Friends
-{% endblock %}
-
-{% block content %}
-<ul class="peers" data-role="listview" data-filter="true" data-filter-placeholder="Search peers..." data-inset="true">
-    {% for peer in peers %}
-    <li class="peer">
-        <a href="/inbox/new?to={{ peer.fingerprint }}">
-            <h2>{{ peer.advertisement.face }} {{ peer.advertisement.name }}@{{ peer.fingerprint }}</h2>
-            <p>
-                Pwned {{ peer.advertisement.pwnd_tot }} networks, {{ peer.encounters }} encounters.
-            </p>
-        </a>
-    </li>
-    {% endfor %}
+<ul class="peers">
+  {% for peer in peers %}
+  <li class="peer">
+    <a href="/inbox/new?to={{ peer.fingerprint }}">
+      <div class="list-item-primary">
+        {{ peer.advertisement.face }} {{ peer.advertisement.name }}@{{
+        peer.fingerprint }}
+      </div>
+      <div class="list-item-secondary">
+        Pwned {{ peer.advertisement.pwnd_tot }} networks, {{ peer.encounters }}
+        encounters
+      </div>
+    </a>
+  </li>
+  {% endfor %}
 </ul>
 {% endblock %}

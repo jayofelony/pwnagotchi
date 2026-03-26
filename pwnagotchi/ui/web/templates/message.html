@@ -1,37 +1,39 @@
-{% extends "base.html" %}
-{% set active_page = "" %}
-
-{% block title %}
-Message from {{ message.sender_name }}
-{% endblock %}
-
-{% block script %}
-jQuery(document).ready(function() {
-    // mark the message as read
-    jQuery.get("/inbox/{{ message.id }}/seen", function(res){ console.log(res); });
-});
-{% endblock %}
-
-{% block content %}
-<p class="messagebody">
-        <span style="color: #888">
-        Message from {{ message.sender_name }}@{{ message.sender }}, sent
-        <time class="timeago" datetime="{{ message.created_at }}">{{ message.created_at }}</time>
-        {% if message.seen_at %}, seen
-        <time class="timeago" datetime="{{ message.seen_at }}">{{ message.seen_at }}</time>{% endif %}.</span>
-
-    <br/>
-    <br/>
-
+{% extends "base.html" %} {% set active_page = "" %} {% block title %} Message
+from {{ message.sender_name }} {% endblock %} {% block script %} // Mark message
+as read fetch('/inbox/{{ message.id }}/seen') .then(res => res.text())
+.then(data => console.log('Message marked as read')); {% endblock %} {% block
+content %}
+<div class="card">
+  <div class="card-header">
+    <div class="messagebody-meta">
+      Message from
+      <strong>{{ message.sender_name }}@{{ message.sender }}</strong>, sent
+      <time class="timeago" datetime="{{ message.created_at }}"
+        >{{ message.created_at }}</time
+      >
+      {% if message.seen_at %}, seen
+      <time class="timeago" datetime="{{ message.seen_at }}"
+        >{{ message.seen_at }}</time
+      >{% endif %}
+    </div>
+  </div>
+  <div class="card-body">
     {% if message.data %}
-    <span style="white-space: pre-line">{{ message.data }}</span>
+    <p class="messagebody">{{ message.data }}</p>
     {% else %}
-    <small>This message is empty.</small>
+    <p class="text-muted"><em>This message is empty.</em></p>
     {% endif %}
-
-    <br/>
-    <br/>
-    <a href="/inbox/new?to={{ message.sender }}" class="ui-btn ui-icon-comment ui-btn-icon-left ui-shadow-icon">Reply</a>
-    <a href="/inbox/{{ message.id }}/deleted" class="ui-btn ui-icon-delete ui-btn-icon-left ui-shadow-icon" onclick="return confirm('Are you sure?')">Delete</a>
-</p>
+  </div>
+  <div class="card-footer">
+    <a href="/inbox/new?to={{ message.sender }}" class="btn btn-primary"
+      >Reply</a
+    >
+    <a
+      href="/inbox/{{ message.id }}/deleted"
+      class="btn danger"
+      onclick="return confirm('Are you sure?');"
+      >Delete</a
+    >
+  </div>
+</div>
 {% endblock %}

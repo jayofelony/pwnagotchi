@@ -1,36 +1,34 @@
-{% extends "base.html" %}
-{% set active_page = "profile" %}
+{% extends "base.html" %} {% set active_page = "profile" %} {% block title
+%}Profile{% endblock %} {% block script %}
+document.addEventListener('DOMContentLoaded', function() { if (typeof
+generateQRCode === 'function') { generateQRCode('qrcode',
+'https://opwngrid.xyz/search/{{ fingerprint }}', { size: 300 }); } else {
+console.error('generateQRCode function not available'); } }); {% endblock %} {%
+block content %}
+<div class="card">
+  <div class="card-body">
+    <div>
+      <label>Name</label>
+      <h4>{{ name }}</h4>
+    </div>
 
-{% block title %}
-Profile
-{% endblock %}
+    <div class="mt-2">
+      <label>Fingerprint</label>
+      <h4>
+        <a href="https://opwngrid.xyz/search/{{ fingerprint }}" target="_blank"
+          >{{ fingerprint }}</a
+        >
+      </h4>
+    </div>
 
-{% block script %}
-$(function(){
-    $('#qrcode').kjua({
-        text: 'https://opwngrid.xyz/search/{{ fingerprint }}',
-        render: 'svg',
-        mode: 0,
-        size: 400,
-        fontname: 'sans',
-        fontcolor: '#000'
-    });
-});
-{% endblock %}
+    <div class="mt-2 text-center">
+      <div id="qrcode" style="display: inline-block"></div>
+    </div>
 
-{% block content %}
-<div style="padding: 1em">
-    <label for="name">Name</label>
-    <h4 id="name">{{ name }}</h4>
-
-    <label for="fingerprint">Fingerprint</label>
-    <h4 id="fingerprint">
-        <a href="https://opwngrid.xyz/search/{{ fingerprint }}" target="_blank">{{ fingerprint }}</a>
-    </h4>
-    <div id="qrcode"></div>
-
-    <br/>
-    <label for="data">Data</label>
-    <pre><code id="data">{{ data }}</code></pre>
+    <div class="mt-3">
+      <label>Data</label>
+      <pre><code>{{ data }}</code></pre>
+    </div>
+  </div>
 </div>
 {% endblock %}

@@ -94,8 +94,7 @@ class WhisPlayBoard:
             self.button_release_callback = None
 
         # 初始化 SPI
-        self.spi = spidev.SpiDev()
-        self.spi.open(0, 0)
+        self.spi = spidev.SpiDev(0, 0)
         self.spi.max_speed_hz = 100_000_000
         self.spi.mode = 0b00
 
