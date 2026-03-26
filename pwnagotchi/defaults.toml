@@ -28,7 +28,7 @@ enabled = true
 
 [main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
 enabled = true
-backup_location = "/home/pi/backups"
+backup_location = "/etc/pwnagotchi/backups"
 
 [main.plugins.auto-update]
 enabled = true
@@ -232,7 +232,7 @@ rotation = 180
 type = "waveshare_4"
 
 [bettercap]
-handshakes = "/home/pi/handshakes"
+handshakes = "/etc/pwnagotchi/handshakes"
 silence = [
     "ble.device.new",
     "ble.device.lost",

@@ -53,7 +53,7 @@ msgid "I'm bored ..."
 msgstr "Ik ferfeel my ..."
 
 msgid "Let's go for a walk!"
-msgstr ""
+msgstr "Litte wy in kuierke gean!"
 
 msgid "This is the best day of my life!"
 msgstr "Dit is de bêste dei fan myn libben!"
