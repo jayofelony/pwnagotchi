@@ -116,7 +116,7 @@ INDEX = """
     }
 
     tbody tr:hover {
-        background-color: rgba(76, 175, 80, 0.05);
+        background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
         transition: background-color 0.2s ease;
     }
 

@@ -57,32 +57,6 @@ INDEX = """
         cursor: pointer;
     }
 
-    /* Add Button */
-    #btnAdd {
-        padding: 10px 14px;
-        min-width: auto;
-        background-color: var(--accent);
-        color: #000;
-        border: none;
-        border-radius: 6px;
-        font-family: var(--font-pixel);
-        font-size: 1.2rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
-    }
-
-    #btnAdd:hover {
-        background-color: var(--accent-hover);
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-        transform: translateY(-2px);
-    }
-
-    #btnAdd:active {
-        transform: translateY(0);
-    }
-
     /* Wrapper spans */
     #divTop > span {
         display: flex;
@@ -131,7 +105,7 @@ INDEX = """
     }
 
     tbody tr:hover {
-        background-color: rgba(76, 175, 80, 0.05);
+        background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
         transition: background-color 0.2s ease;
     }
 
@@ -203,51 +177,9 @@ INDEX = """
         margin-top: 2rem;
     }
 
-    .btn-save,
-    .btn-save-caution {
+    #divSaveTop .btn {
         flex: 1;
         min-width: 150px;
-        padding: 12px 20px;
-        font-size: 0.9rem;
-        font-family: var(--font-pixel);
-        text-transform: uppercase;
-        font-weight: 600;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .btn-save {
-        background-color: var(--accent);
-        color: #000;
-        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
-    }
-
-    .btn-save:hover {
-        background-color: var(--accent-hover);
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-        transform: translateY(-2px);
-    }
-
-    .btn-save:active {
-        transform: translateY(0);
-    }
-
-    .btn-save-caution {
-        background-color: var(--danger);
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(255, 85, 85, 0.2);
-    }
-
-    .btn-save-caution:hover {
-        background-color: var(--danger-hover);
-        box-shadow: 0 4px 12px rgba(255, 85, 85, 0.3);
-        transform: translateY(-2px);
-    }
-
-    .btn-save-caution:active {
-        transform: translateY(0);
     }
 
     /* Responsive Design */
@@ -280,12 +212,6 @@ INDEX = """
         #divSaveTop {
             flex-direction: column;
             gap: 0.75rem;
-        }
-
-        .btn-save,
-        .btn-save-caution {
-            width: 100%;
-            min-width: auto;
         }
     }
 
@@ -323,13 +249,6 @@ INDEX = """
             flex-direction: column;
             gap: 0.75rem;
             margin-bottom: 70px;
-        }
-
-        .btn-save,
-        .btn-save-caution {
-            width: 100%;
-            min-width: auto;
-            padding: 12px 16px;
         }
 
         /* Mobile table display */
@@ -399,14 +318,14 @@ INDEX = """
     <div id="divTop">
         <input type="text" id="searchText" placeholder="Search for options ..." title="Type an option name">
         <span><select id="selAddType"><option value="text">Text</option><option value="number">Number</option></select></span>
-        <span><button id="btnAdd" type="button" onclick="addOption()">+</button></span>
+        <span><button class="btn primary" type="button" onclick="addOption()">+</button></span>
     </div>
     
     <div class="table-container" id="content"></div>
 
     <div id="divSaveTop">
-        <button class="btn-save" type="button" onclick="saveConfig()">Save and restart</button>
-        <button class="btn-save-caution" type="button" onclick="saveConfigNoRestart()">Merge and Save (CAUTION)</button>
+        <button class="btn primary" type="button" onclick="saveConfig()">Save and restart</button>
+        <button class="btn danger" type="button" onclick="saveConfigNoRestart()">Merge and Save (CAUTION)</button>
     </div>
 {% endblock %}
 

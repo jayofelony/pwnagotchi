@@ -154,7 +154,7 @@
 .unread {
   font-weight: 600;
   color: var(--text-bright);
-  background-color: rgba(76, 175, 80, 0.15);
+  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
   border-left: 3px solid var(--accent);
   padding-left: calc(1rem - 3px);
 }

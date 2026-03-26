@@ -26,23 +26,9 @@ custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
 [main.plugins.auto-tune]
 enabled = true
 
-[main.plugins.auto_backup]
-enabled = false
-interval = "daily"    # or "hourly", or a number (minutes)
-max_tries = 0
-backup_location = "/etc/pwnagotchi/"
-files = [
-  "/root/.api-report.json",
-  "/root/.ssh",
-  "/root/.bashrc",
-  "/root/.profile",
-  "/etc/pwnagotchi/",
-  "/root/peers",
-  "/etc/ssh/",
-  "/root/.auto-backup"
-]
-exclude = [ "/etc/pwnagotchi/logs/*"]
-commands = [ "tar cf {backup_file} {files}"]
+[main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
+enabled = true
+backup_location = "/home/pi/backups"
 
 [main.plugins.auto-update]
 enabled = true
@@ -52,18 +38,24 @@ token = "" # Create a personal access token (classic) with scope set to public_r
 
 [main.plugins.bt-tether]
 enabled = false
-auto_reconnect = true                    # Auto reconnect on disconnect (default: true)
-show_on_screen = true                    # Master switch: show status on display
-show_mini_status = true                  # Show mini status indicator (C/N/P/D)
-mini_status_position = [110, 0]          # Position for mini status
-show_detailed_status = true              # Show detailed status line with IP
-detailed_status_position = [0, 82]       # Position for detailed status line
+phone-name = "" # name as shown on the phone i.e. "Pwnagotchi's Phone"
+mac = ""
+phone = "" # android or ios
+ip = "" # optional, default : 192.168.44.2 if android or 172.20.10.2 if ios
+gateway = "" #optional, default : 192.168.44.1 if android or 172.20.10.2 if ios
+dns = "8.8.8.8 1.1.1.1" # optional, default (google): "8.8.8.8 1.1.1.1". Consider using anonymous DNS like OpenNic :-)
 
 [main.plugins.fix_services]
 enabled = true
 
 [main.plugins.cache]
 enabled = true
+
+[main.plugins.gdrivesync]
+enabled = false
+backupfiles = [""]
+backup_folder = "PwnagotchiBackups"
+interval = 1
 
 [main.plugins.gpio_buttons]
 enabled = false
@@ -72,6 +64,9 @@ enabled = false
 enabled = false
 speed = 19200
 device = "/dev/ttyUSB0" # for GPSD: "localhost:2947"
+
+[main.plugins.gps_listener]
+enabled = false
 
 [main.plugins.grid]
 enabled = true
@@ -111,7 +106,7 @@ key = ""
 
 [main.plugins.session-stats]
 enabled = false
-save_directory = "/etc/pwnagotchi/sessions/"
+save_directory = "/var/tmp/pwnagotchi/sessions/"
 
 [main.plugins.ups_hat_c]
 enabled = false
@@ -125,6 +120,9 @@ enabled = false
 shutdown = 2
 
 [main.plugins.webcfg]
+enabled = true
+
+[main.plugins.pwnstore_ui]
 enabled = true
 
 [main.plugins.webgpsmap]
@@ -198,11 +196,11 @@ cool = ["(⌐■_■)", "(단__단)"]
 happy = ["(•‿‿•)", "(^‿‿^)", "(^◡◡^)"]
 excited = ["(ᵔ◡◡ᵔ)", "(✜‿‿✜)"]
 grateful = ["(^‿‿^)"]
-motivated = ["(☼‿‿☼)"]
-demotivated = ["(≖__≖)"]
+motivated = ["(☼‿‿☼)", "(★‿★)", "(•̀ᴗ•́)"]
+demotivated = ["(≖__≖)", "(￣ヘ￣)", "(¬､¬)"]
 smart = ["(✜‿‿✜)"]
-lonely = ["(ب__ب)"]
-sad = ["(╥☁╥ )"]
+lonely = ["(ب__ب)", "(｡•́︿•̀｡)", "(︶︹︺)"]
+sad = ["(╥☁╥ )", "(╥﹏╥)", "(ಥ﹏ಥ)"]
 angry = ["(-_-')", "(⇀__⇀)", "(`___´)"]
 friend = ["(♥‿‿♥)", "(♡‿‿♡)", "(♥‿♥ )", "(♥ω♥ )"]
 broken = ["(☓‿‿☓)"]
@@ -234,7 +232,7 @@ rotation = 180
 type = "waveshare_4"
 
 [bettercap]
-handshakes = "/etc/pwnagotchi/handshakes"
+handshakes = "/home/pi/handshakes"
 silence = [
     "ble.device.new",
     "ble.device.lost",

@@ -60,7 +60,7 @@ TEMPLATE = """
         #searchText:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 15px rgba(76, 175, 80, 0.1);
+            box-shadow: 0 0 15px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
             background-color: #1e1e1e;
         }
 
@@ -105,7 +105,7 @@ TEMPLATE = """
         }
 
         tbody tr:hover {
-            background-color: rgba(76, 175, 80, 0.05);
+            background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
             transition: background-color 0.2s ease;
         }
 
