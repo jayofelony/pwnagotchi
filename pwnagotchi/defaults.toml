@@ -100,7 +100,7 @@ key = ""
 
 [main.plugins.session-stats]
 enabled = false
-save_directory = "/var/tmp/pwnagotchi/sessions/"
+save_directory = "/etc/pwnagotchi/sessions/"
 
 [main.plugins.ups_hat_c]
 enabled = false
