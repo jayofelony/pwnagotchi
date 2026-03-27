@@ -1,0 +1,15 @@
+client_config_backend: file
+client_config_file: /root/client_secrets.json
+client_config:
+    client_id: <YOUR CLIENT ID>
+    client_secret: <YOUR CLIENT SECRET>
+
+save_credentials: True
+save_credentials_backend: file
+save_credentials_file: /root/credentials.json
+
+get_refresh_token: True
+
+oauth_scope:
+    - https://www.googleapis.com/auth/drive
+    - https://www.googleapis.com/auth/drive.install

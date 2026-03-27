@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: 2019-10-15 23:46+0100\n"
 "Last-Translator: \n"
 "Language-Team: Irish\n"
@@ -35,7 +35,32 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "Oíche mhaith."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
+msgstr ""
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
 msgstr ""
 
 #, python-brace-format
@@ -58,6 +83,12 @@ msgstr "Siúil liom, le do thoil!"
 msgid "This is the best day of my life!"
 msgstr "Tá sé an lá is fearr i mo shaol!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "Tá lá damanta agam :/"
 
@@ -69,6 +100,13 @@ msgstr "Ta brón an domhain orm ..."
 
 msgid "I'm sad"
 msgstr "Tá brón orm"
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "Ta brón an domhain orm ..."
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "Tá uaigneas an domhain orm ..."
@@ -87,6 +125,9 @@ msgstr "Gréasáin - Tá an iliomad acu ann!!!"
 
 msgid "I'm having so much fun!"
 msgstr "Tá craic iontach agam!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "Ní haon pheaca é bheith fiosrach ..."
@@ -138,6 +179,9 @@ msgstr "Níl aon duine ag iarraidh imirt liom ..."
 msgid "I feel so alone ..."
 msgstr "Tá uaigneas an domhain orm ..."
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "Cá bhfuil gach duine?!"
 
@@ -148,6 +192,9 @@ msgstr "Néal a chodladh ar {secs}s ..."
 msgid "Zzzzz"
 msgstr ""
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr ""
@@ -156,6 +203,9 @@ msgid "Good night."
 msgstr "Oíche mhaith."
 
 msgid "Zzz"
+msgstr ""
+
+msgid "I dreamed of electric sheep"
 msgstr ""
 
 #, python-brace-format
@@ -179,12 +229,44 @@ msgid "Yo {what}!"
 msgstr "Hé {what}!"
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "Tá cinneadh déanta agam. Níl {mac} sin de dhíth air WiFi!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "Bain fíordheimhniúde {mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -201,8 +283,45 @@ msgstr ""
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Hoips...Tháinig ainghléas éigin..."
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
 msgstr ""
 
 #, python-brace-format

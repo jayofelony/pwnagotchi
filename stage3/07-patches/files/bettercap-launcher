@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+source /usr/bin/pwnlib
+
+# we need to decrypt something
+if is_crypted_mode; then
+  while ! is_decrypted; do
+    echo "Waiting for decryption..."
+    sleep 1
+  done
+fi
+
+reload_brcm
+start_monitor_interface
+
+if is_auto_mode_no_delete; then
+  /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-auto -iface wlan0mon
+else
+  /usr/local/bin/bettercap -no-colors -caplet pwnagotchi-manual -iface wlan0mon
+fi

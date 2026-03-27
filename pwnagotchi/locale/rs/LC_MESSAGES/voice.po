@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Srpski prevod v1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: RS <dragan.miljkovic29@gmail.com>\n"
@@ -35,8 +35,33 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "Laku noć."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
 msgstr "Generišem ključeve, ne isključuj me..."
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -58,6 +83,12 @@ msgstr "Hajmo u šetnju!"
 msgid "This is the best day of my life!"
 msgstr "Ovo je najbolji dan mog života!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "Sranje dan :/"
 
@@ -69,6 +100,13 @@ msgstr "Jako sam tužan ..."
 
 msgid "I'm sad"
 msgstr "Tužan sam"
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "Jako sam tužan ..."
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "Ostavi me na miru ..."
@@ -87,6 +125,9 @@ msgstr "Tako mnogo mreža!!!"
 
 msgid "I'm having so much fun!"
 msgstr "Previše se zabavljam!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "Moj zločin je radoznalost ..."
@@ -138,6 +179,9 @@ msgstr "Niko ne želi da se igra sa mnom ..."
 msgid "I feel so alone ..."
 msgstr "Osećam se toliko usamljeno ..."
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "Gde su svi?!"
 
@@ -148,6 +192,9 @@ msgstr "Dremam {secs}s ..."
 msgid "Zzzzz"
 msgstr "Zzzzz"
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr "ZzzZzzz ({secs}s)"
@@ -157,6 +204,9 @@ msgstr "Laku noć."
 
 msgid "Zzz"
 msgstr "Zzz"
+
+msgid "I dreamed of electric sheep"
+msgstr ""
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -179,12 +229,44 @@ msgid "Yo {what}!"
 msgstr "Ej {what}!"
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "Upravo sam odlučio da {mac} ne zahteva WiFi!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "Deauthenticating {mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -201,9 +283,46 @@ msgstr "Imas {count} novih poruka"
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ups, nešto je poslo po zlu ... Restartujem ..."
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr "Otpremam podatke na {to} ..."
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr "Otpremam podatke na {to} ..."
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
+msgstr ""
 
 #, python-brace-format
 msgid "Downloading from {name} ..."

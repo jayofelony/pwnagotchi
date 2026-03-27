@@ -1,0 +1,37 @@
+#cloud-config
+
+# Set the hostname for this device. This will also update /etc/hosts if manage_etc_hosts is enabled.
+hostname: pwnagotchi
+manage_etc_hosts: true
+
+keyboard:
+    layout: us
+
+# Create a default user account and apply permissions
+users:
+  - name: pi
+    groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: raspberry
+    sudo: ALL=(ALL) NOPASSWD:ALL  # Allow passwordless sudo for this user
+
+  # CUSTOM USER - Remove # in front of the following lines and replace USERNAME and PASSWORD
+  # with your desired username and password to create an additional user account with sudo privileges.
+  #- name: USERNAME
+  #  groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+  #  shell: /bin/bash
+  #  lock_passwd: false
+  #  plain_text_passwd: PASSWORD
+  #  sudo: ALL=(ALL) NOPASSWD:ALL  # Allow passwordless sudo for this user
+
+# Raspberry Pi–specific options (provided by the cc_raspberry_pi module)
+rpi:
+    enable_usb_gadget: true # Enable USB gadget mode
+    interfaces:
+        spi: true               # Enable SPI interface
+        i2c: true               # Enable I2C interface
+
+# Additional Raspberry Pi OS option (not available on generic cloud-init images)
+enable_ssh: true  # Enables the SSH server on first boot
+ssh_pwauth: true  # Allow password authentication for SSH (not recommended for production environments)
