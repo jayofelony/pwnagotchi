@@ -17,8 +17,6 @@ IMAGE_DIR ?= $(BUILD_HOME)/images
 	rm -rf pi-gen-32bit/stage2/EXPORT_IMAGE
 	sed -i "s|WORK_DIR=.*|WORK_DIR=\"$(BUILD_HOME)/work-32bit\"|" config-32bit
 	sed -i "s|DEPLOY_DIR=.*|DEPLOY_DIR=\"$(IMAGE_DIR)\"|" config-32bit
-	$(MAKE) update_langs
-	$(MAKE) compile_langs
 	sudo ./pi-gen-32bit/build.sh -c config-32bit
 	mkdir -p $(IMAGE_DIR)
 	sudo chown $(BUILD_USER):$(BUILD_USER) -R $(IMAGE_DIR)
@@ -30,8 +28,6 @@ IMAGE_DIR ?= $(BUILD_HOME)/images
 	rm -rf pi-gen-64bit/stage2/EXPORT_IMAGE
 	sed -i "s|WORK_DIR=.*|WORK_DIR=\"$(BUILD_HOME)/work-64bit\"|" config-64bit
 	sed -i "s|DEPLOY_DIR=.*|DEPLOY_DIR=\"$(IMAGE_DIR)\"|" config-64bit
-	$(MAKE) update_langs
-	$(MAKE) compile_langs
 	sudo ./pi-gen-64bit/build.sh -c config-64bit
 	mkdir -p $(IMAGE_DIR)
 	sudo chown $(BUILD_USER):$(BUILD_USER) -R $(IMAGE_DIR)
