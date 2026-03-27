@@ -34,6 +34,10 @@ classifiers = [
 [tool.setuptools.dynamic]
 version = {attr = "pwnagotchi.__version__"}
 
+[tool.setuptools.packages.find]
+include = ["pwnagotchi"]
+exclude = ["stage3"]
+
 [project.urls]
 Homepage = "https://pwnagotchi.org/"
 Documentation = "https://github.com/jayofelony/pwnagotchi/wiki"
