@@ -356,7 +356,7 @@ msgid ""
 "{associated} new friends and ate {handshakes} handshakes! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 msgstr ""
-"J'ai pwn durant {duration} et kick {deauthed} clients ! J'ai aussi rencontré "
+"J'epoch pwn durant {duration} et kick {deauthed} clients ! J'epoch aussi rencontré "
 "{associated} nouveaux amis et dévoré {handshakes} handshakes ! #pwnagotchi "
 "#pwnlog #pwnlife #hacktheplanet #skynet"
 
