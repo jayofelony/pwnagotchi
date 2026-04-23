@@ -165,3 +165,6 @@ def reboot(mode=None):
 
     os.system("sync")
     os.system("shutdown -r now")
+
+def is_passive():
+    return bool(config.get('main', {}).get('passive', False))

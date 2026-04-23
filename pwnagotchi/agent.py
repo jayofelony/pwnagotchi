@@ -17,6 +17,8 @@ from pwnagotchi.log import LastSession
 from pwnagotchi.bettercap import Client
 from pwnagotchi.mesh.utils import AsyncAdvertiser
 
+_PASSIVE_LOGGED = False
+
 RECOVERY_DATA_FILE = '/root/.pwnagotchi-recovery'
 
 
@@ -422,7 +424,11 @@ class Agent(Client, Automata, AsyncAdvertiser):
 
         return self._history[who] < self._config['personality']['max_interactions']
 
-    def associate(self, ap, throttle=-1):
+    def associate(self, ap, silent=False):
+    if pwnagotchi.is_passive():
+        if not silent:
+            logging.debug("[agent] passive mode — skipping assoc to %s", ap['hostname'])
+        return
         if self.is_stale():
             logging.debug("recon is stale, skipping assoc(%s)", ap['mac'])
             return
@@ -445,7 +451,14 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 time.sleep(throttle)
             self._view.on_normal()
 
-    def deauth(self, ap, sta, throttle=-1):
+    def deauth(self, ap, sta, silent=False):
+    global _PASSIVE_LOGGED
+    if pwnagotchi.is_passive():
+        if not _PASSIVE_LOGGED:
+            logging.info("[agent] passive mode — skipping deauth of %s @ %s", sta['mac'], ap['hostname'])
+            _PASSIVE_LOGGED = True
+        return
+    _PASSIVE_LOGGED = False
         if self.is_stale():
             logging.debug("recon is stale, skipping deauth(%s)", sta['mac'])
             return

@@ -17,6 +17,7 @@ import pwnagotchi.utils as utils
 from pwnagotchi.ui.components import *
 from pwnagotchi.ui.state import State
 from pwnagotchi.voice import Voice
+from pwnagotchi import is_passive
 
 WHITE = 0x00  # white is actually black on jays image
 BLACK = 0xFF  # black is actually white on jays image
@@ -387,28 +388,28 @@ class View(object):
         self.update()
 
     def update(self, force=False, new_data={}):
-        for key, val in new_data.items():
-            self.set(key, val)
+    for key, val in new_data.items():
+        self.set(key, val)
+    
+    # update passive mode indicator
+    if is_passive():
+        self.set('passive', 'PASSIVE')
+    else:
+        self.set('passive', '')
 
-        with self._lock:
-            if self._frozen:
-                return
-
-            state = self._state
-            changes = state.changes(ignore=self._ignore_changes)
-            if force or len(changes):
-                self._canvas = Image.new('1', (self._width, self._height), self._white)
-                drawer = ImageDraw.Draw(self._canvas)
-
-                plugins.on('ui_update', self)
-
-                for key, lv in state.items():
-                    # lv is a ui element
-                    lv.draw(self._canvas, drawer)
-
-                web.update_frame(self._canvas)
-
-                for cb in self._render_cbs:
-                    cb(self._canvas)
-
-                self._state.reset()
+    with self._lock:
+        if self._frozen:
+            return
+        state = self._state
+        changes = state.changes(ignore=self._ignore_changes)
+        if force or len(changes):
+            self._canvas = Image.new('1', (self._width, self._height), self._white)
+            drawer = ImageDraw.Draw(self._canvas)
+            plugins.on('ui_update', self)
+            for key, lv in state.items():
+                # lv is a ui element
+                lv.draw(self._canvas, drawer)
+            web.update_frame(self._canvas)
+            for cb in self._render_cbs:
+                cb(self._canvas)
+            self._state.reset()
