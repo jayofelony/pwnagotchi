@@ -1,6 +1,0 @@
-exclude *.pyc .gitignore MANIFEST.in
-include README.md
-include LICENSE
-recursive-include pwnagotchi *.py
-recursive-include pwnagotchi *.yml
-recursive-include pwnagotchi *.*
