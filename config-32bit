@@ -1,5 +1,0 @@
-IMG_NAME="pwnagotchi-32bit"
-WORK_DIR="/home/jayofelony/work-32bit"
-DEPLOY_DIR="/home/jayofelony/images"
-DEPLOY_COMPRESSION="xz"
-STAGE_LIST="pi-gen-32bit/stage0 pi-gen-32bit/stage1 pi-gen-32bit/stage2 stage3"
