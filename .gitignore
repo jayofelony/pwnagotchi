@@ -1,6 +1,0 @@
-*.pyc
-.vscode
-config-32bit
-config-64bit
-pi-gen-64bit/
-pi-gen-32bit/
