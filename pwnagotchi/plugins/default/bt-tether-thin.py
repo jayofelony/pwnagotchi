@@ -342,109 +342,303 @@ class BtTether(Plugin):
         self._message = "Ready"
 
     def _get_html_template(self):
-        """Get HTML template (simplified version)."""
-        return """<!DOCTYPE html>
+        """Get the original full-featured HTML template."""
+        # This template is extracted from the original bt-tether.py
+        # It provides the full UI with device discovery, status monitoring, and internet testing
+        template = """<!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Bluetooth Tether</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%2358a6ff' d='M50 10 L70 25 L70 45 L50 60 L50 90 L30 75 L30 55 L50 40 L50 10 M50 40 L50 60'/%3E%3C/svg%3E" />
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #0d1117; color: #d4d4d4; }
-        .card { background: #161b22; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #30363d; }
-        h2 { color: #58a6ff; margin: 0 0 20px 0; }
-        button { padding: 10px 20px; background: transparent; color: #3fb950; border: 1px solid #3fb950; cursor: pointer; border-radius: 4px; }
-        button:hover { background: rgba(63, 185, 80, 0.1); }
-        input { padding: 10px; font-size: 14px; border: 1px solid #30363d; border-radius: 4px; background: #0d1117; color: #d4d4d4; }
-        .status-item { padding: 8px; margin: 4px 0; border-radius: 4px; background: #0d1117; border: 1px solid #30363d; }
+      body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; background: #0d1117; color: #d4d4d4; }
+      .card { background: #161b22; padding: 20px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 1px solid #30363d; }
+      h2 { margin: 0 0 20px 0; color: #58a6ff; }
+      h3 { color: #d4d4d4; }
+      h4 { color: #8b949e; }
+      input { padding: 10px; font-size: 14px; border: 1px solid #30363d; border-radius: 4px; text-transform: uppercase; background: #0d1117; color: #d4d4d4; }
+      input:focus { outline: none; border-color: #58a6ff; background: #161b22; }
+      button { padding: 10px 20px; background: transparent; color: #3fb950; border: 1px solid #3fb950; cursor: pointer; font-size: 14px; border-radius: 4px; margin-right: 8px; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; }
+      button:hover { background: rgba(63, 185, 80, 0.1); border-color: #3fb950; }
+      button.danger { color: #f85149; border-color: #f85149; background: transparent; }
+      button.danger:hover { background: rgba(248, 81, 73, 0.1); border-color: #f85149; }
+      button.success { color: #3fb950; border-color: #3fb950; background: transparent; }
+      button.success:hover { background: rgba(63, 185, 80, 0.1); border-color: #3fb950; }
+      button:disabled { background: transparent; color: #8b949e; cursor: not-allowed; border-color: #30363d; }
+      .status-item { padding: 8px; margin: 4px 0; border-radius: 4px; background: #161b22; border: 1px solid #30363d; color: #d4d4d4; }
+      .status-good { background: rgba(46, 160, 67, 0.15); color: #3fb950; border-color: #3fb950; }
+      .status-bad { background: rgba(248, 81, 73, 0.15); color: #f85149; border-color: #f85149; }
+      .device-item { padding: 12px; margin: 8px 0; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #0d1117; color: #d4d4d4; }
+      .device-item:hover { background: #161b22; border-color: #58a6ff; }
+      .message-box { padding: 12px; border-radius: 4px; margin: 12px 0; border-left: 4px solid; }
+      .message-info { background: rgba(88, 166, 255, 0.1); color: #79c0ff; border-color: #79c0ff; }
+      .message-success { background: rgba(63, 185, 80, 0.1); color: #3fb950; border-color: #3fb950; }
+      .message-warning { background: rgba(214, 159, 0, 0.1); color: #d29922; border-color: #d29922; }
+      .message-error { background: rgba(248, 81, 73, 0.1); color: #f85149; border-color: #f85149; }
+      .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #30363d; border-top: 2px solid #58a6ff; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      .mac-editor { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      .mac-editor input { flex: 1; min-width: 200px; }
+      .mac-editor button { white-space: nowrap; }
+      .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+      .header h2 { margin: 0; flex: 1; }
+      .header button { margin-left: 12px; }
+      button.outline { color: #ffffff; border-color: #ffffff; }
+      button.outline:hover { background: rgba(255, 255, 255, 0.1); border-color: #ffffff; }
+      @media (max-width: 600px) {
+        .mac-editor { flex-direction: column; align-items: stretch; }
+        .mac-editor input { width: 100%; }
+        .mac-editor button { width: 100%; margin: 0 !important; }
+      }
     </style>
-</head>
-<body>
-    <div class="card">
-        <h2>🔷 Bluetooth Tether (Refactored)</h2>
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <h2>🔷 Bluetooth Tether</h2>
         <div style="font-size: 12px; color: #8b949e; margin-top: 2px;">v{{ version }}</div>
+      </div>
+      <button class="outline" onclick="window.location.href='/plugins'" style="margin: 0;">Plugins</button>
+    </div>
 
-        <div style="margin-top: 20px;">
-            <h3>Status</h3>
-            <div id="status" class="status-item">Loading...</div>
-        </div>
+    <div class="card" id="phoneConnectionCard">
+      <h3 style="margin: 0 0 12px 0;">📱 Connection Status</h3>
+      <div style="background: #0d1117; color: #d4d4d4; padding: 12px; border-radius: 4px; margin-bottom: 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5;">
+        <div style="color: #888; margin-bottom: 4px;">Trusted Devices:</div>
+        <div id="trustedDevicesSummary" style="color: #4ec9b0; font-size: 14px;">Loading...</div>
+      </div>
 
-        <div style="margin-top: 20px;">
-            <h3>Trusted Devices</h3>
-            <div id="devices" class="status-item">Loading...</div>
-        </div>
+      <div style="background: #0d1117; color: #d4d4d4; padding: 12px; border-radius: 4px; margin-bottom: 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5;">
+        <div style="color: #888; margin-bottom: 8px;">Connection Status:</div>
+        <div id="statusPaired" style="margin: 4px 0;">📱 Paired: <span>Checking...</span></div>
+        <div id="statusTrusted" style="margin: 4px 0;">🔐 Trusted: <span>Checking...</span></div>
+        <div id="statusConnected" style="margin: 4px 0;">🔵 Connected: <span>Checking...</span></div>
+        <div id="statusInternet" style="margin: 4px 0;">🌐 Internet: <span>Checking...</span></div>
+        <div id="statusIP" style="display: none; margin: 4px 0;">🔢 IP Address: <span></span></div>
+      </div>
 
-        <div style="margin-top: 20px;">
-            <h3>Actions</h3>
-            <input type="text" id="mac" placeholder="Enter MAC address" value="{{ mac }}" />
-            <button onclick="connect()">Connect</button>
-            <button onclick="disconnect()">Disconnect</button>
-        </div>
+      <input type="hidden" id="macInput" value="{{ mac }}" />
 
-        <div style="margin-top: 20px;">
-            <h3>Logs</h3>
-            <div id="logs" style="background: #0d1117; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto;">
-                <div style="color: #888;">Loading logs...</div>
-            </div>
+      <div style="margin-bottom: 12px;">
+        <h4 style="margin: 0 0 8px 0; color: #8b949e; font-size: 14px;">📋 Output</h4>
+        <div id="logViewer">
+          <div style="background: #0d1117; color: #d4d4d4; padding: 12px; padding-right: 16px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; max-height: 300px; overflow-y: auto; line-height: 1.5;" id="logContent">
+            <div style="color: #888;">Fetching logs...</div>
+          </div>
         </div>
+      </div>
+
+      <div id="connectActions">
+        <button class="success" onclick="quickConnect()" id="quickConnectBtn" style="width: 100%; margin: 0 0 8px 0;">
+          ⚡ Connect to Phone
+        </button>
+      </div>
+
+      <div id="disconnectSection" style="display: none;">
+        <button class="danger" onclick="disconnectDevice()" id="disconnectBtn" style="width: 100%; margin: 0 0 8px 0;">
+          🔌 Disconnect
+        </button>
+      </div>
+
+      <div id="deviceDiscoverySection" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #30363d;">
+        <h4 style="margin: 0 0 12px 0;">🔍 Discover Devices</h4>
+        <button class="success" onclick="scanDevices()" id="scanBtn" style="width: 100%; margin: 0 0 12px 0;">
+          🔍 Scan
+        </button>
+        <div id="scanResults" style="display: none;">
+          <h5 style="margin: 0 0 8px 0; color: #8b949e;">Discovered Devices:</h5>
+          <div id="deviceList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="testInternetCard" style="display: none;">
+      <h3 style="margin: 0 0 12px 0;">🔍 Test Internet Connectivity</h3>
+      <button onclick="testInternet()" id="testInternetBtn" style="width: 100%;">
+        🔍 Test Internet Connectivity
+      </button>
+      <div id="testResults" style="display: none;">
+        <div id="testResultsMessage" class="message-box message-info"></div>
+      </div>
     </div>
 
     <script>
-        async function updateStatus() {
-            try {
-                const response = await fetch('/plugins/bt-tether/status');
-                const data = await response.json();
-                document.getElementById('status').innerHTML = `
-                    Status: ${data.status}<br>
-                    Message: ${data.message}
-                `;
-            } catch (e) { console.error(e); }
+      const macInput = document.getElementById("macInput");
+      let statusInterval = null;
+      let logInterval = null;
+
+      loadTrustedDevicesSummary();
+      setTimeout(checkConnectionStatus, 1000);
+      refreshLogs();
+      startLogPolling();
+
+      async function checkConnectionStatus() {
+        const mac = macInput.value.trim();
+        if (!mac || !/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(mac)) {
+          const connectBtn = document.getElementById('quickConnectBtn');
+          connectBtn.style.display = 'none';
+          return;
         }
 
-        async function updateDevices() {
-            try {
-                const response = await fetch('/plugins/bt-tether/trusted-devices');
-                const data = await response.json();
-                const html = data.devices.map(d => `
-                    <div style="margin: 8px 0;">
-                        <b>${d.name}</b> (${d.mac})<br>
-                        Paired: ${d.paired ? 'Yes' : 'No'} | Connected: ${d.connected ? 'Yes' : 'No'}
-                    </div>
-                `).join('');
-                document.getElementById('devices').innerHTML = html || 'No devices found';
-            } catch (e) { console.error(e); }
+        try {
+          const response = await fetch(`/plugins/bt-tether/connection-status?mac=${encodeURIComponent(mac)}`);
+          const data = await response.json();
+          updateStatusDisplay(data);
+        } catch (error) {
+          console.error('Status check failed:', error);
+        }
+      }
+
+      function updateStatusDisplay(data) {
+        document.getElementById("statusPaired").innerHTML =
+          `📱 Paired: <span style="color: ${data.paired ? '#4ec9b0' : '#f48771'};">${data.paired ? '✓ Yes' : '✗ No'}</span>`;
+        document.getElementById("statusTrusted").innerHTML =
+          `🔐 Trusted: <span style="color: ${data.trusted ? '#4ec9b0' : '#f48771'};">${data.trusted ? '✓ Yes' : '✗ No'}</span>`;
+        document.getElementById("statusConnected").innerHTML =
+          `🔵 Connected: <span style="color: ${data.connected ? '#4ec9b0' : '#f48771'};">${data.connected ? '✓ Yes' : '✗ No'}</span>`;
+        document.getElementById("statusInternet").innerHTML =
+          `🌐 Internet: <span style="color: ${data.pan_active ? '#4ec9b0' : '#f48771'};">${data.pan_active ? '✓ Active' : '✗ Not Active'}</span>`;
+
+        const statusIPElement = document.getElementById('statusIP');
+        if (data.ip_address && data.pan_active) {
+          statusIPElement.style.display = 'block';
+          statusIPElement.innerHTML = `🔢 IP Address: <span style="color: #4ec9b0;">${data.ip_address}</span>`;
+        } else {
+          statusIPElement.style.display = 'none';
         }
 
-        async function updateLogs() {
-            try {
-                const response = await fetch('/plugins/bt-tether/logs');
-                const data = await response.json();
-                const html = data.logs.map(log => `
-                    <div><span style="color: #888;">${log.timestamp}</span> <span style="color: #58a6ff;">[${log.level}]</span> ${log.message}</div>
-                `).join('');
-                document.getElementById('logs').innerHTML = html || 'No logs';
-            } catch (e) { console.error(e); }
+        const testInternetCard = document.getElementById('testInternetCard');
+        if (data.pan_active) {
+          testInternetCard.style.display = 'block';
+        } else {
+          testInternetCard.style.display = 'none';
         }
 
-        async function connect() {
-            const mac = document.getElementById('mac').value;
-            if (!mac) { alert('Enter MAC'); return; }
-            await fetch(`/plugins/bt-tether/connect?mac=${encodeURIComponent(mac)}`);
-            updateStatus();
+        const connectBtn = document.getElementById('quickConnectBtn');
+        const disconnectSection = document.getElementById('disconnectSection');
+
+        if (data.connected) {
+          connectBtn.style.display = 'none';
+          disconnectSection.style.display = 'block';
+        } else if (data.paired) {
+          connectBtn.style.display = 'block';
+          disconnectSection.style.display = 'block';
+        } else {
+          connectBtn.style.display = 'block';
+          disconnectSection.style.display = 'none';
         }
 
-        async function disconnect() {
-            const mac = document.getElementById('mac').value;
-            if (!mac) { alert('Enter MAC'); return; }
-            await fetch(`/plugins/bt-tether/disconnect?mac=${encodeURIComponent(mac)}`);
-            updateStatus();
+        if (!statusInterval || statusInterval._interval !== 10000) {
+          if (statusInterval) clearInterval(statusInterval);
+          statusInterval = setInterval(checkConnectionStatus, 10000);
+          statusInterval._interval = 10000;
         }
+      }
 
-        setInterval(updateStatus, 2000);
-        setInterval(updateDevices, 5000);
-        setInterval(updateLogs, 5000);
-        updateStatus();
-        updateDevices();
-        updateLogs();
+      async function quickConnect() {
+        const mac = macInput.value.trim();
+        if (!mac || !/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(mac)) {
+          alert("Enter valid MAC address");
+          return;
+        }
+        await fetch(`/plugins/bt-tether/connect?mac=${encodeURIComponent(mac)}`);
+        setTimeout(checkConnectionStatus, 1000);
+      }
+
+      async function scanDevices() {
+        const scanBtn = document.getElementById('scanBtn');
+        const deviceList = document.getElementById('deviceList');
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '<span class="spinner"></span> Scanning...';
+        deviceList.innerHTML = '';
+        await fetch('/plugins/bt-tether/scan');
+        await new Promise(r => setTimeout(r, 1000));
+        const response = await fetch('/plugins/bt-tether/scan-progress');
+        const data = await response.json();
+        deviceList.innerHTML = data.devices.map(d =>
+          `<div class="device-item"><div><b>${d.name}</b><br><small style="color: #888;">${d.mac}</small></div>
+           <button class="success" onclick="pairAndConnectDevice('${d.mac}', '${d.name}'); return false;">Pair</button></div>`
+        ).join('');
+        scanBtn.disabled = false;
+        scanBtn.innerHTML = '🔍 Scan';
+      }
+
+      async function pairAndConnectDevice(mac, name) {
+        await fetch(`/plugins/bt-tether/pair-device?mac=${encodeURIComponent(mac)}&name=${encodeURIComponent(name)}`);
+        macInput.value = mac;
+        setTimeout(checkConnectionStatus, 1000);
+      }
+
+      async function loadTrustedDevicesSummary() {
+        try {
+          const response = await fetch('/plugins/bt-tether/trusted-devices');
+          const data = await response.json();
+          const summaryDiv = document.getElementById('trustedDevicesSummary');
+          const deviceDiscoverySection = document.getElementById('deviceDiscoverySection');
+
+          if (data.devices && data.devices.length > 0) {
+            deviceDiscoverySection.style.display = 'none';
+            const napDevices = data.devices.filter(d => d.has_nap);
+            if (napDevices.length > 0) {
+              summaryDiv.innerHTML = napDevices.map(d =>
+                `<div style="margin: 4px 0;">📱 ${d.name}<br><small style="color: #888;">${d.mac}</small></div>`
+              ).join('');
+            } else {
+              summaryDiv.innerHTML = `<span style="color: #f85149;">${data.devices.length} paired but no tethering support</span>`;
+              deviceDiscoverySection.style.display = 'block';
+            }
+          } else {
+            deviceDiscoverySection.style.display = 'block';
+            summaryDiv.innerHTML = '<span style="color: #8b949e;">No paired devices - scan to pair</span>';
+          }
+        } catch (error) {
+          document.getElementById('trustedDevicesSummary').innerHTML = '<span style="color: #f85149;">Error loading devices</span>';
+        }
+      }
+
+      async function testInternet() {
+        const testBtn = document.getElementById('testInternetBtn');
+        testBtn.disabled = true;
+        const response = await fetch('/plugins/bt-tether/test-internet');
+        const data = await response.json();
+        const msg = document.getElementById('testResultsMessage');
+        msg.innerHTML = `Ping: ${data.ping_success ? '✓' : '✗'} | DNS: ${data.dns_success ? '✓' : '✗'} | IP: ${data.bnep0_ip || 'None'}`;
+        testBtn.disabled = false;
+      }
+
+      async function disconnectDevice() {
+        const mac = macInput.value.trim();
+        if (!mac) return;
+        await fetch(`/plugins/bt-tether/disconnect?mac=${encodeURIComponent(mac)}`);
+        macInput.value = '';
+        setTimeout(checkConnectionStatus, 1000);
+      }
+
+      async function refreshLogs() {
+        try {
+          const response = await fetch('/plugins/bt-tether/logs');
+          const data = await response.json();
+          const logContent = document.getElementById('logContent');
+          if (data.logs && data.logs.length > 0) {
+            logContent.innerHTML = data.logs.map(log => {
+              let color = '#d4d4d4';
+              if (log.level === 'ERROR') color = '#f48771';
+              else if (log.level === 'WARNING') color = '#dcdcaa';
+              else if (log.level === 'INFO') color = '#4fc1ff';
+              return `<div><span style="color: #888;">${log.timestamp}</span> <span style="color: ${color};">[${log.level}]</span> ${log.message}</div>`;
+            }).join('');
+          }
+        } catch (error) {
+          console.error('Failed to fetch logs:', error);
+        }
+      }
+
+      function startLogPolling() {
+        if (logInterval) clearInterval(logInterval);
+        logInterval = setInterval(refreshLogs, 5000);
+      }
     </script>
-</body>
+  </body>
 </html>"""
+        return template
