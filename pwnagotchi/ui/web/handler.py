@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 import base64
 import threading  # FIX B5: replaced _thread with threading
 import secrets
@@ -238,10 +239,10 @@ class Handler:
             )
 
         if name == "upgrade" and request.method == "POST":
-            logging.info(f"Upgrading plugin: {request.form['plugin']}")
-            os.system(
-                f"pwnagotchi plugins update && pwnagotchi plugins upgrade {request.form['plugin']}"
-            )
+            plugin_name = request.form["plugin"]
+            logging.info(f"Upgrading plugin: {plugin_name}")
+            subprocess.run(["pwnagotchi", "plugins", "update"], check=False)
+            subprocess.run(["pwnagotchi", "plugins", "upgrade", plugin_name], check=False)
             return redirect("/plugins")
 
         if (
