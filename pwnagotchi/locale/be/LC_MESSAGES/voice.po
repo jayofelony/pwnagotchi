@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pwnagotchi Belarusian translation v 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: <https://github.com/andreifinski>\n"
 "Language-Team: \n"
@@ -39,8 +39,33 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "Дабранач."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
 msgstr "Генерацыя ключоў, не выключайце..."
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -62,6 +87,12 @@ msgstr "Хадзем пагуляем!"
 msgid "This is the best day of my life!"
 msgstr "Лепшы дзень у маім жыцці!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "Дзень проста гаўно :/"
 
@@ -73,6 +104,13 @@ msgstr "Мне вельмі сумна …"
 
 msgid "I'm sad"
 msgstr "Мне сумна"
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "Мне вельмі сумна …"
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "Пакінь мяне ў спакоі..."
@@ -91,6 +129,9 @@ msgstr "Так шмат сетак!!!"
 
 msgid "I'm having so much fun!"
 msgstr "Мне так весела!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "Маё злачынства - гэта цікаўнасць…"
@@ -142,6 +183,9 @@ msgstr "Ніхто не жадае са мной гуляць ..."
 msgid "I feel so alone ..."
 msgstr "Я такі самотны…"
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "Дзе ўсе?!"
 
@@ -152,6 +196,9 @@ msgstr "Драмлю {secs}с …"
 msgid "Zzzzz"
 msgstr "Хрррр..."
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr "ХррРрр.. ({secs}c)"
@@ -161,6 +208,9 @@ msgstr "Дабранач."
 
 msgid "Zzz"
 msgstr "Хрр"
+
+msgid "I dreamed of electric sheep"
+msgstr ""
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -183,12 +233,44 @@ msgid "Yo {what}!"
 msgstr "Ёў {what}!"
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "Проста вырашыў, што {mac} не патрэбен WiFi! Гы-гы :)"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "Дэаўтэнтыфікацыя {mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -205,8 +287,45 @@ msgstr "Крута, мы атрымалі {count} новы поціск рукі
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ой, нешта пайшло не так … Перазагружаюся …"
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
 msgstr ""
 
 #, python-brace-format

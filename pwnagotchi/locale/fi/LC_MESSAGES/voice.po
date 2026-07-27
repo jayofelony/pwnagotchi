@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: 2023-02-11 16:25+0200\n"
 "Last-Translator: Speed Weed <121556603+spd-wd@users.noreply.github.com>\n"
 "Language-Team: pwnagotchi <121556603+spd-wd@users.noreply.github.com>\n"
@@ -34,8 +34,33 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "Hyvää yötä."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
 msgstr "Luodaan avaimia, älä katkaise virtaa..."
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -57,6 +82,12 @@ msgstr "Mennään kävelylle!"
 msgid "This is the best day of my life!"
 msgstr "Paras päivä ikinä!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "Paska päivä :/"
 
@@ -68,6 +99,13 @@ msgstr "Harmittaa aika paljon..."
 
 msgid "I'm sad"
 msgstr "Nyt harmittaa"
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "Harmittaa aika paljon..."
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "Jätä mut rauhaan..."
@@ -86,6 +124,9 @@ msgstr "Niin monta verkkoa!!"
 
 msgid "I'm having so much fun!"
 msgstr "Nyt menee lujaa!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "Uteliaisuus on ainut rikkeeni..."
@@ -137,6 +178,9 @@ msgstr "Kukaan ei halua leikkiä mun kanssa..."
 msgid "I feel so alone ..."
 msgstr "Onpa yksinäinen olo..."
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "Missä kaikki on?!"
 
@@ -147,6 +191,9 @@ msgstr "{secs} sekunnin päikkärit..."
 msgid "Zzzzz"
 msgstr "zzzZz"
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr "zZzzZzz ({secs} sekuntia)"
@@ -156,6 +203,9 @@ msgstr "Hyvää yötä."
 
 msgid "Zzz"
 msgstr "zzZ"
+
+msgid "I dreamed of electric sheep"
+msgstr ""
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -178,12 +228,44 @@ msgid "Yo {what}!"
 msgstr "Moi, {what}!"
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "Päätin että {mac} ei muuten tarvi nettiä enää!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "Deautentisoidaan {mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -200,9 +282,46 @@ msgstr "Sulla on {count} uutta viestiä!"
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Hups, jokin meni vikaan... Käynnistetään uudelleen..."
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr "Lähetetään dataa kohteeseen {to}..."
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr "Lähetetään dataa kohteeseen {to}..."
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
+msgstr ""
 
 #, python-brace-format
 msgid "Downloading from {name} ..."

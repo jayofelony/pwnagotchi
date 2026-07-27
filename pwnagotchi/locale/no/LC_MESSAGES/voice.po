@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Edvard Botten <edvbot@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,8 +34,33 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "God natt."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
 msgstr "Generer nøkkler, ikke skru meg av ..."
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -57,6 +82,12 @@ msgstr "La oss stikke på tur!"
 msgid "This is the best day of my life!"
 msgstr "Dette er den beste dagen i mitt liv!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "Jævlig dag :/"
 
@@ -68,6 +99,13 @@ msgstr "Jeg er veldig trist ..."
 
 msgid "I'm sad"
 msgstr "Jeg er trist ..."
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "Jeg er veldig trist ..."
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "La meg være alene ..."
@@ -86,6 +124,9 @@ msgstr "Så mange nettverk!!!"
 
 msgid "I'm having so much fun!"
 msgstr "Jeg har det så gøy!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "Nysgjerrighet er min eneste forbrytelse ..."
@@ -137,6 +178,9 @@ msgstr "Ingen vil leke med meg ..."
 msgid "I feel so alone ..."
 msgstr "Jeg er så ensom ..."
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "Hvor er alle sammen?!"
 
@@ -147,6 +191,9 @@ msgstr "Sover i {secs}s ..."
 msgid "Zzzzz"
 msgstr ""
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr ""
@@ -155,6 +202,9 @@ msgid "Good night."
 msgstr "God natt."
 
 msgid "Zzz"
+msgstr ""
+
+msgid "I dreamed of electric sheep"
 msgstr ""
 
 #, python-brace-format
@@ -178,12 +228,44 @@ msgid "Yo {what}!"
 msgstr ""
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "Bestemte meg att {mac} ikke lenger trenger WiFi!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "Kobler av {mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -200,8 +282,45 @@ msgstr "Du har {count} melding{plural}!"
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oi, noe gikk helt skakk ... Rebooter ..."
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
 msgstr ""
 
 #, python-brace-format

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: 2019-10-21 10:55+0200\n"
 "Last-Translator: gkrs <457603+gkrs@users.noreply.github.com>\n"
 "Language-Team: PL <457603+gkrs@users.noreply.github.com>\n"
@@ -34,8 +34,33 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "Dobranoc."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
 msgstr "Generuję klucze, nie wyłączaj ..."
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -57,6 +82,12 @@ msgstr "Chodźmy na spacer!"
 msgid "This is the best day of my life!"
 msgstr "To najlepszy dzień mojego życia!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "Gówniany dzień :/"
 
@@ -68,6 +99,13 @@ msgstr "Jest mi bardzo smutno ..."
 
 msgid "I'm sad"
 msgstr "Jest mi smutno"
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "Jest mi bardzo smutno ..."
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "Zostaw mnie w spokoju ..."
@@ -86,6 +124,9 @@ msgstr "Jak dużo sieci!!!"
 
 msgid "I'm having so much fun!"
 msgstr "Ale jest super!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "Moją zbrodnią jest ciekawość ..."
@@ -137,6 +178,9 @@ msgstr "Nikt nie chce się ze mną bawić ..."
 msgid "I feel so alone ..."
 msgstr "Czuję się taki samotny ..."
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "Gdzie są wszyscy?!"
 
@@ -147,6 +191,9 @@ msgstr "Zdrzemnę się przez {secs}s ..."
 msgid "Zzzzz"
 msgstr ""
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr ""
@@ -155,6 +202,9 @@ msgid "Good night."
 msgstr "Dobranoc."
 
 msgid "Zzz"
+msgstr ""
+
+msgid "I dreamed of electric sheep"
 msgstr ""
 
 #, python-brace-format
@@ -178,12 +228,44 @@ msgid "Yo {what}!"
 msgstr "Siema {what}!"
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "Według mnie {mac} nie potrzebuje WiFi!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "Rozłączam {mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -200,9 +282,46 @@ msgstr "Masz {count} nowych wiadomości!"
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ups, coś poszło nie tak ... Restaruję ..."
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
 msgstr "Wysyłam dane do {to} ..."
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr "Wysyłam dane do {to} ..."
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
+msgstr ""
 
 #, python-brace-format
 msgid "Downloading from {name} ..."

@@ -125,7 +125,7 @@ class WpaSec(plugins.Plugin):
                             
                         except requests.exceptions.RequestException:
                             logging.exception("WPA_SEC: RequestException uploading %s, skipping until reload.", handshake)
-                            self.skip_until_reload.append(handshake)
+                            self.skip_until_reload.add(handshake)
                         except OSError:
                             logging.exception("WPA_SEC: OSError uploading %s, deleting from db.", handshake)
                             cursor.execute('DELETE FROM handshakes WHERE path = ?', (handshake,))

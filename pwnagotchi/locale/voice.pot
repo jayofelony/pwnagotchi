@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,7 +35,31 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+msgid "Good Pwning!"
+msgstr ""
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
+msgstr ""
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
 msgstr ""
 
 #, python-brace-format
@@ -58,6 +82,12 @@ msgstr ""
 msgid "This is the best day of my life!"
 msgstr ""
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr ""
 
@@ -68,6 +98,12 @@ msgid "I'm very sad ..."
 msgstr ""
 
 msgid "I'm sad"
+msgstr ""
+
+msgid "I'm so happy ..."
+msgstr ""
+
+msgid "Life? Don't talk to me about life."
 msgstr ""
 
 msgid "Leave me alone ..."
@@ -86,6 +122,9 @@ msgid "So many networks!!!"
 msgstr ""
 
 msgid "I'm having so much fun!"
+msgstr ""
+
+msgid "It's a Wi-Fi system! I know this!"
 msgstr ""
 
 msgid "My crime is that of curiosity ..."
@@ -138,6 +177,9 @@ msgstr ""
 msgid "I feel so alone ..."
 msgstr ""
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr ""
 
@@ -148,6 +190,9 @@ msgstr ""
 msgid "Zzzzz"
 msgstr ""
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr ""
@@ -156,6 +201,9 @@ msgid "Good night."
 msgstr ""
 
 msgid "Zzz"
+msgstr ""
+
+msgid "I dreamed of electric sheep"
 msgstr ""
 
 #, python-brace-format
@@ -179,11 +227,43 @@ msgid "Yo {what}!"
 msgstr ""
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr ""
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
 msgstr ""
 
 #, python-brace-format
@@ -201,8 +281,45 @@ msgstr ""
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr ""
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
 msgstr ""
 
 #, python-brace-format

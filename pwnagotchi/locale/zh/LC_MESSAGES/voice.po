@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: 2019-11-02 10:00+0008\n"
 "Last-Translator: 极客之眼-初九 <511225068@qq.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,8 +35,33 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "晚安宝贝."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
 msgstr "创建密钥中, 请勿断电..."
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -58,6 +83,12 @@ msgstr "主人带我出门走走吧!"
 msgid "This is the best day of my life!"
 msgstr "这是我生命中最美好的一天!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "今天不开心 :/"
 
@@ -69,6 +100,13 @@ msgstr "我很伤心..."
 
 msgid "I'm sad"
 msgstr "我伤心了"
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "我很伤心..."
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "我可能是天煞孤星..."
@@ -87,6 +125,9 @@ msgstr "哇，好多猎物!!!"
 
 msgid "I'm having so much fun!"
 msgstr "我玩的好开心!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "我最大的缺点就是好奇..."
@@ -138,6 +179,9 @@ msgstr "没有人愿意和我玩耍..."
 msgid "I feel so alone ..."
 msgstr "我可能是天煞孤星..."
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "朋友们都去哪里了?!"
 
@@ -148,6 +192,9 @@ msgstr "小憩{secs}s ..."
 msgid "Zzzzz"
 msgstr ""
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr ""
@@ -156,6 +203,9 @@ msgid "Good night."
 msgstr "晚安宝贝."
 
 msgid "Zzz"
+msgstr ""
+
+msgid "I dreamed of electric sheep"
 msgstr ""
 
 #, python-brace-format
@@ -179,12 +229,44 @@ msgid "Yo {what}!"
 msgstr "追踪到你了{what}!"
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "猎物{mac}不需要联网，我们给它断开!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "开始攻击猎物{mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -201,8 +283,45 @@ msgstr "主人，有{count}新消息{plural}!"
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "行动,额等等有点小问题... 重启ing ..."
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
 msgstr ""
 
 #, python-brace-format

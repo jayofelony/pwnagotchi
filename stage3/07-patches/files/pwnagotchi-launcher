@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+source /usr/bin/pwnlib
+
+# we need to decrypt something
+if is_crypted_mode; then
+  while ! is_decrypted; do
+    echo "Waiting for decryption..."
+    sleep 1
+  done
+fi
+
+if is_auto_mode; then
+  /opt/.pwn/bin/pwnagotchi
+  systemctl restart bettercap
+else
+  /opt/.pwn/bin/pwnagotchi --manual
+fi

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pwnagotchi Russian translation v 0.0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 20:46+0100\n"
+"POT-Creation-Date: 2026-03-27 10:42+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -40,8 +40,33 @@ msgstr ""
 msgid "Pretty fly 4 a Wi-Fi!"
 msgstr ""
 
+msgid "Sniff. Deauth. Repeat."
+msgstr ""
+
+#, fuzzy
+msgid "Good Pwning!"
+msgstr "Доброй ночи."
+
+msgid "Ensign, Engage!"
+msgstr ""
+
+msgid "Free your Wi-Fi!"
+msgstr ""
+
+msgid "Chevron Seven, locked."
+msgstr ""
+
+msgid "May the Wi-fi be with you"
+msgstr ""
+
 msgid "Generating keys, do not turn off ..."
 msgstr "Генерация ключей, не выключайте..."
+
+msgid "Are you the keymaster?"
+msgstr ""
+
+msgid "I am the keymaster!"
+msgstr ""
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -63,6 +88,12 @@ msgstr "Пойдем прогуляемся!"
 msgid "This is the best day of my life!"
 msgstr "Лучший день в моей жизни!"
 
+msgid "All your base are belong to us"
+msgstr ""
+
+msgid "Fascinating!"
+msgstr ""
+
 msgid "Shitty day :/"
 msgstr "Дерьмовый день :/"
 
@@ -74,6 +105,13 @@ msgstr "Мне очень грустно …"
 
 msgid "I'm sad"
 msgstr "Мне грустно"
+
+#, fuzzy
+msgid "I'm so happy ..."
+msgstr "Мне очень грустно …"
+
+msgid "Life? Don't talk to me about life."
+msgstr ""
 
 msgid "Leave me alone ..."
 msgstr "Оставь меня в покое..."
@@ -92,6 +130,9 @@ msgstr "Так много сетей!!!"
 
 msgid "I'm having so much fun!"
 msgstr "Мне так весело!"
+
+msgid "It's a Wi-Fi system! I know this!"
+msgstr ""
 
 msgid "My crime is that of curiosity ..."
 msgstr "Моё преступление - это любопытство…"
@@ -143,6 +184,9 @@ msgstr "Никто не хочет со мной играть ..."
 msgid "I feel so alone ..."
 msgstr "Я так одинок…"
 
+msgid "Let's find friends"
+msgstr ""
+
 msgid "Where's everybody?!"
 msgstr "Где все?!"
 
@@ -153,6 +197,9 @@ msgstr "Дремлет {secs}с …"
 msgid "Zzzzz"
 msgstr "Хррр..."
 
+msgid "Snoring ..."
+msgstr ""
+
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
 msgstr "Хррррр.. ({secs}c)"
@@ -162,6 +209,9 @@ msgstr "Доброй ночи."
 
 msgid "Zzz"
 msgstr "Хрррр"
+
+msgid "I dreamed of electric sheep"
+msgstr ""
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -184,12 +234,44 @@ msgid "Yo {what}!"
 msgstr "Йоy {what}!"
 
 #, python-brace-format
-msgid "Just decided that {mac} needs no WiFi!"
+msgid "Hello there, {what}"
+msgstr ""
+
+#, python-brace-format
+msgid "Mind if I join, {what}?"
+msgstr ""
+
+#, python-brace-format
+msgid "Rise and Shine Mr. {what}!"
+msgstr ""
+
+#, fuzzy, python-brace-format
+msgid "Just decided that {mac} needs no Wi-Fi!"
 msgstr "Просто решил, что {mac} не нужен WiFi! Кхе-кхе)"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
 msgstr "Деаутентификация {mac}"
+
+#, python-brace-format
+msgid "No more Wi-Fi for {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "It's a trap! {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Consider yourself unplugged, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "Hasta la vista, {mac}"
+msgstr ""
+
+#, python-brace-format
+msgid "You shall not pass, {mac}"
+msgstr ""
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -206,8 +288,45 @@ msgstr ""
 msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Ой, что-то пошло не так … Перезагружаюсь …"
 
+msgid "Well, this is awkward."
+msgstr ""
+
+msgid "Tell my packets I love them."
+msgstr ""
+
+msgid "Have you tried turning it off and on again?"
+msgstr ""
+
+msgid "I'm afraid Dave"
+msgstr ""
+
+msgid "I'm dead, Jim!"
+msgstr ""
+
+msgid "I have a bad feeling about this"
+msgstr ""
+
+msgid "You did this."
+msgstr ""
+
 #, python-brace-format
 msgid "Uploading data to {to} ..."
+msgstr ""
+
+#, python-brace-format
+msgid "Beam me up to {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Engage warp drive, {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Gift-wrapping data for {to}"
+msgstr ""
+
+#, python-brace-format
+msgid "Please wait, magic happening at {to}"
 msgstr ""
 
 #, python-brace-format
