@@ -16,6 +16,7 @@ from pwnagotchi.automata import Automata
 from pwnagotchi.log import LastSession
 from pwnagotchi.bettercap import Client
 from pwnagotchi.mesh.utils import AsyncAdvertiser
+from pwnagotchi.strategy import Strategy
 
 RECOVERY_DATA_FILE = '/root/.pwnagotchi-recovery'
 
@@ -39,6 +40,9 @@ class Agent(Client, Automata, AsyncAdvertiser):
         self._view = view
         self._view.set_agent(self)
         self._web_ui = Server(self, config['ui'])
+
+        # Initialize channel selection strategy (core infrastructure, not optional)
+        self._strategy = Strategy(config)
 
         self._access_points = []
         self._last_pwnd = None
@@ -166,6 +170,10 @@ class Agent(Client, Automata, AsyncAdvertiser):
     def set_access_points(self, aps):
         self._access_points = aps
         plugins.on('wifi_update', self, aps)
+        # Update strategy with latest access points
+        self._strategy.on_wifi_update(self, aps)
+        # Select next channels to scan based on strategy
+        next_channels = self._strategy.select_next_channels(self, aps)
         self._epoch.observe(aps, list(self._peers.values()))
         return self._access_points
 
@@ -369,6 +377,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
                         "!!! captured new handshake on channel %d, %d dBm: %s (%s) -> %s [%s (%s)] !!!",
                         ap['channel'], ap['rssi'], sta['mac'], sta['vendor'], ap['hostname'], ap['mac'], ap['vendor'])
                     plugins.on('handshake', self, filename, ap, sta)
+                    self._strategy.on_handshake(self, filename, ap, sta)
                 found_handshake = True
             self._update_handshakes(1 if found_handshake else 0)
 
@@ -441,6 +450,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 self._on_error(ap['mac'], e)
 
             plugins.on('association', self, ap)
+            self._strategy.on_association(self, ap)
             if throttle > 0:
                 time.sleep(throttle)
             self._view.on_normal()
@@ -466,6 +476,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 self._on_error(sta['mac'], e)
 
             plugins.on('deauthentication', self, ap, sta)
+            self._strategy.on_deauthentication(self, ap, sta)
             if throttle > 0:
                 time.sleep(throttle)
             self._view.on_normal()
