@@ -14,6 +14,7 @@ Configuration (config.toml):
 import logging
 import threading
 import json
+import time
 from collections import deque
 from pwnagotchi.plugins import Plugin
 from pwnagotchi.bluetooth import BluetoothService
@@ -25,7 +26,7 @@ from flask import render_template_string, request, jsonify
 
 class BtTether(Plugin):
     __author__ = "wsvdmeer (refactored)"
-    __version__ = "2.0.0"
+    __version__ = "2.0.1"
     __license__ = "GPL3"
     __description__ = "Bluetooth tethering with delegated core operations"
 
@@ -35,12 +36,15 @@ class BtTether(Plugin):
     def on_loaded(self):
         """Initialize plugin configuration and core Bluetooth service."""
         self.phone_mac = ""
+        self._phone_name = ""
         self._status = "IDLE"
-        self._message = "Ready"
+        self._message = "- -"
         self._ui_logs = deque(maxlen=100)
         self._ui_log_lock = threading.Lock()
         self._ui_reference = None
         self._screen_needs_refresh = False
+        self._connection_time = None
+        self._show_device_name = False
 
         # Configuration
         self.show_on_screen = self.options.get("show_on_screen", True)
@@ -123,19 +127,98 @@ class BtTether(Plugin):
             return
 
         try:
-            status = self.bt.ui_cache.get()
-            icon = self.bt.ui_renderer.get_status_icon(status)
-            detailed = self.bt.ui_renderer.format_status(status)
+            # Try to get status for stored phone_mac first, then check for any connected tethering device
+            cached_status = None
+            connected_device = None
+
+            if self.phone_mac:
+                cached_status = self.bt.connection.get_full_status(self.phone_mac)
+                # Try to get the device name if we have a MAC
+                if cached_status and not self._phone_name:
+                    trusted_devices = self.bt.connection.get_trusted_devices()
+                    for device in trusted_devices:
+                        if device.mac == self.phone_mac:
+                            self._phone_name = device.name
+                            connected_device = device
+                            break
+
+            # If no status for stored MAC, look for any connected device with NAP (tethering)
+            if not cached_status:
+                trusted_devices = self.bt.connection.get_trusted_devices()
+                for device in trusted_devices:
+                    if device.connected and device.has_nap:
+                        cached_status = self.bt.connection.get_full_status(device.mac)
+                        if cached_status:
+                            self.phone_mac = device.mac
+                            self._phone_name = device.name
+                            connected_device = device
+                            break
+
+            cached_status = cached_status or {}
+
+            # Update internal status if we detected a connected device
+            current_time = time.time()
+
+            if cached_status.get("connected", False):
+                if self._status != "CONNECTED":
+                    # Just connected - start timer
+                    self._status = "CONNECTED"
+                    self._connection_time = current_time
+
+                # Toggle between IP and device name every 5 seconds
+                if self._connection_time:
+                    elapsed = current_time - self._connection_time
+                    # Every 10 seconds: 0-5 show IP, 5-10 show device name, repeat
+                    cycle_position = elapsed % 10
+                    self._show_device_name = cycle_position >= 5
+
+                # Store device name if we have a connected device
+                if connected_device and connected_device.name:
+                    self._phone_name = connected_device.name
+
+                # Set message based on current cycle
+                if self._show_device_name:
+                    self._message = self._phone_name[:20] if self._phone_name else "Unknown"
+                else:
+                    ip_address = cached_status.get("ip_address", "")
+                    self._message = ip_address if ip_address else "- -"
+            else:
+                if self._status == "CONNECTED":
+                    self._status = "IDLE"
+                    self._connection_time = None
+                    self._show_device_name = False
+                self._message = "- -"
+
+            # Determine display character based on connection state
+            if cached_status.get("pan_active", False):
+                # Pan active - tethering is working
+                display = "C"
+            elif cached_status.get("connected", False) and cached_status.get("trusted", False):
+                # Connected and trusted
+                display = "T"
+            elif cached_status.get("connected", False):
+                # Just connected (not trusted)
+                display = "N"
+            elif cached_status.get("paired", False):
+                # Paired but not connected
+                display = "P"
+            else:
+                # No device or not paired
+                display = "X"
 
             if self.show_mini_status:
-                ui.set("bt-status", icon)
+                ui.set("bt-status", display)
+
             if self.show_detailed_status:
+                detailed = f"BT:{self._message}" if self._message else "BT:- -"
                 ui.set("bt-detail", detailed)
 
         except Exception as e:
             logging.debug(f"UI update error: {e}")
             if self.show_mini_status:
                 ui.set("bt-status", "?")
+            if self.show_detailed_status:
+                ui.set("bt-detail", "BT:Error")
 
     def on_webhook(self, path, request):
         """Handle webhook requests for web UI."""
@@ -230,32 +313,46 @@ class BtTether(Plugin):
         return jsonify({"success": result})
 
     def _scan_devices(self):
-        """Start device scan."""
-        self._scanned_devices = []
+        """Start device scan in background."""
         threading.Thread(target=self._scan_thread, daemon=True).start()
         return jsonify({"success": True})
 
     def _scan_thread(self):
         """Background thread for scanning."""
-        self._scanned_devices = self.bt.scan_devices(duration=30)
-        self._log("INFO", f"Scan complete: found {len(self._scanned_devices)} devices")
+        try:
+            self._log("INFO", "Starting Bluetooth device scan...")
+            self.bt.scan_devices(duration=30)
+            progress = self.bt.get_scan_progress()
+            self._log("INFO", f"Scan complete: found {len(progress['devices'])} devices")
+        except Exception as e:
+            self._log("ERROR", f"Scan failed: {e}")
 
     def _get_scan_progress(self):
-        """Get scan progress."""
+        """Get scan progress and discovered devices."""
+        progress = self.bt.get_scan_progress()
         return jsonify({
-            "scanning": False,
+            "scanning": progress["scanning"],
             "devices": [
                 {"mac": d.get("mac", ""), "name": d.get("name", "")}
-                for d in getattr(self, "_scanned_devices", [])
+                for d in progress["devices"]
             ]
         })
 
     def _get_status(self):
         """Get current plugin status."""
+        # Auto-detect connected device if phone_mac not set
+        current_mac = self.phone_mac
+        if not current_mac:
+            trusted_devices = self.bt.connection.get_trusted_devices()
+            for device in trusted_devices:
+                if device.connected and device.has_nap:
+                    current_mac = device.mac
+                    break
+
         return jsonify({
             "status": self._status,
             "message": self._message,
-            "mac": self.phone_mac,
+            "mac": current_mac,
             "initialized": self.bt.initialized,
             "scanning": False,
             "connection_in_progress": False,
@@ -265,24 +362,28 @@ class BtTether(Plugin):
         })
 
     def _get_connection_status(self, mac):
-        """Get connection status for a device."""
+        """Get full connection status for a device."""
         if not mac:
             return jsonify({"success": False})
 
-        status = self.bt.get_status(mac)
-        if not status:
-            return jsonify({"success": False})
+        try:
+            status = self.bt.connection.get_full_status(mac)
+            if not status:
+                return jsonify({"success": False})
 
-        return jsonify({
-            "success": True,
-            "paired": status.get("paired", False),
-            "trusted": status.get("trusted", False),
-            "connected": status.get("connected", False),
-            "pan_active": status.get("pan_active", False),
-            "interface": status.get("interface"),
-            "ip_address": status.get("ip_address"),
-            "default_route_interface": self.bt.network.get_default_route_interface(),
-        })
+            return jsonify({
+                "success": True,
+                "paired": status.get("paired", False),
+                "trusted": status.get("trusted", False),
+                "connected": status.get("connected", False),
+                "pan_active": status.get("pan_active", False),
+                "interface": status.get("interface"),
+                "ip_address": status.get("ip_address"),
+                "default_route_interface": self.bt.network.get_default_route_interface(),
+            })
+        except Exception as e:
+            self._log("ERROR", f"Failed to get connection status: {e}")
+            return jsonify({"success": False, "error": str(e)})
 
     def _test_internet(self):
         """Test internet connectivity."""
@@ -325,6 +426,7 @@ class BtTether(Plugin):
         self._log("INFO", f"Connected to {name}")
         self._status = "CONNECTED"
         self._message = f"Connected to {name}"
+        self._screen_needs_refresh = True
 
     def _on_connect_failed(self, data):
         """Handle failed connection event."""
@@ -333,6 +435,7 @@ class BtTether(Plugin):
         self._log("ERROR", f"Connection failed: {error}")
         self._status = "ERROR"
         self._message = f"Connection failed: {error}"
+        self._screen_needs_refresh = True
 
     def _on_disconnect_success(self, data):
         """Handle successful disconnection event."""
@@ -340,10 +443,11 @@ class BtTether(Plugin):
         self._log("INFO", f"Disconnected from {mac}")
         self._status = "IDLE"
         self._message = "Ready"
+        self._screen_needs_refresh = True
 
     def _get_html_template(self):
         """Get the original full-featured HTML template."""
-        # This template is extracted from the original bt-tether.py
+        # This template is extracted from the original bt-tether.py.disabled
         # It provides the full UI with device discovery, status monitoring, and internet testing
         template = """<!DOCTYPE html>
 <html>
@@ -448,6 +552,7 @@ class BtTether(Plugin):
         </button>
         <div id="scanResults" style="display: none;">
           <h5 style="margin: 0 0 8px 0; color: #8b949e;">Discovered Devices:</h5>
+          <div id="scanStatus" style="color: #8b949e; margin: 8px 0; font-size: 13px;">Scanning...</div>
           <div id="deviceList"></div>
         </div>
       </div>
@@ -468,71 +573,194 @@ class BtTether(Plugin):
       let statusInterval = null;
       let logInterval = null;
 
+      // Show initializing state first
+      setInitializingStatus();
+
+      // Load trusted devices on page load
       loadTrustedDevicesSummary();
+
+      // Then check actual connection status
       setTimeout(checkConnectionStatus, 1000);
+
+      // Start log polling immediately
       refreshLogs();
       startLogPolling();
 
+      function setInitializingStatus() {
+        document.getElementById("statusPaired").innerHTML =
+          `📱 Paired: <span style="color: #8b949e;">🔄 Initializing...</span>`;
+
+        document.getElementById("statusTrusted").innerHTML =
+          `🔐 Trusted: <span style="color: #8b949e;">🔄 Initializing...</span>`;
+
+        document.getElementById("statusConnected").innerHTML =
+          `🔵 Connected: <span style="color: #8b949e;">🔄 Initializing...</span>`;
+
+        document.getElementById("statusInternet").innerHTML =
+          `🌐 Internet: <span style="color: #8b949e;">🔄 Initializing...</span>`;
+
+        document.getElementById('statusIP').style.display = 'none';
+
+        const connectBtn = document.getElementById('quickConnectBtn');
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = '<span class="spinner"></span> Initializing...';
+      }
+
       async function checkConnectionStatus() {
-        const mac = macInput.value.trim();
+        let mac = macInput.value.trim();
+
+        // If no MAC in input, try to get it from backend status
         if (!mac || !/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(mac)) {
-          const connectBtn = document.getElementById('quickConnectBtn');
-          connectBtn.style.display = 'none';
-          return;
+          try {
+            const statusResponse = await fetch(`/plugins/bt-tether/status`);
+            const statusData = await statusResponse.json();
+
+            // If backend has a current MAC, use it
+            if (statusData.mac && /^([0-9A-F]{2}:){5}[0-9A-F]{2}$/i.test(statusData.mac)) {
+              mac = statusData.mac;
+              macInput.value = mac;
+            } else {
+              // No valid MAC - show disconnected state
+              document.getElementById("statusPaired").innerHTML =
+                `📱 Paired: <span style="color: #f48771;">✗ No</span>`;
+
+              document.getElementById("statusTrusted").innerHTML =
+                `🔐 Trusted: <span style="color: #f48771;">✗ No</span>`;
+
+              document.getElementById("statusConnected").innerHTML =
+                `🔵 Connected: <span style="color: #f48771;">✗ No</span>`;
+
+              document.getElementById("statusInternet").innerHTML =
+                `🌐 Internet: <span style="color: #f48771;">✗ Not Active</span>`;
+
+              const connectBtn = document.getElementById('quickConnectBtn');
+              connectBtn.style.display = 'none';
+              document.getElementById('disconnectSection').style.display = 'none';
+              return;
+            }
+          } catch (err) {
+            console.error('Failed to get backend status:', err);
+            // Still show buttons even if status fetch fails
+            const connectBtn = document.getElementById('quickConnectBtn');
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = '⚡ Connect to Phone';
+            return;
+          }
         }
 
         try {
+          // Fetch both backend status and connection status
+          const statusResponse = await fetch(`/plugins/bt-tether/status`);
+          const statusData = await statusResponse.json();
+
           const response = await fetch(`/plugins/bt-tether/connection-status?mac=${encodeURIComponent(mac)}`);
           const data = await response.json();
-          updateStatusDisplay(data);
+
+          updateStatusDisplay(statusData, data);
         } catch (error) {
           console.error('Status check failed:', error);
         }
       }
 
-      function updateStatusDisplay(data) {
-        document.getElementById("statusPaired").innerHTML =
-          `📱 Paired: <span style="color: ${data.paired ? '#4ec9b0' : '#f48771'};">${data.paired ? '✓ Yes' : '✗ No'}</span>`;
-        document.getElementById("statusTrusted").innerHTML =
-          `🔐 Trusted: <span style="color: ${data.trusted ? '#4ec9b0' : '#f48771'};">${data.trusted ? '✓ Yes' : '✗ No'}</span>`;
-        document.getElementById("statusConnected").innerHTML =
-          `🔵 Connected: <span style="color: ${data.connected ? '#4ec9b0' : '#f48771'};">${data.connected ? '✓ Yes' : '✗ No'}</span>`;
-        document.getElementById("statusInternet").innerHTML =
-          `🌐 Internet: <span style="color: ${data.pan_active ? '#4ec9b0' : '#f48771'};">${data.pan_active ? '✓ Active' : '✗ Not Active'}</span>`;
+      function updateStatusDisplay(statusData, data) {
+        try {
+          // Ensure data objects exist with defaults
+          statusData = statusData || {};
+          data = data || {};
 
-        const statusIPElement = document.getElementById('statusIP');
-        if (data.ip_address && data.pan_active) {
-          statusIPElement.style.display = 'block';
-          statusIPElement.innerHTML = `🔢 IP Address: <span style="color: #4ec9b0;">${data.ip_address}</span>`;
-        } else {
-          statusIPElement.style.display = 'none';
-        }
+          const paired = data.paired || false;
+          const trusted = data.trusted || false;
+          const connected = data.connected || false;
+          const pan_active = data.pan_active || false;
+          const ip_address = data.ip_address || null;
 
-        const testInternetCard = document.getElementById('testInternetCard');
-        if (data.pan_active) {
-          testInternetCard.style.display = 'block';
-        } else {
-          testInternetCard.style.display = 'none';
-        }
+          document.getElementById("statusPaired").innerHTML =
+            `📱 Paired: <span style="color: ${paired ? '#4ec9b0' : '#f48771'};">${paired ? '✓ Yes' : '✗ No'}</span>`;
+          document.getElementById("statusTrusted").innerHTML =
+            `🔐 Trusted: <span style="color: ${trusted ? '#4ec9b0' : '#f48771'};">${trusted ? '✓ Yes' : '✗ No'}</span>`;
+          document.getElementById("statusConnected").innerHTML =
+            `🔵 Connected: <span style="color: ${connected ? '#4ec9b0' : '#f48771'};">${connected ? '✓ Yes' : '✗ No'}</span>`;
+          document.getElementById("statusInternet").innerHTML =
+            `🌐 Internet: <span style="color: ${pan_active ? '#4ec9b0' : '#f48771'};">${pan_active ? '✓ Active' : '✗ Not Active'}</span>${data.interface ? ` <span style="color: #888;">(${data.interface})</span>` : ''}`;
 
-        const connectBtn = document.getElementById('quickConnectBtn');
-        const disconnectSection = document.getElementById('disconnectSection');
+          const statusIPElement = document.getElementById('statusIP');
+          if (ip_address && pan_active) {
+            statusIPElement.style.display = 'block';
+            statusIPElement.innerHTML = `🔢 IP Address: <span style="color: #4ec9b0;">${ip_address}</span>`;
+          } else {
+            statusIPElement.style.display = 'none';
+          }
 
-        if (data.connected) {
-          connectBtn.style.display = 'none';
-          disconnectSection.style.display = 'block';
-        } else if (data.paired) {
-          connectBtn.style.display = 'block';
-          disconnectSection.style.display = 'block';
-        } else {
-          connectBtn.style.display = 'block';
-          disconnectSection.style.display = 'none';
-        }
+          const testInternetCard = document.getElementById('testInternetCard');
+          if (pan_active) {
+            testInternetCard.style.display = 'block';
+          } else {
+            testInternetCard.style.display = 'none';
+          }
 
-        if (!statusInterval || statusInterval._interval !== 10000) {
-          if (statusInterval) clearInterval(statusInterval);
-          statusInterval = setInterval(checkConnectionStatus, 10000);
-          statusInterval._interval = 10000;
+          const connectBtn = document.getElementById('quickConnectBtn');
+          const disconnectSection = document.getElementById('disconnectSection');
+
+          // Check if operation is in progress
+          const operationInProgress = statusData.status === 'PAIRING' || statusData.status === 'CONNECTING' || statusData.status === 'RECONNECTING';
+
+          if (operationInProgress) {
+            // Show connecting state
+            connectBtn.disabled = true;
+            connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
+            connectBtn.style.display = 'block';
+            disconnectSection.style.display = 'none';
+          } else {
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = '⚡ Connect to Phone';
+
+            // Show/hide based on connection status
+            if (connected) {
+              connectBtn.style.display = 'none';
+              disconnectSection.style.display = 'block';
+            } else if (paired && trusted) {
+              connectBtn.style.display = 'block';
+              disconnectSection.style.display = 'block';
+            } else if (paired) {
+              connectBtn.style.display = 'none';
+              disconnectSection.style.display = 'block';
+            } else {
+              connectBtn.style.display = 'none';
+              disconnectSection.style.display = 'none';
+            }
+          }
+
+          // Manage polling based on connection state
+          if (operationInProgress) {
+            if (!statusInterval || statusInterval._interval !== 2000) {
+              if (statusInterval) clearInterval(statusInterval);
+              statusInterval = setInterval(checkConnectionStatus, 2000);
+              statusInterval._interval = 2000;
+            }
+          } else if (connected || paired) {
+            if (!statusInterval || statusInterval._interval !== 10000) {
+              if (statusInterval) clearInterval(statusInterval);
+              statusInterval = setInterval(checkConnectionStatus, 10000);
+              statusInterval._interval = 10000;
+            }
+          } else {
+            if (!statusInterval || statusInterval._interval !== 30000) {
+              if (statusInterval) clearInterval(statusInterval);
+              statusInterval = setInterval(checkConnectionStatus, 30000);
+              statusInterval._interval = 30000;
+            }
+          }
+
+          // Refresh trusted devices summary if connection state changed
+          if (!window.lastStatusUpdate ||
+              (window.lastStatusUpdate.connected !== (statusData.mac && connected))) {
+            loadTrustedDevicesSummary();
+            window.lastStatusUpdate = {
+              connected: statusData.mac && connected
+            };
+          }
+        } catch (error) {
+          console.error('Error updating status display:', error);
         }
       }
 
@@ -542,26 +770,101 @@ class BtTether(Plugin):
           alert("Enter valid MAC address");
           return;
         }
-        await fetch(`/plugins/bt-tether/connect?mac=${encodeURIComponent(mac)}`);
-        setTimeout(checkConnectionStatus, 1000);
+        try {
+          const response = await fetch(`/plugins/bt-tether/connect?mac=${encodeURIComponent(mac)}`);
+          const data = await response.json();
+          if (data.success) {
+            // Start fast polling to show connection progress
+            if (statusInterval) clearInterval(statusInterval);
+            statusInterval = setInterval(checkConnectionStatus, 2000);
+            statusInterval._interval = 2000;
+          }
+        } catch (error) {
+          console.error('Connection request failed:', error);
+        }
       }
 
       async function scanDevices() {
         const scanBtn = document.getElementById('scanBtn');
+        const scanResults = document.getElementById('scanResults');
+        const scanStatus = document.getElementById('scanStatus');
         const deviceList = document.getElementById('deviceList');
+
         scanBtn.disabled = true;
         scanBtn.innerHTML = '<span class="spinner"></span> Scanning...';
+        scanResults.style.display = 'block';
         deviceList.innerHTML = '';
-        await fetch('/plugins/bt-tether/scan');
-        await new Promise(r => setTimeout(r, 1000));
-        const response = await fetch('/plugins/bt-tether/scan-progress');
-        const data = await response.json();
-        deviceList.innerHTML = data.devices.map(d =>
-          `<div class="device-item"><div><b>${d.name}</b><br><small style="color: #888;">${d.mac}</small></div>
-           <button class="success" onclick="pairAndConnectDevice('${d.mac}', '${d.name}'); return false;">Pair</button></div>`
-        ).join('');
-        scanBtn.disabled = false;
-        scanBtn.innerHTML = '🔍 Scan';
+        scanStatus.innerHTML = '<span class="spinner"></span> Scanning for devices...';
+
+        try {
+          await fetch('/plugins/bt-tether/scan', { method: 'GET' });
+
+          // Poll /scan-progress every 1 second to show devices as they appear
+          let pollCount = 0;
+          const maxPolls = 30;
+          let lastDeviceCount = 0;
+          let scanProgressInterval = setInterval(async () => {
+            pollCount++;
+
+            try {
+              const progressResponse = await fetch('/plugins/bt-tether/scan-progress');
+              const progressData = await progressResponse.json();
+
+              if (progressData && progressData.devices) {
+                const deviceCount = progressData.devices.length;
+
+                // Update if device count changed or first poll
+                if (deviceCount > lastDeviceCount) {
+                  lastDeviceCount = deviceCount;
+                  deviceList.innerHTML = '';
+                  progressData.devices.forEach(device => {
+                    const div = document.createElement('div');
+                    div.className = 'device-item';
+                    div.innerHTML = `
+                      <div style="flex: 1; font-family: 'Courier New', monospace; font-size: 12px;">
+                        <b>${device.name}</b><br>
+                        <small style="color: #888;">${device.mac}</small>
+                      </div>
+                      <button onclick="pairAndConnectDevice('${device.mac}', '${device.name.replace(/'/g, "\\'")}'); return false;" class="success" style="margin: 0; padding: 6px 12px; font-size: 12px;">Pair</button>
+                    `;
+                    deviceList.appendChild(div);
+                  });
+                }
+
+                // Update status
+                if (progressData.scanning) {
+                  scanStatus.innerHTML = `<span class="spinner"></span> Found ${deviceCount} device(s)... still scanning`;
+                } else {
+                  clearInterval(scanProgressInterval);
+                  if (deviceCount > 0) {
+                    scanStatus.textContent = `Scan complete - Found ${deviceCount} device(s):`;
+                  } else {
+                    scanStatus.textContent = 'Scan complete - No devices found';
+                    deviceList.innerHTML = '';
+                  }
+                  scanBtn.disabled = false;
+                  scanBtn.innerHTML = '🔍 Scan';
+                }
+              }
+
+              if (pollCount >= maxPolls) {
+                clearInterval(scanProgressInterval);
+                if (lastDeviceCount === 0) {
+                  scanStatus.textContent = 'Scan timeout - No devices found';
+                }
+                scanBtn.disabled = false;
+                scanBtn.innerHTML = '🔍 Scan';
+              }
+            } catch (e) {
+              console.error('Scan progress poll error:', e);
+            }
+          }, 1000);
+        } catch (error) {
+          scanStatus.textContent = 'Scan failed: ' + error.message;
+          scanBtn.disabled = false;
+          scanBtn.innerHTML = '🔍 Scan';
+          console.error('Scan failed:', error);
+        }
       }
 
       async function pairAndConnectDevice(mac, name) {
@@ -578,15 +881,23 @@ class BtTether(Plugin):
           const deviceDiscoverySection = document.getElementById('deviceDiscoverySection');
 
           if (data.devices && data.devices.length > 0) {
-            deviceDiscoverySection.style.display = 'none';
             const napDevices = data.devices.filter(d => d.has_nap);
-            if (napDevices.length > 0) {
+            const connectedDevice = napDevices.find(d => d.connected);
+
+            // Hide device discovery section only if a device is actively connected
+            if (connectedDevice) {
+              deviceDiscoverySection.style.display = 'none';
+              summaryDiv.innerHTML = `<span style="color: #3fb950;">🔵 Connected to ${connectedDevice.name}</span><br><small style="color: #888;">${connectedDevice.mac}</small>`;
+            } else if (napDevices.length > 0) {
+              // Show device list and discovery section if not connected
+              deviceDiscoverySection.style.display = 'block';
               summaryDiv.innerHTML = napDevices.map(d =>
                 `<div style="margin: 4px 0;">📱 ${d.name}<br><small style="color: #888;">${d.mac}</small></div>`
               ).join('');
             } else {
-              summaryDiv.innerHTML = `<span style="color: #f85149;">${data.devices.length} paired but no tethering support</span>`;
+              // No tethering support
               deviceDiscoverySection.style.display = 'block';
+              summaryDiv.innerHTML = `<span style="color: #f85149;">${data.devices.length} paired but no tethering support</span>`;
             }
           } else {
             deviceDiscoverySection.style.display = 'block';

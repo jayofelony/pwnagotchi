@@ -3,6 +3,7 @@
 import logging
 import threading
 import time
+import subprocess
 from .device import BluetoothDevice
 from .connection import ConnectionManager
 from .network import NetworkManager
@@ -48,6 +49,11 @@ class BluetoothService:
         self._message = "Ready"
         self._initialized = False
         self._event_handlers = {}
+
+        # Scan state tracking
+        self._scanning = False
+        self._scan_devices = []
+        self._scan_start_time = None
 
     def start(self):
         """Initialize and start the Bluetooth service."""
@@ -122,26 +128,52 @@ class BluetoothService:
         return devices[0] if devices else None
 
     def scan_devices(self, duration=30):
-        """Scan for Bluetooth devices."""
+        """Scan for Bluetooth devices and track progress."""
         with self._lock:
             self._status = self.STATE_SCANNING
             self._message = f"Scanning for {duration}s..."
+            self._scanning = True
+            self._scan_devices = []
+            self._scan_start_time = time.time()
 
         try:
             devices = self.connection.scan(duration)
-            self._emit_event("bt:scan_complete", {"devices": devices})
+
+            # Merge final results with what we've collected
             with self._lock:
+                self._scan_devices = devices if devices else self.connection.get_scan_results()
+                self._scanning = False
                 self._status = self.STATE_IDLE
-            return devices
+
+            self._emit_event("bt:scan_complete", {"devices": self._scan_devices})
+            return self._scan_devices
         except Exception as e:
             self.logger.error(f"Scan failed: {e}")
             with self._lock:
+                self._scanning = False
                 self._status = self.STATE_ERROR
                 self._message = f"Scan failed: {e}"
             return []
 
+    def get_scan_progress(self):
+        """Get current scan progress and discovered devices."""
+        with self._lock:
+            # During active scan, also check connection's real-time results
+            scan_devices = self._scan_devices.copy()
+            if self._scanning:
+                # Merge with real-time results from connection
+                real_time_devices = self.connection.get_scan_results()
+                if real_time_devices:
+                    scan_devices = real_time_devices
+
+            return {
+                "scanning": self._scanning,
+                "devices": scan_devices,
+                "elapsed": time.time() - self._scan_start_time if self._scan_start_time else 0,
+            }
+
     def connect(self, mac, name=""):
-        """Initiate connection to a device."""
+        """Initiate full connection to a device with pairing, trusting, NAP, and PAN setup."""
         if not BluetoothDevice.validate_mac(mac):
             self.logger.error(f"Invalid MAC: {mac}")
             return False
@@ -152,44 +184,212 @@ class BluetoothService:
 
         def connect_thread():
             try:
-                # Pair if needed
+                self.logger.info(f"Starting connection to {name} ({mac})...")
+
+                # Check if Bluetooth is responsive
+                if not self.connection.is_responsive():
+                    self.logger.warning("Bluetooth not responsive, attempting restart...")
+                    self.connection.restart_if_needed()
+                    time.sleep(3)
+
+                # Make Pwnagotchi discoverable and pairable
+                self.logger.info("Making Pwnagotchi discoverable...")
+                with self._lock:
+                    self._message = f"Making Pwnagotchi discoverable for {name}..."
+                self.connection._run_cmd(["bluetoothctl", "discoverable", "on"], capture=True)
+                self.connection._run_cmd(["bluetoothctl", "pairable", "on"], capture=True)
+                time.sleep(2)
+
+                # Check current pairing status
+                with self._lock:
+                    self._message = f"Checking pairing status with {name}..."
+
                 status = self.connection.get_status(mac)
-                if not status or not status["paired"]:
-                    self.logger.info(f"Pairing with {mac}...")
+
+                # If device is not paired, pair first
+                if not status or not status.get("paired"):
+                    self.logger.info(f"Device not paired. Starting pairing process with {name}...")
                     with self._lock:
                         self._status = self.STATE_PAIRING
-                    self.connection.pair_interactive(mac, name)
-                    with self._lock:
-                        self._status = self.STATE_TRUSTING
-                    self.connection.trust_device(mac)
+                        self._message = f"Pairing with {name}..."
 
-                # Connect NAP
+                    time.sleep(0.5)
+
+                    # Attempt pairing
+                    if not self.connection.pair_interactive(mac, name):
+                        self.logger.error(f"Pairing with {name} failed!")
+                        with self._lock:
+                            self._status = self.STATE_ERROR
+                            self._message = f"Pairing with {name} failed. Did you accept the dialog?"
+                        self._emit_event("bt:connect_failed", {"mac": mac, "error": "Pairing failed"})
+                        return False
+
+                    self.logger.info(f"Pairing with {name} successful!")
+                else:
+                    self.logger.info(f"Device {name} already paired")
+                    with self._lock:
+                        self._message = f"Device {name} already paired ✓"
+
+                # Trust the device
+                self.logger.info(f"Trusting device {name}...")
+                with self._lock:
+                    self._status = self.STATE_TRUSTING
+                    self._message = f"Trusting {name}..."
+                time.sleep(0.5)
+                self.connection.trust_device(mac)
+
+                # Wait for NAP UUID to appear
+                NAP_UUID = "00001116"
+                NAP_WAIT_TIMEOUT = 15
+                self.logger.info(f"Waiting for {name} NAP service to be ready...")
+                with self._lock:
+                    self._message = f"Waiting for {name} to be ready..."
+
+                nap_ready = False
+                nap_wait_start = time.time()
+                while time.time() - nap_wait_start < NAP_WAIT_TIMEOUT:
+                    info = self.connection._run_cmd(
+                        ["bluetoothctl", "info", mac],
+                        capture=True,
+                        timeout=3,
+                    )
+                    if info and NAP_UUID in info:
+                        elapsed = time.time() - nap_wait_start
+                        self.logger.info(f"NAP service ready after {elapsed:.1f}s")
+                        nap_ready = True
+                        break
+                    time.sleep(1)
+
+                if not nap_ready:
+                    self.logger.warning(f"NAP UUID not seen after {NAP_WAIT_TIMEOUT}s - proceeding anyway")
+
+                # Connect to NAP profile
+                self.logger.info("Connecting to NAP profile...")
                 with self._lock:
                     self._status = self.STATE_CONNECTING
-                if self.connection.connect_nap(mac):
-                    time.sleep(self.network.SUBPROCESS_TIMEOUT_MEDIUM)
-                    if self.network.is_pan_active():
-                        with self._lock:
-                            self._status = self.STATE_CONNECTED
-                        self._emit_event("bt:connect_success", {"mac": mac, "name": name})
-                        return True
+                    self._message = "Connecting to NAP profile for internet..."
+                time.sleep(0.5)
 
+                # Try NAP connection with retries
+                nap_connected = False
+                for retry in range(3):
+                    if retry > 0:
+                        self.logger.info(f"Retrying NAP connection (attempt {retry + 1}/3)...")
+                        with self._lock:
+                            self._message = f"NAP retry {retry + 1}/3..."
+                        time.sleep(3)
+
+                    nap_connected = self.connection.connect_nap(mac)
+                    if nap_connected:
+                        break
+                    else:
+                        self.logger.warning(f"NAP attempt {retry + 1} failed")
+                        with self._lock:
+                            self._message = f"NAP attempt {retry + 1}/3 failed..."
+
+                if nap_connected:
+                    self.logger.info("NAP connection successful!")
+
+                    # Check if PAN interface is up
+                    time.sleep(2)
+                    iface = self.network.get_pan_interface()
+                    if iface:
+                        self.logger.info(f"✓ PAN interface active: {iface}")
+
+                        # Setup network with DHCP
+                        self.logger.info(f"Setting up {iface} for DHCP...")
+                        self.network.setup_dhcp(iface)
+
+                        # Wait for interface initialization
+                        self.logger.info("Waiting for interface initialization...")
+                        time.sleep(2)
+
+                        # Setup network with DHCP
+                        if self.network.setup_dhcp(iface):
+                            self.logger.info("✓ Network setup successful")
+                        else:
+                            self.logger.warning("Network setup may have failed, continuing...")
+
+                        # Wait a bit for network to stabilize
+                        time.sleep(2)
+
+                        # Verify internet connectivity
+                        self.logger.info("Checking internet connectivity...")
+                        with self._lock:
+                            self._message = "Verifying internet connection..."
+
+                        if self.network.check_internet_connectivity():
+                            self.logger.info("✓ Internet connectivity verified!")
+
+                            # Get current IP
+                            ip = self.network.get_current_ip()
+                            if ip:
+                                self.logger.info(f"Current IP address: {ip}")
+
+                            with self._lock:
+                                self._status = self.STATE_CONNECTED
+                                self._message = f"✓ Connected! Internet via {iface}"
+
+                            self._emit_event("bt:connect_success", {
+                                "mac": mac,
+                                "name": name,
+                                "ip": ip,
+                                "interface": iface,
+                            })
+                            return True
+                        else:
+                            self.logger.warning("No internet connectivity detected")
+                            # Still report as connected if we have an IP
+                            ip = self.network.get_current_ip()
+                            if ip:
+                                self.logger.info(f"Connected via {iface} but no internet access")
+                                with self._lock:
+                                    self._status = self.STATE_CONNECTED
+                                    self._message = f"Connected via {iface} but no internet access"
+
+                                self._emit_event("bt:connect_success", {
+                                    "mac": mac,
+                                    "name": name,
+                                    "ip": ip,
+                                    "interface": iface,
+                                })
+                                return True
+                    else:
+                        self.logger.warning("NAP connected but no interface detected")
+
+                # If we got here, connection partially succeeded or failed
                 with self._lock:
-                    self._status = self.STATE_ERROR
-                self._emit_event("bt:connect_failed", {"mac": mac, "error": "Failed to establish NAP"})
+                    self._status = self.STATE_CONNECTED
+                    self._message = "Bluetooth connected but tethering setup incomplete"
+                self._emit_event("bt:connect_failed", {
+                    "mac": mac,
+                    "error": "NAP/PAN setup incomplete - enable tethering on phone"
+                })
                 return False
 
             except Exception as e:
-                self.logger.error(f"Connection failed: {e}")
+                self.logger.error(f"Connection thread error: {e}")
                 with self._lock:
                     self._status = self.STATE_ERROR
-                    self._message = f"Connection failed: {e}"
+                    self._message = f"Connection error: {str(e)}"
                 self._emit_event("bt:connect_failed", {"mac": mac, "error": str(e)})
                 return False
 
         thread = threading.Thread(target=connect_thread, daemon=True)
         thread.start()
         return True
+
+    def _check_internet(self):
+        """Check internet connectivity via ping."""
+        try:
+            subprocess.run(
+                ["ping", "-c", "1", "8.8.8.8"],
+                capture_output=True,
+                timeout=5,
+            )
+            return True
+        except Exception:
+            return False
 
     def disconnect(self, mac):
         """Disconnect from a device."""

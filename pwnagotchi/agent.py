@@ -17,6 +17,7 @@ from pwnagotchi.log import LastSession
 from pwnagotchi.bettercap import Client
 from pwnagotchi.mesh.utils import AsyncAdvertiser
 from pwnagotchi.strategy import Strategy
+from pwnagotchi.cache import CacheManager
 
 RECOVERY_DATA_FILE = '/root/.pwnagotchi-recovery'
 
@@ -43,6 +44,9 @@ class Agent(Client, Automata, AsyncAdvertiser):
 
         # Initialize channel selection strategy (core infrastructure, not optional)
         self._strategy = Strategy(config)
+
+        # Initialize cache manager (core infrastructure, not optional)
+        self._cache = CacheManager(config)
 
         self._access_points = []
         self._last_pwnd = None
@@ -138,6 +142,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
         self.set_starting()
         self.start_monitor_mode()
         self.start_event_polling()
+        self.start_cache_cleanup()
         self.start_session_fetcher()
         # print initial stats
         self.next_epoch()
@@ -170,6 +175,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
     def set_access_points(self, aps):
         self._access_points = aps
         plugins.on('wifi_update', self, aps)
+        # Cache APs in core
+        self._cache.on_wifi_update(aps)
         # Update strategy with latest access points
         self._strategy.on_wifi_update(self, aps)
         # Select next channels to scan based on strategy
@@ -183,6 +190,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
         try:
             s = self.session()
             plugins.on("unfiltered_ap_list", self, s['wifi']['aps'])
+            # Cache unfiltered APs
+            self._cache.on_unfiltered_ap_list(s['wifi']['aps'])
             for ap in s['wifi']['aps']:
                 if ap['encryption'] == '' or ap['encryption'] == 'OPEN':
                     continue
@@ -377,6 +386,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
                         "!!! captured new handshake on channel %d, %d dBm: %s (%s) -> %s [%s (%s)] !!!",
                         ap['channel'], ap['rssi'], sta['mac'], sta['vendor'], ap['hostname'], ap['mac'], ap['vendor'])
                     plugins.on('handshake', self, filename, ap, sta)
+                    # Cache AP on handshake
+                    self._cache.on_handshake(filename, ap, sta)
                     self._strategy.on_handshake(self, filename, ap, sta)
                 found_handshake = True
             self._update_handshakes(1 if found_handshake else 0)
@@ -398,6 +409,19 @@ class Agent(Client, Automata, AsyncAdvertiser):
         # start a thread and pass in the mainloop
         #_thread.start_new_thread(self._event_poller, (asyncio.get_event_loop(),))
         threading.Thread(target=self._event_poller, args=(asyncio.get_event_loop(),), name="Event Polling", daemon=True).start()
+
+    def _cache_cleanup_loop(self):
+        """Periodic cache cleanup loop"""
+        while True:
+            try:
+                self._cache.periodic_cleanup()
+                time.sleep(30)
+            except Exception as e:
+                logging.debug(f"[agent] Cache cleanup error: {e}")
+
+    def start_cache_cleanup(self):
+        """Start periodic cache cleanup thread"""
+        threading.Thread(target=self._cache_cleanup_loop, name="Cache Cleanup", daemon=True).start()
 
     def is_module_running(self, module):
         s = self.session()
@@ -450,6 +474,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 self._on_error(ap['mac'], e)
 
             plugins.on('association', self, ap)
+            # Cache AP on association
+            self._cache.on_association(ap)
             self._strategy.on_association(self, ap)
             if throttle > 0:
                 time.sleep(throttle)
@@ -476,6 +502,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 self._on_error(sta['mac'], e)
 
             plugins.on('deauthentication', self, ap, sta)
+            # Cache AP on deauthentication
+            self._cache.on_deauthentication(ap, sta)
             self._strategy.on_deauthentication(self, ap, sta)
             if throttle > 0:
                 time.sleep(throttle)

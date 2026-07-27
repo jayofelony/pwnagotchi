@@ -40,6 +40,7 @@ class ConnectionManager:
         self._lock = threading.Lock()
         self.scan_mac_pattern = re.compile(r"([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})")
         self.scan_ansi_pattern = re.compile(r"(\x1b\[[0-9;]*m|\x08)")
+        self._scan_results = {}  # Track scan results in real-time
 
     def _strip_ansi_codes(self, text):
         """Remove ANSI escape codes from text."""
@@ -62,19 +63,23 @@ class ConnectionManager:
                     cmd, capture_output=True, text=True, timeout=timeout, env=env
                 )
                 output = result.stdout + result.stderr
+                if not output and result.returncode != 0:
+                    self.logger.warning(f"Command returned error code {result.returncode}: {' '.join(cmd)}")
                 return self._strip_ansi_codes(output)
             else:
-                subprocess.run(
+                result = subprocess.run(
                     cmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     timeout=timeout,
                     env=env,
                 )
+                if result.returncode != 0:
+                    self.logger.warning(f"Command returned error code {result.returncode}: {' '.join(cmd)}")
                 return None
         except subprocess.TimeoutExpired:
             self.logger.error(f"Command timeout ({timeout}s): {' '.join(cmd)}")
-            if cmd and cmd[0] == "bluetoothctl":
+            if cmd and len(cmd) > 0 and cmd[0] == "bluetoothctl":
                 try:
                     subprocess.run(
                         ["pkill", "-9", "bluetoothctl"],
@@ -93,7 +98,9 @@ class ConnectionManager:
     def is_responsive(self):
         """Check if Bluetooth service is responsive."""
         result = self._run_cmd(["bluetoothctl", "show"], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
-        return result is not None and result != "Timeout"
+        is_resp = result is not None and result != "Timeout"
+        self.logger.debug(f"Bluetooth responsive: {is_resp}, result preview: {repr(result[:100] if result else result)}")
+        return is_resp
 
     def restart_if_needed(self):
         """Restart Bluetooth service if it appears hung."""
@@ -116,56 +123,87 @@ class ConnectionManager:
     def get_status(self, mac):
         """Get basic connection status for a device."""
         if not BluetoothDevice.validate_mac(mac):
-            return None
+            return {
+                "paired": False,
+                "trusted": False,
+                "connected": False,
+            }
 
-        info = self._run_cmd(
-            ["bluetoothctl", "info", mac],
-            capture=True,
-            timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
-        )
-        if not info:
-            return None
+        try:
+            info = self._run_cmd(
+                ["bluetoothctl", "info", mac],
+                capture=True,
+                timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+            )
+            if not info:
+                return {
+                    "paired": False,
+                    "trusted": False,
+                    "connected": False,
+                }
 
-        status = {
-            "paired": "Paired: yes" in info,
-            "trusted": "Trusted: yes" in info,
-            "connected": "Connected: yes" in info,
-        }
-        return status
+            status = {
+                "paired": "Paired: yes" in info,
+                "trusted": "Trusted: yes" in info,
+                "connected": "Connected: yes" in info,
+            }
+            return status
+        except Exception as e:
+            self.logger.debug(f"Error getting status for {mac}: {e}")
+            return {
+                "paired": False,
+                "trusted": False,
+                "connected": False,
+            }
 
     def get_full_status(self, mac):
         """Get complete connection status including network details."""
-        status = self.get_status(mac)
-        if not status:
+        try:
+            status = self.get_status(mac)
+            if not status:
+                status = {
+                    "paired": False,
+                    "trusted": False,
+                    "connected": False,
+                }
+
+            status["pan_active"] = False
+            status["interface"] = None
+            status["ip_address"] = None
+
+            # Check if PAN interface is active
+            result = self._run_cmd(
+                ["ip", "link", "show"],
+                capture=True,
+                timeout=self.SUBPROCESS_TIMEOUT_MEDIUM,
+            )
+            if result and ("bnep" in result or "bt-pan" in result):
+                status["pan_active"] = True
+                match = re.search(r"(\d+):\s+(bnep\d+|bt-pan\d*)", result)
+                if match:
+                    iface = match.group(2)
+                    status["interface"] = iface
+                    ip_result = self._run_cmd(
+                        ["ip", "addr", "show", iface],
+                        capture=True,
+                        timeout=self.SUBPROCESS_TIMEOUT_MEDIUM,
+                    )
+                    if ip_result:
+                        ip_match = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", ip_result)
+                        if ip_match:
+                            status["ip_address"] = ip_match.group(1)
+
             return status
-
-        status["pan_active"] = False
-        status["interface"] = None
-        status["ip_address"] = None
-
-        # Check if PAN interface is active
-        result = self._run_cmd(
-            ["ip", "link", "show"],
-            capture=True,
-            timeout=self.SUBPROCESS_TIMEOUT_MEDIUM,
-        )
-        if result and ("bnep" in result or "bt-pan" in result):
-            status["pan_active"] = True
-            match = re.search(r"(\d+):\s+(bnep\d+|bt-pan\d*)", result)
-            if match:
-                iface = match.group(2)
-                status["interface"] = iface
-                ip_result = self._run_cmd(
-                    ["ip", "addr", "show", iface],
-                    capture=True,
-                    timeout=self.SUBPROCESS_TIMEOUT_MEDIUM,
-                )
-                if ip_result:
-                    ip_match = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", ip_result)
-                    if ip_match:
-                        status["ip_address"] = ip_match.group(1)
-
-        return status
+        except Exception as e:
+            self.logger.debug(f"Error getting full status for {mac}: {e}")
+            return {
+                "paired": False,
+                "trusted": False,
+                "connected": False,
+                "pan_active": False,
+                "interface": None,
+                "ip_address": None,
+            }
 
     def disconnect(self, mac):
         """Disconnect from a device."""
@@ -177,60 +215,338 @@ class ConnectionManager:
         self._run_cmd(["bluetoothctl", "remove", mac], timeout=self.SUBPROCESS_TIMEOUT_LONG)
         time.sleep(self.OPERATION_SHORT_DELAY)
 
-    def scan(self, duration=30):
-        """Scan for Bluetooth devices."""
+    def scan_old_broken(self, duration=30):
+        """Scan for Bluetooth devices using interactive bluetoothctl."""
         self.logger.info(f"Starting Bluetooth scan ({duration}s)...")
-        devices = []
+
+        # Clear previous scan results
+        with self._lock:
+            self._scan_results = {}
+
+        import select
+        import subprocess as sp
+        import os
 
         try:
-            self._run_cmd(["bluetoothctl", "scan", "on"], timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
-            time.sleep(duration)
-            self._run_cmd(["bluetoothctl", "scan", "off"], timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+            # Ensure Bluetooth is powered on first
+            self.logger.debug("Powering on Bluetooth...")
+            self._run_cmd(["bluetoothctl", "power", "on"], timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+            time.sleep(0.5)
 
+            # Pre-load all currently known devices (paired, trusted, or cached)
+            self.logger.debug("Pre-loading known devices...")
+
+            # Try with sudo first for system dbus access
             result = self._run_cmd(
-                ["bluetoothctl", "devices"],
+                ["sudo", "bluetoothctl", "devices"],
                 capture=True,
                 timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
             )
-            if result:
-                for line in result.split("\n"):
-                    if "Device" in line:
-                        parts = line.split()
-                        if len(parts) >= 3:
-                            mac = parts[1]
-                            name = " ".join(parts[2:])
-                            devices.append({"mac": mac, "name": name})
+
+            if not result or result == "Timeout":
+                self.logger.debug("Sudo bluetoothctl failed, trying direct bluetoothctl...")
+                result = self._run_cmd(
+                    ["bluetoothctl", "devices"],
+                    capture=True,
+                    timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+                )
+
+            # If bluetoothctl failed, try dbus directly
+            if not result or result == "Timeout":
+                self.logger.debug("Bluetoothctl failed, trying dbus...")
+                dbus_devices = self._get_devices_via_dbus()
+                with self._lock:
+                    self._scan_results = dbus_devices
+                self.logger.info(f"Pre-loaded {len(self._scan_results)} known devices via dbus")
+            else:
+                self.logger.debug(f"bluetoothctl devices output: {repr(result)}")
+                if result:
+                    with self._lock:
+                        for line in result.split("\n"):
+                            line = line.strip()
+                            if line and line.startswith("Device"):
+                                parts = line.split(None, 2)
+                                if len(parts) >= 3:
+                                    mac = parts[1]
+                                    name = parts[2]
+                                    self._scan_results[mac] = {"mac": mac, "name": name}
+                                    self.logger.info(f"Pre-loaded: {name} ({mac})")
+                self.logger.info(f"Pre-loaded {len(self._scan_results)} known devices")
+
+            # Start interactive bluetoothctl process to read [NEW] Device events
+            env = dict(os.environ)
+            env["NO_COLOR"] = "1"
+            env["TERM"] = "dumb"
+
+            # Try with sudo first for dbus access
+            self.logger.debug("Starting bluetoothctl with sudo...")
+            try:
+                scan_process = sp.Popen(
+                    ["sudo", "bluetoothctl"],
+                    stdin=sp.PIPE,
+                    stdout=sp.PIPE,
+                    stderr=sp.PIPE,
+                    text=True,
+                    bufsize=1,
+                    env=env,
+                )
+            except Exception as e:
+                self.logger.debug(f"Sudo bluetoothctl failed: {e}, trying direct...")
+                scan_process = sp.Popen(
+                    ["bluetoothctl"],
+                    stdin=sp.PIPE,
+                    stdout=sp.PIPE,
+                    stderr=sp.PIPE,
+                    text=True,
+                    bufsize=1,
+                    env=env,
+                )
+
+            # Send scan on command
+            scan_process.stdin.write("scan on\n")
+            scan_process.stdin.flush()
+            self.logger.debug("Scan started, reading discovery events...")
+
+            # Read [NEW] Device events in real-time for the duration
+            scan_end_time = time.time() + duration
+            lines_read = 0
+
+            try:
+                while time.time() < scan_end_time:
+                    try:
+                        # Use select to read available output with 0.5s timeout
+                        ready = select.select([scan_process.stdout], [], [], 0.5)
+                        if ready[0]:
+                            line = scan_process.stdout.readline()
+                            if not line:
+                                break
+                            line = line.strip()
+                            lines_read += 1
+
+                            # Parse "[NEW] Device MAC Name" format
+                            if "[NEW]" in line and "Device" in line:
+                                # Extract MAC and name from line like: [NEW] Device AB:CD:EF:12:34:56 Phone Name
+                                parts = line.split()
+                                mac_idx = None
+                                for i, part in enumerate(parts):
+                                    if ":" in part and len(part) == 17:  # Valid MAC format
+                                        mac_idx = i
+                                        break
+
+                                if mac_idx is not None:
+                                    mac = parts[mac_idx]
+                                    name = " ".join(parts[mac_idx + 1:]) if mac_idx + 1 < len(parts) else "(unnamed)"
+                                    with self._lock:
+                                        self._scan_results[mac] = {"mac": mac, "name": name}
+                                    self.logger.info(f"[NEW] {name} ({mac})")
+
+                    except select.error:
+                        pass
+                    except Exception as e:
+                        self.logger.debug(f"Error parsing line: {e}")
+            finally:
+                # Stop scan
+                self.logger.debug("Stopping scan...")
+                try:
+                    self._run_cmd(["bluetoothctl", "scan", "off"], timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+                except Exception:
+                    pass
+                time.sleep(0.5)
+
+                # Send quit to bluetoothctl
+                try:
+                    scan_process.stdin.write("quit\n")
+                    scan_process.stdin.flush()
+                    scan_process.wait(timeout=self.SUBPROCESS_TIMEOUT_MEDIUM)
+                except Exception as e:
+                    self.logger.debug(f"Error closing bluetoothctl: {e}")
+                    try:
+                        scan_process.terminate()
+                        scan_process.wait(timeout=1)
+                    except Exception:
+                        pass
 
         except Exception as e:
             self.logger.error(f"Scan failed: {e}")
 
-        return devices
+        with self._lock:
+            device_count = len(self._scan_results)
+            self.logger.info(f"Scan complete: found {device_count} total devices")
+            return list(self._scan_results.values())
+
+    def get_scan_results(self):
+        """Get current scan results (for real-time progress during scan)."""
+        with self._lock:
+            return list(self._scan_results.values())
 
     def connect_nap(self, mac):
-        """Connect to device's NAP (Network Access Point) profile."""
+        """Connect to device's NAP (Network Access Point) profile via DBus."""
         try:
+            import dbus
+            from dbus.exceptions import DBusException
+
             self.logger.info(f"Connecting to NAP profile for {mac}...")
-            result = self._run_cmd(
-                ["bluetoothctl", "connect", mac],
-                capture=True,
-                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+            bus = dbus.SystemBus()
+            manager = dbus.Interface(
+                bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager"
             )
-            if result and "successful" in result.lower():
+
+            # Find the device object path
+            self.logger.info("Searching for device in BlueZ...")
+            objects = manager.GetManagedObjects()
+            device_path = None
+            for path, interfaces in objects.items():
+                if "org.bluez.Device1" in interfaces:
+                    props = interfaces["org.bluez.Device1"]
+                    device_mac = props.get("Address", "").upper()
+                    if device_mac == mac.upper():
+                        device_path = path
+                        self.logger.info(f"Found device at path: {device_path}")
+                        break
+
+            if not device_path:
+                self.logger.error(f"Device {mac} not found in BlueZ managed objects")
+                return False
+
+            # Connect to NAP service UUID
+            NAP_UUID = "00001116-0000-1000-8000-00805f9b34fb"
+            self.logger.info(f"Connecting to NAP profile (UUID: {NAP_UUID})...")
+            device = dbus.Interface(
+                bus.get_object("org.bluez", device_path), "org.bluez.Device1"
+            )
+
+            try:
+                device.ConnectProfile(NAP_UUID, timeout=30)
+                self.logger.info("✓ NAP profile connected successfully via DBus")
                 return True
+            except DBusException as dbus_err:
+                error_msg = str(dbus_err)
+                self.logger.error(f"DBus NAP connection failed: {dbus_err}")
+
+                # Check for authentication/pairing errors
+                if (
+                    "Authentication Rejected" in error_msg
+                    or "Connection refused" in error_msg
+                ):
+                    self.logger.warning(
+                        "Device may have been unpaired from phone - removing stale pairing"
+                    )
+                    try:
+                        self._run_cmd(["bluetoothctl", "remove", mac], timeout=5)
+                        self.logger.info("Removed stale pairing")
+                    except Exception as e:
+                        self.logger.debug(f"Failed to remove pairing: {e}")
+                elif (
+                    "br-connection-page-timeout" in error_msg
+                    or "br-connection-unknown" in error_msg
+                    or "Host is down" in error_msg
+                ):
+                    self.logger.warning(
+                        "Phone not reachable (out of range or BT off) - will retry later"
+                    )
+
+                # Provide helpful error messages
+                if (
+                    "br-connection-create-socket" in error_msg
+                    or "br-connection-profile-unavailable" in error_msg
+                ):
+                    self.logger.error(
+                        "⚠️  Bluetooth tethering is NOT enabled on your phone!"
+                    )
+                    self.logger.error(
+                        "Enable 'Bluetooth tethering' in phone Settings → Network & internet → Hotspot & tethering"
+                    )
+                elif "NoReply" in error_msg or "Did not receive a reply" in error_msg:
+                    self.logger.error(
+                        "⚠️  Phone's Bluetooth is not responding to connection requests"
+                    )
+                elif "br-connection-busy" in error_msg or "InProgress" in error_msg:
+                    self.logger.error(
+                        "⚠️  Bluetooth connection is busy, wait a moment and try again"
+                    )
+
+                return False
+
+        except ImportError:
+            self.logger.error("python3-dbus not installed - run: sudo apt-get install -y python3-dbus")
             return False
         except Exception as e:
-            self.logger.error(f"NAP connection failed: {e}")
+            self.logger.error(f"NAP connection error: {type(e).__name__}: {e}")
             return False
 
     def pair_interactive(self, mac, name=""):
-        """Pair with a device interactively."""
+        """Pair with device - persistent agent will handle the dialog."""
         try:
-            self.logger.info(f"Starting pair for {mac} ({name})...")
-            self._run_cmd(["bluetoothctl", "pair", mac], timeout=self.PAIRING_PASSKEY_TIMEOUT)
+            self.logger.info(f"Starting pairing with {mac}...")
+
+            # First ensure Bluetooth is powered on and in pairable mode
+            self._run_cmd(["bluetoothctl", "power", "on"], capture=True)
             time.sleep(self.DEVICE_OPERATION_DELAY)
-            return True
+            self._run_cmd(["bluetoothctl", "pairable", "on"], capture=True)
+            self._run_cmd(["bluetoothctl", "discoverable", "on"], capture=True)
+            time.sleep(self.DEVICE_OPERATION_DELAY)
+
+            # Initiate pairing
+            self.logger.info(f"Running: bluetoothctl pair {mac}")
+            try:
+                env = dict(os.environ)
+                env["NO_COLOR"] = "1"
+                env["TERM"] = "dumb"
+
+                process = subprocess.Popen(
+                    ["bluetoothctl", "pair", mac],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    env=env,
+                    bufsize=1,
+                )
+
+                output = ""
+                start_time = time.time()
+                timeout = self.PAIRING_PASSKEY_TIMEOUT
+
+                # Read output with timeout
+                while time.time() - start_time < timeout:
+                    try:
+                        line = process.stdout.readline()
+                        if not line:
+                            break
+                        output += line
+                        if "Pairing successful" in line or "Paired: yes" in line:
+                            self.logger.info(f"Pairing successful for {mac}")
+                            return True
+                    except Exception as e:
+                        self.logger.debug(f"Error reading pairing output: {e}")
+                        break
+
+                # Check final status
+                process.wait(timeout=5)
+                if "Pairing successful" in output or "Paired: yes" in output:
+                    self.logger.info(f"Pairing successful for {mac}")
+                    return True
+                else:
+                    self.logger.warning(f"Pairing unclear - output: {output[:200]}")
+                    # Even if output is unclear, the pairing may have succeeded
+                    # Check pair status to confirm
+                    time.sleep(1)
+                    status = self.get_status(mac)
+                    if status and status.get("paired"):
+                        self.logger.info(f"Pairing confirmed for {mac}")
+                        return True
+
+                self.logger.error(f"Pairing failed for {mac}")
+                return False
+
+            except subprocess.TimeoutExpired:
+                self.logger.error(f"Pairing timed out for {mac}")
+                return False
+            except Exception as e:
+                self.logger.error(f"Pairing error: {e}")
+                return False
+
         except Exception as e:
-            self.logger.error(f"Pairing failed: {e}")
+            self.logger.error(f"Pair setup error: {e}")
             return False
 
     def trust_device(self, mac):
@@ -238,8 +554,188 @@ class ConnectionManager:
         self._run_cmd(["bluetoothctl", "trust", mac], timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
         time.sleep(self.DEVICE_OPERATION_DELAY)
 
+    def scan(self, duration=30):
+        """Scan for Bluetooth devices using interactive bluetoothctl session - working implementation from backup."""
+        try:
+            self.logger.info("[bt-tether] Starting device scan...")
+            self._scan_results = {}
+            discovered_devices = {}
+            device_types = {}
+
+            # Pre-populate with cached paired devices
+            self.logger.debug("Loading existing paired devices...")
+            try:
+                paired_output = self._run_cmd(
+                    ["bluetoothctl", "devices", "Paired"],
+                    capture=True,
+                    timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                )
+                if paired_output and paired_output != "Timeout":
+                    for line in paired_output.split("\n"):
+                        if line.strip() and line.startswith("Device"):
+                            parts = line.strip().split(" ", 2)
+                            if len(parts) >= 3:
+                                mac = parts[1].upper()
+                                name = parts[2]
+                                if mac not in discovered_devices:
+                                    discovered_devices[mac] = name
+                                    device_types[mac] = "PAIRED"
+                                    self.logger.debug(f"Pre-loaded paired device: {name} ({mac})")
+            except Exception as e:
+                self.logger.debug(f"Error pre-loading paired devices: {e}")
+
+            # Update _scan_results with cached devices
+            with self._lock:
+                for mac in discovered_devices:
+                    self._scan_results[mac] = {
+                        "mac": mac,
+                        "name": discovered_devices[mac]
+                    }
+
+            lines_read = 0
+            try:
+                # Ensure Bluetooth is powered on
+                self.logger.debug("Ensuring Bluetooth is powered on...")
+                self._run_cmd(
+                    ["bluetoothctl", "power", "on"],
+                    timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                )
+                time.sleep(self.OPERATION_SHORT_DELAY)
+
+                self.logger.debug("Starting bluetoothctl in interactive mode...")
+                scan_start = time.time()
+                scan_process = None
+                try:
+                    env = dict(os.environ)
+                    env["TERM"] = "dumb"
+                    scan_process = subprocess.Popen(
+                        ["bluetoothctl"],
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        bufsize=1,
+                        env=env,
+                    )
+                    # Send scan on command to start scanning
+                    scan_process.stdin.write("scan on\n")
+                    scan_process.stdin.flush()
+                except Exception as e:
+                    self.logger.error(f"Failed to start scan: {e}")
+                    scan_process = None
+
+                if scan_process:
+                    self.logger.debug(f"Scanning for {duration} seconds...")
+                    self.logger.debug(f"Process started, PID: {scan_process.pid}")
+                    scan_end_time = time.time() + duration
+                    try:
+                        while time.time() < scan_end_time:
+                            try:
+                                import select
+                                ready = select.select(
+                                    [scan_process.stdout], [], [], 0.5
+                                )
+                                if ready[0]:
+                                    line = scan_process.stdout.readline()
+                                    if not line:
+                                        break
+                                    line = line.strip()
+                                    if not line:
+                                        continue
+                                    lines_read += 1
+                                    # Strip ANSI codes for pattern matching
+                                    clean_line = self.scan_ansi_pattern.sub("", line)
+                                    # Parse discovery events: "[NEW] Device MAC Name"
+                                    if "[NEW]" in clean_line and "Device" in clean_line:
+                                        mac_match = self.scan_mac_pattern.search(clean_line)
+                                        if mac_match:
+                                            mac = mac_match.group(1).upper()
+                                            remainder = clean_line[mac_match.end():].strip()
+                                            name = remainder if remainder else "(unnamed)"
+                                            if mac not in discovered_devices:
+                                                discovered_devices[mac] = name
+                                                device_types[mac] = "NEW"
+                                                self.logger.info(f"[NEW] {name} ({mac})")
+                                                # Update real-time list
+                                                with self._lock:
+                                                    self._scan_results[mac] = {
+                                                        "mac": mac,
+                                                        "name": name
+                                                    }
+                            except select.error:
+                                pass
+                    finally:
+                        # Stop scan and close bluetoothctl
+                        self.logger.debug("Stopping scan...")
+                        try:
+                            try:
+                                self._run_cmd(
+                                    ["bluetoothctl", "scan", "off"],
+                                    timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+                                )
+                            except Exception:
+                                pass
+                            time.sleep(self.SCAN_STOP_DELAY)
+                            scan_process.stdin.write("quit\n")
+                            scan_process.stdin.flush()
+                            try:
+                                scan_process.wait(timeout=self.SUBPROCESS_TIMEOUT_MEDIUM)
+                                self.logger.info("Bluetoothctl process exited cleanly")
+                            except subprocess.TimeoutExpired:
+                                self.logger.info("Force killing bluetoothctl after timeout")
+                                scan_process.kill()
+                                scan_process.wait(timeout=self.SUBPROCESS_TIMEOUT_SHORT)
+                        except Exception as e:
+                            self.logger.debug(f"Error stopping scan: {e}")
+                            try:
+                                scan_process.kill()
+                            except Exception:
+                                pass
+
+                    elapsed = time.time() - scan_start
+                    self.logger.info(
+                        f"Scan completed in {elapsed:.1f}s, found {len(discovered_devices)} device(s)"
+                    )
+            except Exception as e:
+                self.logger.error(f"Error during scan: {e}")
+
+            # Pick up any devices that were paired during the scan
+            self.logger.debug("Checking for any newly paired devices...")
+            try:
+                paired_output = self._run_cmd(
+                    ["bluetoothctl", "devices", "Paired"],
+                    capture=True,
+                    timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                )
+                if paired_output and paired_output != "Timeout":
+                    for line in paired_output.split("\n"):
+                        if line.strip() and line.startswith("Device"):
+                            parts = line.strip().split(" ", 2)
+                            if len(parts) >= 3:
+                                mac = parts[1].upper()
+                                name = parts[2]
+                                if mac not in discovered_devices:
+                                    discovered_devices[mac] = name
+                                    device_types[mac] = "PAIRED"
+                                    with self._lock:
+                                        self._scan_results[mac] = {
+                                            "mac": mac,
+                                            "name": name
+                                        }
+                                    self.logger.info(f"Found device paired during scan: {name} ({mac})")
+            except Exception as e:
+                self.logger.debug(f"Error checking for newly paired devices: {e}")
+
+        except Exception as e:
+            self.logger.error(f"Scan error: {e}")
+
+        with self._lock:
+            result = list(self._scan_results.values())
+            self.logger.info(f"Scan complete: {len(result)} devices total")
+            return result
+
     def get_trusted_devices(self):
-        """Get list of trusted Bluetooth devices."""
+        """Get list of trusted Bluetooth devices with NAP support info."""
         devices = []
         result = self._run_cmd(
             ["bluetoothctl", "devices"],
@@ -257,6 +753,28 @@ class ConnectionManager:
                     name = " ".join(parts[2:])
                     status = self.get_status(mac)
                     if status and status.get("trusted"):
-                        devices.append(BluetoothDevice(mac, name, paired=status["paired"], trusted=True, connected=status["connected"]))
+                        # Check if device supports NAP
+                        has_nap = self._check_nap_support(mac)
+                        devices.append(BluetoothDevice(
+                            mac, name,
+                            paired=status["paired"],
+                            trusted=True,
+                            connected=status["connected"],
+                            has_nap=has_nap
+                        ))
 
         return devices
+
+    def _check_nap_support(self, mac):
+        """Check if device supports NAP (Network Access Point) for tethering."""
+        try:
+            info = self._run_cmd(
+                ["bluetoothctl", "info", mac],
+                capture=True,
+                timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+            )
+            if info and BluetoothDevice.NAP_UUID in info:
+                return True
+        except Exception as e:
+            self.logger.debug(f"Error checking NAP support for {mac}: {e}")
+        return False

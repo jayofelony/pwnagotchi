@@ -2,7 +2,7 @@
 <project version="4">
   <component name="SshConfigs">
     <configs>
-      <sshConfig authType="PASSWORD" connectionConfig="{&quot;hostKeyVerifier&quot;:{&quot;hashKnownHosts&quot;:true},&quot;serverAliveInterval&quot;:300}" host="pwnagotchi.local" id="8b69df7d-cec5-421f-8edf-53ed6233f6b6" port="22" customName="pwnagotchi" nameFormat="CUSTOM" username="pi" useOpenSSHConfig="true">
+      <sshConfig authType="PASSWORD" connectionConfig="{&quot;hostKeyVerifier&quot;:{&quot;hashKnownHosts&quot;:true,&quot;stringHostKeyChecking&quot;:&quot;ASK&quot;},&quot;serverAliveInterval&quot;:300}" host="10.12.194.1" id="8b69df7d-cec5-421f-8edf-53ed6233f6b6" port="22" customName="pwnagotchi" nameFormat="CUSTOM" username="pi" useOpenSSHConfig="true">
         <option name="customName" value="pwnagotchi" />
       </sshConfig>
     </configs>

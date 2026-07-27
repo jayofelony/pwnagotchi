@@ -5,6 +5,9 @@ import logging
 class BluetoothDevice:
     """Represents a Bluetooth device with connection state."""
 
+    # Bluetooth NAP profile UUID
+    NAP_UUID = "00001116-0000-1000-8000-00805f9b34fb"
+
     def __init__(self, mac, name, paired=False, trusted=False, connected=False, has_nap=False):
         self.mac = mac
         self.name = name
@@ -38,5 +41,7 @@ class BluetoothDevice:
         paired = info_dict.get("Paired", "no").lower() == "yes"
         trusted = info_dict.get("Trusted", "no").lower() == "yes"
         connected = info_dict.get("Connected", "no").lower() == "yes"
-        has_nap = "PNP" in info_dict.get("UUID", "") or info_dict.get("Has_NAP", False)
+        # Check if device supports NAP (Network Access Point) for tethering
+        uuids = info_dict.get("UUID", "")
+        has_nap = BluetoothDevice.NAP_UUID in uuids
         return BluetoothDevice(mac, name, paired, trusted, connected, has_nap)
