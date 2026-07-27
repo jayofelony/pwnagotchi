@@ -217,9 +217,7 @@ class Handler:
         if name is None:
             # Determine which plugins are from the default folder
             default_plugins = set()
-            default_path = os.path.join(
-                os.path.dirname(os.path.realpath(plugins.__file__)), "default"
-            )
+            default_path = os.path.join(os.path.dirname(os.path.realpath(plugins.__file__)), "default")
             for plugin_name, plugin_path in plugins.database.items():
                 if plugin_path.startswith(default_path):
                     default_plugins.add(plugin_name)
