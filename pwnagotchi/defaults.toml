@@ -6,6 +6,9 @@ mon_start_cmd = "/usr/bin/monstart"
 mon_stop_cmd = "/usr/bin/monstop"
 mon_max_blind_epochs = 5
 no_restart = false
+# Channel selection strategy (core infrastructure)
+extra_channels = 15  # Number of random unscanned channels to explore per epoch
+# restrict_channels = [1, 6, 11]  # Optional: limit scanning to specific channels
 whitelist = [
     "EXAMPLE_NETWORK",
     "ANOTHER_EXAMPLE_NETWORK",
@@ -22,9 +25,6 @@ custom_plugin_repos = [
     "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip"
 ]
 custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
-
-[main.plugins.auto-tune]
-enabled = true
 
 [main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
 enabled = true
