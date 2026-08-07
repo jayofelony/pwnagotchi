@@ -30,7 +30,7 @@ for pkg in bettercap pwngrid; do
             make install
         elif [ $pkg = "bettercap" ]; then
             cd "/home/pi"
-            git clone --recurse-submodules https://github.com/bettercap/bettercap.git
+            git clone --recurse-submodules https://github.com/jayofelony/bettercap.git
             cd "/home/pi/bettercap"
             go mod tidy
             make

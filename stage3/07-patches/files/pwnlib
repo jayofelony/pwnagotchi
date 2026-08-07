@@ -1,34 +1,95 @@
 #!/usr/bin/env bash
 
+# waits for a network interface to appear in sysfs, polling instead of a blind sleep
+wait_for_interface() {
+  local iface="$1"
+  local timeout="${2:-10}"
+  while [ ! -e "/sys/class/net/$iface" ] && [ "$timeout" -gt 0 ]; do
+    sleep 0.5
+    timeout=$((timeout - 1))
+  done
+  [ -e "/sys/class/net/$iface" ]
+}
+
+# resolves the phy (e.g. "phy0") that a given interface actually belongs to,
+# instead of assuming it's whatever "iw phy" lists first
+phy_for_interface() {
+  local iface="$1"
+  if [ -e "/sys/class/net/$iface/phy80211/name" ]; then
+    cat "/sys/class/net/$iface/phy80211/name"
+  else
+    iw dev "$iface" info 2>/dev/null | awk '/wiphy/ {print "phy" $2}'
+  fi
+}
+
 # reload mod
 reload_brcm() {
   if ! modprobe -r brcmfmac; then
     return 1
   fi
-  sleep 1
+
   if ! modprobe brcmfmac; then
     return 1
   fi
-  sleep 2
+
+  if ! wait_for_interface wlan0 10; then
+    echo "reload_brcm: wlan0 did not reappear after module reload" >&2
+    return 1
+  fi
+  sleep 1
+
   iw dev wlan0 set power_save off
   return 0
 }
 
 # starts mon0
 start_monitor_interface() {
-  ifconfig wlan0 up
-  sleep 3
-  iw phy "$(iw phy | head -1 | cut -d" " -f2)" interface add wlan0mon type monitor
-  sleep 2
   rfkill unblock all
+
+  if ! ifconfig wlan0 up; then
+    echo "start_monitor_interface: failed to bring up wlan0" >&2
+    return 1
+  fi
+
+  if ! wait_for_interface wlan0 10; then
+    echo "start_monitor_interface: wlan0 not ready" >&2
+    return 1
+  fi
+
+  local phy
+  phy="$(phy_for_interface wlan0)"
+  if [ -z "$phy" ]; then
+    echo "start_monitor_interface: could not resolve phy for wlan0" >&2
+    return 1
+  fi
+
+  # clean up a stale wlan0mon left over from an unclean stop, so re-creating it is idempotent
+  if [ -e /sys/class/net/wlan0mon ]; then
+    iw dev wlan0mon del 2>/dev/null
+  fi
+
+  if ! iw phy "$phy" interface add wlan0mon type monitor; then
+    echo "start_monitor_interface: failed to create wlan0mon on $phy" >&2
+    return 1
+  fi
+
+  if ! wait_for_interface wlan0mon 10; then
+    echo "start_monitor_interface: wlan0mon did not appear after creation" >&2
+    return 1
+  fi
+
   ifconfig wlan0 down
   ifconfig wlan0mon up
   iw dev wlan0mon set power_save off
+  return 0
 }
 
 # stops mon0
 stop_monitor_interface() {
-  ifconfig wlan0mon down && iw dev wlan0mon del
+  if [ -e /sys/class/net/wlan0mon ]; then
+    ifconfig wlan0mon down
+    iw dev wlan0mon del
+  fi
   reload_brcm
   ifconfig wlan0 up
 }

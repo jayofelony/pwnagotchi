@@ -12,7 +12,7 @@ IMAGE_DIR ?= $(BUILD_HOME)/images
 
 # clone pi-gen into pi-gen-32bit folder
 32bit:
-	[ -d pi-gen-32bit ] || git clone "https://github.com/RPi-Distro/pi-gen.git" pi-gen-32bit
+	[ -d pi-gen-32bit ] || git clone "https://github.com/jayofelony/pi-gen.git" pi-gen-32bit
 	[ -d pi-gen-32bit ] && cd pi-gen-32bit && git pull
 	rm -rf pi-gen-32bit/stage2/EXPORT_IMAGE
 	sed -i "s|WORK_DIR=.*|WORK_DIR=\"$(BUILD_HOME)/work-32bit\"|" config-32bit
@@ -23,7 +23,7 @@ IMAGE_DIR ?= $(BUILD_HOME)/images
 
 # clone pi-gen arm64 branch into pi-gen-64bit folder
 64bit:
-	[ -d pi-gen-64bit ] || git clone --branch arm64 "https://github.com/RPI-Distro/pi-gen.git" pi-gen-64bit
+	[ -d pi-gen-64bit ] || git clone --branch arm64 "https://github.com/jayofelony/pi-gen.git" pi-gen-64bit
 	[ -d pi-gen-64bit ] && cd pi-gen-64bit && git pull
 	rm -rf pi-gen-64bit/stage2/EXPORT_IMAGE
 	sed -i "s|WORK_DIR=.*|WORK_DIR=\"$(BUILD_HOME)/work-64bit\"|" config-64bit
