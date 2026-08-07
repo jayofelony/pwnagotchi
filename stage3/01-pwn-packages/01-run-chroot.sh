@@ -10,5 +10,5 @@ export PATH="/root/.cargo/bin:$PATH"
 source /root/.profile
 source /root/.cargo/env
 
-echo -e "\e[32m### Setting usb0 to managed in NM ### \e[0m"
-nmcli device set usb0 managed yes
+echo -e "\e[32m### Setting usb0 managed by NM ###\e[0m"
+nmcli dev set usb0 managed yes
