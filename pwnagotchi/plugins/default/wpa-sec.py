@@ -209,9 +209,9 @@ class WpaSec(plugins.Plugin):
 
     def _write_cracked_single_files(self, cracked_file_path, handshake_dir):
         """
-        Splits download results from wpasec into individual .pcap.cracked files in handshake_dir
+        Splits download results from wpasec into individual .pcapng.cracked files in handshake_dir
 
-        Each .pcap.cracked file will contain the cracked handshake password
+        Each .pcapng.cracked file will contain the cracked handshake password
         """
         logging.info("WPA_SEC: Writing cracked single files...")
 
@@ -221,8 +221,8 @@ class WpaSec(plugins.Plugin):
                     bssid,station_mac,ssid,password = line.split(":")
                     if password:
                         handshake_filename = re.sub(r'[^a-zA-Z0-9]', '', ssid) + '_' + bssid
-                        pcap_path = os.path.join(handshake_dir, handshake_filename+'.pcap')
-                        pcap_cracked_path = os.path.join(handshake_dir, handshake_filename+'.pcap.cracked')
+                        pcap_path = os.path.join(handshake_dir, handshake_filename+'.pcapng')
+                        pcap_cracked_path = os.path.join(handshake_dir, handshake_filename+'.pcapng.cracked')
                         if os.path.exists(pcap_path) and not os.path.exists(pcap_cracked_path):
                             with open(pcap_cracked_path, 'w') as f:
                                 f.write(password)

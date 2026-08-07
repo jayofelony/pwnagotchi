@@ -112,7 +112,7 @@ class Wigle(plugins.Plugin):
 
     @staticmethod
     def get_pcap_filename(gps_file):
-        pcap_filename = re.sub(r"\.(geo|gps)\.json$", ".pcap", gps_file)
+        pcap_filename = re.sub(r"\.(geo|gps)\.json$", ".pcapng", gps_file)
         if not os.path.exists(pcap_filename):
             logging.debug("[WIGLE] Can't find pcap for %s", gps_file)
             return None

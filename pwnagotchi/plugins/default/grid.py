@@ -13,13 +13,13 @@ from threading import Lock
 def parse_pcap(filename):
     logging.info("grid: parsing %s ..." % filename)
 
-    net_id = os.path.basename(filename).replace('.pcap', '')
+    net_id = os.path.basename(filename).replace('.pcapng', '')
 
     if '_' in net_id:
-        # /root/handshakes/ESSID_BSSID.pcap
+        # /root/handshakes/ESSID_BSSID.pcapng
         essid, bssid = net_id.split('_')
     else:
-        # /root/handshakes/BSSID.pcap
+        # /root/handshakes/BSSID.pcapng
         essid, bssid = '', net_id
 
     mac_re = re.compile('[0-9a-fA-F]{12}')
@@ -94,7 +94,7 @@ class Grid(plugins.Plugin):
         logging.debug("checking pcap's")
         config = agent.config()
 
-        pcap_files = glob.glob(os.path.join(config['bettercap']['handshakes'], "*.pcap"))
+        pcap_files = glob.glob(os.path.join(config['bettercap']['handshakes'], "*.pcapng"))
         num_networks = len(pcap_files)
         reported = self.report.data_field_or('reported', default=[])
         num_reported = len(reported)
@@ -107,7 +107,7 @@ class Grid(plugins.Plugin):
                 logging.debug("  exclude: %s" % config['main']['whitelist'])
 
                 for pcap_file in pcap_files:
-                    net_id = os.path.basename(pcap_file).replace('.pcap', '')
+                    net_id = os.path.basename(pcap_file).replace('.pcapng', '')
                     if net_id not in reported:
                         if self.is_excluded(net_id, agent):
                             logging.debug("skipping %s due to exclusion filter" % pcap_file)

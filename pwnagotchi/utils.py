@@ -33,7 +33,7 @@ def remove_whitelisted(list_of_handshakes, list_of_whitelisted_strings, valid_on
 
     for handshake in list_of_handshakes:
         try:
-            normalized_handshake = normalize(os.path.basename(handshake).rstrip('.pcap'))
+            normalized_handshake = normalize(os.path.basename(handshake).removesuffix('.pcapng'))
             for whitelist in list_of_whitelisted_strings:
                 normalized_whitelist = normalize(whitelist)
                 if normalized_whitelist in normalized_handshake:
@@ -518,7 +518,7 @@ def secs_to_hhmmss(secs):
 
 
 def total_unique_handshakes(path):
-    expr = os.path.join(path, "*.pcap")
+    expr = os.path.join(path, "*.pcapng")
     return len(glob.glob(expr))
 
 

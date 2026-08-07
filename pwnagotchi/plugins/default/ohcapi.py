@@ -121,15 +121,15 @@ class ohcapi(plugins.Plugin):
             processed_stations = self.report.data_field_or('processed_stations', default=[])
             handshake_dir = config['bettercap']['handshakes']
 
-            # Find .pcap files
+            # Find .pcapng files
             handshake_filenames = os.listdir(handshake_dir)
             handshake_paths = [os.path.join(handshake_dir, filename)
-                                for filename in handshake_filenames if filename.endswith('.pcap')]
+                                for filename in handshake_filenames if filename.endswith('.pcapng')]
 
             # If the corresponding .22000 file exists, skip re-upload
-            handshake_paths = [p for p in handshake_paths if not os.path.exists(p.replace('.pcap', '.22000'))]
+            handshake_paths = [p for p in handshake_paths if not os.path.exists(p.replace('.pcapng', '.22000'))]
 
-            # Filter out already reported and skipped .pcap files
+            # Filter out already reported and skipped .pcapng files
             handshake_new = set(handshake_paths) - set(reported) - set(self.skip)
 
             if handshake_new:
@@ -215,7 +215,7 @@ class ohcapi(plugins.Plugin):
     def _extract_hashes_from_handshake(self, pcap_path):
         hashes = []
         hcxpcapngtool = '/usr/bin/hcxpcapngtool'
-        hccapx_path = pcap_path.replace('.pcap', '.22000')
+        hccapx_path = pcap_path.replace('.pcapng', '.22000')
         hcxpcapngtool_cmd = f"{hcxpcapngtool} -o {hccapx_path} {pcap_path}"
         os.popen(hcxpcapngtool_cmd).read()
         if os.path.exists(hccapx_path) and os.path.getsize(hccapx_path) > 0:

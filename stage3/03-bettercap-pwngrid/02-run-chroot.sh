@@ -14,6 +14,7 @@ for pkg in bettercap pwngrid; do
             make install
         elif [ $pkg = "bettercap" ]; then
             cd "/home/pi/bettercap"
+            git checkout pcapng
             git pull
             go mod tidy
             make
@@ -30,7 +31,7 @@ for pkg in bettercap pwngrid; do
             make install
         elif [ $pkg = "bettercap" ]; then
             cd "/home/pi"
-            git clone --recurse-submodules https://github.com/jayofelony/bettercap.git
+            git clone --recurse-submodules --branch pcapng https://github.com/jayofelony/bettercap.git
             cd "/home/pi/bettercap"
             go mod tidy
             make
