@@ -179,6 +179,9 @@ class BluetoothService:
             return False
 
         with self._lock:
+            if self._status in (self.STATE_PAIRING, self.STATE_TRUSTING, self.STATE_CONNECTING):
+                self.logger.warning(f"Connection already in progress ({self._status}), ignoring request for {mac}")
+                return False
             self._status = self.STATE_CONNECTING
             self._message = f"Connecting to {name or mac}..."
 
@@ -330,6 +333,7 @@ class BluetoothService:
                                 self._status = self.STATE_CONNECTED
                                 self._message = f"✓ Connected! Internet via {iface}"
 
+                            self.monitor.set_device(mac)
                             self._emit_event("bt:connect_success", {
                                 "mac": mac,
                                 "name": name,
@@ -347,6 +351,7 @@ class BluetoothService:
                                     self._status = self.STATE_CONNECTED
                                     self._message = f"Connected via {iface} but no internet access"
 
+                                self.monitor.set_device(mac)
                                 self._emit_event("bt:connect_success", {
                                     "mac": mac,
                                     "name": name,
@@ -401,6 +406,7 @@ class BluetoothService:
             self.connection.disconnect(mac)
             time.sleep(0.5)
             self.connection.unpair(mac)
+            self.monitor.clear_device()
             with self._lock:
                 self._status = self.STATE_DISCONNECTED
             self._emit_event("bt:disconnect_success", {"mac": mac})

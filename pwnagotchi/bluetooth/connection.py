@@ -751,30 +751,22 @@ class ConnectionManager:
                 if len(parts) >= 3:
                     mac = parts[1]
                     name = " ".join(parts[2:])
-                    status = self.get_status(mac)
-                    if status and status.get("trusted"):
-                        # Check if device supports NAP
-                        has_nap = self._check_nap_support(mac)
+                    # Single `info` call covers paired/trusted/connected + NAP UUID,
+                    # avoiding a second identical bluetoothctl invocation per device.
+                    info = self._run_cmd(
+                        ["bluetoothctl", "info", mac],
+                        capture=True,
+                        timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+                    )
+                    if not info:
+                        continue
+                    if "Trusted: yes" in info:
                         devices.append(BluetoothDevice(
                             mac, name,
-                            paired=status["paired"],
+                            paired="Paired: yes" in info,
                             trusted=True,
-                            connected=status["connected"],
-                            has_nap=has_nap
+                            connected="Connected: yes" in info,
+                            has_nap=BluetoothDevice.NAP_UUID in info,
                         ))
 
         return devices
-
-    def _check_nap_support(self, mac):
-        """Check if device supports NAP (Network Access Point) for tethering."""
-        try:
-            info = self._run_cmd(
-                ["bluetoothctl", "info", mac],
-                capture=True,
-                timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
-            )
-            if info and BluetoothDevice.NAP_UUID in info:
-                return True
-        except Exception as e:
-            self.logger.debug(f"Error checking NAP support for {mac}: {e}")
-        return False

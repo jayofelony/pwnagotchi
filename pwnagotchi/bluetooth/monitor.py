@@ -26,6 +26,7 @@ class ConnectionMonitor:
         self._paused = threading.Event()
         self._lock = threading.Lock()
 
+        self._current_mac = None
         self.last_known_connected = False
         self.reconnect_failure_count = 0
         self.max_reconnect_failures = self.MAX_RECONNECT_FAILURES
@@ -48,6 +49,21 @@ class ConnectionMonitor:
         except Exception as e:
             self.logger.error(f"Failed to start monitor: {e}")
             return False
+
+    def set_device(self, mac):
+        """Tell the monitor which device to watch for drops (called after a successful connect)."""
+        with self._lock:
+            self._current_mac = mac
+            self.last_known_connected = True
+            self.reconnect_failure_count = 0
+            self.first_failure_time = None
+        self._paused.clear()
+
+    def clear_device(self):
+        """Stop watching a device, e.g. after an explicit disconnect/unpair."""
+        with self._lock:
+            self._current_mac = None
+            self.last_known_connected = False
 
     def stop(self):
         """Stop the monitoring thread."""
@@ -83,12 +99,13 @@ class ConnectionMonitor:
                     time.sleep(self.reconnect_interval)
                     continue
 
-                # Track connection drops
+                # Track connection drops and actually attempt to reconnect
                 if self.last_known_connected and not status["connected"]:
                     self.logger.warning(f"Connection to {last_mac} dropped! Reconnecting...")
-                    self._handle_reconnect_failure(last_mac)
+                    self.last_known_connected = self.reconnect(last_mac)
+                else:
+                    self.last_known_connected = status["connected"]
 
-                self.last_known_connected = status["connected"]
                 time.sleep(self.reconnect_interval)
 
             except Exception as e:
