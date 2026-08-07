@@ -88,6 +88,8 @@ class Agent(Client, Automata, AsyncAdvertiser):
         self.run('set wifi.rssi.min %d' % self._config['personality']['min_rssi'])
         self.run('set wifi.handshakes.file %s' % self._config['bettercap']['handshakes'])
         self.run('set wifi.handshakes.aggregate false')
+        skip_broken = not self._config['personality'].get('capture_broken_frames', True)
+        self.run('set wifi.skip-broken %s' % ('true' if skip_broken else 'false'))
 
     def start_monitor_mode(self):
         mon_iface = self._config['main']['iface']

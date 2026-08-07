@@ -149,6 +149,11 @@ deauth = true
 associate = true
 channels = []
 min_rssi = -200
+# capture dot11 frames with an invalid FCS/checksum too, instead of bettercap
+# silently dropping them before they ever reach handshake collection - over
+# the air corruption is common for weak-signal probe/auth/assoc frames, and
+# hcxpcapngtool reports/handles FCS correctness itself downstream anyway.
+capture_broken_frames = true
 ap_ttl = 120
 sta_ttl = 300
 recon_time = 30
