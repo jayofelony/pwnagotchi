@@ -69,6 +69,15 @@ reload_brcm() {
 start_monitor_interface() {
   rfkill unblock all
 
+  # wlan0 can be missing entirely if brcmfmac never attached or wedged and
+  # nothing reloaded it yet - callers like fix_services.py's pattern-based
+  # recovery call this directly without going through stop_monitor_interface
+  # first, so reload_brcm (module reattach, or the SDIO-backplane-wedge
+  # reboot fallback) would otherwise never run for them.
+  if [ ! -e /sys/class/net/wlan0 ]; then
+    reload_brcm
+  fi
+
   if ! ifconfig wlan0 up; then
     echo "start_monitor_interface: failed to bring up wlan0" >&2
     return 1
