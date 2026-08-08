@@ -18,6 +18,13 @@ max_queue = 10000
 min_sleep = 0.5
 max_sleep = 5.0
 
+# requests has no timeout by default, so a stuck bettercap response (process
+# alive, connection accepted, but the specific request never completes) used
+# to block the single-threaded main loop forever - not a crash, so nothing
+# would recover it automatically, just a pwnagotchi that silently stops
+# acting until manually restarted.
+api_timeout = 30
+
 
 def decode(r, verbose_errors=True):
     try:
@@ -47,7 +54,7 @@ class Client(object):
     # session takes optional argument to pull a sub-dictionary
     #  ex.: "session/wifi", "session/ble"
     def session(self, sess="session"):
-        r = requests.get("%s/%s" % (self.url, sess), auth=self.auth)
+        r = requests.get("%s/%s" % (self.url, sess), auth=self.auth, timeout=api_timeout)
         return decode(r)
 
     async def start_websocket(self, consumer):
@@ -106,10 +113,10 @@ class Client(object):
     def run(self, command, verbose_errors=True):
         while True:
             try:
-                r = requests.post("%s/session" % self.url, auth=self.auth, json={'cmd': command})
-            except requests.exceptions.ConnectionError as e:
+                r = requests.post("%s/session" % self.url, auth=self.auth, json={'cmd': command}, timeout=api_timeout)
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
                 sleep_time = min_sleep + max_sleep*random.random()
-                logging.warning("[bettercap] can't run my request... connection to the bettercap endpoint failed...")
+                logging.warning("[bettercap] can't run my request (%s)... connection to the bettercap endpoint failed...", type(e).__name__)
                 logging.warning('[bettercap] retrying run in {} sec'.format(sleep_time))
                 sleep(sleep_time)
             else:

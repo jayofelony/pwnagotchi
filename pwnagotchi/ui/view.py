@@ -294,6 +294,11 @@ class View(object):
                     else:
                         self.set('face', self._get_random_face(faces.LOOK_L_HAPPY) if good_mood else self._get_random_face(faces.LOOK_L))
 
+            if not sleeping:
+                channel = self._agent.get_current_channel()
+                if channel:
+                    self.set('channel', str(channel))
+
             time.sleep(part)
             secs -= part
 
