@@ -22,24 +22,47 @@ phy_for_interface() {
   fi
 }
 
+# true when dmesg shows the brcmfmac firmware has wedged the SDIO backplane
+# itself (nexmon's patched firmware occasionally locks up under sustained
+# monitor-mode/injection load). This is a chip-level hang: modprobe -r/modprobe
+# only detaches and reattaches the Linux driver, it never touches the chip's
+# power/reset line, so it cannot recover from this specific failure - only a
+# reboot can, because the kernel's mmc power-sequence provider toggles the
+# chip's reset line as part of normal boot probing.
+brcm_backplane_wedged() {
+  dmesg | tail -n 30 | grep -q "brcmf_attach: dongle is not responding"
+}
+
 # reload mod
 reload_brcm() {
-  if ! modprobe -r brcmfmac; then
-    return 1
+  local attempt
+  for attempt in 1 2; do
+    modprobe -r brcmfmac
+    sleep 1
+
+    if modprobe brcmfmac && wait_for_interface wlan0 10; then
+      sleep 1
+      iw dev wlan0 set power_save off
+      return 0
+    fi
+
+    echo "reload_brcm: attempt $attempt failed to bring wlan0 back" >&2
+  done
+
+  if brcm_backplane_wedged; then
+    # only reboot for an uptime past a sane boot/settle window, so a wedge
+    # that somehow persists across reboots doesn't turn into a boot loop
+    local uptime_secs
+    uptime_secs="$(cut -d. -f1 /proc/uptime)"
+    if [ "$uptime_secs" -gt 120 ]; then
+      echo "reload_brcm: brcm firmware wedged the SDIO backplane, driver reload cannot recover this - rebooting" >&2
+      sync
+      reboot
+      sleep 60
+    fi
   fi
 
-  if ! modprobe brcmfmac; then
-    return 1
-  fi
-
-  if ! wait_for_interface wlan0 10; then
-    echo "reload_brcm: wlan0 did not reappear after module reload" >&2
-    return 1
-  fi
-  sleep 1
-
-  iw dev wlan0 set power_save off
-  return 0
+  return 1
 }
 
 # starts mon0
