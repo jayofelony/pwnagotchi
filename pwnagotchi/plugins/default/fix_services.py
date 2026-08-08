@@ -156,6 +156,14 @@ class FixServices(plugins.Plugin):
         other_other_last_lines = ''.join(
             list(TextIOWrapper(subprocess.Popen(['tail', '-n10', '/etc/pwnagotchi/log/pwnagotchi.log'],
                                                 stdout=subprocess.PIPE).stdout))[-10:])
+        # bettercap.service now writes its own stdout/stderr to a dedicated
+        # file instead of only the journal - patterns that match bettercap's
+        # own log lines (hopping warnings, panics) need to read from there.
+        # Patterns 5/6 previously checked pwnagotchi.log for these, which
+        # never actually contained bettercap's own output.
+        bettercap_last_lines = ''.join(
+            list(TextIOWrapper(subprocess.Popen(['tail', '-n10', '/etc/pwnagotchi/log/bettercap.log'],
+                                                stdout=subprocess.PIPE).stdout))[-10:])
         # don't check if we ran a reset recently
         logging.debug("[Fix_Services]**** epoch")
         if time.time() - self.LASTTRY > 180:
@@ -171,7 +179,7 @@ class FixServices(plugins.Plugin):
                 pwnagotchi.restart("AUTO")
 
             # Look for pattern 2
-            elif len(self.pattern2.findall(other_last_lines)) >= 5:
+            elif len(self.pattern2.findall(bettercap_last_lines)) >= 5:
                 logging.debug("[Fix_Services]**** Should trigger a reload of the wlan0mon device:\n%s" % last_lines)
                 if hasattr(agent, 'view'):
                     display.set('status', 'Wifi channel stuck. Restarting recon.')
@@ -220,7 +228,7 @@ class FixServices(plugins.Plugin):
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
 
             # Look for pattern 5
-            elif len(self.pattern5.findall(other_other_last_lines)) >= 1:
+            elif len(self.pattern5.findall(bettercap_last_lines)) >= 1:
                 logging.debug("[Fix_Services] Bettercap has crashed!")
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting pwnagotchi!')
@@ -229,7 +237,7 @@ class FixServices(plugins.Plugin):
                 pwnagotchi.restart("AUTO")
 
             # Look for pattern 6
-            elif len(self.pattern6.findall(other_other_last_lines)) >= 1:
+            elif len(self.pattern6.findall(bettercap_last_lines)) >= 1:
                 logging.debug("[Fix_Services] Bettercap has crashed!")
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting pwnagotchi!')

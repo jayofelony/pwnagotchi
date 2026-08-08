@@ -8,6 +8,8 @@ Type=simple
 LimitNOFILE=65535
 TasksMax=infinity
 ExecStart=/usr/bin/bettercap-launcher
+StandardOutput=append:/etc/pwnagotchi/log/bettercap.log
+StandardError=append:/etc/pwnagotchi/log/bettercap.log
 Restart=always
 RestartSec=30
 
