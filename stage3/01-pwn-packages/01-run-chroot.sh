@@ -9,6 +9,3 @@ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
 export PATH="/root/.cargo/bin:$PATH"
 source /root/.profile
 source /root/.cargo/env
-
-echo -e "\e[32m### Setting usb0 managed by NM ###\e[0m"
-nmcli dev set usb0 managed yes

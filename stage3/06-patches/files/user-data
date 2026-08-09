@@ -3,7 +3,8 @@
 # Set the hostname for this device. This will also update /etc/hosts if manage_etc_hosts is enabled.
 hostname: pwnagotchi
 manage_etc_hosts: true
-
+runcmd:
+  - nmcli dev set usb0 managed yes
 keyboard:
     layout: us
 
