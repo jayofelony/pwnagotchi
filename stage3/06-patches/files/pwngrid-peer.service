@@ -3,7 +3,6 @@ Description=pwngrid peer service.
 Documentation=https://pwnagotchi.org
 Wants=network.target
 After=bettercap.service sys-subsystem-net-devices-wlan0mon.device
-BindsTo=sys-subsystem-net-devices-wlan0mon.device
 
 [Service]
 Environment=LD_LIBRARY_PATH=/usr/local/lib
