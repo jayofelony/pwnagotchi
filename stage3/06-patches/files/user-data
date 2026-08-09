@@ -5,6 +5,8 @@ hostname: pwnagotchi
 manage_etc_hosts: true
 runcmd:
   - nmcli dev set usb0 managed yes
+  - dpkg -i /home/pi/firmware-nexmon_0.2_all.deb /home/pi/brcmfmac-nexmon-dkms_6.12.2_all.deb
+  - rm -r /home/pi/firmware-nexmon_0.2_all.deb /home/pi/brcmfmac-nexmon-dkms_6.12.2_all.deb
 keyboard:
     layout: us
 
