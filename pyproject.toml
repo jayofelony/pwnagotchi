@@ -7,7 +7,7 @@ name = "pwnagotchi"
 dynamic = ["version"]
 dependencies = [
     "PyYAML", "dbus-python", "file-read-backwards", "flask", "flask-cors",
-    "flask-wtf", "gpiozero", "inky", "pycryptodome", "pydrive2", "python-dateutil",
+    "flask-wtf", "gpiozero", "inky", "pycryptodome", "python-dateutil",
     "requests", "rpi-lgpio", "rpi_hardware_pwm", "scapy", "setuptools", "smbus", "smbus2",
     "spidev", "tomlkit", "toml", "tweepy", "websockets", "pisugar",
     # REMOVED: "numpy", "gast", "shimmy" - were AI training pipeline dependencies only
