@@ -5,10 +5,11 @@ import requests
 import logging
 import socket
 from pwnagotchi.plugins import Plugin
+from pwnagotchi.utils import StatusFile
 
 class UploadConvertPlugin(Plugin):
     __author__ = 'Terminatoror'
-    __version__ = '1.0.0'
+    __version__ = '1.1.0'
     __license__ = 'GPL3'
     __description__ = 'Converts .pcapng files to .hc22000 and uploads them to pwncrack.org when internet is available.'
 
@@ -28,6 +29,7 @@ class UploadConvertPlugin(Plugin):
         self.whitelist = config["main"].get("whitelist", [])
         self.combined_file = os.path.join(self.handshake_dir, 'combined.hc22000')
         self.potfile_path = os.path.join(self.handshake_dir, 'cracked.pwncrack.potfile')
+        self.uploaded = StatusFile(os.path.join(self.handshake_dir, '.pwncrack_uploads'), data_format='json')
 
     def on_internet_available(self, agent):
         current_time = time.time()
@@ -44,12 +46,27 @@ class UploadConvertPlugin(Plugin):
             logging.error(f"[pwncrack] Error occurred during upload process: {e}", exc_info=True)
 
     def _convert_and_upload(self):
-        # Convert all .pcapng files to .hc22000, excluding files matching whitelist items
+        # Convert only new/updated .pcapng files to .hc22000, excluding files matching whitelist items.
+        # A .pcapng can keep growing after it was uploaded (bettercap appends newly captured
+        # EAPOLs/PMKIDs for the same AP/station), so track size and re-upload files that grew,
+        # instead of re-uploading every handshake on every run.
+        uploaded = self.uploaded.data_field_or('uploaded', default={})
         pcap_files = [f for f in os.listdir(self.handshake_dir)
                       if f.endswith('.pcapng') and not any(item in f for item in self.whitelist)]
-        if pcap_files:
-            for pcap_file in pcap_files:
-                subprocess.run(['hcxpcapngtool', '-o', self.combined_file, os.path.join(self.handshake_dir, pcap_file)])
+
+        new_or_updated = []
+        for pcap_file in pcap_files:
+            full_path = os.path.join(self.handshake_dir, pcap_file)
+            try:
+                current_size = os.path.getsize(full_path)
+            except OSError:
+                continue
+            if full_path not in uploaded or current_size > uploaded[full_path]:
+                new_or_updated.append((full_path, current_size))
+
+        if new_or_updated:
+            for full_path, _ in new_or_updated:
+                subprocess.run(['hcxpcapngtool', '-o', self.combined_file, full_path])
 
             # Ensure the combined file is created
             if not os.path.exists(self.combined_file):
@@ -64,8 +81,12 @@ class UploadConvertPlugin(Plugin):
             # Log the response
             logging.info(f"[pwncrack] Upload response: {response.json()}")
             os.remove(self.combined_file)  # Remove the combined.hc22000 file
+
+            for full_path, current_size in new_or_updated:
+                uploaded[full_path] = current_size
+            self.uploaded.update(data={'uploaded': uploaded})
         else:
-            logging.info("[pwncrack] No .pcapng files found to convert (or all files are whitelisted).")
+            logging.info("[pwncrack] No new or updated .pcapng files found to convert (or all files are whitelisted).")
 
     def _download_potfile(self):
         response = requests.get(self.potfile_url, params={'key': self.key})

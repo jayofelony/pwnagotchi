@@ -10,7 +10,7 @@ from json.decoder import JSONDecodeError
 
 class ohcapi(plugins.Plugin):
     __author__ = 'Rohan Dayaram'
-    __version__ = '1.1.0'
+    __version__ = '1.2.0'
     __license__ = 'GPL3'
     __description__ = 'Uploads WPA/WPA2 handshakes to OnlineHashCrack.com using the new API (V2), no dashboard.'
 
@@ -117,7 +117,18 @@ class ohcapi(plugins.Plugin):
         with self.lock:
             display = agent.view()
             config = agent.config()
-            reported = self.report.data_field_or('reported', default=[])
+            reported = self.report.data_field_or('reported', default={})
+            if isinstance(reported, list):
+                # Migrate from the old path-only format. We don't know the size at
+                # the time these were uploaded, so record the current size to avoid
+                # forcing an immediate re-upload burst of everything already reported.
+                migrated = {}
+                for p in reported:
+                    try:
+                        migrated[p] = os.path.getsize(p)
+                    except OSError:
+                        migrated[p] = 0
+                reported = migrated
             processed_stations = self.report.data_field_or('processed_stations', default=[])
             handshake_dir = config['bettercap']['handshakes']
 
@@ -126,14 +137,27 @@ class ohcapi(plugins.Plugin):
             handshake_paths = [os.path.join(handshake_dir, filename)
                                 for filename in handshake_filenames if filename.endswith('.pcapng')]
 
-            # If the corresponding .22000 file exists, skip re-upload
-            handshake_paths = [p for p in handshake_paths if not os.path.exists(p.replace('.pcapng', '.22000'))]
-
-            # Filter out already reported and skipped .pcapng files
-            handshake_new = set(handshake_paths) - set(reported) - set(self.skip)
+            # A .pcapng can keep growing after it was reported (bettercap appends newly
+            # captured EAPOLs/PMKIDs for the same AP/station), so track size and reprocess
+            # files that have grown since we last uploaded them, not just brand new ones.
+            handshake_new = []
+            growing = set()
+            for p in handshake_paths:
+                if p in self.skip:
+                    continue
+                try:
+                    current_size = os.path.getsize(p)
+                except OSError:
+                    continue
+                if p not in reported:
+                    handshake_new.append(p)
+                elif current_size > reported[p]:
+                    handshake_new.append(p)
+                    growing.add(p)
+            handshake_new = set(handshake_new)
 
             if handshake_new:
-                logging.info(f"OHC NewAPI: Processing {len(handshake_new)} new PCAP handshakes.")
+                logging.info(f"OHC NewAPI: Processing {len(handshake_new)} new/updated PCAP handshakes.")
 
                 all_hashes = []
                 successfully_extracted = []
@@ -144,7 +168,7 @@ class ohcapi(plugins.Plugin):
                     if hashes:
                         # Extract ESSID and BSSID from the first hash line
                         essid, bssid = self._extract_essid_bssid_from_hash(hashes[0])
-                        if (essid, bssid) in processed_stations:
+                        if (essid, bssid) in processed_stations and pcap_path not in growing:
                             logging.debug(f"OHC NewAPI: Station {essid}/{bssid} already processed, skipping {pcap_path}.")
                             self.skip.append(pcap_path)
                             continue
@@ -167,13 +191,14 @@ class ohcapi(plugins.Plugin):
                             break
 
                     if upload_success:
-                        # Mark all successfully extracted pcaps as reported
+                        # Mark all successfully extracted pcaps as reported, with the size at upload time
                         for pcap_path in successfully_extracted:
-                            reported.append(pcap_path)
+                            reported[pcap_path] = os.path.getsize(pcap_path)
                             essid, bssid = essid_bssid_map[pcap_path]
-                            processed_stations.append((essid, bssid))
+                            if (essid, bssid) not in processed_stations:
+                                processed_stations.append((essid, bssid))
                         self.report.update(data={'reported': reported, 'processed_stations': processed_stations})
-                        logging.debug("OHC NewAPI: Successfully reported all new handshakes.")
+                        logging.debug("OHC NewAPI: Successfully reported all new/updated handshakes.")
                     else:
                         # Upload failed, skip these pcaps for future attempts
                         for pcap_path in successfully_extracted:
@@ -184,7 +209,7 @@ class ohcapi(plugins.Plugin):
 
                 display.on_normal()
             else:
-                logging.debug("OHC NewAPI: No new PCAP files to process.")
+                logging.debug("OHC NewAPI: No new or updated PCAP files to process.")
 
     def _add_tasks(self, hashes, timeout=30):
         clean_hashes = [h.strip() for h in hashes if h.strip()]
