@@ -7,6 +7,20 @@ from datetime import datetime, UTC
 from threading import Lock
 
 
+def read_ap_cache(cache_dir, file):
+    """Read AP cache from disk"""
+    cache_filename = os.path.basename(re.sub(r"\.(pcapng|gps\.json|geo\.json)$", ".apcache", file))
+    cache_filename = os.path.join(cache_dir, cache_filename)
+    if not os.path.exists(cache_filename):
+        return None
+    try:
+        with open(cache_filename, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        logging.debug(f"[CACHE] Exception reading cache: {e}")
+        return None
+
+
 class CacheManager:
     """Core cache manager for AP information"""
 
@@ -44,19 +58,6 @@ class CacheManager:
                     json.dump(access_point, f)
             except Exception as e:
                 logging.error(f"[CACHE] Cannot write {cache_file}: {e}")
-
-    def read_ap_cache(self, cache_dir, file):
-        """Read AP cache from disk"""
-        cache_filename = os.path.basename(re.sub(r"\.(pcap|gps\.json|geo\.json)$", ".cache", file))
-        cache_filename = os.path.join(cache_dir, cache_filename)
-        if not os.path.exists(cache_filename):
-            return None
-        try:
-            with open(cache_filename, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            logging.debug(f"[CACHE] Exception reading cache: {e}")
-            return None
 
     def clean_ap_cache(self):
         """Clean AP cache files older than 5 minutes"""

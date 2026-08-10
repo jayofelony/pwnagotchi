@@ -20,7 +20,7 @@ from pwnagotchi.utils import (
     remove_whitelisted,
 )
 from pwnagotchi import plugins
-from pwnagotchi.plugins.default.cache import read_ap_cache
+from pwnagotchi.cache import read_ap_cache
 from pwnagotchi._version import __version__ as __pwnagotchi_version__
 
 import pwnagotchi.ui.fonts as fonts
@@ -154,7 +154,7 @@ class Wigle(plugins.Plugin):
 
     def get_pcap_data(self, pcap_filename):
         try:
-            if cache := read_ap_cache(self.cache_dir, self.pcap_filename):
+            if cache := read_ap_cache(self.cache_dir, pcap_filename):
                 logging.info(f"[WIGLE] Using cache for {pcap_filename}")
                 return {
                     WifiInfo.BSSID: cache["mac"],
