@@ -52,4 +52,4 @@ if [ -f "${ROOTFS_DIR}/etc/profile.d/sshpwd.sh" ]; then
     rm "${ROOTFS_DIR}/etc/profile.d/sshpwd.sh"
 fi
 
-cp "${PREV_ROOTFS_DIR}"/boot/firmware/config.txt "${ROOTFS_DIR}"/boot/firmware/config.txt
+install -v -m 755 files/config.txt "${ROOTFS_DIR}/boot/firmware/config.txt"
