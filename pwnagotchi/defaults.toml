@@ -44,6 +44,11 @@ show_mini_status = true                  # Show mini status indicator (C/N/P/D)
 mini_status_position = [110, 0]          # Position for mini status
 show_detailed_status = true              # Show detailed status line with IP
 detailed_status_position = [0, 82]       # Position for detailed status line
+reconnect_interval = 60                  # Seconds between reconnect attempts when down
+reconnect_fast_interval = 15             # Faster retry right after a drop (catch a phone briefly out of range)
+reconnect_failure_cooldown = 300         # Pause auto-reconnect this long after repeated failures
+nap_connect_timeout = 20                 # Wall-clock cap on a single NAP connect attempt
+fast_dhcp = true                         # Skip pointless ARP probe/backoff on the point-to-point PAN link
 
 [main.plugins.fix_services]
 enabled = true

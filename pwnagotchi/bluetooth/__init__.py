@@ -36,8 +36,8 @@ class BluetoothService:
         self.logger = logger or logging.getLogger(__name__)
 
         # Initialize components
-        self.connection = ConnectionManager(logger=self.logger)
-        self.network = NetworkManager(logger=self.logger)
+        self.connection = ConnectionManager(logger=self.logger, options=self.options)
+        self.network = NetworkManager(logger=self.logger, options=self.options)
         self.agent = PairingAgent(logger=self.logger)
         self.monitor = ConnectionMonitor(self.connection, logger=self.logger, options=self.options)
         self.ui_cache = UICache()
@@ -338,6 +338,7 @@ class BluetoothService:
                                 "mac": mac,
                                 "name": name,
                                 "ip": ip,
+                                "ipv6": self.network.get_global_ipv6(iface),
                                 "interface": iface,
                             })
                             return True
@@ -409,7 +410,7 @@ class BluetoothService:
             self.monitor.clear_device()
             with self._lock:
                 self._status = self.STATE_DISCONNECTED
-            self._emit_event("bt:disconnect_success", {"mac": mac})
+            self._emit_event("bt:disconnect_success", {"mac": mac, "reason": "user_request"})
             return True
         except Exception as e:
             self.logger.error(f"Disconnect failed: {e}")

@@ -14,8 +14,16 @@ class NetworkManager:
     SUBPROCESS_TIMEOUT_NORMAL = 3
     SUBPROCESS_TIMEOUT_STANDARD = 5
 
-    def __init__(self, logger=None):
+    # DHCP tuning
+    DHCP_RELEASE_WAIT = 1
+    DHCP_KILL_WAIT = 0.5
+    DHCPCD_FAST_CONF = "/tmp/bt-tether-dhcpcd.conf"
+    DHCLIENT_FAST_CONF = "/tmp/bt-tether-dhclient.conf"
+
+    def __init__(self, logger=None, options=None):
         self.logger = logger or logging.getLogger(__name__)
+        self.options = options or {}
+        self.fast_dhcp = self.options.get("fast_dhcp", True)
 
     def get_interface_name(self):
         """Get the PAN interface name (bnep0, bt-pan, etc.)."""
@@ -162,15 +170,38 @@ class NetworkManager:
                     stderr=subprocess.DEVNULL,
                     timeout=5,
                 )
-                time.sleep(1)
+                time.sleep(self.DHCP_RELEASE_WAIT)
+                # dhcpcd ARP-probes the address for ~5-6s (duplicate-address
+                # detection). That's pointless on a point-to-point Bluetooth PAN
+                # link, so disable it via a minimal config - it's the single
+                # biggest chunk of connect time. Skipped when fast_dhcp is off.
+                cf_args = []
+                if self.fast_dhcp:
+                    try:
+                        with open(self.DHCPCD_FAST_CONF, "w") as cf:
+                            cf.write("noarp\n")
+                        cf_args = ["-f", self.DHCPCD_FAST_CONF]
+                    except Exception as e:
+                        self.logger.debug(f"dhcpcd cf write failed: {e}")
                 # Request new lease
                 result = subprocess.run(
-                    ["sudo", "dhcpcd", "-4", "-n", iface],
+                    ["sudo", "dhcpcd", "-4"] + cf_args + ["-n", iface],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
                     timeout=20,
                 )
+                # If our noarp config made dhcpcd unhappy (unusual version), retry
+                # once with a plain invocation so we still get a lease anywhere.
+                if result.returncode != 0 and cf_args:
+                    self.logger.info("dhcpcd config rejected - retrying without noarp tuning")
+                    result = subprocess.run(
+                        ["sudo", "dhcpcd", "-4", "-n", iface],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        timeout=20,
+                    )
                 if result.stdout.strip():
                     self.logger.info(f"dhcpcd: {result.stdout.strip()}")
                 if result.returncode == 0:
@@ -182,12 +213,25 @@ class NetworkManager:
                 self.logger.info("Using dhclient...")
                 # Kill any existing dhclient for this interface
                 self._kill_dhclient_for_interface(iface)
-                time.sleep(0.5)
+                time.sleep(self.DHCP_KILL_WAIT)
+
+                # dhclient's default initial DISCOVER backoff is a random delay of
+                # up to ~10s, which dominates lease time on a fast PAN link. A tiny
+                # config makes it retry quickly so the lease lands in ~1-2s.
+                # Skipped when fast_dhcp is off.
+                cf_args = []
+                if self.fast_dhcp:
+                    try:
+                        with open(self.DHCLIENT_FAST_CONF, "w") as cf:
+                            cf.write("initial-interval 1;\nbackoff-cutoff 3;\ntimeout 25;\n")
+                        cf_args = ["-cf", self.DHCLIENT_FAST_CONF]
+                    except Exception as e:
+                        self.logger.debug(f"dhclient cf write failed: {e}")
 
                 # Request new lease
                 try:
                     result = subprocess.run(
-                        ["sudo", "dhclient", "-4", "-v", iface],
+                        ["sudo", "dhclient", "-4", "-v"] + cf_args + [iface],
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         text=True,
@@ -288,6 +332,7 @@ class NetworkManager:
             "dns_servers": None,
             "dns_error": None,
             "bnep0_ip": None,
+            "ipv6": None,
             "default_route": None,
             "localhost_routes": None,
         }
@@ -295,16 +340,26 @@ class NetworkManager:
         iface = self.get_interface_name()
         if iface:
             result["bnep0_ip"] = self.get_ip(iface)
+            result["ipv6"] = self.get_global_ipv6(iface)
 
         result["default_route"] = self.get_default_route_interface()
 
+        # IPv4 ping, then fall back to IPv6 (dual-stack tethering may be v6-only)
         try:
-            subprocess.run(
+            ping_result = subprocess.run(
                 ["ping", "-c", "1", "8.8.8.8"],
                 capture_output=True,
-                timeout=self.SUBPROCESS_TIMEOUT_SHORT,
+                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
             )
-            result["ping_success"] = True
+            result["ping_success"] = ping_result.returncode == 0
+            if not result["ping_success"]:
+                v6_ping = subprocess.run(
+                    ["ping", "-6", "-c", "1", "2001:4860:4860::8888"],
+                    capture_output=True,
+                    timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                )
+                if v6_ping.returncode == 0:
+                    result["ping_success"] = True
         except Exception:
             result["ping_success"] = False
 
@@ -345,11 +400,16 @@ class NetworkManager:
         return result
 
     def check_internet_connectivity(self):
-        """Check if internet is accessible via Bluetooth interface specifically"""
+        """Check internet via the Bluetooth interface (IPv4 or IPv6).
+
+        Dual-stack: some Android tethering setups provide IPv6-only connectivity
+        on the PAN side (no IPv4), so a v4-only check would falsely report "no
+        internet". Tries IPv4 first when present, then falls back to IPv6.
+        """
         try:
             bt_iface = self.get_interface_name() or "bnep0"
 
-            # First verify interface has an IP
+            # Verify the interface has any usable address (IPv4 or global IPv6)
             ip_result = subprocess.run(
                 ["ip", "addr", "show", bt_iface],
                 stdout=subprocess.PIPE,
@@ -362,15 +422,19 @@ class NetworkManager:
                 self.logger.warning(f"{bt_iface} interface not found")
                 return False
 
-            ip_match = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", ip_result.stdout)
-            if not ip_match or ip_match.group(1).startswith("169.254."):
-                self.logger.warning(f"{bt_iface} has no valid IP")
+            ipv4_match = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", ip_result.stdout)
+            has_ipv4 = bool(ipv4_match) and not ipv4_match.group(1).startswith("169.254.")
+            ipv6 = self.get_global_ipv6(bt_iface)
+
+            if not has_ipv4 and not ipv6:
+                self.logger.warning(f"{bt_iface} has no valid IP (IPv4 or IPv6)")
                 return False
+            if has_ipv4:
+                self.logger.info(f"{bt_iface} has IPv4: {ipv4_match.group(1)}")
+            if ipv6:
+                self.logger.info(f"{bt_iface} has IPv6: {ipv6}")
 
-            bt_ip = ip_match.group(1)
-            self.logger.info(f"{bt_iface} has IP: {bt_ip}")
-
-            # Log current routing table
+            # Log current routing table for diagnostics
             route_check = subprocess.run(
                 ["ip", "route", "show"],
                 stdout=subprocess.PIPE,
@@ -381,25 +445,24 @@ class NetworkManager:
             if route_check.returncode == 0:
                 self.logger.info(f"Current routes:\n{route_check.stdout}")
 
-            # Ping via the Bluetooth interface specifically
-            self.logger.info(f"Testing connectivity to 8.8.8.8 via {bt_iface}...")
-            result = subprocess.run(
-                ["ping", "-c", "2", "-W", "3", "-I", bt_iface, "8.8.8.8"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=10,
-            )
+            # Try IPv4 connectivity first (when an IPv4 address is present)
+            if has_ipv4:
+                self.logger.info(f"Testing IPv4 connectivity to 8.8.8.8 via {bt_iface}...")
+                result = subprocess.run(
+                    ["ping", "-c", "2", "-W", "3", "-I", bt_iface, "8.8.8.8"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=10,
+                )
+                if result.returncode == 0:
+                    self.logger.info("✓ IPv4 ping to 8.8.8.8 successful")
+                    return True
 
-            if result.returncode == 0:
-                self.logger.info("✓ Ping to 8.8.8.8 successful")
-                return True
-            else:
-                self.logger.warning("Ping to 8.8.8.8 failed")
-                self.logger.warning(f"Ping stderr: {result.stderr}")
-                self.logger.warning(f"Ping stdout: {result.stdout}")
+                self.logger.warning("IPv4 ping to 8.8.8.8 failed")
+                self.logger.debug(f"Ping stderr: {result.stderr}")
 
-                # Try to ping the gateway
+                # Gateway diagnostic to distinguish link vs internet issues
                 gateway_check = subprocess.run(
                     ["ip", "route", "show", "default"],
                     stdout=subprocess.PIPE,
@@ -428,7 +491,25 @@ class NetworkManager:
                                 "Gateway ping also failed - phone may not be providing internet"
                             )
 
-                return False
+            # Fall back to IPv6 if IPv4 was absent or its ping failed
+            if ipv6:
+                self.logger.info(f"Testing IPv6 connectivity via {bt_iface}...")
+                # Literal target (Google public DNS v6) - avoids depending on
+                # working IPv6 DNS, mirroring the IPv4 use of a literal.
+                v6_result = subprocess.run(
+                    ["ping", "-6", "-c", "2", "-W", "3", "-I", bt_iface, "2001:4860:4860::8888"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=10,
+                )
+                if v6_result.returncode == 0:
+                    self.logger.info("✓ IPv6 connectivity verified")
+                    return True
+                self.logger.warning("IPv6 ping failed")
+                self.logger.debug(f"IPv6 ping stderr: {v6_result.stderr}")
+
+            return False
         except subprocess.TimeoutExpired:
             self.logger.warning("Ping timeout - no internet connectivity")
             return False
@@ -486,6 +567,34 @@ class NetworkManager:
             return None
         except Exception as e:
             self.logger.debug(f"Failed to get IP for {iface}: {e}")
+            return None
+
+    def get_global_ipv6(self, iface=None):
+        """Get a global (non-link-local) IPv6 address from the PAN interface.
+
+        Some Android Bluetooth tethering setups provide IPv6-only connectivity
+        (no IPv4 on the PAN side, address via SLAAC). `scope global` excludes
+        fe80:: link-local automatically. Returns the address or None.
+        """
+        try:
+            if iface is None:
+                iface = self.get_pan_interface() or "bnep0"
+            result = subprocess.check_output(
+                ["ip", "-6", "addr", "show", iface, "scope", "global"],
+                text=True,
+                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+            )
+            for line in result.splitlines():
+                line = line.strip()
+                if line.startswith("inet6"):
+                    addr = line.split()[1].split("/")[0]
+                    # Belt-and-suspenders: skip link-local even if the scope
+                    # filter was bypassed by an unusual iproute2 build.
+                    if not addr.lower().startswith("fe80"):
+                        return addr
+            return None
+        except Exception as e:
+            self.logger.debug(f"Failed to get IPv6 for {iface}: {e}")
             return None
 
     def get_current_ip(self):

@@ -10,6 +10,8 @@ class ConnectionMonitor:
 
     # Reconnect configuration
     DEFAULT_RECONNECT_INTERVAL = 60
+    DEFAULT_RECONNECT_FAST_INTERVAL = 15
+    RECONNECT_FAST_CYCLES = 6
     MAX_RECONNECT_FAILURES = 5
     DEFAULT_RECONNECT_FAILURE_COOLDOWN = 300
     MONITOR_INITIAL_DELAY = 5
@@ -33,6 +35,8 @@ class ConnectionMonitor:
         self.reconnect_failure_cooldown = self.options.get("reconnect_failure_cooldown", self.DEFAULT_RECONNECT_FAILURE_COOLDOWN)
         self.first_failure_time = None
         self.reconnect_interval = self.options.get("reconnect_interval", self.DEFAULT_RECONNECT_INTERVAL)
+        self.reconnect_fast_interval = self.options.get("reconnect_fast_interval", self.DEFAULT_RECONNECT_FAST_INTERVAL)
+        self._disconnected_cycles = 0
 
     def start(self):
         """Start the monitoring thread."""
@@ -57,6 +61,7 @@ class ConnectionMonitor:
             self.last_known_connected = True
             self.reconnect_failure_count = 0
             self.first_failure_time = None
+            self._disconnected_cycles = 0
         self._paused.clear()
 
     def clear_device(self):
@@ -75,28 +80,57 @@ class ConnectionMonitor:
         except Exception as e:
             self.logger.debug(f"Error stopping monitor: {e}")
 
+    def _adaptive_wait(self):
+        """Interruptible monitor wait with adaptive reconnect backoff.
+
+        Right after a drop, retry quickly (reconnect_fast_interval) to catch a
+        phone that only briefly left range, then back off to reconnect_interval
+        if it stays down. When connected (steady health check) or paused (no
+        trusted device) always use the full interval - no point fast-polling.
+        Returns immediately if shutdown was requested.
+        """
+        if self.last_known_connected or self._paused.is_set():
+            self._disconnected_cycles = 0
+            interval = self.reconnect_interval
+        elif self.reconnect_fast_interval >= self.reconnect_interval:
+            # Fast-retry disabled or misconfigured - use the normal interval.
+            interval = self.reconnect_interval
+        else:
+            # Clean/fast failure (phone off or out of range) - retry quickly to
+            # catch it the moment it returns.
+            self._disconnected_cycles += 1
+            interval = (
+                self.reconnect_fast_interval
+                if self._disconnected_cycles <= self.RECONNECT_FAST_CYCLES
+                else self.reconnect_interval
+            )
+        self._stop.wait(interval)
+
     def _loop(self):
         """Background monitoring loop."""
         self.logger.info("Connection monitor started")
-        time.sleep(self.MONITOR_INITIAL_DELAY)
+
+        # Interruptible initial delay so shutdown isn't blocked at startup
+        if self._stop.wait(self.MONITOR_INITIAL_DELAY):
+            return
 
         while not self._stop.is_set():
             try:
                 if self._paused.is_set():
-                    time.sleep(self.MONITOR_PAUSED_CHECK_INTERVAL)
+                    self._stop.wait(self.MONITOR_PAUSED_CHECK_INTERVAL)
                     continue
 
                 # Check current connection status
                 with self._lock:
-                    last_mac = getattr(self, "_current_mac", None)
+                    last_mac = self._current_mac
 
                 if not last_mac:
-                    time.sleep(self.reconnect_interval)
+                    self._adaptive_wait()
                     continue
 
                 status = self.connection.get_full_status(last_mac)
                 if not status:
-                    time.sleep(self.reconnect_interval)
+                    self._adaptive_wait()
                     continue
 
                 # Track connection drops and actually attempt to reconnect
@@ -106,11 +140,11 @@ class ConnectionMonitor:
                 else:
                     self.last_known_connected = status["connected"]
 
-                time.sleep(self.reconnect_interval)
+                self._adaptive_wait()
 
             except Exception as e:
                 self.logger.debug(f"Monitor loop error: {e}")
-                time.sleep(self.reconnect_interval)
+                self._adaptive_wait()
 
     def reconnect(self, mac):
         """Attempt to reconnect to a device."""

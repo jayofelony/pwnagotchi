@@ -34,9 +34,12 @@ class ConnectionManager:
     SUBPROCESS_TIMEOUT_LONG = 10
     PROCESS_CLEANUP_DELAY = 0.2
     DBUS_OPERATION_RETRY_DELAY = 0.1
+    NAP_CONNECT_TIMEOUT = 20
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, options=None):
         self.logger = logger or logging.getLogger(__name__)
+        self.options = options or {}
+        self.nap_connect_timeout = self.options.get("nap_connect_timeout", self.NAP_CONNECT_TIMEOUT)
         self._lock = threading.Lock()
         self.scan_mac_pattern = re.compile(r"([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})")
         self.scan_ansi_pattern = re.compile(r"(\x1b\[[0-9;]*m|\x08)")
@@ -170,6 +173,7 @@ class ConnectionManager:
             status["pan_active"] = False
             status["interface"] = None
             status["ip_address"] = None
+            status["ipv6"] = None
 
             # Check if PAN interface is active
             result = self._run_cmd(
@@ -192,6 +196,16 @@ class ConnectionManager:
                         ip_match = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", ip_result)
                         if ip_match:
                             status["ip_address"] = ip_match.group(1)
+                        # Global (non-link-local) IPv6 - some tethering is v6-only
+                        v6_result = self._run_cmd(
+                            ["ip", "-6", "addr", "show", iface, "scope", "global"],
+                            capture=True,
+                            timeout=self.SUBPROCESS_TIMEOUT_MEDIUM,
+                        )
+                        if v6_result:
+                            v6_match = re.search(r"inet6\s+([0-9a-fA-F:]+)", v6_result)
+                            if v6_match:
+                                status["ipv6"] = v6_match.group(1)
 
             return status
         except Exception as e:
@@ -203,6 +217,7 @@ class ConnectionManager:
                 "pan_active": False,
                 "interface": None,
                 "ip_address": None,
+                "ipv6": None,
             }
 
     def disconnect(self, mac):
@@ -379,12 +394,90 @@ class ConnectionManager:
         with self._lock:
             return list(self._scan_results.values())
 
+    def _clear_stale_acl(self, mac):
+        """Tear down a half-open ACL before connecting, if one lingers.
+
+        A failed NAP attempt can leave an ACL at the HCI layer (hcitool shows a
+        connection) while BlueZ reports the device disconnected. That stale link
+        makes the next ConnectProfile hang with NoReply. We clear it *before*
+        starting a fresh connect (when nothing is pending), so the teardown can't
+        wedge BlueZ into br-connection-busy the way a mid-connect disconnect does.
+        """
+        try:
+            con = self._run_cmd(
+                ["sudo", "hcitool", "con"],
+                capture=True,
+                timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+            )
+            if con and con != "Timeout" and mac.upper() in con.upper():
+                self.logger.info(f"Clearing stale link to {mac} before connecting")
+                self._run_cmd(
+                    ["bluetoothctl", "disconnect", mac],
+                    capture=True,
+                    timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                )
+                time.sleep(self.DEVICE_OPERATION_DELAY)
+        except Exception as e:
+            self.logger.debug(f"Stale ACL check failed: {e}")
+
+    def _diagnose_nap_error(self, mac, error_msg):
+        """Log actionable guidance for a failed NAP connect, and clear stale pairing."""
+        # Check for authentication/pairing errors
+        if "Authentication Rejected" in error_msg or "Connection refused" in error_msg:
+            self.logger.warning(
+                "Device may have been unpaired from phone - removing stale pairing"
+            )
+            try:
+                self._run_cmd(["bluetoothctl", "remove", mac], timeout=5)
+                self.logger.info("Removed stale pairing")
+            except Exception as e:
+                self.logger.debug(f"Failed to remove pairing: {e}")
+        elif (
+            "br-connection-page-timeout" in error_msg
+            or "br-connection-unknown" in error_msg
+            or "Host is down" in error_msg
+        ):
+            self.logger.warning(
+                "Phone not reachable (out of range or BT off) - will retry later"
+            )
+
+        # Provide helpful error messages
+        if (
+            "br-connection-create-socket" in error_msg
+            or "br-connection-profile-unavailable" in error_msg
+        ):
+            self.logger.error("⚠️  Bluetooth tethering is NOT enabled on your phone!")
+            self.logger.error(
+                "Enable 'Bluetooth tethering' in phone Settings → Network & internet → Hotspot & tethering"
+            )
+        elif "NoReply" in error_msg or "Did not receive a reply" in error_msg:
+            self.logger.error(
+                "⚠️  Phone's Bluetooth is not responding to connection requests"
+            )
+        elif "br-connection-busy" in error_msg or "InProgress" in error_msg:
+            self.logger.error(
+                "⚠️  Bluetooth connection is busy, wait a moment and try again"
+            )
+
     def connect_nap(self, mac):
-        """Connect to device's NAP (Network Access Point) profile via DBus."""
+        """Connect to device's NAP profile via DBus, bounded by nap_connect_timeout.
+
+        BlueZ's ConnectProfile can block for the full ~30s page-timeout when the
+        phone is off/out of range. We cap it on a wall clock so the connect/monitor
+        loop can't freeze, and clear any stale half-open ACL first so the fresh
+        attempt doesn't hit br-connection-busy.
+        """
         try:
             import dbus
             from dbus.exceptions import DBusException
+        except ImportError:
+            self.logger.error("python3-dbus not installed - run: sudo apt-get install -y python3-dbus")
+            return False
 
+        # Clear a lingering half-open ACL before starting a fresh connect
+        self._clear_stale_acl(mac)
+
+        try:
             self.logger.info(f"Connecting to NAP profile for {mac}...")
             bus = dbus.SystemBus()
             manager = dbus.Interface(
@@ -415,61 +508,40 @@ class ConnectionManager:
                 bus.get_object("org.bluez", device_path), "org.bluez.Device1"
             )
 
-            try:
-                device.ConnectProfile(NAP_UUID, timeout=30)
-                self.logger.info("✓ NAP profile connected successfully via DBus")
-                return True
-            except DBusException as dbus_err:
-                error_msg = str(dbus_err)
-                self.logger.error(f"DBus NAP connection failed: {dbus_err}")
+            # Run the blocking ConnectProfile in a worker so an off/out-of-range
+            # phone can't freeze us for the full BlueZ page-timeout. We abandon on
+            # a wall-clock budget; the dbus call is given a slightly longer method
+            # timeout so it errors out cleanly on its own afterwards.
+            result = {"ok": False, "error": None}
 
-                # Check for authentication/pairing errors
-                if (
-                    "Authentication Rejected" in error_msg
-                    or "Connection refused" in error_msg
-                ):
-                    self.logger.warning(
-                        "Device may have been unpaired from phone - removing stale pairing"
-                    )
-                    try:
-                        self._run_cmd(["bluetoothctl", "remove", mac], timeout=5)
-                        self.logger.info("Removed stale pairing")
-                    except Exception as e:
-                        self.logger.debug(f"Failed to remove pairing: {e}")
-                elif (
-                    "br-connection-page-timeout" in error_msg
-                    or "br-connection-unknown" in error_msg
-                    or "Host is down" in error_msg
-                ):
-                    self.logger.warning(
-                        "Phone not reachable (out of range or BT off) - will retry later"
-                    )
+            def _do_connect_profile():
+                try:
+                    device.ConnectProfile(NAP_UUID, timeout=self.nap_connect_timeout + 10)
+                    result["ok"] = True
+                except DBusException as dbus_err:
+                    result["error"] = str(dbus_err)
+                except Exception as e:
+                    result["error"] = f"{type(e).__name__}: {e}"
 
-                # Provide helpful error messages
-                if (
-                    "br-connection-create-socket" in error_msg
-                    or "br-connection-profile-unavailable" in error_msg
-                ):
-                    self.logger.error(
-                        "⚠️  Bluetooth tethering is NOT enabled on your phone!"
-                    )
-                    self.logger.error(
-                        "Enable 'Bluetooth tethering' in phone Settings → Network & internet → Hotspot & tethering"
-                    )
-                elif "NoReply" in error_msg or "Did not receive a reply" in error_msg:
-                    self.logger.error(
-                        "⚠️  Phone's Bluetooth is not responding to connection requests"
-                    )
-                elif "br-connection-busy" in error_msg or "InProgress" in error_msg:
-                    self.logger.error(
-                        "⚠️  Bluetooth connection is busy, wait a moment and try again"
-                    )
+            worker = threading.Thread(target=_do_connect_profile, daemon=True)
+            worker.start()
+            worker.join(self.nap_connect_timeout)
 
+            if worker.is_alive():
+                self.logger.warning(
+                    f"NAP connect abandoned after {self.nap_connect_timeout}s (phone not answering)"
+                )
                 return False
 
-        except ImportError:
-            self.logger.error("python3-dbus not installed - run: sudo apt-get install -y python3-dbus")
+            if result["ok"]:
+                self.logger.info("✓ NAP profile connected successfully via DBus")
+                return True
+
+            error_msg = result["error"] or "unknown error"
+            self.logger.error(f"DBus NAP connection failed: {error_msg}")
+            self._diagnose_nap_error(mac, error_msg)
             return False
+
         except Exception as e:
             self.logger.error(f"NAP connection error: {type(e).__name__}: {e}")
             return False
