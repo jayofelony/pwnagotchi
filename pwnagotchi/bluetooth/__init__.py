@@ -42,6 +42,8 @@ class BluetoothService:
         # Let the connection manager auto-confirm passkeys via the persistent agent
         self.connection.pairing_agent = self.agent
         self.monitor = ConnectionMonitor(self.connection, logger=self.logger, options=self.options)
+        # Let the monitor reconnect using the full connect flow (NAP + DHCP + verify)
+        self.monitor.reconnect_callback = self.connect
         self.ui_cache = UICache()
         self.ui_renderer = UIRenderer()
 

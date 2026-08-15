@@ -363,25 +363,18 @@ class NetworkManager:
         except Exception:
             result["ping_success"] = False
 
+        # Resolve via Python's resolver - no external binary (nslookup/dig aren't
+        # installed on the image).
         try:
-            subprocess.run(
-                ["nslookup", "google.com"],
-                capture_output=True,
-                timeout=self.SUBPROCESS_TIMEOUT_SHORT,
-            )
+            socket.gethostbyname("google.com")
             result["dns_success"] = True
         except Exception as e:
             result["dns_success"] = False
             result["dns_error"] = str(e)
 
         try:
-            dns_result = subprocess.run(
-                ["cat", "/etc/resolv.conf"],
-                capture_output=True,
-                text=True,
-                timeout=self.SUBPROCESS_TIMEOUT_SHORT,
-            )
-            servers = [line.split()[1] for line in dns_result.stdout.split("\n") if line.startswith("nameserver")]
+            with open("/etc/resolv.conf", "r") as f:
+                servers = [line.split()[1] for line in f if line.startswith("nameserver")]
             result["dns_servers"] = ", ".join(servers) if servers else None
         except Exception:
             pass
