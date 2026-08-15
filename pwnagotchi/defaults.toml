@@ -75,7 +75,6 @@ orientation = "horizontal"
 [main.plugins.ohcapi]
 enabled = false
 api_key = "sk_your_api_key_here"
-receive_email = "yes"
 
 [main.plugins.pwndroid]
 enabled = false
