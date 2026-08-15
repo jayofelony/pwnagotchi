@@ -64,6 +64,7 @@ class PiSugarServer:
         self.allow_charging = True
         self.lowpower_shutdown = False
         self.lowpower_shutdown_level = 10
+        self.shutdown_delay = 45
         self.max_charge_voltage_protection = False
         self.max_protection_level=80
         # Start the device connection in a background thread
@@ -185,7 +186,13 @@ class PiSugarServer:
                         self.set_battery_allow_charging()
 
                 self.voltage_history.append(self.battery_voltage)
-                self.battery_level = self.convert_battery_voltage_to_level()
+                if self.model == 'PiSugar3':
+                    # The MCU reports the percentage itself in 0x2A. The voltage
+                    # curve is only needed for the PiSugar 2 chips, which have no
+                    # such register.
+                    self.battery_level = self.i2creg[0x2A]
+                else:
+                    self.battery_level = self.convert_battery_voltage_to_level()
 
                 if self.lowpower_shutdown:
                     if self.battery_level < self.lowpower_shutdown_level:
@@ -200,13 +207,15 @@ class PiSugarServer:
     def shutdown(self):
         # logging.info("[PiSugarX] PiSugar set shutdown .")
         if self.model == 'PiSugar3':
-            # Shutdown the power after 10 seconds
+            # Cut the rail after shutdown_delay seconds. Ten was not enough:
+            # pwnagotchi.shutdown() sleeps exactly that long refreshing the display
+            # before it even starts syncing the zram mounts to the SD card.
             self._bus.write_byte_data(self.address, 0x0B, 0x29)  # Disable write protection
-            self._bus.write_byte_data(self.address, 0x09, 10)
+            self._bus.write_byte_data(self.address, 0x09, self.shutdown_delay)
             self._bus.write_byte_data(self.address, 0x02, self._bus.read_byte_data(
                 self.address, 0x02) & 0b11011111)
             self._bus.write_byte_data(self.address, 0x0B, 0x00)  # Enable write protection
-            logging.info("[PiSugarX] PiSugar shutdown in 10s.")
+            logging.info(f"[PiSugarX] PiSugar shutdown in {self.shutdown_delay}s.")
         elif self.model == 'PiSugar2':
             pass
         elif self.model == 'PiSugar2Plus':
@@ -603,6 +612,7 @@ class PiSugar(plugins.Plugin):
         self.ps.lowpower_shutdown = self.options['lowpower_shutdown']
         self.ps.lowpower_shutdown_level = self.options['lowpower_shutdown_level']
         self.ps.max_charge_voltage_protection = self.options['max_charge_voltage_protection']
+        self.ps.shutdown_delay = int(cfg.get('shutdown_delay', 45))
 
     def on_ready(self, agent):
         try:
