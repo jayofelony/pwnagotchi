@@ -44,6 +44,9 @@ class ConnectionManager:
         self.scan_mac_pattern = re.compile(r"([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})")
         self.scan_ansi_pattern = re.compile(r"(\x1b\[[0-9;]*m|\x08)")
         self._scan_results = {}  # Track scan results in real-time
+        self._stop_scan = threading.Event()  # Signal an in-progress scan to end early
+        self.current_passkey = None  # Last passkey shown during pairing (for UI)
+        self.pairing_agent = None  # Set by BluetoothService; auto-confirms passkeys
 
     def _strip_ansi_codes(self, text):
         """Remove ANSI escape codes from text."""
@@ -523,79 +526,205 @@ class ConnectionManager:
             self.logger.error(f"NAP connection error: {type(e).__name__}: {e}")
             return False
 
+    def _ensure_device_visible(self, mac):
+        """Make sure BlueZ knows about <mac>, scanning briefly if it doesn't.
+
+        BlueZ refuses to pair a device it has not seen in the current session
+        ("Device ... not available"). If the device isn't already cached, open an
+        interactive bluetoothctl scan and wait for the "[NEW] Device <mac>" event
+        (up to PAIRING_SCAN_WAIT_TIMEOUT). Returns True once visible.
+        """
+        target = mac.upper()
+
+        # Already known (freshly scanned or cached device shows up here)?
+        known = self._run_cmd(
+            ["bluetoothctl", "devices"],
+            capture=True,
+            timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+        )
+        if known and known != "Timeout" and target in known.upper():
+            return True
+
+        # Or already bonded/known to BlueZ (info returns real properties even when
+        # the device isn't in the plain `devices` listing)?
+        info = self._run_cmd(
+            ["bluetoothctl", "info", mac],
+            capture=True,
+            timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+        )
+        if info and info != "Timeout" and ("Paired:" in info or "Trusted:" in info):
+            return True
+
+        self.logger.info(f"Discovering {mac} before pairing (up to {self.PAIRING_SCAN_WAIT_TIMEOUT}s)...")
+        import select
+
+        scan_process = None
+        try:
+            env = dict(os.environ, TERM="dumb", NO_COLOR="1")
+            scan_process = subprocess.Popen(
+                ["bluetoothctl"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+                env=env,
+            )
+            scan_process.stdin.write("scan on\n")
+            scan_process.stdin.flush()
+
+            deadline = time.time() + self.PAIRING_SCAN_WAIT_TIMEOUT
+            while time.time() < deadline:
+                ready = select.select([scan_process.stdout], [], [], 0.5)
+                if ready[0]:
+                    line = scan_process.stdout.readline()
+                    if not line:
+                        break
+                    clean_line = self.scan_ansi_pattern.sub("", line.strip())
+                    if "[NEW]" in clean_line and "Device" in clean_line:
+                        m = self.scan_mac_pattern.search(clean_line)
+                        if m and m.group(1).upper() == target:
+                            self.logger.info(f"Device {mac} discovered")
+                            return True
+            return False
+        except Exception as e:
+            self.logger.debug(f"Discovery error: {e}")
+            return False
+        finally:
+            try:
+                self._run_cmd(["bluetoothctl", "scan", "off"], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+                time.sleep(self.SCAN_STOP_DELAY)
+            except Exception:
+                pass
+            if scan_process:
+                try:
+                    scan_process.stdin.write("quit\n")
+                    scan_process.stdin.flush()
+                    scan_process.wait(timeout=self.SUBPROCESS_TIMEOUT_MEDIUM)
+                except Exception:
+                    try:
+                        scan_process.kill()
+                        scan_process.wait(timeout=self.SUBPROCESS_TIMEOUT_SHORT)
+                    except Exception:
+                        pass
+
     def pair_interactive(self, mac, name=""):
-        """Pair with device - persistent agent will handle the dialog."""
+        """Pair with device: discover it first, then pair via the persistent agent.
+
+        The persistent KeyboardDisplay agent handles the dialog - the Pi displays
+        the passkey and the phone confirms - so no interactive input is needed
+        here. We ensure the device is visible to BlueZ first, otherwise `pair`
+        fails immediately with "Device not available".
+        """
         try:
             self.logger.info(f"Starting pairing with {mac}...")
 
-            # First ensure Bluetooth is powered on and in pairable mode
+            # Ensure Bluetooth is powered on and in pairable mode
             self._run_cmd(["bluetoothctl", "power", "on"], capture=True)
             time.sleep(self.DEVICE_OPERATION_DELAY)
             self._run_cmd(["bluetoothctl", "pairable", "on"], capture=True)
             self._run_cmd(["bluetoothctl", "discoverable", "on"], capture=True)
             time.sleep(self.DEVICE_OPERATION_DELAY)
 
-            # Initiate pairing
+            # BlueZ won't pair a device it hasn't seen this session - discover first
+            if not self._ensure_device_visible(mac):
+                self.logger.warning(f"Device {mac} not seen during discovery - attempting pair anyway")
+
             self.logger.info(f"Running: bluetoothctl pair {mac}")
+            self.logger.info("⚠️  A pairing dialog will appear on your phone - confirm the passkey!")
+
+            # Numeric-comparison pairing needs the Pi side to confirm the passkey.
+            # The persistent agent tails its log and answers 'yes' automatically.
+            stop_confirm = threading.Event()
+            if self.pairing_agent is not None:
+                threading.Thread(
+                    target=self.pairing_agent.watch_and_confirm,
+                    args=(stop_confirm, self.PAIRING_PASSKEY_TIMEOUT),
+                    daemon=True,
+                ).start()
+
+            env = dict(os.environ)
+            env["NO_COLOR"] = "1"
+            env["TERM"] = "dumb"
+
+            process = subprocess.Popen(
+                ["bluetoothctl", "pair", mac],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                env=env,
+                bufsize=1,
+            )
+
+            output_lines = []
+            passkey_seen = False
             try:
-                env = dict(os.environ)
-                env["NO_COLOR"] = "1"
-                env["TERM"] = "dumb"
-
-                process = subprocess.Popen(
-                    ["bluetoothctl", "pair", mac],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    env=env,
-                    bufsize=1,
-                )
-
-                output = ""
-                start_time = time.time()
-                timeout = self.PAIRING_PASSKEY_TIMEOUT
-
-                # Read output with timeout
-                while time.time() - start_time < timeout:
-                    try:
-                        line = process.stdout.readline()
-                        if not line:
-                            break
-                        output += line
-                        if "Pairing successful" in line or "Paired: yes" in line:
-                            self.logger.info(f"Pairing successful for {mac}")
-                            return True
-                    except Exception as e:
-                        self.logger.debug(f"Error reading pairing output: {e}")
+                # Read output in real time so we can surface the passkey immediately
+                while True:
+                    line = process.stdout.readline()
+                    if not line:
                         break
+                    output_lines.append(line)
+                    clean_line = self._strip_ansi_codes(line.strip())
+                    if not passkey_seen:
+                        m = re.search(r"passkey\s+(\d{6})", clean_line, re.IGNORECASE)
+                        if m:
+                            passkey_seen = True
+                            self.current_passkey = m.group(1)
+                            self.logger.warning(f"🔑 PASSKEY: {self.current_passkey} - confirm on phone!")
 
-                # Check final status
-                process.wait(timeout=5)
-                if "Pairing successful" in output or "Paired: yes" in output:
-                    self.logger.info(f"Pairing successful for {mac}")
-                    return True
-                else:
-                    self.logger.warning(f"Pairing unclear - output: {output[:200]}")
-                    # Even if output is unclear, the pairing may have succeeded
-                    # Check pair status to confirm
-                    time.sleep(1)
-                    status = self.get_status(mac)
-                    if status and status.get("paired"):
-                        self.logger.info(f"Pairing confirmed for {mac}")
-                        return True
-
-                self.logger.error(f"Pairing failed for {mac}")
-                return False
-
+                returncode = process.wait(timeout=self.PAIRING_PASSKEY_TIMEOUT)
             except subprocess.TimeoutExpired:
-                self.logger.error(f"Pairing timed out for {mac}")
+                self.logger.error(
+                    f"Pairing timeout ({self.PAIRING_PASSKEY_TIMEOUT}s) - phone didn't confirm the passkey"
+                )
                 return False
-            except Exception as e:
-                self.logger.error(f"Pairing error: {e}")
-                return False
+            finally:
+                stop_confirm.set()
+                try:
+                    if process.stdout:
+                        process.stdout.close()
+                except Exception:
+                    pass
+                try:
+                    if process.poll() is None:
+                        process.kill()
+                        process.wait(timeout=self.SUBPROCESS_TIMEOUT_MEDIUM)
+                except Exception:
+                    pass
+
+            clean_output = self._strip_ansi_codes("".join(output_lines))
+
+            if "Pairing successful" in clean_output or "AlreadyExists" in clean_output:
+                self.logger.info(f"✓ Pairing successful for {mac}")
+                self.current_passkey = None
+                return True
+
+            if returncode == 0:
+                # Command returned success but output was unclear - confirm via status
+                time.sleep(self.DEVICE_OPERATION_LONGER_DELAY)
+                status = self.get_status(mac)
+                if status and status.get("paired"):
+                    self.logger.info(f"✓ Pairing confirmed for {mac}")
+                    self.current_passkey = None
+                    return True
+
+            # Diagnose the failure
+            if "Authentication failed" in clean_output or "0x05" in clean_output:
+                self.logger.error(
+                    "Pairing failed - forget/unpair this device on your phone first, then retry "
+                    "(0x05 = phone has stale cached credentials)"
+                )
+            elif "Connection refused" in clean_output:
+                self.logger.error("Pairing failed - ensure the phone's Bluetooth is on and discoverable")
+            elif not passkey_seen:
+                self.logger.error(f"Pairing failed - no passkey appeared: {clean_output[:200]}")
+            else:
+                self.logger.error(f"Pairing failed - passkey {self.current_passkey} not confirmed on phone")
+            return False
 
         except Exception as e:
-            self.logger.error(f"Pair setup error: {e}")
+            self.logger.error(f"Pair error: {e}")
             return False
 
     def trust_device(self, mac):
@@ -608,6 +737,7 @@ class ConnectionManager:
         try:
             self.logger.info("[bt-tether] Starting device scan...")
             self._scan_results = {}
+            self._stop_scan.clear()
             discovered_devices = {}
             device_types = {}
 
@@ -678,7 +808,7 @@ class ConnectionManager:
                     self.logger.debug(f"Process started, PID: {scan_process.pid}")
                     scan_end_time = time.time() + duration
                     try:
-                        while time.time() < scan_end_time:
+                        while time.time() < scan_end_time and not self._stop_scan.is_set():
                             try:
                                 import select
                                 ready = select.select(
@@ -782,6 +912,12 @@ class ConnectionManager:
             result = list(self._scan_results.values())
             self.logger.info(f"Scan complete: {len(result)} devices total")
             return result
+
+    def stop_scan(self):
+        """Signal an in-progress background scan to end early (e.g. before pairing)."""
+        self._stop_scan.set()
+        # Also stop discovery at the BlueZ level so it can't collide with pairing
+        self._run_cmd(["bluetoothctl", "scan", "off"], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
 
     def get_trusted_devices(self):
         """Get list of trusted Bluetooth devices with NAP support info."""

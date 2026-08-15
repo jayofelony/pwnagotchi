@@ -39,6 +39,8 @@ class BluetoothService:
         self.connection = ConnectionManager(logger=self.logger, options=self.options)
         self.network = NetworkManager(logger=self.logger, options=self.options)
         self.agent = PairingAgent(logger=self.logger)
+        # Let the connection manager auto-confirm passkeys via the persistent agent
+        self.connection.pairing_agent = self.agent
         self.monitor = ConnectionMonitor(self.connection, logger=self.logger, options=self.options)
         self.ui_cache = UICache()
         self.ui_renderer = UIRenderer()
@@ -178,10 +180,14 @@ class BluetoothService:
             self.logger.error(f"Invalid MAC: {mac}")
             return False
 
+        # Stop any ongoing background scan so it can't collide with pairing/connect
+        self.connection.stop_scan()
+
         with self._lock:
             if self._status in (self.STATE_PAIRING, self.STATE_TRUSTING, self.STATE_CONNECTING):
                 self.logger.warning(f"Connection already in progress ({self._status}), ignoring request for {mac}")
                 return False
+            self._scanning = False
             self._status = self.STATE_CONNECTING
             self._message = f"Connecting to {name or mac}..."
 
