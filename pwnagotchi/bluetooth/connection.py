@@ -626,6 +626,17 @@ class ConnectionManager:
             self._run_cmd(["bluetoothctl", "discoverable", "on"], capture=True)
             time.sleep(self.DEVICE_OPERATION_DELAY)
 
+            # Clear a block and any stale/partial bond so a fresh pair can succeed.
+            # A device that is known to BlueZ but "Paired: no" (e.g. the phone
+            # forgot us, or a prior bond went half-formed) otherwise fails with
+            # authentication error 0x05 and can't self-recover.
+            self._run_cmd(["bluetoothctl", "unblock", mac], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+            info = self._run_cmd(["bluetoothctl", "info", mac], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+            if info and info != "Timeout" and "Paired: no" in info:
+                self.logger.info(f"Removing stale bond for {mac} before pairing")
+                self._run_cmd(["bluetoothctl", "remove", mac], capture=True, timeout=self.SUBPROCESS_TIMEOUT_LONG)
+                time.sleep(self.DEVICE_OPERATION_DELAY)
+
             # BlueZ won't pair a device it hasn't seen this session - discover first
             if not self._ensure_device_visible(mac):
                 self.logger.warning(f"Device {mac} not seen during discovery - attempting pair anyway")
@@ -731,6 +742,14 @@ class ConnectionManager:
         """Mark device as trusted."""
         self._run_cmd(["bluetoothctl", "trust", mac], timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
         time.sleep(self.DEVICE_OPERATION_DELAY)
+
+    def set_device_name(self, name):
+        """Set the adapter's Bluetooth alias so the phone shows the pwnagotchi's name."""
+        try:
+            self._run_cmd(["bluetoothctl", "set-alias", name], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+            self.logger.info(f"Set Bluetooth device name to: {name}")
+        except Exception as e:
+            self.logger.debug(f"Failed to set device name: {e}")
 
     def scan(self, duration=30):
         """Scan for Bluetooth devices using interactive bluetoothctl session - working implementation from backup."""

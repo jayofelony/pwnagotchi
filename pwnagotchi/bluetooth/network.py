@@ -101,18 +101,70 @@ class NetworkManager:
         return ip is not None
 
     def verify_localhost(self):
-        """Verify localhost routing (critical for bettercap API)."""
+        """Ensure 127.0.0.1 routes via 'lo', repairing it if a PAN/DHCP route shadowed it.
+
+        Critical for bettercap: a phone's Bluetooth PAN can push a route that
+        shadows loopback, which silently breaks bettercap's localhost API after
+        tethering comes up. We check the actual loopback route and fix it in place.
+        """
         try:
             result = subprocess.run(
-                ["ip", "route", "show", "0/0"],
+                ["ip", "route", "get", "127.0.0.1"],
                 capture_output=True,
                 text=True,
                 timeout=self.SUBPROCESS_TIMEOUT_MEDIUM,
             )
-            return "lo" in result.stdout or "local" in result.stdout
+            out = result.stdout or ""
+            if "lo" in out or "local" in out:
+                return True
+
+            self.logger.warning("Localhost not routing via 'lo' - repairing loopback route")
+            subprocess.run(
+                ["sudo", "ip", "link", "set", "lo", "up"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+            )
+            # May already exist - ignore a "File exists" error
+            subprocess.run(
+                ["sudo", "ip", "route", "add", "127.0.0.0/8", "dev", "lo"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+            )
+            return True
         except Exception as e:
-            self.logger.debug(f"Failed to verify localhost: {e}")
+            self.logger.debug(f"Failed to verify/repair localhost route: {e}")
             return False
+
+    def wait_for_pan_interface(self, timeout=6):
+        """Poll for the PAN interface (bnepX/bt-pan) to appear after a NAP connect.
+
+        The kernel creates the interface a moment after NAP connects, so a single
+        immediate check can miss it. Returns the interface name or None.
+        """
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            iface = self.get_pan_interface()
+            if iface:
+                return iface
+            time.sleep(0.5)
+        return None
+
+    def wait_for_interface_ip(self, iface, timeout=8):
+        """Poll for a usable address (IPv4, or global IPv6) on the interface.
+
+        Returns the address once the DHCP lease lands (or SLAAC assigns IPv6),
+        else None on timeout.
+        """
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            ip = self.get_interface_ip(iface)
+            if ip and not ip.startswith("169.254."):
+                return ip
+            v6 = self.get_global_ipv6(iface)
+            if v6:
+                return v6
+            time.sleep(0.5)
+        return None
 
     def setup_dhcp(self, iface):
         """Setup network for interface using DHCP."""

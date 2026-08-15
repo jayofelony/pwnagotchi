@@ -282,6 +282,10 @@ class BtTether(Plugin):
             mac = request.args.get("mac", "")
             return self._get_connection_status(mac)
 
+        elif subpath == "pair-status":
+            mac = request.args.get("mac", "")
+            return self._get_pair_status(mac)
+
         elif subpath == "test-internet":
             return self._test_internet()
 
@@ -422,6 +426,16 @@ class BtTether(Plugin):
         except Exception as e:
             self._log("ERROR", f"Failed to get connection status: {e}")
             return jsonify({"success": False, "error": str(e)})
+
+    def _get_pair_status(self, mac):
+        """Return basic pair/connect status for a device."""
+        if not mac:
+            return jsonify({"paired": False, "connected": False})
+        status = self.bt.connection.get_status(mac)
+        return jsonify({
+            "paired": status.get("paired", False),
+            "connected": status.get("connected", False),
+        })
 
     def _test_internet(self):
         """Test internet connectivity."""

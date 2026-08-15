@@ -81,6 +81,16 @@ class BluetoothService:
                 self.connection.restart_if_needed()
                 time.sleep(self.BLUETOOTH_SERVICE_STARTUP_DELAY)
 
+            # Advertise the pwnagotchi's name so it's identifiable when pairing
+            try:
+                import pwnagotchi
+                self.connection.set_device_name(pwnagotchi.name())
+            except Exception as e:
+                self.logger.debug(f"Could not set device name: {e}")
+
+            # Make sure loopback routing is intact for bettercap's localhost API
+            self.network.verify_localhost()
+
             # Start monitoring if auto-reconnect enabled
             if self.options.get("auto_reconnect", True):
                 self.monitor.start()
@@ -301,28 +311,25 @@ class BluetoothService:
                 if nap_connected:
                     self.logger.info("NAP connection successful!")
 
-                    # Check if PAN interface is up
-                    time.sleep(2)
-                    iface = self.network.get_pan_interface()
+                    # Poll for the PAN interface - the kernel creates it a moment
+                    # after NAP connects, so a single immediate check can miss it.
+                    iface = self.network.wait_for_pan_interface(timeout=6)
                     if iface:
                         self.logger.info(f"✓ PAN interface active: {iface}")
 
-                        # Setup network with DHCP
+                        # Request a DHCP lease
                         self.logger.info(f"Setting up {iface} for DHCP...")
-                        self.network.setup_dhcp(iface)
-
-                        # Wait for interface initialization
-                        self.logger.info("Waiting for interface initialization...")
-                        time.sleep(2)
-
-                        # Setup network with DHCP
                         if self.network.setup_dhcp(iface):
                             self.logger.info("✓ Network setup successful")
                         else:
                             self.logger.warning("Network setup may have failed, continuing...")
 
-                        # Wait a bit for network to stabilize
-                        time.sleep(2)
+                        # Poll for the lease (IPv4 or global IPv6) instead of sleeping blindly
+                        self.network.wait_for_interface_ip(iface, timeout=8)
+
+                        # A PAN/DHCP route can shadow loopback - keep bettercap's
+                        # localhost API reachable by repairing the lo route.
+                        self.network.verify_localhost()
 
                         # Verify internet connectivity
                         self.logger.info("Checking internet connectivity...")
@@ -412,10 +419,12 @@ class BluetoothService:
             self._message = f"Disconnecting {mac}..."
 
         try:
+            # Stop the monitor from watching this device BEFORE teardown so it
+            # can't race a reconnect during the disconnect/unpair window.
+            self.monitor.clear_device()
             self.connection.disconnect(mac)
             time.sleep(0.5)
             self.connection.unpair(mac)
-            self.monitor.clear_device()
             with self._lock:
                 self._status = self.STATE_DISCONNECTED
             self._emit_event("bt:disconnect_success", {"mac": mac, "reason": "user_request"})
