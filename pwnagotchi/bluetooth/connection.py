@@ -462,10 +462,11 @@ class ConnectionManager:
     def connect_nap(self, mac):
         """Connect to device's NAP profile via DBus, bounded by nap_connect_timeout.
 
-        BlueZ's ConnectProfile can block for the full ~30s page-timeout when the
-        phone is off/out of range. We cap it on a wall clock so the connect/monitor
-        loop can't freeze, and clear any stale half-open ACL first so the fresh
-        attempt doesn't hit br-connection-busy.
+        The ConnectProfile call is bounded by its own dbus method timeout, so an
+        off/out-of-range phone raises NoReply after nap_connect_timeout instead of
+        blocking for the full ~30s BlueZ page-timeout. The call is synchronous so a
+        retry never overlaps a still-pending attempt (which would hit
+        br-connection-busy). Any stale half-open ACL is cleared first.
         """
         try:
             import dbus
@@ -508,39 +509,15 @@ class ConnectionManager:
                 bus.get_object("org.bluez", device_path), "org.bluez.Device1"
             )
 
-            # Run the blocking ConnectProfile in a worker so an off/out-of-range
-            # phone can't freeze us for the full BlueZ page-timeout. We abandon on
-            # a wall-clock budget; the dbus call is given a slightly longer method
-            # timeout so it errors out cleanly on its own afterwards.
-            result = {"ok": False, "error": None}
-
-            def _do_connect_profile():
-                try:
-                    device.ConnectProfile(NAP_UUID, timeout=self.nap_connect_timeout + 10)
-                    result["ok"] = True
-                except DBusException as dbus_err:
-                    result["error"] = str(dbus_err)
-                except Exception as e:
-                    result["error"] = f"{type(e).__name__}: {e}"
-
-            worker = threading.Thread(target=_do_connect_profile, daemon=True)
-            worker.start()
-            worker.join(self.nap_connect_timeout)
-
-            if worker.is_alive():
-                self.logger.warning(
-                    f"NAP connect abandoned after {self.nap_connect_timeout}s (phone not answering)"
-                )
-                return False
-
-            if result["ok"]:
+            try:
+                device.ConnectProfile(NAP_UUID, timeout=self.nap_connect_timeout)
                 self.logger.info("✓ NAP profile connected successfully via DBus")
                 return True
-
-            error_msg = result["error"] or "unknown error"
-            self.logger.error(f"DBus NAP connection failed: {error_msg}")
-            self._diagnose_nap_error(mac, error_msg)
-            return False
+            except DBusException as dbus_err:
+                error_msg = str(dbus_err)
+                self.logger.error(f"DBus NAP connection failed: {error_msg}")
+                self._diagnose_nap_error(mac, error_msg)
+                return False
 
         except Exception as e:
             self.logger.error(f"NAP connection error: {type(e).__name__}: {e}")

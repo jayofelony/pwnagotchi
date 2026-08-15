@@ -27,13 +27,17 @@ from flask import render_template_string, request, jsonify
 
 
 class BtTether(Plugin):
-    __author__ = "wsvdmeer (refactored)"
+    __author__ = "wsvdmeer"
     __version__ = "2.0.1"
     __license__ = "GPL3"
-    __description__ = "Bluetooth tethering with delegated core operations"
+    __description__ = "Guided Bluetooth tethering"
 
     # CSRF exempt since this is a trusted local interface
     csrf_exempt = True
+
+    # If on_ready() never fires (e.g. manual mode, where pwnagotchi does not call
+    # it), start the service anyway after this many seconds.
+    FALLBACK_INIT_TIMEOUT = 5
 
     def on_loaded(self):
         """Initialize plugin configuration and core Bluetooth service."""
@@ -68,16 +72,38 @@ class BtTether(Plugin):
         self.bt.on_event("bt:connect_failed", self._on_connect_failed)
         self.bt.on_event("bt:disconnect_success", self._on_disconnect_success)
 
+        # Start the service without depending on on_ready() - pwnagotchi only
+        # calls on_ready() in auto mode, so in manual mode we self-start after a
+        # short grace period.
+        self._initialization_done = threading.Event()
+        self._init_lock = threading.Lock()
+        threading.Thread(target=self._fallback_initialization, daemon=True).start()
+
         self._log("INFO", "Plugin loaded")
 
     def on_ready(self, agent):
-        """Start Bluetooth service when agent is ready."""
-        self._log("INFO", "Starting Bluetooth service...")
+        """Start Bluetooth service when agent is ready (auto mode)."""
+        self._start_service("on_ready")
+
+    def _fallback_initialization(self):
+        """Start the service even if on_ready() never fires (e.g. manual mode)."""
+        if not self._initialization_done.wait(timeout=self.FALLBACK_INIT_TIMEOUT):
+            self._log("WARNING", "on_ready() not called - using fallback initialization")
+            self._start_service("fallback")
+
+    def _start_service(self, source):
+        """Start the core Bluetooth service exactly once, then auto-connect."""
+        with self._init_lock:
+            if self._initialization_done.is_set():
+                return
+            self._initialization_done.set()
+
+        self._log("INFO", f"Starting Bluetooth service ({source})...")
         if self.bt.start():
             self._log("INFO", "Bluetooth service started")
-            # Try auto-connect if auto_reconnect enabled
+            # Try auto-connect if auto_reconnect enabled, preferring the last phone
             if self.auto_reconnect:
-                best_device = self.bt.find_best_device()
+                best_device = self.bt.find_best_device(prefer_mac=self.phone_mac or None)
                 if best_device:
                     self._log("INFO", f"Auto-connecting to {best_device.name}...")
                     self.bt.connect(best_device.mac, best_device.name)
@@ -88,6 +114,8 @@ class BtTether(Plugin):
         """Cleanup when plugin is unloaded."""
         try:
             self._log("INFO", "Unloading plugin...")
+            # Prevent a pending fallback thread from starting the service post-unload
+            self._initialization_done.set()
             self.bt.stop()
             self._log("INFO", "Plugin unloaded")
         except Exception as e:
@@ -159,39 +187,14 @@ class BtTether(Plugin):
 
             cached_status = cached_status or {}
 
-            # Update internal status if we detected a connected device
-            current_time = time.time()
-
+            # Track connection state for status reporting
             if cached_status.get("connected", False):
-                if self._status != "CONNECTED":
-                    # Just connected - start timer
-                    self._status = "CONNECTED"
-                    self._connection_time = current_time
+                self._status = "CONNECTED"
+            elif self._status == "CONNECTED":
+                self._status = "IDLE"
 
-                # Toggle between IP and device name every 5 seconds
-                if self._connection_time:
-                    elapsed = current_time - self._connection_time
-                    # Every 10 seconds: 0-5 show IP, 5-10 show device name, repeat
-                    cycle_position = elapsed % 10
-                    self._show_device_name = cycle_position >= 5
-
-                # Store device name if we have a connected device
-                if connected_device and connected_device.name:
-                    self._phone_name = connected_device.name
-
-                # Set message based on current cycle
-                if self._show_device_name:
-                    self._message = self._phone_name[:20] if self._phone_name else "Unknown"
-                else:
-                    # Prefer IPv4; fall back to IPv6 for v6-only tethering
-                    ip_address = cached_status.get("ip_address") or cached_status.get("ipv6", "")
-                    self._message = ip_address if ip_address else "- -"
-            else:
-                if self._status == "CONNECTED":
-                    self._status = "IDLE"
-                    self._connection_time = None
-                    self._show_device_name = False
-                self._message = "- -"
+            if connected_device and connected_device.name:
+                self._phone_name = connected_device.name
 
             # Determine display character based on connection state
             if cached_status.get("pan_active", False):
@@ -209,6 +212,21 @@ class BtTether(Plugin):
             else:
                 # No device or not paired
                 display = "X"
+
+            # Detailed line: show the IP once tethering is up (prefer IPv4, then
+            # IPv6 for v6-only tethering). No name/IP toggle - the IP is the useful
+            # info, matching the standalone plugin.
+            if cached_status.get("pan_active", False):
+                ip_address = cached_status.get("ip_address") or cached_status.get("ipv6")
+                self._message = ip_address if ip_address else "Connected"
+            elif cached_status.get("connected", False) and cached_status.get("trusted", False):
+                self._message = "Trusted"
+            elif cached_status.get("connected", False):
+                self._message = "Connected"
+            elif cached_status.get("paired", False):
+                self._message = "Paired"
+            else:
+                self._message = "- -"
 
             if self.show_mini_status:
                 ui.set("bt-status", display)
