@@ -3,6 +3,7 @@
 import logging
 import threading
 import time
+import os
 import subprocess
 from .device import BluetoothDevice
 from .connection import ConnectionManager
@@ -34,6 +35,8 @@ class BluetoothService:
     RECOVER_MIN_INTERVAL = 120
     # Don't auto-reboot for a stuck controller more than once per this window
     STUCK_REBOOT_MIN_INTERVAL = 1800
+    # Persisted last-reboot timestamp (survives the reboot to break loops)
+    REBOOT_STAMP = "/root/.bt-tether-last-reboot"
 
     def __init__(self, options=None, logger=None):
         self.options = options or {}
@@ -336,12 +339,12 @@ class BluetoothService:
                                     nap_connected = self.connection.connect_nap(mac)
                                     if nap_connected:
                                         break
-                                    # A restart didn't clear the busy state -> the
-                                    # controller is genuinely wedged (power-cycle needed),
-                                    # as opposed to the phone simply not tethering.
-                                    if self.connection._consecutive_busy > 0:
-                                        self._handle_bt_stuck()
-                                        break
+                                    # We only get here after repeated br-connection-busy
+                                    # (a controller-side wedge). If a bluetooth restart
+                                    # still can't reconnect - whatever the error now - the
+                                    # stack is wedged in a way only a power-cycle clears.
+                                    self._handle_bt_stuck()
+                                    break
 
                 if nap_connected:
                     self.logger.info("NAP connection successful!")
@@ -487,16 +490,33 @@ class BluetoothService:
     def _maybe_reboot_for_stuck(self):
         """Reboot to clear a truly wedged controller, guarded against reboot loops:
         only if we actually connected since boot (so a phone that's simply off can't
-        loop-reboot the Pi) and at most once per STUCK_REBOOT_MIN_INTERVAL.
+        loop-reboot the Pi) and at most once per STUCK_REBOOT_MIN_INTERVAL. The
+        last-reboot time is persisted to disk so the guard survives the reboot.
         """
-        now = time.time()
         if not self._connected_since_boot:
             self.logger.warning("Controller stuck, but never connected since boot - not rebooting")
             return
-        if now - self._last_reboot_time < self.STUCK_REBOOT_MIN_INTERVAL:
-            self.logger.warning("Controller stuck, but rebooted recently - not rebooting again yet")
-            return
-        self._last_reboot_time = now
+
+        # Persisted guard: a bluetooth restart doesn't clear this wedge on some
+        # combo chips - only a power-cycle does - so the timestamp must outlive the
+        # reboot to prevent a boot loop.
+        try:
+            if os.path.exists(self.REBOOT_STAMP):
+                age = time.time() - os.path.getmtime(self.REBOOT_STAMP)
+                if age < self.STUCK_REBOOT_MIN_INTERVAL:
+                    self.logger.warning(
+                        f"Controller stuck, but rebooted {int(age)}s ago - not rebooting again yet"
+                    )
+                    return
+        except Exception as e:
+            self.logger.debug(f"Could not read reboot stamp: {e}")
+
+        try:
+            with open(self.REBOOT_STAMP, "w") as f:
+                f.write(str(int(time.time())))
+        except Exception as e:
+            self.logger.debug(f"Could not write reboot stamp: {e}")
+
         self.logger.warning("reboot_on_stuck_bluetooth enabled - rebooting to power-cycle the controller")
         try:
             subprocess.run(["systemctl", "reboot"], timeout=10)
