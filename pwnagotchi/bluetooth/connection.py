@@ -787,10 +787,14 @@ class ConnectionManager:
         time.sleep(self.DEVICE_OPERATION_DELAY)
 
     def set_device_name(self, name):
-        """Set the adapter's Bluetooth alias so the phone shows the pwnagotchi's name."""
+        """Set the *controller* alias so the phone shows the pwnagotchi's name.
+
+        Uses `system-alias` (controller) - NOT `set-alias`, which sets the alias of
+        the selected *remote* device and would rename the phone in BlueZ.
+        """
         try:
-            self._run_cmd(["bluetoothctl", "set-alias", name], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
-            self.logger.info(f"Set Bluetooth device name to: {name}")
+            self._run_cmd(["bluetoothctl", "system-alias", name], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+            self.logger.info(f"Set Bluetooth controller name to: {name}")
         except Exception as e:
             self.logger.debug(f"Failed to set device name: {e}")
 
