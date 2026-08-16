@@ -83,26 +83,6 @@ class NetworkManager:
             self.logger.debug(f"Failed to get default route: {e}")
         return None
 
-    def is_internet_available(self):
-        """Check if internet is available via ping."""
-        try:
-            subprocess.run(
-                ["ping", "-c", "1", "8.8.8.8"],
-                capture_output=True,
-                timeout=self.SUBPROCESS_TIMEOUT_SHORT,
-            )
-            return True
-        except Exception:
-            return False
-
-    def is_pan_active(self):
-        """Check if PAN interface has IP and is up."""
-        iface = self.get_interface_name()
-        if not iface:
-            return False
-        ip = self.get_ip(iface)
-        return ip is not None
-
     def verify_localhost(self):
         """Ensure 127.0.0.1 routes via 'lo', repairing it if a PAN/DHCP route shadowed it.
 
@@ -366,19 +346,6 @@ class NetworkManager:
         except Exception as e:
             self.logger.debug(f"Error killing dhclient: {e}")
 
-    def stop_dhclient(self, iface):
-        """Stop dhclient for interface."""
-        try:
-            self._kill_dhclient_for_interface(iface)
-            subprocess.run(
-                ["sudo", "dhclient", "-r", iface],
-                timeout=self.SUBPROCESS_TIMEOUT_MEDIUM,
-                capture_output=True,
-            )
-            time.sleep(0.5)
-        except Exception as e:
-            self.logger.debug(f"Failed to stop dhclient: {e}")
-
     def test_internet_connectivity(self):
         """Test internet connectivity and return detailed results."""
         result = {
@@ -565,29 +532,6 @@ class NetworkManager:
             self.logger.error(f"Internet check error: {e}")
             return False
 
-    def is_pan_active(self):
-        """Check if any PAN interface (bnep/bt-pan) is active"""
-        try:
-            result = subprocess.run(
-                ["ip", "link", "show"],
-                capture_output=True,
-                text=True,
-                timeout=3,
-            )
-
-            has_bnep = "bnep" in result.stdout
-            has_bt_pan = "bt-pan" in result.stdout
-
-            if has_bnep or has_bt_pan:
-                self.logger.debug(f"Found PAN interface (bnep={has_bnep}, bt-pan={has_bt_pan})")
-                return True
-
-            self.logger.debug("No PAN interface found")
-            return False
-        except Exception as e:
-            self.logger.error(f"Failed to check PAN: {e}")
-            return False
-
     def get_pan_interface(self):
         """Get the name of the Bluetooth PAN interface if it exists"""
         try:
@@ -666,112 +610,3 @@ class NetworkManager:
         except Exception as e:
             self.logger.debug(f"Error getting current IP: {e}")
             return None
-
-    def full_internet_test(self):
-        """Test internet connectivity and return detailed results - comprehensive version"""
-        result = {
-            "ping_success": False,
-            "dns_success": False,
-            "bnep0_ip": None,
-            "default_route": None,
-            "dns_servers": None,
-            "dns_error": None,
-            "localhost_routes": None,
-        }
-
-        # Test ping
-        try:
-            ping_result = subprocess.run(
-                ["ping", "-c", "2", "-W", "3", "8.8.8.8"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=5,
-            )
-            result["ping_success"] = ping_result.returncode == 0
-            self.logger.info(f"Ping test: {'Success' if result['ping_success'] else 'Failed'}")
-        except Exception as e:
-            self.logger.warning(f"Ping test error: {e}")
-
-        # Test DNS
-        try:
-            socket.gethostbyname("google.com")
-            result["dns_success"] = True
-            self.logger.info("DNS test: Success")
-        except socket.gaierror as e:
-            result["dns_success"] = False
-            result["dns_error"] = f"DNS resolution failed: {str(e)}"
-            self.logger.warning(f"DNS test failed: {e}")
-        except Exception as e:
-            result["dns_success"] = False
-            result["dns_error"] = str(e)
-            self.logger.warning(f"DNS test error: {e}")
-
-        # Get DNS servers
-        try:
-            with open("/etc/resolv.conf", "r") as f:
-                resolv_content = f.read()
-                dns_servers = []
-                for line in resolv_content.split("\n"):
-                    if line.strip().startswith("nameserver"):
-                        dns_servers.append(line.strip().split()[1])
-                result["dns_servers"] = ", ".join(dns_servers) if dns_servers else "None"
-            self.logger.info(f"DNS servers: {result['dns_servers']}")
-        except Exception as e:
-            result["dns_servers"] = f"Error: {str(e)[:50]}"
-            self.logger.warning(f"Get DNS servers error: {e}")
-
-        # Get bnep0 IP
-        try:
-            ip_result = subprocess.run(
-                ["ip", "addr", "show", "bnep0"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=5,
-            )
-            if ip_result.returncode == 0:
-                ip_match = re.search(r"inet (\d+\.\d+\.\d+\.\d+)", ip_result.stdout)
-                if ip_match:
-                    result["bnep0_ip"] = ip_match.group(1)
-            self.logger.info(f"bnep0 IP: {result['bnep0_ip']}")
-        except Exception as e:
-            self.logger.warning(f"Get bnep0 IP error: {e}")
-
-        # Get default route
-        try:
-            route_result = subprocess.run(
-                ["ip", "route", "show", "default"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=5,
-            )
-            if route_result.returncode == 0 and route_result.stdout:
-                result["default_route"] = route_result.stdout.strip()
-            self.logger.info(f"Default route: {result['default_route']}")
-        except Exception as e:
-            self.logger.warning(f"Get default route error: {e}")
-
-        # Get localhost route
-        try:
-            localhost_result = subprocess.run(
-                ["ip", "route", "get", "127.0.0.1"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=5,
-            )
-            if localhost_result.returncode == 0 and localhost_result.stdout:
-                result["localhost_routes"] = localhost_result.stdout.strip()
-                if "lo" not in result["localhost_routes"] and "local" not in result["localhost_routes"]:
-                    self.logger.warning("⚠️  WARNING: Localhost not routing through 'lo' interface!")
-                    self.logger.warning(f"⚠️  This may prevent bettercap API from working: {result['localhost_routes']}")
-                else:
-                    self.logger.info(f"Localhost route: {result['localhost_routes']}")
-            else:
-                result["localhost_routes"] = "Error getting localhost route"
-        except Exception as e:
-            result["localhost_routes"] = f"Error: {str(e)}"
-            self.logger.warning(f"Get localhost route error: {e}")
-
-        return result

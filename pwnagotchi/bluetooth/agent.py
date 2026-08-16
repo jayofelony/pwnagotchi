@@ -138,20 +138,3 @@ default-agent
                             self.logger.info("✅ Auto-confirmed passkey on the Pi side")
         except Exception as e:
             self.logger.debug(f"Agent log watch error: {e}")
-
-    def get_latest_passkey(self):
-        """Extract the latest passkey from agent log."""
-        if not self.log_path or not os.path.exists(self.log_path):
-            return None
-
-        try:
-            with open(self.log_path, "r", errors="ignore") as f:
-                content = f.read()
-                lines = content.split("\n")
-                for line in reversed(lines):
-                    if "Passkey" in line or "passkey" in line:
-                        return line
-        except Exception as e:
-            self.logger.debug(f"Failed to read passkey: {e}")
-
-        return None

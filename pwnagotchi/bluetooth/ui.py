@@ -1,5 +1,4 @@
 import re
-import threading
 import logging
 
 
@@ -86,35 +85,3 @@ class UIRenderer:
             return "P"
         else:
             return "X"
-
-
-class UICache:
-    """Thread-safe cache for UI status to avoid blocking render calls."""
-
-    def __init__(self):
-        self._cache = {
-            "paired": False,
-            "trusted": False,
-            "connected": False,
-            "pan_active": False,
-            "interface": None,
-            "ip_address": None,
-        }
-        self._lock = threading.Lock()
-
-    def update(self, status=None, **kwargs):
-        """Update cache with new status."""
-        with self._lock:
-            if status is not None:
-                self._cache.update(status)
-            self._cache.update(kwargs)
-
-    def get(self):
-        """Get current cached status."""
-        with self._lock:
-            return self._cache.copy()
-
-    def get_field(self, field, default=None):
-        """Get single field from cache."""
-        with self._lock:
-            return self._cache.get(field, default)

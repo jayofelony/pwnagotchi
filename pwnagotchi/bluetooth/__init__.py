@@ -10,7 +10,7 @@ from .connection import ConnectionManager
 from .network import NetworkManager
 from .agent import PairingAgent
 from .monitor import ConnectionMonitor
-from .ui import UIRenderer, UICache
+from .ui import UIRenderer
 
 
 class BluetoothService:
@@ -51,7 +51,6 @@ class BluetoothService:
         self.monitor = ConnectionMonitor(self.connection, logger=self.logger, options=self.options)
         # Let the monitor reconnect using the full connect flow (NAP + DHCP + verify)
         self.monitor.reconnect_callback = self.connect
-        self.ui_cache = UICache()
         self.ui_renderer = UIRenderer()
 
         # State
@@ -65,7 +64,6 @@ class BluetoothService:
         # did NOT clear the busy state (distinct from "phone tethering off").
         self._bt_stuck = False
         self._connected_since_boot = False
-        self._last_reboot_time = 0
 
         # Scan state tracking
         self._scanning = False
@@ -528,18 +526,6 @@ class BluetoothService:
         with self._lock:
             return self._bt_stuck
 
-    def _check_internet(self):
-        """Check internet connectivity via ping."""
-        try:
-            subprocess.run(
-                ["ping", "-c", "1", "8.8.8.8"],
-                capture_output=True,
-                timeout=5,
-            )
-            return True
-        except Exception:
-            return False
-
     def disconnect(self, mac):
         """Disconnect from a device."""
         with self._lock:
@@ -612,5 +598,4 @@ __all__ = [
     "ConnectionManager",
     "NetworkManager",
     "UIRenderer",
-    "UICache",
 ]
