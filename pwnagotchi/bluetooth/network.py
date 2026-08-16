@@ -36,9 +36,12 @@ class NetworkManager:
             )
             for line in result.stdout.split("\n"):
                 if "bnep" in line or "bt-pan" in line:
-                    match = re.search(r"(\d+):\s+(\S+)", line)
+                    # Anchor and exclude ':'/'@' so we don't capture the trailing
+                    # colon ("bnep0:") or altname form ("bnep0@if3") - a bad name
+                    # here goes straight to `ping -I` and fails the internet check.
+                    match = re.search(r"^\d+:\s+([^:@\s]+)", line)
                     if match:
-                        return match.group(2)
+                        return match.group(1)
         except Exception as e:
             self.logger.debug(f"Failed to get interface name: {e}")
         return None
