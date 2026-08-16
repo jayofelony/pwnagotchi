@@ -28,7 +28,7 @@ from flask import render_template_string, request, jsonify
 
 class BtTether(Plugin):
     __author__ = "wsvdmeer"
-    __version__ = "2.0.1"
+    __version__ = "2.1.0"
     __license__ = "GPL3"
     __description__ = "Guided Bluetooth tethering"
 
@@ -203,53 +203,20 @@ class BtTether(Plugin):
             if connected_device and connected_device.name:
                 self._phone_name = connected_device.name
 
-            # Determine display character based on connection state
-            if cached_status.get("pan_active", False):
-                # Pan active - tethering is working
-                display = "C"
-            elif cached_status.get("connected", False) and cached_status.get("trusted", False):
-                # Connected and trusted
-                display = "T"
-            elif cached_status.get("connected", False):
-                # Just connected (not trusted)
-                display = "N"
-            elif cached_status.get("paired", False):
-                # Paired but not connected
-                display = "P"
-            else:
-                # No device or not paired
-                display = "X"
-
-            # Detailed line: show the IP once tethering is up (prefer IPv4, then
-            # IPv6 for v6-only tethering). No name/IP toggle - the IP is the useful
-            # info, matching the standalone plugin.
-            if cached_status.get("pan_active", False):
-                ip_address = cached_status.get("ip_address") or cached_status.get("ipv6")
-                self._message = ip_address if ip_address else "Connected"
-            elif cached_status.get("connected", False) and cached_status.get("trusted", False):
-                self._message = "Trusted"
-            elif cached_status.get("connected", False):
-                self._message = "Connected"
-            elif cached_status.get("paired", False):
-                self._message = "Paired"
-            else:
-                self._message = "- -"
-
-            # Wedged controller: a bluetooth restart didn't clear the busy state,
-            # so a power-cycle is needed. Distinct from "phone tethering off".
-            # Only show it while not actually connected.
-            bt_stuck = self.bt.bt_stuck and not cached_status.get("connected", False)
-            if bt_stuck:
-                display = "!"
+            # Rendering (glyph + detailed line) lives in the core UIRenderer so the
+            # logic is shared and testable. bt_stuck flags a wedged controller that a
+            # bluetooth restart could not clear, i.e. a power-cycle is needed; the
+            # renderer only surfaces it while not connected.
+            bt_stuck = self.bt.bt_stuck
+            renderer = self.bt.ui_renderer
+            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck)
+            # Keep the bare text for /status (the "BT:" prefix is display-only)
+            self._message = detailed[3:] if detailed.startswith("BT:") else detailed
 
             if self.show_mini_status:
-                ui.set("bt-status", display)
+                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck))
 
             if self.show_detailed_status:
-                if bt_stuck:
-                    detailed = "BT:Stuck-reboot"
-                else:
-                    detailed = f"BT:{self._message}" if self._message else "BT:- -"
                 ui.set("bt-detail", detailed)
 
         except Exception as e:
