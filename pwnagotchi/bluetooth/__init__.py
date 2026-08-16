@@ -30,6 +30,8 @@ class BluetoothService:
 
     # Bluetooth timing constants
     BLUETOOTH_SERVICE_STARTUP_DELAY = 3
+    # Don't restart the stack more than once per this window (avoid restart loops)
+    RECOVER_MIN_INTERVAL = 120
 
     def __init__(self, options=None, logger=None):
         self.options = options or {}
@@ -53,6 +55,7 @@ class BluetoothService:
         self._message = "Ready"
         self._initialized = False
         self._event_handlers = {}
+        self._last_recover_time = 0
 
         # Scan state tracking
         self._scanning = False
@@ -307,6 +310,15 @@ class BluetoothService:
                         self.logger.warning(f"NAP attempt {retry + 1} failed")
                         with self._lock:
                             self._message = f"NAP attempt {retry + 1}/3 failed..."
+                        # Self-heal a wedged controller: after repeated
+                        # br-connection-busy, restart Bluetooth + agent and retry once.
+                        if self.connection._consecutive_busy >= self.connection.RECOVER_BUSY_THRESHOLD:
+                            with self._lock:
+                                self._message = "Bluetooth busy - recovering..."
+                            if self._recover_bluetooth():
+                                nap_connected = self.connection.connect_nap(mac)
+                                if nap_connected:
+                                    break
 
                 if nap_connected:
                     self.logger.info("NAP connection successful!")
@@ -399,6 +411,37 @@ class BluetoothService:
         thread = threading.Thread(target=connect_thread, daemon=True)
         thread.start()
         return True
+
+    def _recover_bluetooth(self):
+        """Clear a wedged controller (repeated br-connection-busy): restart the
+        Bluetooth stack and re-register the pairing agent.
+
+        Rate-limited so a persistent fault can't turn into a restart loop.
+        """
+        now = time.time()
+        if now - self._last_recover_time < self.RECOVER_MIN_INTERVAL:
+            return False
+        self._last_recover_time = now
+
+        self.logger.warning("Repeated br-connection-busy - recovering the Bluetooth stack")
+        try:
+            self.agent.stop()
+        except Exception as e:
+            self.logger.debug(f"Agent stop during recovery failed: {e}")
+
+        ok = self.connection.force_restart_bluetooth()
+
+        # The restart drops the agent's bluetoothctl session - bring it back up
+        try:
+            self.agent.start()
+        except Exception as e:
+            self.logger.debug(f"Agent restart during recovery failed: {e}")
+        try:
+            import pwnagotchi
+            self.connection.set_device_name(pwnagotchi.name())
+        except Exception:
+            pass
+        return ok
 
     def _check_internet(self):
         """Check internet connectivity via ping."""

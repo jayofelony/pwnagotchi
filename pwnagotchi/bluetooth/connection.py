@@ -35,6 +35,10 @@ class ConnectionManager:
     PROCESS_CLEANUP_DELAY = 0.2
     DBUS_OPERATION_RETRY_DELAY = 0.1
     NAP_CONNECT_TIMEOUT = 20
+    # After this many consecutive br-connection-busy errors, the controller is
+    # wedged and only a bluetooth restart clears it.
+    RECOVER_BUSY_THRESHOLD = 3
+    BLUETOOTH_RESTART_TIMEOUT = 15
 
     def __init__(self, logger=None, options=None):
         self.logger = logger or logging.getLogger(__name__)
@@ -47,6 +51,7 @@ class ConnectionManager:
         self._stop_scan = threading.Event()  # Signal an in-progress scan to end early
         self.current_passkey = None  # Last passkey shown during pairing (for UI)
         self.pairing_agent = None  # Set by BluetoothService; auto-confirms passkeys
+        self._consecutive_busy = 0  # Consecutive br-connection-busy errors (wedge detector)
 
     def _strip_ansi_codes(self, text):
         """Remove ANSI escape codes from text."""
@@ -125,6 +130,37 @@ class ConnectionManager:
                 self.logger.warning(f"Failed to restart Bluetooth: {e}")
                 return False
         return True
+
+    def force_restart_bluetooth(self):
+        """Force-restart bluetooth to clear a wedged/busy controller, then wait
+        for it to become responsive.
+
+        Unlike restart_if_needed(), this restarts even when the service is
+        'responsive' but stuck rejecting connects with br-connection-busy - the
+        only thing that reliably clears that state.
+        """
+        self.logger.warning("Restarting Bluetooth to clear a stuck (br-connection-busy) state")
+        try:
+            subprocess.run(
+                ["systemctl", "restart", "bluetooth"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+            )
+        except Exception as e:
+            self.logger.warning(f"Failed to restart bluetooth: {e}")
+            return False
+
+        deadline = time.time() + self.BLUETOOTH_RESTART_TIMEOUT
+        while time.time() < deadline:
+            time.sleep(1)
+            if self.is_responsive():
+                self._run_cmd(["bluetoothctl", "power", "on"], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+                self._consecutive_busy = 0
+                self.logger.info("Bluetooth restarted and responsive")
+                return True
+        self.logger.warning("Bluetooth still not responsive after restart")
+        return False
 
     def get_status(self, mac):
         """Get basic connection status for a device."""
@@ -515,10 +551,17 @@ class ConnectionManager:
             try:
                 device.ConnectProfile(NAP_UUID, timeout=self.nap_connect_timeout)
                 self.logger.info("✓ NAP profile connected successfully via DBus")
+                self._consecutive_busy = 0
                 return True
             except DBusException as dbus_err:
                 error_msg = str(dbus_err)
                 self.logger.error(f"DBus NAP connection failed: {error_msg}")
+                # Track a wedged controller: repeated br-connection-busy means BlueZ
+                # thinks a connect is still pending and only a restart clears it.
+                if "br-connection-busy" in error_msg or "InProgress" in error_msg:
+                    self._consecutive_busy += 1
+                else:
+                    self._consecutive_busy = 0
                 self._diagnose_nap_error(mac, error_msg)
                 return False
 
