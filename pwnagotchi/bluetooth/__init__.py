@@ -287,38 +287,48 @@ class BluetoothService:
                 if not nap_ready:
                     self.logger.warning(f"NAP UUID not seen after {NAP_WAIT_TIMEOUT}s - proceeding anyway")
 
-                # Connect to NAP profile
-                self.logger.info("Connecting to NAP profile...")
-                with self._lock:
-                    self._status = self.STATE_CONNECTING
-                    self._message = "Connecting to NAP profile for internet..."
-                time.sleep(0.5)
-
-                # Try NAP connection with retries
+                # If the link is already up, skip the NAP connect. The BT connection
+                # survives a pwnagotchi restart, so re-running ConnectProfile on a
+                # live link just returns br-connection-busy - which would needlessly
+                # trigger the self-heal (bluetooth restart), recreate bnep0, and break
+                # consumers bound to it (e.g. pwn-companion's discovery socket).
                 nap_connected = False
-                for retry in range(3):
-                    if retry > 0:
-                        self.logger.info(f"Retrying NAP connection (attempt {retry + 1}/3)...")
-                        with self._lock:
-                            self._message = f"NAP retry {retry + 1}/3..."
-                        time.sleep(3)
+                pre_status = self.connection.get_full_status(mac)
+                if pre_status and pre_status.get("connected") and pre_status.get("pan_active"):
+                    self.logger.info("Device already connected with active PAN - skipping NAP connect")
+                    nap_connected = True
+                else:
+                    # Connect to NAP profile
+                    self.logger.info("Connecting to NAP profile...")
+                    with self._lock:
+                        self._status = self.STATE_CONNECTING
+                        self._message = "Connecting to NAP profile for internet..."
+                    time.sleep(0.5)
 
-                    nap_connected = self.connection.connect_nap(mac)
-                    if nap_connected:
-                        break
-                    else:
-                        self.logger.warning(f"NAP attempt {retry + 1} failed")
-                        with self._lock:
-                            self._message = f"NAP attempt {retry + 1}/3 failed..."
-                        # Self-heal a wedged controller: after repeated
-                        # br-connection-busy, restart Bluetooth + agent and retry once.
-                        if self.connection._consecutive_busy >= self.connection.RECOVER_BUSY_THRESHOLD:
+                    # Try NAP connection with retries
+                    for retry in range(3):
+                        if retry > 0:
+                            self.logger.info(f"Retrying NAP connection (attempt {retry + 1}/3)...")
                             with self._lock:
-                                self._message = "Bluetooth busy - recovering..."
-                            if self._recover_bluetooth():
-                                nap_connected = self.connection.connect_nap(mac)
-                                if nap_connected:
-                                    break
+                                self._message = f"NAP retry {retry + 1}/3..."
+                            time.sleep(3)
+
+                        nap_connected = self.connection.connect_nap(mac)
+                        if nap_connected:
+                            break
+                        else:
+                            self.logger.warning(f"NAP attempt {retry + 1} failed")
+                            with self._lock:
+                                self._message = f"NAP attempt {retry + 1}/3 failed..."
+                            # Self-heal a wedged controller: after repeated
+                            # br-connection-busy, restart Bluetooth + agent and retry once.
+                            if self.connection._consecutive_busy >= self.connection.RECOVER_BUSY_THRESHOLD:
+                                with self._lock:
+                                    self._message = "Bluetooth busy - recovering..."
+                                if self._recover_bluetooth():
+                                    nap_connected = self.connection.connect_nap(mac)
+                                    if nap_connected:
+                                        break
 
                 if nap_connected:
                     self.logger.info("NAP connection successful!")
