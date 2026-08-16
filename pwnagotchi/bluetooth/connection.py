@@ -752,9 +752,9 @@ class ConnectionManager:
             self.logger.debug(f"Failed to set device name: {e}")
 
     def scan(self, duration=30):
-        """Scan for Bluetooth devices using interactive bluetoothctl session - working implementation from backup."""
+        """Scan for Bluetooth devices using an interactive bluetoothctl session."""
         try:
-            self.logger.info("[bt-tether] Starting device scan...")
+            self.logger.debug("Starting device scan...")
             self._scan_results = {}
             self._stop_scan.clear()
             discovered_devices = {}
