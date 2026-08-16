@@ -32,6 +32,8 @@ class BluetoothService:
     BLUETOOTH_SERVICE_STARTUP_DELAY = 3
     # Don't restart the stack more than once per this window (avoid restart loops)
     RECOVER_MIN_INTERVAL = 120
+    # Don't auto-reboot for a stuck controller more than once per this window
+    STUCK_REBOOT_MIN_INTERVAL = 1800
 
     def __init__(self, options=None, logger=None):
         self.options = options or {}
@@ -56,6 +58,11 @@ class BluetoothService:
         self._initialized = False
         self._event_handlers = {}
         self._last_recover_time = 0
+        # Wedged-controller ("stuck") tracking: set only when a bluetooth restart
+        # did NOT clear the busy state (distinct from "phone tethering off").
+        self._bt_stuck = False
+        self._connected_since_boot = False
+        self._last_reboot_time = 0
 
         # Scan state tracking
         self._scanning = False
@@ -329,6 +336,12 @@ class BluetoothService:
                                     nap_connected = self.connection.connect_nap(mac)
                                     if nap_connected:
                                         break
+                                    # A restart didn't clear the busy state -> the
+                                    # controller is genuinely wedged (power-cycle needed),
+                                    # as opposed to the phone simply not tethering.
+                                    if self.connection._consecutive_busy > 0:
+                                        self._handle_bt_stuck()
+                                        break
 
                 if nap_connected:
                     self.logger.info("NAP connection successful!")
@@ -369,6 +382,8 @@ class BluetoothService:
                             with self._lock:
                                 self._status = self.STATE_CONNECTED
                                 self._message = f"✓ Connected! Internet via {iface}"
+                                self._bt_stuck = False
+                                self._connected_since_boot = True
 
                             self.monitor.set_device(mac)
                             self._emit_event("bt:connect_success", {
@@ -388,6 +403,8 @@ class BluetoothService:
                                 with self._lock:
                                     self._status = self.STATE_CONNECTED
                                     self._message = f"Connected via {iface} but no internet access"
+                                    self._bt_stuck = False
+                                    self._connected_since_boot = True
 
                                 self.monitor.set_device(mac)
                                 self._emit_event("bt:connect_success", {
@@ -452,6 +469,44 @@ class BluetoothService:
         except Exception:
             pass
         return ok
+
+    def _handle_bt_stuck(self):
+        """A bluetooth restart did NOT clear the busy wedge - the controller is
+        genuinely stuck and only a power-cycle clears it. Flag it (surfaced on the
+        screen/web and in /status) and, if opted in, reboot.
+        """
+        with self._lock:
+            self._bt_stuck = True
+            self._message = "Bluetooth stuck - power-cycle the Pi"
+        self.logger.error("Bluetooth controller stuck after restart - a power-cycle is needed")
+        self._emit_event("bt:stuck", {})
+
+        if self.options.get("reboot_on_stuck_bluetooth", False):
+            self._maybe_reboot_for_stuck()
+
+    def _maybe_reboot_for_stuck(self):
+        """Reboot to clear a truly wedged controller, guarded against reboot loops:
+        only if we actually connected since boot (so a phone that's simply off can't
+        loop-reboot the Pi) and at most once per STUCK_REBOOT_MIN_INTERVAL.
+        """
+        now = time.time()
+        if not self._connected_since_boot:
+            self.logger.warning("Controller stuck, but never connected since boot - not rebooting")
+            return
+        if now - self._last_reboot_time < self.STUCK_REBOOT_MIN_INTERVAL:
+            self.logger.warning("Controller stuck, but rebooted recently - not rebooting again yet")
+            return
+        self._last_reboot_time = now
+        self.logger.warning("reboot_on_stuck_bluetooth enabled - rebooting to power-cycle the controller")
+        try:
+            subprocess.run(["systemctl", "reboot"], timeout=10)
+        except Exception as e:
+            self.logger.error(f"Reboot command failed: {e}")
+
+    @property
+    def bt_stuck(self):
+        with self._lock:
+            return self._bt_stuck
 
     def _check_internet(self):
         """Check internet connectivity via ping."""

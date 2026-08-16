@@ -49,6 +49,7 @@ reconnect_fast_interval = 15             # Faster retry right after a drop (catc
 reconnect_failure_cooldown = 300         # Pause auto-reconnect this long after repeated failures
 nap_connect_timeout = 20                 # Wall-clock cap on a single NAP connect attempt
 fast_dhcp = true                         # Skip pointless ARP probe/backoff on the point-to-point PAN link
+reboot_on_stuck_bluetooth = false        # If a BT restart can't clear a wedged controller, reboot the Pi (opt-in)
 
 [main.plugins.fix_services]
 enabled = true

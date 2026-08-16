@@ -235,11 +235,21 @@ class BtTether(Plugin):
             else:
                 self._message = "- -"
 
+            # Wedged controller: a bluetooth restart didn't clear the busy state,
+            # so a power-cycle is needed. Distinct from "phone tethering off".
+            # Only show it while not actually connected.
+            bt_stuck = self.bt.bt_stuck and not cached_status.get("connected", False)
+            if bt_stuck:
+                display = "!"
+
             if self.show_mini_status:
                 ui.set("bt-status", display)
 
             if self.show_detailed_status:
-                detailed = f"BT:{self._message}" if self._message else "BT:- -"
+                if bt_stuck:
+                    detailed = "BT:Stuck-reboot"
+                else:
+                    detailed = f"BT:{self._message}" if self._message else "BT:- -"
                 ui.set("bt-detail", detailed)
 
         except Exception as e:
@@ -407,6 +417,7 @@ class BtTether(Plugin):
             "disconnecting": False,
             "untrusting": False,
             "initializing": not self.bt.initialized,
+            "bt_stuck": self.bt.bt_stuck,
         })
 
     def _get_connection_status(self, mac):
