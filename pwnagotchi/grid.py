@@ -37,7 +37,7 @@ def call(path, obj=None):
 
 
 def advertise(enabled=True):
-    return call("/mesh/%s" % 'true' if enabled else 'false')
+    return call("/mesh/%s" % ('true' if enabled else 'false'))
 
 
 def set_advertisement_data(data):

@@ -16,7 +16,7 @@ import pwnagotchi.ui.fonts as fonts
 class WpaSec(plugins.Plugin):
     __author__ = '33197631+dadav@users.noreply.github.com'
     __editor__ = 'jayofelony'
-    __version__ = '2.2.0'
+    __version__ = '2.2.1'
     __license__ = 'GPL3'
     __description__ = 'This plugin automatically uploads handshakes to https://wpa-sec.stanev.org'
     
@@ -40,18 +40,13 @@ class WpaSec(plugins.Plugin):
             db_conn.execute('''
                 CREATE TABLE IF NOT EXISTS handshakes (
                     path TEXT PRIMARY KEY,
-                    status INTEGER,
-                    size INTEGER NOT NULL DEFAULT 0
+                    status INTEGER
                 )
             ''')
             db_conn.execute('''
                 CREATE INDEX IF NOT EXISTS idx_handshakes_status
                 ON handshakes (status)
             ''')
-            try:
-                db_conn.execute('ALTER TABLE handshakes ADD COLUMN size INTEGER NOT NULL DEFAULT 0')
-            except sqlite3.OperationalError:
-                pass  # column already exists
         db_conn.close()
 
     def on_loaded(self):
@@ -101,20 +96,6 @@ class WpaSec(plugins.Plugin):
                 db_conn = sqlite3.connect('/etc/pwnagotchi/.wpa_sec_db')
                 cursor = db_conn.cursor()
 
-                # Handshake files can keep growing after a successful upload (bettercap
-                # appends newly captured EAPOLs/PMKIDs for the same AP/station). Re-queue
-                # anything that's larger now than it was when we last uploaded it.
-                cursor.execute('SELECT path, size FROM handshakes WHERE status = ?', (self.Status.SUCCESSFULL.value,))
-                for grown_path, uploaded_size in cursor.fetchall():
-                    try:
-                        current_size = os.path.getsize(grown_path)
-                    except OSError:
-                        continue
-                    if current_size > uploaded_size:
-                        cursor.execute('UPDATE handshakes SET status = ? WHERE path = ?',
-                                        (self.Status.TOUPLOAD.value, grown_path))
-                db_conn.commit()
-
                 cursor.execute('SELECT path FROM handshakes WHERE status = ?', (self.Status.TOUPLOAD.value,))
                 handshakes_toupload = [row[0] for row in cursor.fetchall()]
                 handshakes_toupload = set(handshakes_toupload) - self.skip_until_reload
@@ -135,16 +116,11 @@ class WpaSec(plugins.Plugin):
                                 logging.info(f"WPA_SEC: {handshake} uploaded, but it was invalid.")
                                 new_status = self.Status.INVALID.value
 
-                            try:
-                                uploaded_size = os.path.getsize(handshake)
-                            except OSError:
-                                uploaded_size = 0
-
                             cursor.execute('''
-                                INSERT INTO handshakes (path, status, size)
-                                VALUES (?, ?, ?)
-                                ON CONFLICT(path) DO UPDATE SET status = excluded.status, size = excluded.size
-                            ''', (handshake, new_status, uploaded_size))
+                                INSERT INTO handshakes (path, status)
+                                VALUES (?, ?)
+                                ON CONFLICT(path) DO UPDATE SET status = excluded.status
+                            ''', (handshake, new_status))
                             db_conn.commit()
                             
                         except requests.exceptions.RequestException:

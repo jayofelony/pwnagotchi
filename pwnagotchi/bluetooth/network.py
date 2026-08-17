@@ -36,9 +36,10 @@ class NetworkManager:
             )
             for line in result.stdout.split("\n"):
                 if "bnep" in line or "bt-pan" in line:
-                    # Anchor and exclude ':'/'@' so we don't capture the trailing
-                    # colon ("bnep0:") or altname form ("bnep0@if3") - a bad name
-                    # here goes straight to `ping -I` and fails the internet check.
+                    # `ip link show` prints "3: bnep0: <BROADCAST,...>", so \S+ would
+                    # capture the trailing colon. Exclude ':' and '@' so both "bnep0:"
+                    # and altname forms like "bnep0@if3" yield a usable interface name.
+                    # A bad name here goes straight to `ping -I` and fails the check.
                     match = re.search(r"^\d+:\s+([^:@\s]+)", line)
                     if match:
                         return match.group(1)

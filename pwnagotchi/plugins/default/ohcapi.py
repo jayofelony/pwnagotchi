@@ -4,13 +4,13 @@ import requests
 import time
 from datetime import datetime
 from threading import Lock
-from pwnagotchi.utils import StatusFile
+from pwnagotchi.utils import StatusFile, remove_whitelisted
 import pwnagotchi.plugins as plugins
 from json.decoder import JSONDecodeError
 
 class ohcapi(plugins.Plugin):
     __author__ = 'Rohan Dayaram'
-    __version__ = '1.2.0'
+    __version__ = '1.2.1'
     __license__ = 'GPL3'
     __description__ = 'Uploads WPA/WPA2 handshakes to OnlineHashCrack.com using the new API (V2), no dashboard.'
 
@@ -36,9 +36,6 @@ class ohcapi(plugins.Plugin):
             logging.error(f"OHC NewAPI: Missing required config fields: {missing}")
             return
 
-        if 'receive_email' not in self.options:
-            self.options['receive_email'] = 'yes'  # default
-            
         if 'sleep' not in self.options:
             self.options['sleep'] = 60*60  # default to 1 hour
 
@@ -117,18 +114,10 @@ class ohcapi(plugins.Plugin):
         with self.lock:
             display = agent.view()
             config = agent.config()
-            reported = self.report.data_field_or('reported', default={})
-            if isinstance(reported, list):
-                # Migrate from the old path-only format. We don't know the size at
-                # the time these were uploaded, so record the current size to avoid
-                # forcing an immediate re-upload burst of everything already reported.
-                migrated = {}
-                for p in reported:
-                    try:
-                        migrated[p] = os.path.getsize(p)
-                    except OSError:
-                        migrated[p] = 0
-                reported = migrated
+            reported = self.report.data_field_or('reported', default=[])
+            if isinstance(reported, dict):
+                # Migrate from the size-tracking format.
+                reported = list(reported.keys())
             processed_stations = self.report.data_field_or('processed_stations', default=[])
             handshake_dir = config['bettercap']['handshakes']
 
@@ -136,6 +125,9 @@ class ohcapi(plugins.Plugin):
             handshake_filenames = os.listdir(handshake_dir)
             handshake_paths = [os.path.join(handshake_dir, filename)
                                 for filename in handshake_filenames if filename.endswith('.pcapng')]
+
+            # Never upload the user's own networks to a third-party cracking service.
+            handshake_paths = remove_whitelisted(handshake_paths, config['main']['whitelist'])
 
             # A .pcapng can keep growing after it was reported (bettercap appends newly
             # captured EAPOLs/PMKIDs for the same AP/station), so track size and reprocess
@@ -155,9 +147,12 @@ class ohcapi(plugins.Plugin):
                     handshake_new.append(p)
                     growing.add(p)
             handshake_new = set(handshake_new)
+            # Each handshake is uploaded exactly once, ever - never re-uploaded even if the
+            # .pcapng file grows afterward.
+            handshake_new = set(handshake_paths) - set(reported) - set(self.skip)
 
             if handshake_new:
-                logging.info(f"OHC NewAPI: Processing {len(handshake_new)} new/updated PCAP handshakes.")
+                logging.info(f"OHC NewAPI: Processing {len(handshake_new)} new PCAP handshakes.")
 
                 all_hashes = []
                 successfully_extracted = []
@@ -168,7 +163,7 @@ class ohcapi(plugins.Plugin):
                     if hashes:
                         # Extract ESSID and BSSID from the first hash line
                         essid, bssid = self._extract_essid_bssid_from_hash(hashes[0])
-                        if (essid, bssid) in processed_stations and pcap_path not in growing:
+                        if (essid, bssid) in processed_stations:
                             logging.debug(f"OHC NewAPI: Station {essid}/{bssid} already processed, skipping {pcap_path}.")
                             self.skip.append(pcap_path)
                             continue
@@ -191,14 +186,13 @@ class ohcapi(plugins.Plugin):
                             break
 
                     if upload_success:
-                        # Mark all successfully extracted pcaps as reported, with the size at upload time
+                        # Mark all successfully extracted pcaps as reported
                         for pcap_path in successfully_extracted:
-                            reported[pcap_path] = os.path.getsize(pcap_path)
+                            reported.append(pcap_path)
                             essid, bssid = essid_bssid_map[pcap_path]
-                            if (essid, bssid) not in processed_stations:
-                                processed_stations.append((essid, bssid))
+                            processed_stations.append((essid, bssid))
                         self.report.update(data={'reported': reported, 'processed_stations': processed_stations})
-                        logging.debug("OHC NewAPI: Successfully reported all new/updated handshakes.")
+                        logging.debug("OHC NewAPI: Successfully reported all new handshakes.")
                     else:
                         # Upload failed, skip these pcaps for future attempts
                         for pcap_path in successfully_extracted:
@@ -209,7 +203,7 @@ class ohcapi(plugins.Plugin):
 
                 display.on_normal()
             else:
-                logging.debug("OHC NewAPI: No new or updated PCAP files to process.")
+                logging.debug("OHC NewAPI: No new PCAP files to process.")
 
     def _add_tasks(self, hashes, timeout=30):
         clean_hashes = [h.strip() for h in hashes if h.strip()]
@@ -221,8 +215,7 @@ class ohcapi(plugins.Plugin):
             'agree_terms': "yes",
             'action': 'add_tasks',
             'algo_mode': 22000,
-            'hashes': clean_hashes,
-            'receive_email': self.options['receive_email']
+            'hashes': clean_hashes
         }
 
         try:
@@ -234,7 +227,13 @@ class ohcapi(plugins.Plugin):
             logging.info(f"OHC NewAPI: Add tasks response: {data}")
             return True
         except requests.exceptions.RequestException as e:
-            logging.debug(f"OHC NewAPI: Exception while adding tasks -> {e}")
+            # The API returns the reason in the response body; without it a 400 is
+            # indistinguishable from any other failure.
+            body = getattr(getattr(e, 'response', None), 'text', None)
+            if body:
+                logging.error(f"OHC NewAPI: Exception while adding tasks -> {e} | Response: {body}")
+            else:
+                logging.error(f"OHC NewAPI: Exception while adding tasks -> {e}")
             return False
 
     def _extract_hashes_from_handshake(self, pcap_path):

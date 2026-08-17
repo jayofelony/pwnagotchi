@@ -1,7 +1,10 @@
 {% extends "base.html" %} {% set active_page = "" %} {% block title %} Message
-from {{ message.sender_name }} {% endblock %} {% block script %} // Mark message
-as read fetch('/inbox/{{ message.id }}/seen') .then(res => res.text())
-.then(data => console.log('Message marked as read')); {% endblock %} {% block
+from {{ message.sender_name }} {% endblock %} {% block script %}
+// Mark message as read
+fetch('/inbox/{{ message.id }}/seen')
+  .then(res => res.text())
+  .then(data => console.log('Message marked as read'));
+{% endblock %} {% block
 content %}
 <div class="card">
   <div class="card-header">

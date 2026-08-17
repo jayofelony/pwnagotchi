@@ -173,14 +173,14 @@ class BtTether(Plugin):
                             connected_device = device
                             break
 
-            # Rescan the trusted devices when we have no status OR the stored device
-            # is disconnected. get_full_status() returns a (disconnected) dict for
-            # any paired device, so keying only on "not cached_status" latches onto
-            # the first device forever - the indicator would keep showing that one
-            # even after tethering moves to another host. Copy the rescan result
-            # over only on success so a scan that finds nothing leaves the previous
-            # status intact (preserves the P vs X distinction).
-            if not cached_status or not cached_status.get("connected"):
+            # Look for a connected device with NAP when the stored MAC has none.
+            # A paired but absent device still answers with a status dict, so
+            # testing the dict alone latches onto the first device ever seen and
+            # keeps reporting it after tethering moved to another one.
+            # The rescan result is copied over only when it is actually connected,
+            # so a scan that finds nothing leaves the previous status in place and
+            # the display keeps the P (paired) vs X (no device) distinction.
+            if not cached_status or not cached_status.get("connected", False):
                 trusted_devices = self.bt.connection.get_trusted_devices()
                 for device in trusted_devices:
                     if device.connected and device.has_nap:

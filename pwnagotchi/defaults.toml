@@ -24,7 +24,7 @@ custom_plugin_repos = [
     "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip",
     "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip"
 ]
-custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
+custom_plugins = "/etc/pwnagotchi/custom-plugins/"
 
 [main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
 enabled = true
@@ -81,7 +81,6 @@ orientation = "horizontal"
 [main.plugins.ohcapi]
 enabled = false
 api_key = "sk_your_api_key_here"
-receive_email = "yes"
 
 [main.plugins.pwndroid]
 enabled = false
@@ -95,6 +94,7 @@ rotation = false
 default_display = "percentage"
 lowpower_shutdown = true
 lowpower_shutdown_level = 10 # battery percent at which the device will turn off
+shutdown_delay = 45 # seconds before the PiSugar cuts power, must outlast the shutdown
 max_charge_voltage_protection = false #It will limit the battery voltage to about 80% to extend battery life
 
 [main.plugins.pwncrack]
