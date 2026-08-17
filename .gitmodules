@@ -1,8 +1,8 @@
-[submodule "stage3/03-bettercap-pwngrid/pwngrid"]
-	path = stage3/03-bettercap-pwngrid/pwngrid
+[submodule "stage3/02-bettercap-pwngrid/pwngrid"]
+	path = stage3/02-bettercap-pwngrid/pwngrid
 	url = https://github.com/jayofelony/pwngrid.git
-[submodule "stage3/03-bettercap-pwngrid/bettercap"]
-	path = stage3/03-bettercap-pwngrid/bettercap
+[submodule "stage3/02-bettercap-pwngrid/bettercap"]
+	path = stage3/02-bettercap-pwngrid/bettercap
 	url = https://github.com/jayofelony/bettercap.git
 	branch = pcapng
 [submodule "pi-gen-32bit"]
