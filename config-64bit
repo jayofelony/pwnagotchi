@@ -1,4 +1,6 @@
-IMG_NAME="pwnagotchi-64bit"
+PWNAGOTCHI_VERSION="$(sed -n "s/^__version__ = '\(.*\)'/\1/p" pwnagotchi/_version.py)"
+
+IMG_NAME="pwnagotchi-64bit-${PWNAGOTCHI_VERSION}"
 WORK_DIR="/home/jayofelony/work-64bit"
 DEPLOY_DIR="/home/jayofelony/images"
 DEPLOY_COMPRESSION="xz"
