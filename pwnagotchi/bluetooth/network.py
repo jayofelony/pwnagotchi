@@ -28,9 +28,12 @@ class NetworkManager:
             )
             for line in result.stdout.split("\n"):
                 if "bnep" in line or "bt-pan" in line:
-                    match = re.search(r"(\d+):\s+(\S+)", line)
+                    # `ip link show` prints "3: bnep0: <BROADCAST,...>", so \S+ would
+                    # capture the trailing colon. Exclude ':' and '@' so both "bnep0:"
+                    # and altname forms like "bnep0@if3" yield a usable interface name.
+                    match = re.search(r"^\d+:\s+([^:@\s]+)", line)
                     if match:
-                        return match.group(2)
+                        return match.group(1)
         except Exception as e:
             self.logger.debug(f"Failed to get interface name: {e}")
         return None
