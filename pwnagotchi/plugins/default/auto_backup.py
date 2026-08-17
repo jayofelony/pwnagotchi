@@ -112,7 +112,7 @@ class AutoBackup(plugins.Plugin):
             else ""
         )
         logging.info(
-            f"AUTO-BACKUP: Plugin loaded for host '{self.hostname}'. Interval: 60min, Backups kept: {self.max_backups}{include_msg}"
+            f"AUTO-BACKUP: Plugin loaded for host '{self.hostname}'. Interval: {self.interval_seconds // 60}min, Backups kept: {self.max_backups}{include_msg}"
         )
 
     def is_backup_due(self):
