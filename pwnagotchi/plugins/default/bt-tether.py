@@ -142,13 +142,17 @@ class BtTether(Plugin):
                             connected_device = device
                             break
 
-            # If no status for stored MAC, look for any connected device with NAP (tethering)
-            if not cached_status:
+            # Look for a connected device with NAP when the stored MAC has none.
+            # A paired but absent device still answers with a status dict, so
+            # testing the dict alone latches onto the first device ever seen and
+            # keeps reporting it after tethering moved to another one.
+            if not cached_status or not cached_status.get("connected", False):
                 trusted_devices = self.bt.connection.get_trusted_devices()
                 for device in trusted_devices:
                     if device.connected and device.has_nap:
-                        cached_status = self.bt.connection.get_full_status(device.mac)
-                        if cached_status:
+                        status = self.bt.connection.get_full_status(device.mac)
+                        if status:
+                            cached_status = status
                             self.phone_mac = device.mac
                             self._phone_name = device.name
                             connected_device = device
