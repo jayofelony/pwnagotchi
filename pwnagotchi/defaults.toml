@@ -24,7 +24,7 @@ custom_plugin_repos = [
     "https://github.com/wpa-2/Pwnagotchi-Plugins/archive/master.zip",
     "https://github.com/cyberartemio/wardriver-pwnagotchi-plugin/archive/main.zip"
 ]
-custom_plugins = "/usr/local/share/pwnagotchi/custom-plugins/"
+custom_plugins = "/etc/pwnagotchi/custom-plugins/"
 
 [main.plugins.auto_backup] #More options availble https://github.com/wpa-2/Pwnagotchi-Plugins/blob/main/auto_backup_config.md
 enabled = true
