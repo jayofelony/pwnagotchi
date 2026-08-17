@@ -33,11 +33,6 @@ install -v -m 644 files/pwngrid-peer.service "${ROOTFS_DIR}/etc/systemd/system/p
 echo -e "\e[32m### Installing /etc/update-motd.d/ files ###\e[0m"
 install -v -m 755 files/01-motd "${ROOTFS_DIR}/etc/update-motd.d/01-motd"
 
-# /root/
-echo -e "\e[32m### Installing /root/ files ###\e[0m"
-install -v -m 644 files/client_secrets.json "${ROOTFS_DIR}/root/client_secrets.json"
-install -v -m 644 files/settings.yaml "${ROOTFS_DIR}/root/settings.yaml"
-
 install -v -m 755 files/user-data "${ROOTFS_DIR}/boot/firmware/user-data"
 
 # Remove unnecessary files, if they exist
