@@ -176,6 +176,7 @@ class FixServices(plugins.Plugin):
                 subprocess.check_output("monstart", shell=True)
                 display.set('status', 'Wifi channel stuck. Restarting recon.')
                 display.update(force=True)
+                self.LASTTRY = time.time()
                 pwnagotchi.restart("AUTO")
 
             # Look for pattern 2

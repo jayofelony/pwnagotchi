@@ -110,10 +110,21 @@ start_monitor_interface() {
     return 1
   fi
 
-  ifconfig wlan0 down
-  ifconfig wlan0mon up
-  iw dev wlan0mon set power_save off
-  return 0
+ifconfig wlan0 down
+ifconfig wlan0mon up
+
+local up_timeout=10
+while ! is_interface_up wlan0mon && [ "$up_timeout" -gt 0 ]; do
+  sleep 0.3
+  up_timeout=$((up_timeout - 1))
+done
+if ! is_interface_up wlan0mon; then
+  echo "start_monitor_interface: wlan0mon did not reach UP state" >&2
+  return 1
+fi
+
+iw dev wlan0mon set power_save off
+return 0
 }
 
 # stops mon0
@@ -128,10 +139,7 @@ stop_monitor_interface() {
 
 # returns 0 if the specified network interface is up
 is_interface_up() {
-  if grep -qi 'up' /sys/class/net/"$1"/operstate; then
-    return 0
-  fi
-  return 1
+  ip link show "$1" 2>/dev/null | grep -q '<[^>]*,UP,'
 }
 
 # returns 0 if conditions for AUTO mode are met
