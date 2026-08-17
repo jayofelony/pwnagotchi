@@ -4,13 +4,13 @@ import requests
 import time
 from datetime import datetime
 from threading import Lock
-from pwnagotchi.utils import StatusFile
+from pwnagotchi.utils import StatusFile, remove_whitelisted
 import pwnagotchi.plugins as plugins
 from json.decoder import JSONDecodeError
 
 class ohcapi(plugins.Plugin):
     __author__ = 'Rohan Dayaram'
-    __version__ = '1.2.0'
+    __version__ = '1.2.1'
     __license__ = 'GPL3'
     __description__ = 'Uploads WPA/WPA2 handshakes to OnlineHashCrack.com using the new API (V2), no dashboard.'
 
@@ -36,9 +36,6 @@ class ohcapi(plugins.Plugin):
             logging.error(f"OHC NewAPI: Missing required config fields: {missing}")
             return
 
-        if 'receive_email' not in self.options:
-            self.options['receive_email'] = 'yes'  # default
-            
         if 'sleep' not in self.options:
             self.options['sleep'] = 60*60  # default to 1 hour
 
@@ -137,6 +134,9 @@ class ohcapi(plugins.Plugin):
             handshake_paths = [os.path.join(handshake_dir, filename)
                                 for filename in handshake_filenames if filename.endswith('.pcapng')]
 
+            # Never upload the user's own networks to a third-party cracking service.
+            handshake_paths = remove_whitelisted(handshake_paths, config['main']['whitelist'])
+
             # A .pcapng can keep growing after it was reported (bettercap appends newly
             # captured EAPOLs/PMKIDs for the same AP/station), so track size and reprocess
             # files that have grown since we last uploaded them, not just brand new ones.
@@ -221,8 +221,7 @@ class ohcapi(plugins.Plugin):
             'agree_terms': "yes",
             'action': 'add_tasks',
             'algo_mode': 22000,
-            'hashes': clean_hashes,
-            'receive_email': self.options['receive_email']
+            'hashes': clean_hashes
         }
 
         try:
@@ -234,7 +233,13 @@ class ohcapi(plugins.Plugin):
             logging.info(f"OHC NewAPI: Add tasks response: {data}")
             return True
         except requests.exceptions.RequestException as e:
-            logging.debug(f"OHC NewAPI: Exception while adding tasks -> {e}")
+            # The API returns the reason in the response body; without it a 400 is
+            # indistinguishable from any other failure.
+            body = getattr(getattr(e, 'response', None), 'text', None)
+            if body:
+                logging.error(f"OHC NewAPI: Exception while adding tasks -> {e} | Response: {body}")
+            else:
+                logging.error(f"OHC NewAPI: Exception while adding tasks -> {e}")
             return False
 
     def _extract_hashes_from_handshake(self, pcap_path):
