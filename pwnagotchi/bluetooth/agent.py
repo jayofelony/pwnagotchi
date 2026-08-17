@@ -1,5 +1,6 @@
 import subprocess
 import os
+import re
 import logging
 import tempfile
 import time
@@ -7,6 +8,8 @@ import time
 
 class PairingAgent:
     """Manages the persistent bluetoothctl pairing agent."""
+
+    _ANSI = re.compile(r"(\x1b\[[0-9;]*m|\x08)")
 
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
@@ -94,19 +97,44 @@ default-agent
         except Exception as e:
             self.logger.debug(f"Failed to remove agent log: {e}")
 
-    def get_latest_passkey(self):
-        """Extract the latest passkey from agent log."""
-        if not self.log_path or not os.path.exists(self.log_path):
-            return None
+    def confirm(self):
+        """Answer 'yes' to a pending passkey confirmation on the agent's stdin."""
+        try:
+            if self.process and self.process.poll() is None and self.process.stdin:
+                self.process.stdin.write(b"yes\n")
+                self.process.stdin.flush()
+                return True
+        except Exception as e:
+            self.logger.debug(f"Agent confirm failed: {e}")
+        return False
 
+    def watch_and_confirm(self, stop_event, timeout=90):
+        """Tail the agent log during pairing and auto-confirm the passkey.
+
+        With KeyboardDisplay the association uses numeric comparison, so BlueZ asks
+        the agent to confirm the passkey. Nobody is at the Pi's console, so we
+        answer 'yes' the moment the prompt appears (the user still confirms the
+        matching code on the phone). Captures the passkey for the UI too.
+        """
+        if not self.log_path:
+            return
         try:
             with open(self.log_path, "r", errors="ignore") as f:
-                content = f.read()
-                lines = content.split("\n")
-                for line in reversed(lines):
-                    if "Passkey" in line or "passkey" in line:
-                        return line
+                f.seek(0, 2)  # tail from the end
+                start = time.time()
+                while not stop_event.is_set() and time.time() - start < timeout:
+                    line = f.readline()
+                    if not line:
+                        time.sleep(0.1)
+                        continue
+                    clean = self._ANSI.sub("", line.strip())
+                    low = clean.lower()
+                    if "passkey" in low or "confirm" in low:
+                        m = re.search(r"(\d{6})", clean)
+                        if m:
+                            self.current_passkey = m.group(1)
+                            self.logger.warning(f"🔑 PASSKEY: {self.current_passkey} - confirm on phone!")
+                        if self.confirm():
+                            self.logger.info("✅ Auto-confirmed passkey on the Pi side")
         except Exception as e:
-            self.logger.debug(f"Failed to read passkey: {e}")
-
-        return None
+            self.logger.debug(f"Agent log watch error: {e}")

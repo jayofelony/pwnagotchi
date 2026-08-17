@@ -3,13 +3,14 @@
 import logging
 import threading
 import time
+import os
 import subprocess
 from .device import BluetoothDevice
 from .connection import ConnectionManager
 from .network import NetworkManager
 from .agent import PairingAgent
 from .monitor import ConnectionMonitor
-from .ui import UIRenderer, UICache
+from .ui import UIRenderer
 
 
 class BluetoothService:
@@ -30,17 +31,26 @@ class BluetoothService:
 
     # Bluetooth timing constants
     BLUETOOTH_SERVICE_STARTUP_DELAY = 3
+    # Don't restart the stack more than once per this window (avoid restart loops)
+    RECOVER_MIN_INTERVAL = 120
+    # Don't auto-reboot for a stuck controller more than once per this window
+    STUCK_REBOOT_MIN_INTERVAL = 1800
+    # Persisted last-reboot timestamp (survives the reboot to break loops)
+    REBOOT_STAMP = "/root/.bt-tether-last-reboot"
 
     def __init__(self, options=None, logger=None):
         self.options = options or {}
         self.logger = logger or logging.getLogger(__name__)
 
         # Initialize components
-        self.connection = ConnectionManager(logger=self.logger)
-        self.network = NetworkManager(logger=self.logger)
+        self.connection = ConnectionManager(logger=self.logger, options=self.options)
+        self.network = NetworkManager(logger=self.logger, options=self.options)
         self.agent = PairingAgent(logger=self.logger)
+        # Let the connection manager auto-confirm passkeys via the persistent agent
+        self.connection.pairing_agent = self.agent
         self.monitor = ConnectionMonitor(self.connection, logger=self.logger, options=self.options)
-        self.ui_cache = UICache()
+        # Let the monitor reconnect using the full connect flow (NAP + DHCP + verify)
+        self.monitor.reconnect_callback = self.connect
         self.ui_renderer = UIRenderer()
 
         # State
@@ -49,6 +59,11 @@ class BluetoothService:
         self._message = "Ready"
         self._initialized = False
         self._event_handlers = {}
+        self._last_recover_time = 0
+        # Wedged-controller ("stuck") tracking: set only when a bluetooth restart
+        # did NOT clear the busy state (distinct from "phone tethering off").
+        self._bt_stuck = False
+        self._connected_since_boot = False
 
         # Scan state tracking
         self._scanning = False
@@ -76,6 +91,16 @@ class BluetoothService:
                 self.logger.warning("Bluetooth not responsive, attempting restart...")
                 self.connection.restart_if_needed()
                 time.sleep(self.BLUETOOTH_SERVICE_STARTUP_DELAY)
+
+            # Advertise the pwnagotchi's name so it's identifiable when pairing
+            try:
+                import pwnagotchi
+                self.connection.set_device_name(pwnagotchi.name())
+            except Exception as e:
+                self.logger.debug(f"Could not set device name: {e}")
+
+            # Make sure loopback routing is intact for bettercap's localhost API
+            self.network.verify_localhost()
 
             # Start monitoring if auto-reconnect enabled
             if self.options.get("auto_reconnect", True):
@@ -178,10 +203,14 @@ class BluetoothService:
             self.logger.error(f"Invalid MAC: {mac}")
             return False
 
+        # Stop any ongoing background scan so it can't collide with pairing/connect
+        self.connection.stop_scan()
+
         with self._lock:
             if self._status in (self.STATE_PAIRING, self.STATE_TRUSTING, self.STATE_CONNECTING):
                 self.logger.warning(f"Connection already in progress ({self._status}), ignoring request for {mac}")
                 return False
+            self._scanning = False
             self._status = self.STATE_CONNECTING
             self._message = f"Connecting to {name or mac}..."
 
@@ -266,55 +295,77 @@ class BluetoothService:
                 if not nap_ready:
                     self.logger.warning(f"NAP UUID not seen after {NAP_WAIT_TIMEOUT}s - proceeding anyway")
 
-                # Connect to NAP profile
-                self.logger.info("Connecting to NAP profile...")
-                with self._lock:
-                    self._status = self.STATE_CONNECTING
-                    self._message = "Connecting to NAP profile for internet..."
-                time.sleep(0.5)
-
-                # Try NAP connection with retries
+                # If the link is already up, skip the NAP connect. The BT connection
+                # survives a pwnagotchi restart, so re-running ConnectProfile on a
+                # live link just returns br-connection-busy - which would needlessly
+                # trigger the self-heal (bluetooth restart), recreate bnep0, and break
+                # consumers bound to it (e.g. pwn-companion's discovery socket).
                 nap_connected = False
-                for retry in range(3):
-                    if retry > 0:
-                        self.logger.info(f"Retrying NAP connection (attempt {retry + 1}/3)...")
-                        with self._lock:
-                            self._message = f"NAP retry {retry + 1}/3..."
-                        time.sleep(3)
+                pre_status = self.connection.get_full_status(mac)
+                if pre_status and pre_status.get("connected") and pre_status.get("pan_active"):
+                    self.logger.info("Device already connected with active PAN - skipping NAP connect")
+                    nap_connected = True
+                else:
+                    # Connect to NAP profile
+                    self.logger.info("Connecting to NAP profile...")
+                    with self._lock:
+                        self._status = self.STATE_CONNECTING
+                        self._message = "Connecting to NAP profile for internet..."
+                    time.sleep(0.5)
 
-                    nap_connected = self.connection.connect_nap(mac)
-                    if nap_connected:
-                        break
-                    else:
-                        self.logger.warning(f"NAP attempt {retry + 1} failed")
-                        with self._lock:
-                            self._message = f"NAP attempt {retry + 1}/3 failed..."
+                    # Try NAP connection with retries
+                    for retry in range(3):
+                        if retry > 0:
+                            self.logger.info(f"Retrying NAP connection (attempt {retry + 1}/3)...")
+                            with self._lock:
+                                self._message = f"NAP retry {retry + 1}/3..."
+                            time.sleep(3)
+
+                        nap_connected = self.connection.connect_nap(mac)
+                        if nap_connected:
+                            break
+                        else:
+                            self.logger.warning(f"NAP attempt {retry + 1} failed")
+                            with self._lock:
+                                self._message = f"NAP attempt {retry + 1}/3 failed..."
+                            # Self-heal a wedged controller: after repeated
+                            # br-connection-busy, restart Bluetooth + agent and retry once.
+                            if self.connection._consecutive_busy >= self.connection.RECOVER_BUSY_THRESHOLD:
+                                with self._lock:
+                                    self._message = "Bluetooth busy - recovering..."
+                                if self._recover_bluetooth():
+                                    nap_connected = self.connection.connect_nap(mac)
+                                    if nap_connected:
+                                        break
+                                    # We only get here after repeated br-connection-busy
+                                    # (a controller-side wedge). If a bluetooth restart
+                                    # still can't reconnect - whatever the error now - the
+                                    # stack is wedged in a way only a power-cycle clears.
+                                    self._handle_bt_stuck()
+                                    break
 
                 if nap_connected:
                     self.logger.info("NAP connection successful!")
 
-                    # Check if PAN interface is up
-                    time.sleep(2)
-                    iface = self.network.get_pan_interface()
+                    # Poll for the PAN interface - the kernel creates it a moment
+                    # after NAP connects, so a single immediate check can miss it.
+                    iface = self.network.wait_for_pan_interface(timeout=6)
                     if iface:
                         self.logger.info(f"✓ PAN interface active: {iface}")
 
-                        # Setup network with DHCP
+                        # Request a DHCP lease
                         self.logger.info(f"Setting up {iface} for DHCP...")
-                        self.network.setup_dhcp(iface)
-
-                        # Wait for interface initialization
-                        self.logger.info("Waiting for interface initialization...")
-                        time.sleep(2)
-
-                        # Setup network with DHCP
                         if self.network.setup_dhcp(iface):
                             self.logger.info("✓ Network setup successful")
                         else:
                             self.logger.warning("Network setup may have failed, continuing...")
 
-                        # Wait a bit for network to stabilize
-                        time.sleep(2)
+                        # Poll for the lease (IPv4 or global IPv6) instead of sleeping blindly
+                        self.network.wait_for_interface_ip(iface, timeout=8)
+
+                        # A PAN/DHCP route can shadow loopback - keep bettercap's
+                        # localhost API reachable by repairing the lo route.
+                        self.network.verify_localhost()
 
                         # Verify internet connectivity
                         self.logger.info("Checking internet connectivity...")
@@ -332,12 +383,15 @@ class BluetoothService:
                             with self._lock:
                                 self._status = self.STATE_CONNECTED
                                 self._message = f"✓ Connected! Internet via {iface}"
+                                self._bt_stuck = False
+                                self._connected_since_boot = True
 
                             self.monitor.set_device(mac)
                             self._emit_event("bt:connect_success", {
                                 "mac": mac,
                                 "name": name,
                                 "ip": ip,
+                                "ipv6": self.network.get_global_ipv6(iface),
                                 "interface": iface,
                             })
                             return True
@@ -350,6 +404,8 @@ class BluetoothService:
                                 with self._lock:
                                     self._status = self.STATE_CONNECTED
                                     self._message = f"Connected via {iface} but no internet access"
+                                    self._bt_stuck = False
+                                    self._connected_since_boot = True
 
                                 self.monitor.set_device(mac)
                                 self._emit_event("bt:connect_success", {
@@ -384,17 +440,91 @@ class BluetoothService:
         thread.start()
         return True
 
-    def _check_internet(self):
-        """Check internet connectivity via ping."""
-        try:
-            subprocess.run(
-                ["ping", "-c", "1", "8.8.8.8"],
-                capture_output=True,
-                timeout=5,
-            )
-            return True
-        except Exception:
+    def _recover_bluetooth(self):
+        """Clear a wedged controller (repeated br-connection-busy): restart the
+        Bluetooth stack and re-register the pairing agent.
+
+        Rate-limited so a persistent fault can't turn into a restart loop.
+        """
+        now = time.time()
+        if now - self._last_recover_time < self.RECOVER_MIN_INTERVAL:
             return False
+        self._last_recover_time = now
+
+        self.logger.warning("Repeated br-connection-busy - recovering the Bluetooth stack")
+        try:
+            self.agent.stop()
+        except Exception as e:
+            self.logger.debug(f"Agent stop during recovery failed: {e}")
+
+        ok = self.connection.force_restart_bluetooth()
+
+        # The restart drops the agent's bluetoothctl session - bring it back up
+        try:
+            self.agent.start()
+        except Exception as e:
+            self.logger.debug(f"Agent restart during recovery failed: {e}")
+        try:
+            import pwnagotchi
+            self.connection.set_device_name(pwnagotchi.name())
+        except Exception:
+            pass
+        return ok
+
+    def _handle_bt_stuck(self):
+        """A bluetooth restart did NOT clear the busy wedge - the controller is
+        genuinely stuck and only a power-cycle clears it. Flag it (surfaced on the
+        screen/web and in /status) and, if opted in, reboot.
+        """
+        with self._lock:
+            self._bt_stuck = True
+            self._message = "Bluetooth stuck - power-cycle the Pi"
+        self.logger.error("Bluetooth controller stuck after restart - a power-cycle is needed")
+        self._emit_event("bt:stuck", {})
+
+        if self.options.get("reboot_on_stuck_bluetooth", False):
+            self._maybe_reboot_for_stuck()
+
+    def _maybe_reboot_for_stuck(self):
+        """Reboot to clear a truly wedged controller, guarded against reboot loops:
+        only if we actually connected since boot (so a phone that's simply off can't
+        loop-reboot the Pi) and at most once per STUCK_REBOOT_MIN_INTERVAL. The
+        last-reboot time is persisted to disk so the guard survives the reboot.
+        """
+        if not self._connected_since_boot:
+            self.logger.warning("Controller stuck, but never connected since boot - not rebooting")
+            return
+
+        # Persisted guard: a bluetooth restart doesn't clear this wedge on some
+        # combo chips - only a power-cycle does - so the timestamp must outlive the
+        # reboot to prevent a boot loop.
+        try:
+            if os.path.exists(self.REBOOT_STAMP):
+                age = time.time() - os.path.getmtime(self.REBOOT_STAMP)
+                if age < self.STUCK_REBOOT_MIN_INTERVAL:
+                    self.logger.warning(
+                        f"Controller stuck, but rebooted {int(age)}s ago - not rebooting again yet"
+                    )
+                    return
+        except Exception as e:
+            self.logger.debug(f"Could not read reboot stamp: {e}")
+
+        try:
+            with open(self.REBOOT_STAMP, "w") as f:
+                f.write(str(int(time.time())))
+        except Exception as e:
+            self.logger.debug(f"Could not write reboot stamp: {e}")
+
+        self.logger.warning("reboot_on_stuck_bluetooth enabled - rebooting to power-cycle the controller")
+        try:
+            subprocess.run(["systemctl", "reboot"], timeout=10)
+        except Exception as e:
+            self.logger.error(f"Reboot command failed: {e}")
+
+    @property
+    def bt_stuck(self):
+        with self._lock:
+            return self._bt_stuck
 
     def disconnect(self, mac):
         """Disconnect from a device."""
@@ -403,13 +533,15 @@ class BluetoothService:
             self._message = f"Disconnecting {mac}..."
 
         try:
+            # Stop the monitor from watching this device BEFORE teardown so it
+            # can't race a reconnect during the disconnect/unpair window.
+            self.monitor.clear_device()
             self.connection.disconnect(mac)
             time.sleep(0.5)
             self.connection.unpair(mac)
-            self.monitor.clear_device()
             with self._lock:
                 self._status = self.STATE_DISCONNECTED
-            self._emit_event("bt:disconnect_success", {"mac": mac})
+            self._emit_event("bt:disconnect_success", {"mac": mac, "reason": "user_request"})
             return True
         except Exception as e:
             self.logger.error(f"Disconnect failed: {e}")
@@ -466,5 +598,4 @@ __all__ = [
     "ConnectionManager",
     "NetworkManager",
     "UIRenderer",
-    "UICache",
 ]

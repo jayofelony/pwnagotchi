@@ -16,6 +16,8 @@ import threading
 import json
 import time
 from collections import deque
+import pwnagotchi
+import pwnagotchi.plugins as plugins
 from pwnagotchi.plugins import Plugin
 from pwnagotchi.bluetooth import BluetoothService
 from pwnagotchi.ui.components import LabeledValue
@@ -25,17 +27,22 @@ from flask import render_template_string, request, jsonify
 
 
 class BtTether(Plugin):
-    __author__ = "wsvdmeer (refactored)"
-    __version__ = "2.0.1"
+    __author__ = "wsvdmeer"
+    __version__ = "2.1.0"
     __license__ = "GPL3"
-    __description__ = "Bluetooth tethering with delegated core operations"
+    __description__ = "Guided Bluetooth tethering"
 
     # CSRF exempt since this is a trusted local interface
     csrf_exempt = True
 
+    # If on_ready() never fires (e.g. manual mode, where pwnagotchi does not call
+    # it), start the service anyway after this many seconds.
+    FALLBACK_INIT_TIMEOUT = 5
+
     def on_loaded(self):
         """Initialize plugin configuration and core Bluetooth service."""
-        self.phone_mac = ""
+        # Seed from the persisted MAC so the last-used phone survives a restart
+        self.phone_mac = self.options.get("mac", "")
         self._phone_name = ""
         self._status = "IDLE"
         self._message = "- -"
@@ -65,16 +72,38 @@ class BtTether(Plugin):
         self.bt.on_event("bt:connect_failed", self._on_connect_failed)
         self.bt.on_event("bt:disconnect_success", self._on_disconnect_success)
 
+        # Start the service without depending on on_ready() - pwnagotchi only
+        # calls on_ready() in auto mode, so in manual mode we self-start after a
+        # short grace period.
+        self._initialization_done = threading.Event()
+        self._init_lock = threading.Lock()
+        threading.Thread(target=self._fallback_initialization, daemon=True).start()
+
         self._log("INFO", "Plugin loaded")
 
     def on_ready(self, agent):
-        """Start Bluetooth service when agent is ready."""
-        self._log("INFO", "Starting Bluetooth service...")
+        """Start Bluetooth service when agent is ready (auto mode)."""
+        self._start_service("on_ready")
+
+    def _fallback_initialization(self):
+        """Start the service even if on_ready() never fires (e.g. manual mode)."""
+        if not self._initialization_done.wait(timeout=self.FALLBACK_INIT_TIMEOUT):
+            self._log("WARNING", "on_ready() not called - using fallback initialization")
+            self._start_service("fallback")
+
+    def _start_service(self, source):
+        """Start the core Bluetooth service exactly once, then auto-connect."""
+        with self._init_lock:
+            if self._initialization_done.is_set():
+                return
+            self._initialization_done.set()
+
+        self._log("INFO", f"Starting Bluetooth service ({source})...")
         if self.bt.start():
             self._log("INFO", "Bluetooth service started")
-            # Try auto-connect if auto_reconnect enabled
+            # Try auto-connect if auto_reconnect enabled, preferring the last phone
             if self.auto_reconnect:
-                best_device = self.bt.find_best_device()
+                best_device = self.bt.find_best_device(prefer_mac=self.phone_mac or None)
                 if best_device:
                     self._log("INFO", f"Auto-connecting to {best_device.name}...")
                     self.bt.connect(best_device.mac, best_device.name)
@@ -85,6 +114,8 @@ class BtTether(Plugin):
         """Cleanup when plugin is unloaded."""
         try:
             self._log("INFO", "Unloading plugin...")
+            # Prevent a pending fallback thread from starting the service post-unload
+            self._initialization_done.set()
             self.bt.stop()
             self._log("INFO", "Plugin unloaded")
         except Exception as e:
@@ -146,13 +177,16 @@ class BtTether(Plugin):
             # A paired but absent device still answers with a status dict, so
             # testing the dict alone latches onto the first device ever seen and
             # keeps reporting it after tethering moved to another one.
+            # The rescan result is copied over only when it is actually connected,
+            # so a scan that finds nothing leaves the previous status in place and
+            # the display keeps the P (paired) vs X (no device) distinction.
             if not cached_status or not cached_status.get("connected", False):
                 trusted_devices = self.bt.connection.get_trusted_devices()
                 for device in trusted_devices:
                     if device.connected and device.has_nap:
-                        status = self.bt.connection.get_full_status(device.mac)
-                        if status:
-                            cached_status = status
+                        new_status = self.bt.connection.get_full_status(device.mac)
+                        if new_status and new_status.get("connected"):
+                            cached_status = new_status
                             self.phone_mac = device.mac
                             self._phone_name = device.name
                             connected_device = device
@@ -160,61 +194,29 @@ class BtTether(Plugin):
 
             cached_status = cached_status or {}
 
-            # Update internal status if we detected a connected device
-            current_time = time.time()
-
+            # Track connection state for status reporting
             if cached_status.get("connected", False):
-                if self._status != "CONNECTED":
-                    # Just connected - start timer
-                    self._status = "CONNECTED"
-                    self._connection_time = current_time
+                self._status = "CONNECTED"
+            elif self._status == "CONNECTED":
+                self._status = "IDLE"
 
-                # Toggle between IP and device name every 5 seconds
-                if self._connection_time:
-                    elapsed = current_time - self._connection_time
-                    # Every 10 seconds: 0-5 show IP, 5-10 show device name, repeat
-                    cycle_position = elapsed % 10
-                    self._show_device_name = cycle_position >= 5
+            if connected_device and connected_device.name:
+                self._phone_name = connected_device.name
 
-                # Store device name if we have a connected device
-                if connected_device and connected_device.name:
-                    self._phone_name = connected_device.name
-
-                # Set message based on current cycle
-                if self._show_device_name:
-                    self._message = self._phone_name[:20] if self._phone_name else "Unknown"
-                else:
-                    ip_address = cached_status.get("ip_address", "")
-                    self._message = ip_address if ip_address else "- -"
-            else:
-                if self._status == "CONNECTED":
-                    self._status = "IDLE"
-                    self._connection_time = None
-                    self._show_device_name = False
-                self._message = "- -"
-
-            # Determine display character based on connection state
-            if cached_status.get("pan_active", False):
-                # Pan active - tethering is working
-                display = "C"
-            elif cached_status.get("connected", False) and cached_status.get("trusted", False):
-                # Connected and trusted
-                display = "T"
-            elif cached_status.get("connected", False):
-                # Just connected (not trusted)
-                display = "N"
-            elif cached_status.get("paired", False):
-                # Paired but not connected
-                display = "P"
-            else:
-                # No device or not paired
-                display = "X"
+            # Rendering (glyph + detailed line) lives in the core UIRenderer so the
+            # logic is shared and testable. bt_stuck flags a wedged controller that a
+            # bluetooth restart could not clear, i.e. a power-cycle is needed; the
+            # renderer only surfaces it while not connected.
+            bt_stuck = self.bt.bt_stuck
+            renderer = self.bt.ui_renderer
+            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck)
+            # Keep the bare text for /status (the "BT:" prefix is display-only)
+            self._message = detailed[3:] if detailed.startswith("BT:") else detailed
 
             if self.show_mini_status:
-                ui.set("bt-status", display)
+                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck))
 
             if self.show_detailed_status:
-                detailed = f"BT:{self._message}" if self._message else "BT:- -"
                 ui.set("bt-detail", detailed)
 
         except Exception as e:
@@ -242,6 +244,10 @@ class BtTether(Plugin):
             mac = request.args.get("mac", "")
             return self._disconnect_device(mac)
 
+        elif subpath == "unpair":
+            mac = request.args.get("mac", "")
+            return self._unpair_device(mac)
+
         elif subpath == "pair-device":
             mac = request.args.get("mac", "")
             name = request.args.get("name", "")
@@ -259,6 +265,10 @@ class BtTether(Plugin):
         elif subpath == "connection-status":
             mac = request.args.get("mac", "")
             return self._get_connection_status(mac)
+
+        elif subpath == "pair-status":
+            mac = request.args.get("mac", "")
+            return self._get_pair_status(mac)
 
         elif subpath == "test-internet":
             return self._test_internet()
@@ -305,6 +315,17 @@ class BtTether(Plugin):
         """Disconnect from device."""
         result = self.bt.disconnect(mac)
         self.phone_mac = ""
+        self.options["mac"] = ""
+        return jsonify({"success": result})
+
+    def _unpair_device(self, mac):
+        """Remove pairing with a device."""
+        if not mac:
+            return jsonify({"success": False, "message": "No MAC specified"})
+        result = self.bt.unpair(mac)
+        if self.phone_mac == mac:
+            self.phone_mac = ""
+            self.options["mac"] = ""
         return jsonify({"success": result})
 
     def _pair_device(self, mac, name):
@@ -363,6 +384,7 @@ class BtTether(Plugin):
             "disconnecting": False,
             "untrusting": False,
             "initializing": not self.bt.initialized,
+            "bt_stuck": self.bt.bt_stuck,
         })
 
     def _get_connection_status(self, mac):
@@ -383,11 +405,22 @@ class BtTether(Plugin):
                 "pan_active": status.get("pan_active", False),
                 "interface": status.get("interface"),
                 "ip_address": status.get("ip_address"),
+                "ipv6": status.get("ipv6"),
                 "default_route_interface": self.bt.network.get_default_route_interface(),
             })
         except Exception as e:
             self._log("ERROR", f"Failed to get connection status: {e}")
             return jsonify({"success": False, "error": str(e)})
+
+    def _get_pair_status(self, mac):
+        """Return basic pair/connect status for a device."""
+        if not mac:
+            return jsonify({"paired": False, "connected": False})
+        status = self.bt.connection.get_status(mac)
+        return jsonify({
+            "paired": status.get("paired", False),
+            "connected": status.get("connected", False),
+        })
 
     def _test_internet(self):
         """Test internet connectivity."""
@@ -423,14 +456,47 @@ class BtTether(Plugin):
                 "message": message,
             })
 
+    def _get_pwnagotchi_name(self):
+        """Get pwnagotchi name."""
+        try:
+            return pwnagotchi.name()
+        except Exception as e:
+            self._log("DEBUG", f"Failed to get pwnagotchi name: {e}")
+        return "pwnagotchi"
+
+    def _emit_plugin_event(self, event_name, event_data):
+        """Emit a public event to other plugins (e.g. pwn-companion, bt-tether-discord)."""
+        try:
+            event_data.setdefault("pwnagotchi_name", self._get_pwnagotchi_name())
+            plugins.on(event_name, None, event_data)
+            self._log("DEBUG", f"Event emitted: {event_name}")
+        except Exception as e:
+            self._log("WARNING", f"Failed to emit event {event_name}: {e}")
+
     def _on_connect_success(self, data):
         """Handle successful connection event."""
         mac = data.get("mac")
-        name = data.get("name", mac)
+        name = data.get("name") or mac
         self._log("INFO", f"Connected to {name}")
         self._status = "CONNECTED"
         self._message = f"Connected to {name}"
         self._screen_needs_refresh = True
+
+        # Persist the MAC so the last-used phone survives a restart
+        if mac:
+            self.phone_mac = mac
+            self.options["mac"] = mac
+        if name:
+            self._phone_name = name
+
+        # Notify external consumers (IPv4 stays in `ip` for back-compat; `ipv6` is additive)
+        self._emit_plugin_event("bt_tether_connected", {
+            "mac": mac,
+            "device": name,
+            "ip": data.get("ip") or "unknown",
+            "ipv6": data.get("ipv6"),
+            "interface": data.get("interface"),
+        })
 
     def _on_connect_failed(self, data):
         """Handle failed connection event."""
@@ -444,10 +510,22 @@ class BtTether(Plugin):
     def _on_disconnect_success(self, data):
         """Handle successful disconnection event."""
         mac = data.get("mac")
+        reason = data.get("reason", "user_request")
+        device = self._phone_name or mac
         self._log("INFO", f"Disconnected from {mac}")
         self._status = "IDLE"
         self._message = "Ready"
         self._screen_needs_refresh = True
+
+        # Clear the persisted MAC on an explicit disconnect
+        self.phone_mac = ""
+        self.options["mac"] = ""
+
+        self._emit_plugin_event("bt_tether_disconnected", {
+            "mac": mac,
+            "device": device,
+            "reason": reason,
+        })
 
     def _get_html_template(self):
         """Get the original full-featured HTML template."""

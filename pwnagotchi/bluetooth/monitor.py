@@ -10,6 +10,8 @@ class ConnectionMonitor:
 
     # Reconnect configuration
     DEFAULT_RECONNECT_INTERVAL = 60
+    DEFAULT_RECONNECT_FAST_INTERVAL = 15
+    RECONNECT_FAST_CYCLES = 6
     MAX_RECONNECT_FAILURES = 5
     DEFAULT_RECONNECT_FAILURE_COOLDOWN = 300
     MONITOR_INITIAL_DELAY = 5
@@ -26,6 +28,11 @@ class ConnectionMonitor:
         self._paused = threading.Event()
         self._lock = threading.Lock()
 
+        # Full-flow reconnect (NAP + PAN + DHCP + verify). Set by BluetoothService
+        # to its connect(); falls back to a NAP-only reconnect if unset.
+        self.reconnect_callback = None
+        self.RECONNECT_VERIFY_TIMEOUT = 30
+
         self._current_mac = None
         self.last_known_connected = False
         self.reconnect_failure_count = 0
@@ -33,6 +40,8 @@ class ConnectionMonitor:
         self.reconnect_failure_cooldown = self.options.get("reconnect_failure_cooldown", self.DEFAULT_RECONNECT_FAILURE_COOLDOWN)
         self.first_failure_time = None
         self.reconnect_interval = self.options.get("reconnect_interval", self.DEFAULT_RECONNECT_INTERVAL)
+        self.reconnect_fast_interval = self.options.get("reconnect_fast_interval", self.DEFAULT_RECONNECT_FAST_INTERVAL)
+        self._disconnected_cycles = 0
 
     def start(self):
         """Start the monitoring thread."""
@@ -57,6 +66,7 @@ class ConnectionMonitor:
             self.last_known_connected = True
             self.reconnect_failure_count = 0
             self.first_failure_time = None
+            self._disconnected_cycles = 0
         self._paused.clear()
 
     def clear_device(self):
@@ -75,62 +85,137 @@ class ConnectionMonitor:
         except Exception as e:
             self.logger.debug(f"Error stopping monitor: {e}")
 
+    def _adaptive_wait(self):
+        """Interruptible monitor wait with adaptive reconnect backoff.
+
+        Right after a drop, retry quickly (reconnect_fast_interval) to catch a
+        phone that only briefly left range, then back off to reconnect_interval
+        if it stays down. When connected (steady health check) or paused (no
+        trusted device) always use the full interval - no point fast-polling.
+        Returns immediately if shutdown was requested.
+        """
+        if self.last_known_connected or self._paused.is_set():
+            self._disconnected_cycles = 0
+            interval = self.reconnect_interval
+        elif self.reconnect_fast_interval >= self.reconnect_interval:
+            # Fast-retry disabled or misconfigured - use the normal interval.
+            interval = self.reconnect_interval
+        else:
+            # Clean/fast failure (phone off or out of range) - retry quickly to
+            # catch it the moment it returns.
+            self._disconnected_cycles += 1
+            interval = (
+                self.reconnect_fast_interval
+                if self._disconnected_cycles <= self.RECONNECT_FAST_CYCLES
+                else self.reconnect_interval
+            )
+        self._stop.wait(interval)
+
+    def _pick_device(self):
+        """Choose which trusted device to keep connected.
+
+        Prefers the current target (set after a connect), otherwise the first
+        trusted NAP-capable device. A user-disconnected device is unpaired, so it
+        won't appear here and the monitor won't fight the disconnect.
+        """
+        with self._lock:
+            preferred = self._current_mac
+        try:
+            devices = self.connection.get_trusted_devices()
+        except Exception as e:
+            self.logger.debug(f"Could not list trusted devices: {e}")
+            return preferred
+
+        if preferred and any(d.mac == preferred for d in devices):
+            return preferred
+        for d in devices:
+            if getattr(d, "has_nap", False):
+                return d.mac
+        return devices[0].mac if devices else None
+
     def _loop(self):
         """Background monitoring loop."""
         self.logger.info("Connection monitor started")
-        time.sleep(self.MONITOR_INITIAL_DELAY)
+
+        # Interruptible initial delay so shutdown isn't blocked at startup
+        if self._stop.wait(self.MONITOR_INITIAL_DELAY):
+            return
 
         while not self._stop.is_set():
             try:
                 if self._paused.is_set():
-                    time.sleep(self.MONITOR_PAUSED_CHECK_INTERVAL)
+                    self._stop.wait(self.MONITOR_PAUSED_CHECK_INTERVAL)
                     continue
 
-                # Check current connection status
+                mac = self._pick_device()
+                if not mac:
+                    self._adaptive_wait()
+                    continue
+
                 with self._lock:
-                    last_mac = getattr(self, "_current_mac", None)
+                    self._current_mac = mac
 
-                if not last_mac:
-                    time.sleep(self.reconnect_interval)
-                    continue
-
-                status = self.connection.get_full_status(last_mac)
+                status = self.connection.get_full_status(mac)
                 if not status:
-                    time.sleep(self.reconnect_interval)
+                    self._adaptive_wait()
                     continue
 
-                # Track connection drops and actually attempt to reconnect
-                if self.last_known_connected and not status["connected"]:
-                    self.logger.warning(f"Connection to {last_mac} dropped! Reconnecting...")
-                    self.last_known_connected = self.reconnect(last_mac)
+                if status["connected"]:
+                    self.last_known_connected = True
+                    self.reconnect_failure_count = 0
+                    self.first_failure_time = None
                 else:
-                    self.last_known_connected = status["connected"]
+                    # Not connected: reconnect. Covers both a dropped link and an
+                    # initial connect that hasn't succeeded yet (e.g. phone wasn't
+                    # in range at boot).
+                    if self.last_known_connected:
+                        self.logger.warning(f"Connection to {mac} dropped! Reconnecting...")
+                    else:
+                        self.logger.info(f"{mac} paired but not connected - attempting connect...")
+                    self.last_known_connected = self.reconnect(mac)
 
-                time.sleep(self.reconnect_interval)
+                self._adaptive_wait()
 
             except Exception as e:
                 self.logger.debug(f"Monitor loop error: {e}")
-                time.sleep(self.reconnect_interval)
+                self._adaptive_wait()
 
     def reconnect(self, mac):
-        """Attempt to reconnect to a device."""
+        """Attempt to (re)connect to a device using the full connect flow."""
         try:
             with self._lock:
                 self._current_mac = mac
 
             self.logger.info(f"Attempting to reconnect to {mac}...")
+
+            if self.reconnect_callback:
+                # Full flow (pair-if-needed -> trust -> NAP -> DHCP -> verify) runs
+                # on its own thread; poll for it to establish.
+                self.reconnect_callback(mac)
+                deadline_cycles = self.RECONNECT_VERIFY_TIMEOUT
+                for _ in range(deadline_cycles):
+                    if self._stop.wait(1):
+                        return self.last_known_connected
+                    status = self.connection.get_full_status(mac)
+                    if status and status.get("connected"):
+                        self.logger.info(f"Successfully reconnected to {mac}")
+                        self.reconnect_failure_count = 0
+                        self.first_failure_time = None
+                        return True
+                self._handle_reconnect_failure(mac)
+                return False
+
+            # Fallback: NAP-only reconnect (no full network setup)
             self.connection.connect_nap(mac)
             time.sleep(self.OPERATION_SHORT_DELAY)
-
             status = self.connection.get_full_status(mac)
             if status and status["connected"]:
                 self.logger.info(f"Successfully reconnected to {mac}")
                 self.reconnect_failure_count = 0
                 self.first_failure_time = None
                 return True
-            else:
-                self._handle_reconnect_failure(mac)
-                return False
+            self._handle_reconnect_failure(mac)
+            return False
 
         except Exception as e:
             self.logger.error(f"Reconnect failed: {e}")
