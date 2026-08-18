@@ -23,11 +23,7 @@ SYSTEM_FILES = [
     # (path within the downloaded repo archive, absolute destination, mode)
     ("stage3/06-patches/files/pwnlib", "/usr/bin/pwnlib", 0o755),
     ("stage3/06-patches/files/bettercap-launcher", "/usr/bin/bettercap-launcher", 0o755),
-    ("stage3/06-patches/files/decryption-webserver", "/usr/bin/decryption-webserver", 0o755),
-    ("stage3/06-patches/files/monstart", "/usr/bin/monstart", 0o755),
-    ("stage3/06-patches/files/monstop", "/usr/bin/monstop", 0o755),
     ("stage3/06-patches/files/pwnagotchi-launcher", "/usr/bin/pwnagotchi-launcher", 0o755),
-    ("stage3/06-patches/files/pwnagotchi_completion.sh", "/etc/bash_completion.d/pwnagotchi_completion.sh", 0o644),
     ("stage3/06-patches/files/01-motd", "/etc/update-motd.d/01-motd", 0o755),
     ("stage3/06-patches/files/pwnagotchi.service", "/etc/systemd/system/pwnagotchi.service", 0o644),
     ("stage3/06-patches/files/bettercap.service", "/etc/systemd/system/bettercap.service", 0o644),
