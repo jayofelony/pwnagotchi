@@ -1,7 +1,8 @@
-import os
 import logging
+import subprocess
 import time
 import re
+from pathlib import Path
 
 from pwnagotchi._version import __version__
 
@@ -38,7 +39,7 @@ def set_name(new_name):
             logging.debug("new hosts:\n%s\n", patched)
             fp.write(patched)
 
-        os.system("hostname '%s'" % new_name)
+        subprocess.run(["hostname", new_name], check=True)
         reboot()
 
 
@@ -121,22 +122,25 @@ def shutdown():
     from pwnagotchi import fs
     for m in fs.mounts:
         m.sync()
- 
-    os.system("sync")
-    os.system("halt")
+
+    subprocess.run(["sync"], check=True)
+    try:
+        subprocess.run(["halt"], check=True)
+    except subprocess.CalledProcessError as e:
+        logging.critical("halt command failed: %s", e)
 
 
 def restart(mode):
     logging.warning("restarting in %s mode ...", mode)
     mode = mode.upper()
     if mode == 'AUTO':
-        os.system("touch /root/.pwnagotchi-auto")
+        Path("/root/.pwnagotchi-auto").touch()
     else:
-        os.system("touch /root/.pwnagotchi-manual")
+        Path("/root/.pwnagotchi-manual").touch()
 
-    os.system("service bettercap restart")
+    subprocess.run(["service", "bettercap", "restart"])
     time.sleep(1)
-    os.system("service pwnagotchi restart")
+    subprocess.run(["service", "pwnagotchi", "restart"])
 
 
 def reboot(mode=None):
@@ -153,9 +157,9 @@ def reboot(mode=None):
         time.sleep(10)
 
     if mode == 'AUTO':
-        os.system("touch /root/.pwnagotchi-auto")
+        Path("/root/.pwnagotchi-auto").touch()
     elif mode == 'MANU':
-        os.system("touch /root/.pwnagotchi-manual")
+        Path("/root/.pwnagotchi-manual").touch()
 
     logging.warning("syncing...")
 
@@ -163,5 +167,5 @@ def reboot(mode=None):
     for m in fs.mounts:
         m.sync()
 
-    os.system("sync")
-    os.system("shutdown -r now")
+    subprocess.run(["sync"], check=True)
+    subprocess.run(["shutdown", "-r", "now"], check=True)

@@ -1,3 +1,5 @@
+import subprocess
+
 from Crypto.Signature import PKCS1_PSS
 from Crypto.PublicKey import RSA
 import Crypto.Hash.SHA256 as SHA256
@@ -27,7 +29,7 @@ class KeyPair(object):
             if not os.path.exists(self.priv_path) or not os.path.exists(self.pub_path):
                 self._view.on_keys_generation()
                 logging.info("generating %s ..." % self.priv_path)
-                os.system("pwngrid -generate -keys '%s'" % self.path)
+                subprocess.run(["pwngrid", "-generate", "-keys", self.path], check=True)
 
             # load keys: they might be corrupted if the unit has been turned off during the generation, in this case
             # the exception will remove the files and go back at the beginning of this loop.

@@ -297,7 +297,7 @@ class PwnStoreUI(plugins.Plugin):
         def run_restart():
             import time
             time.sleep(1)
-            subprocess.run(['systemctl', 'restart', 'pwnagotchi'])
+            subprocess.run(['systemctl', 'restart', 'pwnagotchi'], check=True)
         
         _thread.start_new_thread(run_restart, ())
         return Response(json.dumps({'success': True}), mimetype='application/json')
@@ -366,5 +366,5 @@ class PwnStoreUI(plugins.Plugin):
             return Response(json.dumps({'success': False, 'error': 'pwnstore CLI not installed'}),
                             status=503, mimetype='application/json')
         data = request.get_json(force=True)
-        subprocess.run(['pwnstore', 'uninstall', data.get('plugin')])
-        return Response(json.dumps({'success': True}), mimetype='application/json')
+        result = subprocess.run(['pwnstore', 'uninstall', data.get('plugin')], capture_output=True, text=True)
+        return Response(json.dumps({'success': result.returncode == 0}), mimetype='application/json')

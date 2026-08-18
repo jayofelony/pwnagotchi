@@ -3,6 +3,7 @@ import re
 import tempfile
 import contextlib
 import shutil
+import subprocess
 #import _thread
 import threading
 import logging
@@ -41,7 +42,7 @@ def is_mountpoint(path):
     """
     Checks if path is mountpoint
     """
-    return os.system(f"mountpoint -q {path}") == 0
+    return subprocess.run(["mountpoint", "-q", path]).returncode == 0
 
 
 def setup_mounts(config):
@@ -100,7 +101,7 @@ class MemoryFS:
     def zram_install():
         if not os.path.exists("/sys/class/zram-control"):
             logging.debug("[FS] Installing zram")
-            return os.system("modprobe zram") == 0
+            return subprocess.run(["modprobe", "zram"]).returncode == 0
         return True
 
 
@@ -133,7 +134,8 @@ class MemoryFS:
             open(f"/sys/block/zram{self.zdev}/disksize", "wt").write(self.zram_disk_size)
             open(f"/sys/block/zram{self.zdev}/mem_limit", "wt").write(self.size)
             logging.debug("[FS] Creating fs (type: %s)", self.zram_fs_type)
-            os.system(f"mke2fs -t {self.zram_fs_type} /dev/zram{self.zdev} >/dev/null 2>&1")
+            subprocess.run(["mke2fs", "-t", self.zram_fs_type, f"/dev/zram{self.zdev}"],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         # ensure mountpoints exist
         if not os.path.exists(self.disk):
@@ -158,35 +160,41 @@ class MemoryFS:
         if actually_free >= needed:
             logging.debug("[FS] Syncing %s -> %s", source,dest)
             if self.rsync:
-                os.system(f"rsync -aXv --inplace --no-whole-file --delete-after {source}/ {dest}/ >/dev/null 2>&1")
+                subprocess.run(["rsync", "-aXv", "--inplace", "--no-whole-file", "--delete-after",
+                               f"{source}/", f"{dest}/"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             else:
                 copy_tree(source, dest, preserve_symlinks=True)
-            os.system("sync")
+            subprocess.run(["sync"])
             return True
         return False
 
 
     def mount(self):
-        if os.system(f"mount --bind {self.mountpoint} {self.disk}"):
+        if subprocess.run(["mount", "--bind", self.mountpoint, self.disk]).returncode:
             return False
 
-        if os.system(f"mount --make-private {self.disk}"):
+        if subprocess.run(["mount", "--make-private", self.disk]).returncode:
             return False
 
         if self.zram and self.zdev is not None:
-            if os.system(f"mount -t {self.zram_fs_type} -o nosuid,noexec,nodev,user=pwnagotchi /dev/zram{self.zdev} {self.mountpoint}/"):
+            if subprocess.run(["mount", "-t", self.zram_fs_type,
+                               "-o", "nosuid,noexec,nodev,user=pwnagotchi",
+                               f"/dev/zram{self.zdev}", f"{self.mountpoint}/"]).returncode:
                 return False
         else:
-            if os.system(f"mount -t tmpfs -o nosuid,noexec,nodev,mode=0755,size={self.size} pwnagotchi {self.mountpoint}/"):
+            if subprocess.run(["mount", "-t", "tmpfs",
+                               "-o", f"nosuid,noexec,nodev,mode=0755,size={self.size}",
+                               "pwnagotchi", f"{self.mountpoint}/"]).returncode:
                 return False
 
         return True
 
 
     def umount(self):
-        if os.system(f"umount -l {self.mountpoint}"):
+        if subprocess.run(["umount", "-l", self.mountpoint]).returncode:
             return False
 
-        if os.system(f"umount -l {self.disk}"):
+        if subprocess.run(["umount", "-l", self.disk]).returncode:
             return False
         return True

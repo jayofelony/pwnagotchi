@@ -1,5 +1,5 @@
-import os
 import logging
+import subprocess
 import threading
 
 import pwnagotchi.plugins as plugins
@@ -336,7 +336,7 @@ class Display(View):
     def _on_view_rendered(self, img):
         try:
             if self._config['ui']['web']['on_frame'] != '':
-                os.system(self._config['ui']['web']['on_frame'])
+                subprocess.run(self._config['ui']['web']['on_frame'], shell=True)
         except Exception as e:
             logging.error("%s" % e)
 

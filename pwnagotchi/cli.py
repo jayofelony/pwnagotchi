@@ -150,7 +150,7 @@ def pwnagotchi_cli():
         sys.exit(0)
 
     if args.check_update:
-        subprocess.run(["/usr/bin/auto-update.sh"])
+        subprocess.run(["/usr/bin/auto-update.sh"], check=True)
         sys.exit(0)
 
     config = utils.load_config(args)

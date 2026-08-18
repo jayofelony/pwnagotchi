@@ -1,5 +1,7 @@
 import os
+import stat
 import logging
+import subprocess
 from threading import Lock
 from functools import partial
 from pwnagotchi import plugins
@@ -21,9 +23,9 @@ def systemd_dropin(name, content):
 
 def systemctl(command, unit=None):
     if unit:
-        os.system("/bin/systemctl %s %s" % (command, unit))
+        subprocess.run(["/bin/systemctl", command, unit])
     else:
-        os.system("/bin/systemctl %s" % command)
+        subprocess.run(["/bin/systemctl", command])
 
 
 def run_task(name, options):
@@ -38,7 +40,8 @@ def run_task(name, options):
         for cmd in options['commands']:
             script_file.write('%s\n' % cmd)
 
-    os.system("chmod a+x %s" % script_path)
+    current_mode = os.stat(script_path).st_mode
+    os.chmod(script_path, current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     # here we create the service which runs the tasks
     with open('/etc/systemd/system/%s' % task_service_name, 'wt') as task_service:

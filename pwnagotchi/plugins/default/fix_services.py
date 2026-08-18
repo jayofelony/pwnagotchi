@@ -49,9 +49,8 @@ class FixServices(plugins.Plugin):
         """
         try:
             # Check if wlan0 interface exists and get its driver
-            cmd_output = subprocess.check_output("ls /sys/class/net/", shell=True, text=True)
-            interfaces = cmd_output.strip().split('\n')
-            
+            interfaces = os.listdir("/sys/class/net/")
+
             # Look for wlan0 interface
             if 'wlan0' in interfaces:
                 try:
@@ -71,17 +70,14 @@ class FixServices(plugins.Plugin):
                             logging.info("[Fix_Services] Onboard brcmfmac detected. Plugin will remain active.")
                             return False
                     else:
-                        lsmod_output = subprocess.check_output("lsmod | grep brcmfmac", shell=True, text=True)
-                        if lsmod_output.strip():
+                        lsmod_output = subprocess.check_output(["lsmod"], text=True)
+                        if "brcmfmac" in lsmod_output:
                             logging.info("[Fix_Services] brcmfmac module detected via lsmod. Plugin will remain active.")
                             return False
                         else:
                             logging.info("[Fix_Services] brcmfmac module not found. External adapter likely in use. Plugin will be disabled.")
                             return True
-                            
-                except subprocess.CalledProcessError:
-                    logging.info("[Fix_Services] brcmfmac module not found. External adapter likely in use. Plugin will be disabled.")
-                    return True
+
                 except Exception as e:
                     logging.warning(f"[Fix_Services] Error checking driver: {e}. Assuming external adapter. Plugin will be disabled.")
                     return True
@@ -108,7 +104,7 @@ class FixServices(plugins.Plugin):
         last_lines = ''.join(list(TextIOWrapper(subprocess.Popen(['journalctl', '-n10', '-k'],
                                                                  stdout=subprocess.PIPE).stdout))[-10:])
         try:
-            cmd_output = subprocess.check_output("ip link show wlan0mon", shell=True)
+            cmd_output = subprocess.check_output(["ip", "link", "show", "wlan0mon"])
             logging.debug("[Fix_Services ip link show wlan0mon]: %s" % repr(cmd_output))
             if ",UP," in str(cmd_output):
                 logging.debug("wlan0mon is up.")
@@ -172,8 +168,8 @@ class FixServices(plugins.Plugin):
 
             logging.debug("[Fix_Services]**** checking")
             if len(self.pattern.findall(last_lines)) >= 1:
-                subprocess.check_output("monstop", shell=True)
-                subprocess.check_output("monstart", shell=True)
+                subprocess.check_output(["monstop"])
+                subprocess.check_output(["monstart"])
                 display.set('status', 'Wifi channel stuck. Restarting recon.')
                 display.update(force=True)
                 self.LASTTRY = time.time()
@@ -210,7 +206,7 @@ class FixServices(plugins.Plugin):
                     display.update(force=True)
                 try:
                     # Run the monstart command to restart wlan0mon
-                    cmd_output = subprocess.check_output("monstart", shell=True)
+                    cmd_output = subprocess.check_output(["monstart"])
                     logging.debug("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
@@ -223,7 +219,7 @@ class FixServices(plugins.Plugin):
                     display.update(force=True)
                 try:
                     # Run the monstart command to restart wlan0mon
-                    cmd_output = subprocess.check_output("monstart", shell=True)
+                    cmd_output = subprocess.check_output(["monstart"])
                     logging.debug("[Fix_Services monstart]: %s" % repr(cmd_output))
                 except Exception as err:
                     logging.error("[Fix_Services monstart]: %s" % repr(err))
@@ -234,7 +230,7 @@ class FixServices(plugins.Plugin):
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting pwnagotchi!')
                     display.update(force=True)
-                os.system("systemctl restart bettercap")
+                subprocess.run(["systemctl", "restart", "bettercap"])
                 pwnagotchi.restart("AUTO")
 
             # Look for pattern 6
@@ -243,7 +239,7 @@ class FixServices(plugins.Plugin):
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting pwnagotchi!')
                     display.update(force=True)
-                os.system("systemctl restart bettercap")
+                subprocess.run(["systemctl", "restart", "bettercap"])
                 pwnagotchi.restart("AUTO")
 
             # Look for pattern 7
@@ -327,20 +323,20 @@ class FixServices(plugins.Plugin):
         logging.debug("[Fix_Services] recon paused. Now reloading wlan0mon via monstop/monstart")
 
         try:
-            cmd_output = subprocess.check_output("monstop", shell=True)
+            cmd_output = subprocess.check_output(["monstop"])
             self.logPrintView("info", "[Fix_Services] wlan0mon down and deleted: %s" % cmd_output,
                               display, {"status": "wlan0mon d-d-d-down!", "face": faces.BORED})
         except Exception as nope:
             logging.error("[Fix_Services monstop] %s" % nope)
 
         try:
-            cmd_output = subprocess.check_output("monstart", shell=True)
+            cmd_output = subprocess.check_output(["monstart"])
             self.logPrintView("info", "[Fix_Services] monstart: %s" % cmd_output)
         except Exception as err:
             logging.error("[Fix_Services monstart] %s" % repr(err))
 
         try:
-            subprocess.check_output("ip link show wlan0mon", shell=True)
+            subprocess.check_output(["ip", "link", "show", "wlan0mon"])
             self.logPrintView("info", "[Fix_Services] wlan0mon back up", display,
                               {"status": "And back on again...", "face": faces.INTENSE})
             try:
