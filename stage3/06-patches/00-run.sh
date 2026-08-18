@@ -13,6 +13,7 @@ install -v -m 755 files/monstart "${ROOTFS_DIR}/usr/bin/monstart"
 install -v -m 755 files/monstop "${ROOTFS_DIR}/usr/bin/monstop"
 install -v -m 755 files/pwnagotchi-launcher "${ROOTFS_DIR}/usr/bin/pwnagotchi-launcher"
 install -v -m 755 files/pwnlib "${ROOTFS_DIR}/usr/bin/pwnlib"
+install -v -m 755 files/auto-update.sh "${ROOTFS_DIR}/usr/bin/auto-update.sh"
 
 # /etc/
 echo -e "\e[32m### Installing /etc/ files ###\e[0m"
@@ -27,6 +28,8 @@ echo -e "\e[32m### Installing /etc/systemd/system/ files ###\e[0m"
 install -v -m 644 files/bettercap.service "${ROOTFS_DIR}/etc/systemd/system/bettercap.service"
 install -v -m 644 files/pwnagotchi.service "${ROOTFS_DIR}/etc/systemd/system/pwnagotchi.service"
 install -v -m 644 files/pwngrid-peer.service "${ROOTFS_DIR}/etc/systemd/system/pwngrid-peer.service"
+install -v -m 644 files/auto-update.service "${ROOTFS_DIR}/etc/systemd/system/auto-update.service"
+install -v -m 644 files/auto-update.timer "${ROOTFS_DIR}/etc/systemd/system/auto-update.timer"
 
 # /etc/update-motd.d/
 # must be executable (755)

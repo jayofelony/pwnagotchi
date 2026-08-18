@@ -3,16 +3,14 @@ import argparse
 import time
 import signal
 import sys
+import subprocess
 import tomlkit
-import requests
-import os
 
 import pwnagotchi
 from pwnagotchi import utils
 from pwnagotchi.plugins import cmd as plugins_cmd
 from pwnagotchi import log
 from pwnagotchi import fs
-from pwnagotchi.utils import parse_version as version_to_tuple
 
 
 def pwnagotchi_cli():
@@ -127,7 +125,7 @@ def pwnagotchi_cli():
 
 
     parser.add_argument('--check-update', dest="check_update", action="store_true", default=False,
-                        help="Check for updates on Pwnagotchi. And tells current version.")
+                        help="Check for updates on Pwnagotchi, and install/reboot if one is available.")
     parser.add_argument('--donate', dest="donate", action="store_true", default=False,
                         help="How to donate to this project.")
 
@@ -152,25 +150,7 @@ def pwnagotchi_cli():
         sys.exit(0)
 
     if args.check_update:
-        resp = requests.get("https://api.github.com/repos/jayofelony/pwnagotchi/releases/latest")
-        latest = resp.json()
-        latest_ver = latest['tag_name'].replace('v', '')
-
-        local = version_to_tuple(pwnagotchi.__version__)
-        remote = version_to_tuple(latest_ver)
-        if remote > local:
-            user_input = input("There is a new version available! Update from v%s to v%s?\n[Y/N] " % (pwnagotchi.__version__, latest_ver))
-            # input validation
-            if user_input.lower() in ('y', 'yes'):
-                if os.path.exists('/root/.auto-update'):
-                    os.system("rm /root/.auto-update && systemctl restart pwnagotchi")
-                else:
-                    logging.error("You should make sure auto-update is enabled!")
-                print("Okay, give me a couple minutes. Just watch pwnlog while you wait.")
-            elif user_input.lower() in ('n', 'no'):  # using this elif for readability
-                print("Okay, guess not!")
-        else:
-            print("You are currently on the latest release, v%s." % pwnagotchi.__version__)
+        subprocess.run(["/usr/bin/auto-update.sh"])
         sys.exit(0)
 
     config = utils.load_config(args)

@@ -1,0 +1,8 @@
+[Unit]
+Description=pwnagotchi auto-update
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/auto-update.sh
