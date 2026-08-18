@@ -1,6 +1,6 @@
 # Pwnagotchi
 This is the main source for all forks:
-- RPiZeroW (32bit)
+- RPiZeroW (32bit) older versions work, no more new releases as it now more a legacy device
 - RPiZero2W, RPi3, RPi4, RPi5 (64bit)
 
 **For installation docs check out the [wiki](https://github.com/jayofelony/pwnagotchi/wiki)!**
