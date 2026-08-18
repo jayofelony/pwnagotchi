@@ -446,7 +446,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
                 return m['running']
         return False
 
-     def start_module(self, module):
+    def start_module(self, module):
         import time as _time
         last_err = None
         for attempt in range(5):
