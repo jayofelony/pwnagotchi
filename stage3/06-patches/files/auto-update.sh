@@ -85,5 +85,9 @@ if [ "$reload_units" -eq 1 ]; then
   systemctl daemon-reload
 fi
 
+# pip install already copied the package into the venv and sync_file copied
+# out the system files it needs, so the clone itself is just clutter now.
+rm -rf "$REPO_DIR"
+
 echo "pwnagotchi updated, rebooting ..."
 reboot
