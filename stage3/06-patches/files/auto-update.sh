@@ -7,24 +7,35 @@
 # ever come up.
 
 REPO_DIR="/opt/pwnagotchi"
+REPO_URL="https://github.com/jayofelony/pwnagotchi.git"
 
 if ! wget -q --spider https://github.com; then
   echo "no internet access, skipping update check"
   exit 0
 fi
 
+# pwnagotchi ships pre-installed on the image, but the repo checkout used to
+# build it is deleted afterward (see stage3/04-install-pwnagotchi), so
+# $REPO_DIR/.git may not exist even on an up-to-date, fully installed system.
+# Check the installed version against the latest version on GitHub before
+# downloading anything, and only clone/pull when an update is actually needed.
+current_version=$(sudo pwnagotchi --version 2>/dev/null)
+default_branch=$(git ls-remote --symref "$REPO_URL" HEAD | awk '/^ref:/ {sub("refs/heads/", "", $2); print $2}')
+remote_version=$(wget -qO- "https://raw.githubusercontent.com/jayofelony/pwnagotchi/${default_branch}/pwnagotchi/_version.py" | sed -n "s/.*__version__ = '\(.*\)'.*/\1/p")
+
+if [ -n "$current_version" ] && [ "$current_version" = "$remote_version" ]; then
+  echo "pwnagotchi is already up to date ($current_version)"
+  exit 0
+fi
+
+echo "updating pwnagotchi ($current_version -> $remote_version) ..."
+
 if [ -d "$REPO_DIR/.git" ]; then
   cd "$REPO_DIR" || exit 1
   git fetch --quiet
-  local_rev=$(git rev-parse HEAD)
-  remote_rev=$(git rev-parse '@{u}')
-  if [ "$local_rev" = "$remote_rev" ]; then
-    echo "pwnagotchi is already up to date"
-    exit 0
-  fi
-  git pull --quiet
+  git reset --quiet --hard "origin/$default_branch"
 else
-  git clone --quiet https://github.com/jayofelony/pwnagotchi.git "$REPO_DIR"
+  git clone --quiet "$REPO_URL" "$REPO_DIR"
   cd "$REPO_DIR" || exit 1
 fi
 
