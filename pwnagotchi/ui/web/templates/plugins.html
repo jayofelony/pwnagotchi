@@ -2,8 +2,8 @@
 title%}Plugins{% endblock %} {% block styles %}{{ super() }}{% endblock %} {%
 block script %}{% endblock %} {% block content %}
 <div id="container">
-  {% for name in database.keys() | sort %} {% set has_info = name in loaded and
-  loaded[name].__description__ is defined %}
+  {% for name in database.keys() | sort %} {% set has_info =
+  plugin_info[name]['__description__'] %}
   <div class="plugins-box">
     <div class="tooltip">
       <div class="plugin-header">
@@ -12,13 +12,13 @@ block script %}{% endblock %} {% block content %}
           <a href="/plugins/{{ name | urlencode }}">{{ name }}</a>
           {% else %}{{ name }}{% endif %}
         </h4>
-        {% if name in loaded and loaded[name].__version__ is defined %}
-        <span class="badge version">{{ loaded[name].__version__ }}</span>
+        {% if plugin_info[name]['__version__'] %}
+        <span class="badge version">{{ plugin_info[name]['__version__'] }}</span>
         {% endif %}
       </div>
       <div class="author">
-        {% if name in loaded and loaded[name].__author__ is defined %} {{
-        loaded[name].__author__ }} {% endif %}
+        {% if plugin_info[name]['__author__'] %} {{
+        plugin_info[name]['__author__'] }} {% endif %}
       </div>
       <div class="plugin-badges">
         {% if name in default_plugins %}
@@ -26,7 +26,7 @@ block script %}{% endblock %} {% block content %}
         {% endif %}
       </div>
       {% if has_info %}
-      <span class="tooltiptext">{{ loaded[name].__description__ }}</span>
+      <span class="tooltiptext">{{ plugin_info[name]['__description__'] }}</span>
       {% else %}
       <span class="tooltiptext">Description unable to load yet.</span>
       {% endif %}

@@ -221,11 +221,25 @@ class Handler:
             for plugin_name, plugin_path in plugins.database.items():
                 if plugin_path.startswith(default_path):
                     default_plugins.add(plugin_name)
+
+            plugin_info = {}
+            for plugin_name, plugin_path in plugins.database.items():
+                instance = plugins.loaded.get(plugin_name)
+                if instance is not None:
+                    plugin_info[plugin_name] = {
+                        '__description__': getattr(instance, '__description__', None),
+                        '__author__': getattr(instance, '__author__', None),
+                        '__version__': getattr(instance, '__version__', None),
+                    }
+                else:
+                    plugin_info[plugin_name] = plugins.get_plugin_metadata(plugin_path)
+
             return render_template(
                 "plugins.html",
                 loaded=plugins.loaded,
                 database=plugins.database,
                 default_plugins=default_plugins,
+                plugin_info=plugin_info,
             )
 
         if name == "toggle" and request.method == "POST":

@@ -4,6 +4,7 @@ import glob
 import _thread
 import threading
 import importlib, importlib.util
+import ast
 import logging
 import time
 import prctl
@@ -216,6 +217,29 @@ def load_from_path(path, enabled=()):
                 logging.debug(e, exc_info=True)
 
     return loaded
+
+
+def get_plugin_metadata(filepath):
+    """
+    Statically parse a plugin's source file to extract __description__, __author__,
+    and __version__ without importing/enabling it.
+    """
+    metadata = {'__description__': None, '__author__': None, '__version__': None}
+    try:
+        with open(filepath, 'rt', errors='ignore') as f:
+            source = f.read()
+        tree = ast.parse(source, filename=filepath)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                for stmt in node.body:
+                    if isinstance(stmt, ast.Assign):
+                        for target in stmt.targets:
+                            if isinstance(target, ast.Name) and target.id in metadata:
+                                if isinstance(stmt.value, ast.Constant) and isinstance(stmt.value.value, str):
+                                    metadata[target.id] = stmt.value.value
+    except Exception as e:
+        logging.debug("could not statically parse plugin metadata from %s: %s" % (filepath, e))
+    return metadata
 
 
 def load(config):
