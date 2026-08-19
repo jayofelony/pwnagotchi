@@ -59,7 +59,7 @@ def setup_mounts(config):
             continue
         logging.debug("[FS] Trying to setup mount %s (%s)", name, options['mount'])
         size,unit = re.match(r"(\d+)([a-zA-Z]+)", options['size']).groups()
-        target = os.path.join('/run/pwnagotchi/disk/', os.path.basename(options['mount']))
+        target = os.path.join('/run/pwnagotchi/disk/', os.path.basename(options['mount'].rstrip('/')))
 
         is_mounted = is_mountpoint(target)
         logging.debug("[FS] %s is %s mounted", options['mount'],

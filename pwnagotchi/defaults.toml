@@ -256,7 +256,7 @@ enabled = true
 
 [fs.memory.mounts.log]
 enabled = true
-mount = "/etc/pwnagotchi/log/"
+mount = "/etc/pwnagotchi/log"
 size = "50M"
 sync = 60
 zram = true
