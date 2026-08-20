@@ -14,17 +14,88 @@ if ! wget -q --spider https://github.com; then
   exit 0
 fi
 
+NEXMON_REPO="jayofelony/brcmfmac-nexmon-dkms"
+NEED_REBOOT=0
+
+# The nexmon driver is installed once at image-build time (see
+# stage3/03-nexmon) with no runtime update path of its own, unlike
+# pwnagotchi. Check the installed dpkg version against the latest GitHub
+# release and install a newer one if available, same as pwnagotchi's own
+# update check below.
+check_nexmon_update() {
+  installed_ver=$(dpkg-query -W -f='${Version}' brcmfmac-nexmon-dkms 2>/dev/null)
+  latest_tag=$(wget -qO- "https://api.github.com/repos/${NEXMON_REPO}/releases/latest" | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p')
+  if [ -z "$latest_tag" ]; then
+    echo "could not determine latest nexmon driver version, skipping nexmon update check"
+    return
+  fi
+
+  latest_ver="${latest_tag#v}"
+  if [ "$installed_ver" = "$latest_ver" ]; then
+    echo "nexmon driver is already up to date ($installed_ver)"
+    return
+  fi
+
+  echo "updating nexmon driver ($installed_ver -> $latest_ver) ..."
+  deb_file="brcmfmac-nexmon-dkms_${latest_ver}_all.deb"
+  deb_url="https://github.com/${NEXMON_REPO}/releases/download/${latest_tag//+/%2B}/${deb_file}"
+
+  if ! wget -q -O "/tmp/$deb_file" "$deb_url"; then
+    echo "failed to download updated nexmon driver package from $deb_url"
+    rm -f "/tmp/$deb_file"
+    return
+  fi
+
+  if apt-get install -y "/tmp/$deb_file"; then
+    echo "nexmon driver updated to $latest_ver, a reboot is required to load it"
+    NEED_REBOOT=1
+  else
+    echo "failed to install updated nexmon driver package"
+  fi
+  rm -f "/tmp/$deb_file"
+}
+
+check_nexmon_update
+
 # pwnagotchi ships pre-installed on the image, but the repo checkout used to
 # build it is deleted afterward (see stage3/04-install-pwnagotchi), so
 # $REPO_DIR/.git may not exist even on an up-to-date, fully installed system.
-# Check the installed version against the latest version on GitHub before
-# downloading anything, and only clone/pull when an update is actually needed.
+# Check the installed version against the latest published GitHub release
+# (not the raw branch tip, which can already be bumped ahead of the last
+# actual release for in-progress work) and only clone/pull when an update
+# to that release is actually needed.
 current_version=$(sudo pwnagotchi --version 2>/dev/null)
-default_branch=$(git ls-remote --symref "$REPO_URL" HEAD | awk '/^ref:/ {sub("refs/heads/", "", $2); print $2}')
-remote_version=$(wget -qO- "https://raw.githubusercontent.com/jayofelony/pwnagotchi/${default_branch}/pwnagotchi/_version.py" | sed -n "s/.*__version__ = '\(.*\)'.*/\1/p")
+latest_tag=$(wget -qO- "https://api.github.com/repos/jayofelony/pwnagotchi/releases/latest" | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p')
+
+if [ -z "$latest_tag" ]; then
+  echo "could not determine latest pwnagotchi release, skipping update check"
+  exit 0
+fi
+
+remote_version="${latest_tag#v}"
+
+# true if $1 is a newer-or-equal version than $2 (GNU sort -V version compare)
+version_ge() {
+  [ "$1" = "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" ]
+}
 
 if [ -n "$current_version" ] && [ "$current_version" = "$remote_version" ]; then
   echo "pwnagotchi is already up to date ($current_version)"
+  if [ "$NEED_REBOOT" -eq 1 ]; then
+    echo "rebooting to load the updated nexmon driver ..."
+    sync
+    reboot
+  fi
+  exit 0
+fi
+
+if [ -n "$current_version" ] && version_ge "$current_version" "$remote_version"; then
+  echo "installed pwnagotchi ($current_version) is newer than the latest release ($remote_version), not downgrading"
+  if [ "$NEED_REBOOT" -eq 1 ]; then
+    echo "rebooting to load the updated nexmon driver ..."
+    sync
+    reboot
+  fi
   exit 0
 fi
 
@@ -32,10 +103,10 @@ echo "updating pwnagotchi ($current_version -> $remote_version) ..."
 
 if [ -d "$REPO_DIR/.git" ]; then
   cd "$REPO_DIR" || exit 1
-  git fetch --quiet
-  git reset --quiet --hard "origin/$default_branch"
+  git fetch --quiet --tags
+  git reset --quiet --hard "$latest_tag"
 else
-  git clone --quiet "$REPO_URL" "$REPO_DIR"
+  git clone --quiet --branch "$latest_tag" "$REPO_URL" "$REPO_DIR"
   cd "$REPO_DIR" || exit 1
 fi
 
@@ -60,8 +131,10 @@ sync_file() {
     return
   fi
   if ! cmp -s "$src" "$dest"; then
-    cp -f "$src" "$dest"
-    chmod "$mode" "$dest"
+    tmp="$(mktemp "${dest}.XXXXXX")"
+    cp -f "$src" "$tmp"
+    chmod "$mode" "$tmp"
+    mv -f "$tmp" "$dest"
     echo "synced $1 -> $dest"
     case "$dest" in
       *.service|*.timer) reload_units=1 ;;
@@ -90,4 +163,5 @@ fi
 rm -rf "$REPO_DIR"
 
 echo "pwnagotchi updated, rebooting ..."
+sync
 reboot
