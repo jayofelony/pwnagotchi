@@ -145,6 +145,7 @@ strong, b {
   display: flex;
   flex-direction: column;
   overflow: auto;
+  min-height: 0;
 }
 
 .page-content {
@@ -154,6 +155,20 @@ strong, b {
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--bg-color);
+  min-height: 0;
+}
+
+.page-content:has(.home-view) {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.home-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .page-footer {
@@ -1051,10 +1066,18 @@ code {
 }
 
 .ui-image {
+  display: block;
   width: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: contain;
+  margin: 0 0 16px;
   border-radius: 6px;
   box-shadow: var(--shadow-md);
-  margin-bottom: 16px;
+}
+
+.home-view .card {
+  flex: 0 0 auto;
 }
 
 .pixelated {
@@ -1297,6 +1320,10 @@ code {
 
   .page-content {
     padding: 12px 12px 80px 12px;
+  }
+
+  .page-content:has(.home-view) {
+    padding-bottom: 80px;
   }
 
   .toast {

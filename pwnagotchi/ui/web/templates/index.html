@@ -2,37 +2,39 @@
 title }} {% endblock %} {% block script %} pollResource("#ui", (el) =>
 el.src.split("?")[0] + "?" + new Date().getTime(), 1000); {% endblock %} {%
 block content %}
-<img class="ui-image pixelated" src="/ui" id="ui" alt="Device UI" />
-<div class="card">
-  <div class="card-body">
-    <div class="control-buttons">
-      <form
-        method="post"
-        action="/shutdown"
-        onsubmit="return confirm('This will halt the unit, continue?');"
-      >
-        <button type="submit" class="btn danger">Shutdown</button>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      </form>
-      <form
-        method="post"
-        action="/reboot"
-        onsubmit="return confirm('This will reboot the unit, continue?');"
-      >
-        <button type="submit" class="btn secondary">Reboot</button>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      </form>
-      <form
-        method="post"
-        action="/restart"
-        onsubmit="return confirm('This will restart the service in {{ other_mode }} mode, continue?');"
-      >
-        <button type="submit" class="btn primary">
-          Restart {{ other_mode }}
-        </button>
-        <input type="hidden" name="mode" value="{{ other_mode }}" />
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      </form>
+<div class="home-view">
+  <img class="ui-image pixelated" src="/ui" id="ui" alt="Device UI" />
+  <div class="card">
+    <div class="card-body">
+      <div class="control-buttons">
+        <form
+          method="post"
+          action="/shutdown"
+          onsubmit="return confirm('This will halt the unit, continue?');"
+        >
+          <button type="submit" class="btn danger">Shutdown</button>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        </form>
+        <form
+          method="post"
+          action="/reboot"
+          onsubmit="return confirm('This will reboot the unit, continue?');"
+        >
+          <button type="submit" class="btn secondary">Reboot</button>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        </form>
+        <form
+          method="post"
+          action="/restart"
+          onsubmit="return confirm('This will restart the service in {{ other_mode }} mode, continue?');"
+        >
+          <button type="submit" class="btn primary">
+            Restart {{ other_mode }}
+          </button>
+          <input type="hidden" name="mode" value="{{ other_mode }}" />
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        </form>
+      </div>
     </div>
   </div>
 </div>
