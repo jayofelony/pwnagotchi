@@ -1,6 +1,7 @@
 import threading
 import time
 import logging
+from collections import deque
 from .connection import ConnectionManager
 from .device import BluetoothDevice
 
@@ -57,7 +58,11 @@ class ConnectionMonitor:
         self.watchdog_enabled = self.options.get("watchdog_enabled", True)
         self.watchdog_dry_run = self.options.get("watchdog_dry_run", True)
         self.watchdog_fail_threshold = self.options.get("watchdog_fail_threshold", 3)
-        self._half_open_count = 0
+        # Sliding window of recent probe results (True/False). Heal when at least
+        # watchdog_fail_threshold of the last (threshold+1) probes failed - fast on
+        # a dead link AND a flapping one, while a single stray ping loss can't trip
+        # it. Beats a running counter, which a flapping link dilutes indefinitely.
+        self._probe_history = deque(maxlen=self.watchdog_fail_threshold + 1)
 
     def start(self):
         """Start the monitoring thread."""
@@ -77,9 +82,10 @@ class ConnectionMonitor:
 
     @property
     def link_stalled(self):
-        """True while the watchdog has unanswered peer probes on a live link -
-        the connection LOOKS up but may be half-open. Cleared by a healthy probe."""
-        return self._half_open_count > 0
+        """True when the most recent peer probe failed on a live link - the
+        connection LOOKS up but may be half-open. Reflects the latest probe so it
+        clears as soon as one succeeds, rather than lingering for the whole window."""
+        return bool(self._probe_history) and self._probe_history[-1] is False
 
     def set_device(self, mac):
         """Tell the monitor which device to watch for drops (called after a successful connect)."""
@@ -191,13 +197,13 @@ class ConnectionMonitor:
                     if status.get("pan_active"):
                         self._check_half_open_link()
                     else:
-                        self._half_open_count = 0
+                        self._probe_history.clear()
                 else:
                     # Not connected: reconnect. Covers both a dropped link and an
                     # initial connect that hasn't succeeded yet (e.g. phone wasn't
-                    # in range at boot). A stale half-open count must not carry
+                    # in range at boot). A stale probe history must not carry
                     # over into the next connection.
-                    self._half_open_count = 0
+                    self._probe_history.clear()
                     if self.last_known_connected:
                         self.logger.warning(f"Connection to {mac} dropped! Reconnecting...")
                     else:
@@ -272,32 +278,28 @@ class ConnectionMonitor:
             ip = self.network.get_interface_ip(iface)
             if (ip and not ip.startswith("169.254.")) or self.network.get_global_ipv6(iface):
                 # Link has an address, just no probeable peer - don't act (and a
-                # lease landing means any addressless streak is over).
-                self._half_open_count = 0
+                # lease landing clears any recent failures).
+                self._probe_history.clear()
                 return
             reachable = False
-        if reachable:
-            # Decay rather than hard-reset: a flapping link (bad,bad,good,bad,bad)
-            # would otherwise reset on every stray good probe and never reach the
-            # threshold to heal. Decrementing lets a persistently-bad-but-flapping
-            # link still climb, while a genuinely healthy link (all good) decays to
-            # 0 and stays there.
-            if self._half_open_count:
-                self._half_open_count -= 1
-                if self._half_open_count == 0:
-                    self.logger.debug("Watchdog: PAN link healthy again")
-            return
 
-        # bnep up but phone unreachable -> half-open
-        self._half_open_count += 1
+        # Record this probe in the sliding window and heal when too many of the
+        # recent probes failed. Unlike a running counter, a window can't be diluted
+        # forever by a flapping link, and one stray good/bad read never dominates.
+        self._probe_history.append(bool(reachable))
+        fails = sum(1 for r in self._probe_history if r is False)
+        if reachable:
+            if fails == 0:
+                pass  # fully healthy window - nothing to log
+            return
         self.logger.warning(
             f"Watchdog: PAN link looks half-open (bnep up, phone unreachable) "
-            f"[{self._half_open_count}/{self.watchdog_fail_threshold}]"
+            f"[{fails}/{self.watchdog_fail_threshold} in last {len(self._probe_history)}]"
         )
-        if self._half_open_count < self.watchdog_fail_threshold:
+        if fails < self.watchdog_fail_threshold:
             return
 
-        self._half_open_count = 0
+        self._probe_history.clear()
         if self.watchdog_dry_run:
             self.logger.warning(
                 "Watchdog: DRY-RUN - would reset Bluetooth now to clear the "

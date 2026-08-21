@@ -620,15 +620,18 @@ class NetworkManager:
                 return True
         except Exception:
             pass
-        # Ping failed (or was filtered) - confirm via the neighbour state. A
-        # REACHABLE/STALE/DELAY/PROBE entry means L2 is fine and ping is just
-        # blocked; INCOMPLETE/FAILED/absent means the link is genuinely half-open.
+        # Ping failed (or was filtered) - confirm via the neighbour state, but only
+        # trust an ACTIVELY-confirmed entry (REACHABLE/DELAY/PROBE) as "ping merely
+        # blocked." Deliberately exclude STALE: the kernel keeps the last-known MAC
+        # in STALE for minutes after a link goes dead, so treating STALE as reachable
+        # produces false-"healthy" reads on a half-open link (and masks it from the
+        # watchdog). No active entry -> treat as unreachable.
         try:
             out = subprocess.run(
                 ["ip", "neigh", "show", "to", peer, "dev", iface],
                 capture_output=True, text=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
             ).stdout
-            if any(s in out for s in ("REACHABLE", "STALE", "DELAY", "PROBE")):
+            if any(s in out for s in ("REACHABLE", "DELAY", "PROBE")):
                 return True
         except Exception:
             pass
