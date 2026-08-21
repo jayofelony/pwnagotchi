@@ -295,7 +295,7 @@ class ConnectionMonitor:
         if self.watchdog_dry_run:
             self.logger.warning(
                 "Watchdog: DRY-RUN - would reset Bluetooth now to clear the "
-                "half-open link (set watchdog_dry_run = false to enable healing)"
+                "half-open link (set watchdog_dry_run = false to enable recovery)"
             )
             return
 

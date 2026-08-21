@@ -205,19 +205,19 @@ class BtTether(Plugin):
 
             # Rendering (glyph + detailed line) lives in the core UIRenderer so the
             # logic is shared and testable. Transient flags: bt_stuck is a wedged
-            # controller needing a power-cycle, bt_healing an active recovery
+            # controller needing a power-cycle, bt_recovering an active recovery
             # (restart/module reload) and link_stalled a suspect half-open link -
             # each shown instead of a misleading Paired/Connected/IP.
             bt_stuck = self.bt.bt_stuck
-            healing = self.bt.bt_healing
+            recovering = self.bt.bt_recovering
             stalled = self.bt.monitor.link_stalled
             renderer = self.bt.ui_renderer
-            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck, healing=healing, stalled=stalled)
+            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled)
             # Keep the bare text for /status (the "BT:" prefix is display-only)
             self._message = detailed[3:] if detailed.startswith("BT:") else detailed
 
             if self.show_mini_status:
-                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck, healing=healing, stalled=stalled))
+                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled))
 
             if self.show_detailed_status:
                 ui.set("bt-detail", detailed)

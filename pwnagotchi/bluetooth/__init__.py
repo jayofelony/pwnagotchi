@@ -74,8 +74,8 @@ class BluetoothService:
         # did NOT clear the busy state (distinct from "phone tethering off").
         self._bt_stuck = False
         # True while the recovery ladder is actively resetting Bluetooth, so the
-        # display can say "Healing..." instead of a confusing Paired/Connected.
-        self._healing = False
+        # display can say "Recovering..." instead of a confusing Paired/Connected.
+        self._recovering = False
         self._connected_since_boot = False
 
         # Scan state tracking
@@ -486,7 +486,7 @@ class BluetoothService:
 
         self.logger.warning(f"Recovering the Bluetooth stack ({reason})")
         with self._lock:
-            self._healing = True
+            self._recovering = True
         try:
             try:
                 self.agent.stop()
@@ -508,7 +508,7 @@ class BluetoothService:
             return "recovered" if ok else "failed"
         finally:
             with self._lock:
-                self._healing = False
+                self._recovering = False
 
     def _handle_bt_stuck(self):
         """A bluetooth daemon restart did NOT clear the busy wedge. Escalate:
@@ -534,7 +534,7 @@ class BluetoothService:
 
         self._last_module_reload_time = now
         with self._lock:
-            self._healing = True
+            self._recovering = True
             self._message = "Bluetooth wedged - reloading module..."
         # The reload restarts bluetooth, dropping the agent's bluetoothctl
         # session - stop it first, bring it back after.
@@ -554,7 +554,7 @@ class BluetoothService:
                 self.logger.debug(f"Agent/name restore after module reload failed: {e}")
         finally:
             with self._lock:
-                self._healing = False
+                self._recovering = False
 
         if recovered:
             with self._lock:
@@ -616,9 +616,9 @@ class BluetoothService:
             return self._bt_stuck
 
     @property
-    def bt_healing(self):
+    def bt_recovering(self):
         with self._lock:
-            return self._healing
+            return self._recovering
 
     def disconnect(self, mac):
         """Disconnect from a device."""

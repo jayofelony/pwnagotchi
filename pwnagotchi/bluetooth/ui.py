@@ -14,9 +14,8 @@ class UIRenderer:
         "I": "Initializing",
         "S": "Scanning",
         ">": "Connecting",
-        "R": "Reconnecting",
+        "R": "Recovering Bluetooth",
         "D": "Disconnecting",
-        "H": "Healing Bluetooth",
         "~": "Link stalled (probing)",
         "!": "Controller stuck - power-cycle",
         "?": "Error",
@@ -26,8 +25,8 @@ class UIRenderer:
     STUCK_ICON = "!"
     STUCK_TEXT = "BT:Stuck-reboot"
     # Shown while the recovery ladder is actively resetting Bluetooth
-    HEALING_ICON = "H"
-    HEALING_TEXT = "BT:Healing..."
+    RECOVERING_ICON = "R"
+    RECOVERING_TEXT = "BT:Recovering..."
     # Shown while the watchdog is counting failed peer probes on a live link
     STALLED_ICON = "~"
     STALLED_TEXT = "BT:Stalled?"
@@ -41,14 +40,14 @@ class UIRenderer:
         return ansi_escape.sub("", text)
 
     @classmethod
-    def format_status(cls, status_dict, bt_stuck=False, healing=False, stalled=False):
+    def format_status(cls, status_dict, bt_stuck=False, recovering=False, stalled=False):
         """Format status dict into the detailed display line.
 
         Shows the tether address once PAN is up (IPv4, falling back to IPv6 for
         v6-only tethering). Transient truths outrank the steady-state view:
         - bt_stuck (while not connected): a bluetooth restart could not clear the
           controller, so a power-cycle is needed - not a plain "Paired".
-        - healing: the recovery ladder is actively resetting Bluetooth - the link
+        - recovering: the recovery ladder is actively resetting Bluetooth - the link
           bouncing through Paired/Connected is expected, not a problem.
         - stalled: the watchdog is counting failed peer probes - the link LOOKS
           connected but may be half-open, so don't show a healthy IP.
@@ -63,8 +62,8 @@ class UIRenderer:
 
         if bt_stuck and not connected:
             return cls.STUCK_TEXT
-        if healing:
-            return cls.HEALING_TEXT
+        if recovering:
+            return cls.RECOVERING_TEXT
 
         if pan_active:
             if stalled:
@@ -80,10 +79,10 @@ class UIRenderer:
             return "BT:- -"
 
     @classmethod
-    def get_status_icon(cls, status_dict, bt_stuck=False, healing=False, stalled=False):
+    def get_status_icon(cls, status_dict, bt_stuck=False, recovering=False, stalled=False):
         """Get the single-character status icon.
 
-        Settled states are uppercase (C/T/N/P/X); "H" is a heal in progress,
+        Settled states are uppercase (C/T/N/P/X); "R" is a recovery in progress,
         "~" a suspect (possibly half-open) link, "!" a wedged controller.
         """
         pan_active = status_dict.get("pan_active", False)
@@ -93,8 +92,8 @@ class UIRenderer:
 
         if bt_stuck and not connected:
             return cls.STUCK_ICON
-        if healing:
-            return cls.HEALING_ICON
+        if recovering:
+            return cls.RECOVERING_ICON
 
         if pan_active:
             return cls.STALLED_ICON if stalled else "C"
