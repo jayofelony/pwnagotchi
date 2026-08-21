@@ -1,4 +1,8 @@
-"""Pwnagotchi Bluetooth service - core module for Bluetooth operations."""
+"""Pwnagotchi Bluetooth service - core module for Bluetooth operations.
+
+Ported from the bt-tether plugin by wsvdmeer
+(https://github.com/wsvdmeer/pwnagotchi-plugins/tree/main/bt-tether).
+"""
 
 import logging
 import threading
