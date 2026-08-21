@@ -32,6 +32,9 @@ class ConnectionMonitor:
         # to its connect(); falls back to a NAP-only reconnect if unset.
         self.reconnect_callback = None
         self.RECONNECT_VERIFY_TIMEOUT = 30
+        # NetworkManager, set by BluetoothService; used by the half-open watchdog
+        # to probe whether the phone is actually reachable over the PAN link.
+        self.network = None
 
         self._current_mac = None
         self.last_known_connected = False
@@ -42,6 +45,14 @@ class ConnectionMonitor:
         self.reconnect_interval = self.options.get("reconnect_interval", self.DEFAULT_RECONNECT_INTERVAL)
         self.reconnect_fast_interval = self.options.get("reconnect_fast_interval", self.DEFAULT_RECONNECT_FAST_INTERVAL)
         self._disconnected_cycles = 0
+
+        # Half-open PAN watchdog: the link can report "connected" while no traffic
+        # actually passes (combo-chip coexistence). Detect it by probing the phone
+        # over the PAN and, unless dry-run, reset Bluetooth to recover.
+        self.watchdog_enabled = self.options.get("watchdog_enabled", True)
+        self.watchdog_dry_run = self.options.get("watchdog_dry_run", True)
+        self.watchdog_fail_threshold = self.options.get("watchdog_fail_threshold", 3)
+        self._half_open_count = 0
 
     def start(self):
         """Start the monitoring thread."""
@@ -164,6 +175,12 @@ class ConnectionMonitor:
                     self.last_known_connected = True
                     self.reconnect_failure_count = 0
                     self.first_failure_time = None
+                    # Link reports connected - but on combo chips it can be
+                    # half-open (bnep up, no traffic). Probe the phone and heal.
+                    if status.get("pan_active"):
+                        self._check_half_open_link(mac)
+                    else:
+                        self._half_open_count = 0
                 else:
                     # Not connected: reconnect. Covers both a dropped link and an
                     # initial connect that hasn't succeeded yet (e.g. phone wasn't
@@ -221,6 +238,49 @@ class ConnectionMonitor:
             self.logger.error(f"Reconnect failed: {e}")
             self._handle_reconnect_failure(mac)
             return False
+
+    def _check_half_open_link(self, mac):
+        """Detect a half-open PAN link (bnep up but phone unreachable) and, unless
+        in dry-run, reset Bluetooth to recover. Called only while the link reports
+        connected and a PAN interface is up. Honours the watchdog config."""
+        if not self.watchdog_enabled or self.network is None:
+            return
+
+        reachable = self.network.pan_peer_reachable()
+        if reachable is None:
+            return  # couldn't determine a peer to probe - don't act
+        if reachable:
+            if self._half_open_count:
+                self.logger.debug("Watchdog: PAN link healthy again")
+            self._half_open_count = 0
+            return
+
+        # bnep up but phone unreachable -> half-open
+        self._half_open_count += 1
+        self.logger.warning(
+            f"Watchdog: PAN link looks half-open (bnep up, phone unreachable) "
+            f"[{self._half_open_count}/{self.watchdog_fail_threshold}]"
+        )
+        if self._half_open_count < self.watchdog_fail_threshold:
+            return
+
+        self._half_open_count = 0
+        if self.watchdog_dry_run:
+            self.logger.warning(
+                "Watchdog: DRY-RUN - would reset Bluetooth now to clear the "
+                "half-open link (set watchdog_dry_run = false to enable healing)"
+            )
+            return
+
+        # Active heal: force a Bluetooth restart (the controller is responsive, so
+        # the normal busy self-heal never fires), then let the loop reconnect. On
+        # coexistence-wedged chips this escalates through the service's stuck path.
+        self.logger.warning("Watchdog: resetting Bluetooth to clear the half-open link")
+        try:
+            self.connection.force_restart_bluetooth()
+        except Exception as e:
+            self.logger.error(f"Watchdog: Bluetooth reset failed: {e}")
+        self.last_known_connected = False
 
     def _handle_reconnect_failure(self, mac):
         """Handle a reconnection failure."""

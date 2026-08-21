@@ -565,6 +565,75 @@ class NetworkManager:
             self.logger.error(f"Failed to get PAN interface: {e}")
             return None
 
+    def get_pan_peer_ip(self, iface):
+        """Best-effort phone IP on the PAN link, for reachability probing.
+
+        Tries: default route via the iface -> existing neighbour -> our subnet .1.
+        """
+        try:
+            out = subprocess.run(
+                ["ip", "route", "show", "default", "dev", iface],
+                capture_output=True, text=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+            ).stdout
+            m = re.search(r"default via (\d+\.\d+\.\d+\.\d+)", out)
+            if m:
+                return m.group(1)
+
+            out = subprocess.run(
+                ["ip", "neigh", "show", "dev", iface],
+                capture_output=True, text=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+            ).stdout
+            m = re.search(r"^(\d+\.\d+\.\d+\.\d+)", out.strip())
+            if m:
+                return m.group(1)
+
+            out = subprocess.run(
+                ["ip", "-4", "addr", "show", "dev", iface],
+                capture_output=True, text=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+            ).stdout
+            m = re.search(r"inet (\d+\.\d+\.\d+)\.\d+", out)
+            if m:
+                return m.group(1) + ".1"
+        except Exception as e:
+            self.logger.debug(f"Peer IP probe failed: {e}")
+        return None
+
+    def pan_peer_reachable(self):
+        """Probe whether the phone is actually reachable over the PAN link.
+
+        Returns True (reachable), False (half-open / unreachable), or None (unknown
+        - no interface or no peer to probe, so the caller should not act).
+        """
+        iface = self.get_pan_interface()
+        if not iface:
+            return None
+        peer = self.get_pan_peer_ip(iface)
+        if not peer:
+            return None
+        try:
+            r = subprocess.run(
+                ["ping", "-c", "1", "-W", "2", "-I", iface, peer],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+            )
+            if r.returncode == 0:
+                return True
+        except Exception:
+            pass
+        # Ping failed (or was filtered) - confirm via the neighbour state. A
+        # REACHABLE/STALE/DELAY/PROBE entry means L2 is fine and ping is just
+        # blocked; INCOMPLETE/FAILED/absent means the link is genuinely half-open.
+        try:
+            out = subprocess.run(
+                ["ip", "neigh", "show", "to", peer, "dev", iface],
+                capture_output=True, text=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL,
+            ).stdout
+            if any(s in out for s in ("REACHABLE", "STALE", "DELAY", "PROBE")):
+                return True
+        except Exception:
+            pass
+        return False
+
     def get_interface_ip(self, iface):
         """Get IP address of a network interface"""
         try:

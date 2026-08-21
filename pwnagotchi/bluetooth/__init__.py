@@ -51,6 +51,9 @@ class BluetoothService:
         self.monitor = ConnectionMonitor(self.connection, logger=self.logger, options=self.options)
         # Let the monitor reconnect using the full connect flow (NAP + DHCP + verify)
         self.monitor.reconnect_callback = self.connect
+        # Give the monitor the network layer so its half-open watchdog can probe
+        # whether the phone is actually reachable over the PAN.
+        self.monitor.network = self.network
         self.ui_renderer = UIRenderer()
 
         # State

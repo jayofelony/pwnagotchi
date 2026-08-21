@@ -28,7 +28,7 @@ from flask import render_template_string, request, jsonify
 
 class BtTether(Plugin):
     __author__ = "wsvdmeer"
-    __version__ = "2.1.0"
+    __version__ = "2.2.0"
     __license__ = "GPL3"
     __description__ = "Guided Bluetooth tethering"
 
