@@ -255,7 +255,21 @@ class ConnectionMonitor:
 
         reachable = self.network.pan_peer_reachable()
         if reachable is None:
-            return  # couldn't determine a peer to probe - don't act
+            # No peer to probe. That's expected briefly while DHCP runs, but a PAN
+            # that stays addressless is just as dead as a failed probe (over a
+            # half-open link the DHCP request itself gets no reply) - and with no
+            # address the monitor sees "connected" and would never intervene.
+            # Count it; the threshold gives DHCP minutes of grace to land.
+            iface = self.network.get_pan_interface()
+            if not iface:
+                return
+            ip = self.network.get_interface_ip(iface)
+            if (ip and not ip.startswith("169.254.")) or self.network.get_global_ipv6(iface):
+                # Link has an address, just no probeable peer - don't act (and a
+                # lease landing means any addressless streak is over).
+                self._half_open_count = 0
+                return
+            reachable = False
         if reachable:
             if self._half_open_count:
                 self.logger.debug("Watchdog: PAN link healthy again")
