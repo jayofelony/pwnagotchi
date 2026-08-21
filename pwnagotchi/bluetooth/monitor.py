@@ -277,9 +277,15 @@ class ConnectionMonitor:
                 return
             reachable = False
         if reachable:
+            # Decay rather than hard-reset: a flapping link (bad,bad,good,bad,bad)
+            # would otherwise reset on every stray good probe and never reach the
+            # threshold to heal. Decrementing lets a persistently-bad-but-flapping
+            # link still climb, while a genuinely healthy link (all good) decays to
+            # 0 and stays there.
             if self._half_open_count:
-                self.logger.debug("Watchdog: PAN link healthy again")
-            self._half_open_count = 0
+                self._half_open_count -= 1
+                if self._half_open_count == 0:
+                    self.logger.debug("Watchdog: PAN link healthy again")
             return
 
         # bnep up but phone unreachable -> half-open
