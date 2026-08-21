@@ -35,6 +35,11 @@ class ConnectionMonitor:
         # NetworkManager, set by BluetoothService; used by the half-open watchdog
         # to probe whether the phone is actually reachable over the PAN link.
         self.network = None
+        # Recovery entry point, set by BluetoothService. Routes a watchdog heal
+        # through the service's ladder (restart -> module reload -> opt-in reboot)
+        # with its shared rate limit and pairing-agent handling; falls back to a
+        # bare bluetooth restart if unset.
+        self.heal_callback = None
 
         self._current_mac = None
         self.last_known_connected = False
@@ -178,13 +183,15 @@ class ConnectionMonitor:
                     # Link reports connected - but on combo chips it can be
                     # half-open (bnep up, no traffic). Probe the phone and heal.
                     if status.get("pan_active"):
-                        self._check_half_open_link(mac)
+                        self._check_half_open_link()
                     else:
                         self._half_open_count = 0
                 else:
                     # Not connected: reconnect. Covers both a dropped link and an
                     # initial connect that hasn't succeeded yet (e.g. phone wasn't
-                    # in range at boot).
+                    # in range at boot). A stale half-open count must not carry
+                    # over into the next connection.
+                    self._half_open_count = 0
                     if self.last_known_connected:
                         self.logger.warning(f"Connection to {mac} dropped! Reconnecting...")
                     else:
@@ -239,7 +246,7 @@ class ConnectionMonitor:
             self._handle_reconnect_failure(mac)
             return False
 
-    def _check_half_open_link(self, mac):
+    def _check_half_open_link(self):
         """Detect a half-open PAN link (bnep up but phone unreachable) and, unless
         in dry-run, reset Bluetooth to recover. Called only while the link reports
         connected and a PAN interface is up. Honours the watchdog config."""
@@ -272,12 +279,16 @@ class ConnectionMonitor:
             )
             return
 
-        # Active heal: force a Bluetooth restart (the controller is responsive, so
-        # the normal busy self-heal never fires), then let the loop reconnect. On
-        # coexistence-wedged chips this escalates through the service's stuck path.
+        # Active heal: the controller is responsive (so the busy self-heal never
+        # fires) but the link is dead. Route through the service's recovery ladder
+        # (restart -> module reload -> opt-in reboot), which shares its rate limit
+        # and restores the pairing agent; then let the loop reconnect.
         self.logger.warning("Watchdog: resetting Bluetooth to clear the half-open link")
         try:
-            self.connection.force_restart_bluetooth()
+            if self.heal_callback:
+                self.heal_callback("half-open PAN link")
+            else:
+                self.connection.force_restart_bluetooth()
         except Exception as e:
             self.logger.error(f"Watchdog: Bluetooth reset failed: {e}")
         self.last_known_connected = False

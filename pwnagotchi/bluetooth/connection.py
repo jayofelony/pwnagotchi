@@ -129,7 +129,9 @@ class ConnectionManager:
                     ["systemctl", "restart", "bluetooth"],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                    # A hung bluetoothd takes well over 5s to stop (see
+                    # force_restart_bluetooth) - same headroom here.
+                    timeout=self.BLUETOOTH_RESTART_CMD_TIMEOUT,
                 )
                 time.sleep(3)
                 return True
@@ -146,7 +148,7 @@ class ConnectionManager:
         'responsive' but stuck rejecting connects with br-connection-busy - the
         only thing that reliably clears that state.
         """
-        self.logger.warning("Restarting Bluetooth to clear a stuck (br-connection-busy) state")
+        self.logger.warning("Force-restarting Bluetooth to clear a wedged controller")
         try:
             subprocess.run(
                 ["systemctl", "restart", "bluetooth"],

@@ -56,8 +56,10 @@ class BluetoothService:
         # Let the monitor reconnect using the full connect flow (NAP + DHCP + verify)
         self.monitor.reconnect_callback = self.connect
         # Give the monitor the network layer so its half-open watchdog can probe
-        # whether the phone is actually reachable over the PAN.
+        # whether the phone is actually reachable over the PAN, and the recovery
+        # ladder so a watchdog heal shares the rate limit and agent handling.
         self.monitor.network = self.network
+        self.monitor.heal_callback = self._heal_bluetooth
         self.ui_renderer = UIRenderer()
 
         # State
@@ -456,9 +458,18 @@ class BluetoothService:
         thread.start()
         return True
 
-    def _recover_bluetooth(self):
-        """Clear a wedged controller (repeated br-connection-busy): restart the
-        Bluetooth stack and re-register the pairing agent.
+    def _heal_bluetooth(self, reason):
+        """Watchdog entry point into the recovery ladder: restart the stack and,
+        if that doesn't clear the wedge, escalate through the stuck path (module
+        reload -> opt-in reboot). Shares _recover_bluetooth's rate limit."""
+        outcome = self._recover_bluetooth(reason)
+        if outcome == "failed":
+            self._handle_bt_stuck()
+        return outcome
+
+    def _recover_bluetooth(self, reason="repeated br-connection-busy"):
+        """Clear a wedged controller: restart the Bluetooth stack and re-register
+        the pairing agent.
 
         Rate-limited so a persistent fault can't turn into a restart loop. Returns
         one of: "recovered" (restart completed, controller responsive),
@@ -470,7 +481,7 @@ class BluetoothService:
             return "rate_limited"
         self._last_recover_time = now
 
-        self.logger.warning("Repeated br-connection-busy - recovering the Bluetooth stack")
+        self.logger.warning(f"Recovering the Bluetooth stack ({reason})")
         try:
             self.agent.stop()
         except Exception as e:
