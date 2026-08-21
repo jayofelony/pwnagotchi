@@ -16,6 +16,42 @@ from pwnagotchi.ui.components import Text
 from pwnagotchi.ui.view import BLACK
 import pwnagotchi.ui.fonts as fonts
 
+BRCM_REBOOT_STATE_FILE = "/root/.pwnagotchi-brcm-reboot-state"
+BRCM_REBOOT_WINDOW_SECS = 1800
+BRCM_REBOOT_MAX_IN_WINDOW = 3
+
+
+def _should_reboot_for_brcm_wedge():
+    """Tracks brcm-wedge-triggered reboots in a state file shared with
+    pwnlib's reload_brcm() (same path/format), so both reboot triggers share
+    one budget instead of each independently rebooting up to their own
+    limit. Returns False once this would be the 4th+ occurrence within the
+    window, so a recurring wedge eventually gives up and leaves wifi
+    degraded instead of rebooting indefinitely."""
+    now = time.time()
+    count = 0
+    last = 0.0
+    try:
+        with open(BRCM_REBOOT_STATE_FILE) as f:
+            parts = f.read().split()
+            count = int(parts[0])
+            last = float(parts[1])
+    except Exception:
+        count = 0
+        last = 0.0
+
+    if now - last > BRCM_REBOOT_WINDOW_SECS:
+        count = 0
+
+    count += 1
+    try:
+        with open(BRCM_REBOOT_STATE_FILE, "w") as f:
+            f.write("%d %d" % (count, int(now)))
+    except Exception:
+        pass
+
+    return count <= BRCM_REBOOT_MAX_IN_WINDOW
+
 
 class FixServices(plugins.Plugin):
     __author__ = 'jayofelony'
@@ -372,7 +408,12 @@ class FixServices(plugins.Plugin):
 
         except Exception as err:
             logging.error("[Fix_Services wifi.recon on] %s" % repr(err))
-            pwnagotchi.reboot()
+            if _should_reboot_for_brcm_wedge():
+                pwnagotchi.reboot()
+            else:
+                logging.critical(
+                    "[Fix_Services] brcm chip keeps wedging (%d+ times in the last %ds), giving up on auto-reboot - wifi will stay degraded until manual intervention",
+                    BRCM_REBOOT_MAX_IN_WINDOW, BRCM_REBOOT_WINDOW_SECS)
 
     # called to setup the ui elements
     def on_ui_setup(self, ui):

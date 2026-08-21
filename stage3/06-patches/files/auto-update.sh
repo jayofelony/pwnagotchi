@@ -23,6 +23,24 @@ NEED_REBOOT=0
 # release and install a newer one if available, same as pwnagotchi's own
 # update check below.
 check_nexmon_update() {
+  # dpkg records a package's new version as soon as it's unpacked, before
+  # configure/postinst (the actual DKMS build) runs - so if a prior build got
+  # interrupted (e.g. by a hardware-crash reboot mid-compile, see issue #618)
+  # and left the package half-configured, a naive version-string comparison
+  # below would see the broken in-progress version and conclude "already up
+  # to date" forever, leaving the device stuck. Detect that first and let the
+  # existing idempotent DKMS postinst resume before checking versions.
+  dpkg_status=$(dpkg-query -W -f='${Status}' brcmfmac-nexmon-dkms 2>/dev/null)
+  if [ -n "$dpkg_status" ] && [ "$dpkg_status" != "install ok installed" ]; then
+    echo "nexmon driver package is not fully configured ($dpkg_status), attempting to resume ..."
+    if apt-get install -f -y; then
+      echo "nexmon driver configuration resumed successfully"
+      NEED_REBOOT=1
+    else
+      echo "failed to resume nexmon driver configuration, will retry next run"
+    fi
+  fi
+
   installed_ver=$(dpkg-query -W -f='${Version}' brcmfmac-nexmon-dkms 2>/dev/null)
   latest_tag=$(wget -qO- "https://api.github.com/repos/${NEXMON_REPO}/releases/latest" | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p')
   if [ -z "$latest_tag" ]; then

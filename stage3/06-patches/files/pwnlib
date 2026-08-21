@@ -33,6 +33,37 @@ brcm_backplane_wedged() {
   dmesg | tail -n 30 | grep -q "brcmf_attach: dongle is not responding"
 }
 
+BRCM_REBOOT_STATE_FILE="/root/.pwnagotchi-brcm-reboot-state"
+BRCM_REBOOT_WINDOW_SECS=1800
+BRCM_REBOOT_MAX_IN_WINDOW=3
+
+# Tracks brcm-wedge-triggered reboots in a persisted state file shared with
+# fix_services.py (same path/format), so both reboot triggers share one
+# budget instead of each independently rebooting up to their own limit.
+# Fails (reboot not allowed) once this would be the 4th+ occurrence within
+# the window, so a recurring wedge eventually gives up and leaves wifi
+# degraded instead of rebooting indefinitely.
+should_reboot_for_brcm_wedge() {
+  local now count last
+  now="$(date +%s)"
+  count=0
+  last=0
+  if [ -f "$BRCM_REBOOT_STATE_FILE" ]; then
+    read -r count last < "$BRCM_REBOOT_STATE_FILE" 2>/dev/null
+    count="${count:-0}"
+    last="${last:-0}"
+  fi
+
+  if [ $((now - last)) -gt "$BRCM_REBOOT_WINDOW_SECS" ]; then
+    count=0
+  fi
+
+  count=$((count + 1))
+  echo "$count $now" > "$BRCM_REBOOT_STATE_FILE"
+
+  [ "$count" -le "$BRCM_REBOOT_MAX_IN_WINDOW" ]
+}
+
 # reload mod
 reload_brcm() {
   local attempt
@@ -55,10 +86,14 @@ reload_brcm() {
     local uptime_secs
     uptime_secs="$(cut -d. -f1 /proc/uptime)"
     if [ "$uptime_secs" -gt 120 ]; then
-      echo "reload_brcm: brcm firmware wedged the SDIO backplane, driver reload cannot recover this - rebooting" >&2
-      sync
-      reboot
-      sleep 60
+      if should_reboot_for_brcm_wedge; then
+        echo "reload_brcm: brcm firmware wedged the SDIO backplane, driver reload cannot recover this - rebooting" >&2
+        sync
+        reboot
+        sleep 60
+      else
+        echo "reload_brcm: brcm firmware wedged $BRCM_REBOOT_MAX_IN_WINDOW+ times in the last ${BRCM_REBOOT_WINDOW_SECS}s, giving up on rebooting - wifi will stay degraded until manual intervention" >&2
+      fi
     fi
   fi
 
