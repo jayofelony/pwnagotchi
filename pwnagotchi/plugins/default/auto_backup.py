@@ -75,6 +75,9 @@ class AutoBackup(plugins.Plugin):
             "max_backups_to_keep", self.DEFAULT_MAX_BACKUPS
         )
         self.exclude = self.options.get("exclude", self.DEFAULT_EXCLUDE)
+        backup_loc_glob = os.path.join(self.options["backup_location"], "*")
+        if backup_loc_glob not in self.exclude:
+            self.exclude.append(backup_loc_glob)
         self.include = self.options.get("include", [])
 
         # Handle commands: if old format, use correct default internally
