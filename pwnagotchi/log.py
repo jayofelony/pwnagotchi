@@ -25,6 +25,10 @@ class LastSession(object):
     ASSOC_TOKEN = 'sending association frame to '
     HANDSHAKE_TOKEN = '!!! captured new handshake '
     PEER_TOKEN = 'detected unit '
+    # Hard cap on how far back parse() will scan looking for START_TOKEN, so a
+    # missing/renamed token (or just a very large log) can never again turn
+    # this into an unbounded full-file read at every startup.
+    MAX_SCAN_LINES = 5000
 
     def __init__(self, config):
         self.config = config
@@ -193,6 +197,12 @@ class LastSession(object):
                         lines_so_far = len(lines)
                         if lines_so_far % 100 == 0:
                             ui.on_reading_logs(lines_so_far)
+
+                        if lines_so_far >= LastSession.MAX_SCAN_LINES:
+                            logging.debug(
+                                "last session log scan hit the %d line cap without finding START_TOKEN, stopping early",
+                                LastSession.MAX_SCAN_LINES)
+                            break
 
                 lines.reverse()
 
