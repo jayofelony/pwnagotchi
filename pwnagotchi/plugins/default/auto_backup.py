@@ -12,7 +12,7 @@ from flask import render_template_string
 
 class AutoBackup(plugins.Plugin):
     __author__ = "WPA2"
-    __version__ = "2.2"
+    __version__ = "2.3"
     __license__ = "GPL3"
     __description__ = (
         "Backs up Pwnagotchi configuration and data, keeping recent backups."
@@ -74,11 +74,17 @@ class AutoBackup(plugins.Plugin):
         self.max_backups = self.options.get(
             "max_backups_to_keep", self.DEFAULT_MAX_BACKUPS
         )
-        self.exclude = self.options.get("exclude", self.DEFAULT_EXCLUDE)
-        backup_loc_glob = os.path.join(self.options["backup_location"], "*")
-        if backup_loc_glob not in self.exclude:
-            self.exclude.append(backup_loc_glob)
+        # Copy so we never mutate the user's config list in place
+        self.exclude = list(self.options.get("exclude", self.DEFAULT_EXCLUDE))
         self.include = self.options.get("include", [])
+
+        # CRITICAL (issue #617): never let the backup archive include the backup
+        # directory itself. backup_location defaults to a subdirectory of
+        # /etc/pwnagotchi/, which is also a backup source, so without this every
+        # run tars up all previous archives -- growing exponentially until the
+        # disk fills. Added unconditionally so it holds even when a user overrides
+        # `exclude` without realising they need it.
+        self._enforce_backup_location_exclude()
 
         # Handle commands: if old format, use correct default internally
         commands = self.options.get("commands", ["tar", "czf"])
@@ -118,6 +124,45 @@ class AutoBackup(plugins.Plugin):
             f"AUTO-BACKUP: Plugin loaded for host '{self.hostname}'. Interval: {self.interval_seconds // 60}min, Backups kept: {self.max_backups}{include_msg}"
         )
 
+    def _enforce_backup_location_exclude(self):
+        """Guarantee the backup directory can never end up inside its own archive.
+
+        Adds glob patterns covering backup_location to the effective exclude list.
+        tar strips leading slashes when storing paths, and --exclude patterns are
+        matched against those stored names, so we add both the absolute form and
+        the slash-stripped form. Also excludes the directory entry itself, not
+        just its contents, so an empty backup dir isn't archived either.
+        """
+        try:
+            backup_loc = self.options["backup_location"].rstrip("/")
+        except (KeyError, AttributeError):
+            return
+
+        variants = set()
+        for base in (backup_loc, backup_loc.lstrip("/")):
+            if not base:
+                continue
+            variants.add(base)          # the directory entry itself
+            variants.add(f"{base}/*")   # everything inside it
+
+        for pattern in variants:
+            if pattern not in self.exclude:
+                self.exclude.append(pattern)
+                logging.info(
+                    f"AUTO-BACKUP: Auto-excluding backup location from archive: {pattern}"
+                )
+
+    def _prune_backups_now(self, reason=""):
+        """Run cleanup immediately and report whether it freed anything.
+
+        Used both on load and before each backup so a disk-full device can
+        self-heal instead of staying wedged until manual intervention.
+        """
+        deleted = self._cleanup_old_backups()
+        if deleted and reason:
+            logging.info(f"AUTO-BACKUP: Pruned {deleted} old backup(s) ({reason})")
+        return deleted
+
     def is_backup_due(self):
         """Check if backup is due based on interval."""
         try:
@@ -127,7 +172,12 @@ class AutoBackup(plugins.Plugin):
         return (time.time() - last_backup) >= self.interval_seconds
 
     def _cleanup_old_backups(self):
-        """Deletes the oldest backups if we exceed the limit."""
+        """Deletes the oldest backups if we exceed the limit.
+
+        Returns the number of files deleted so callers can tell whether space was
+        actually reclaimed.
+        """
+        deleted = 0
         try:
             backup_dir = self.options["backup_location"]
             max_keep = self.max_backups
@@ -140,7 +190,7 @@ class AutoBackup(plugins.Plugin):
 
             if not files:
                 logging.debug("AUTO-BACKUP: No backup files found for cleanup")
-                return
+                return 0
 
             # Sort files by modification time (oldest first)
             files.sort(key=os.path.getmtime)
@@ -155,6 +205,7 @@ class AutoBackup(plugins.Plugin):
                 for old_file in files[:num_to_delete]:
                     try:
                         os.remove(old_file)
+                        deleted += 1
                         logging.info(
                             f"AUTO-BACKUP: Deleted: {os.path.basename(old_file)}"
                         )
@@ -163,6 +214,7 @@ class AutoBackup(plugins.Plugin):
 
         except Exception as e:
             logging.error(f"AUTO-BACKUP: Cleanup error: {e}")
+        return deleted
 
     def _run_backup_thread(self, agent, existing_files):
         """Execute backup in separate thread."""
@@ -196,6 +248,18 @@ class AutoBackup(plugins.Plugin):
                     display.update()
                 except:
                     pass
+
+            # Prune BEFORE creating the new archive. If a previous run filled the
+            # disk, cleaning up first frees space so this attempt can succeed --
+            # otherwise the plugin is permanently wedged, because cleanup only ran
+            # after a success that can never happen on a full disk. If this frees
+            # space, clear the failure counter so a device that hit the retry
+            # limit can resume on its own without a reboot.
+            if self._prune_backups_now("pre-backup") > 0 and self.tries > 0:
+                logging.info(
+                    "AUTO-BACKUP: Freed space by pruning, resetting retry counter"
+                )
+                self.tries = 0
 
             logging.info(f"AUTO-BACKUP: Starting backup to {backup_file}...")
 
@@ -257,6 +321,11 @@ class AutoBackup(plugins.Plugin):
             return
 
         self._agent = agent
+
+        # Prune on startup so a device that filled its disk (and thus wedged on
+        # every backup) reclaims space immediately on restart, rather than having
+        # to wait a full interval for the next scheduled attempt.
+        self._prune_backups_now("on startup")
 
         # Start background scheduler thread
         scheduler_thread = threading.Thread(
