@@ -37,6 +37,8 @@ class BluetoothService:
     STUCK_REBOOT_MIN_INTERVAL = 1800
     # Persisted last-reboot timestamp (survives the reboot to break loops)
     REBOOT_STAMP = "/root/.bt-tether-last-reboot"
+    # Don't reload the BT kernel module more than once per this window
+    BT_MODULE_RELOAD_MIN_INTERVAL = 300
 
     def __init__(self, options=None, logger=None):
         self.options = options or {}
@@ -63,6 +65,7 @@ class BluetoothService:
         self._initialized = False
         self._event_handlers = {}
         self._last_recover_time = 0
+        self._last_module_reload_time = 0
         # Wedged-controller ("stuck") tracking: set only when a bluetooth restart
         # did NOT clear the busy state (distinct from "phone tethering off").
         self._bt_stuck = False
@@ -486,14 +489,48 @@ class BluetoothService:
         return "recovered" if ok else "failed"
 
     def _handle_bt_stuck(self):
-        """A bluetooth restart did NOT clear the busy wedge - the controller is
-        genuinely stuck and only a power-cycle clears it. Flag it (surfaced on the
-        screen/web and in /status) and, if opted in, reboot.
+        """A bluetooth daemon restart did NOT clear the busy wedge. Escalate:
+        first try reloading the BT kernel module (re-downloads the firmware, which
+        clears wedges that survive both a restart AND a reboot); only if that fails
+        flag the controller stuck (surfaced on screen/web and in /status) and, if
+        opted in, reboot as the true last resort.
         """
+        # Rung 2: module reload. Rate-limited so a persistent fault can't turn into
+        # a reload loop.
+        now = time.time()
+        if now - self._last_module_reload_time >= self.BT_MODULE_RELOAD_MIN_INTERVAL:
+            self._last_module_reload_time = now
+            with self._lock:
+                self._message = "Bluetooth wedged - reloading module..."
+            # The reload restarts bluetooth, dropping the agent's bluetoothctl
+            # session - stop it first, bring it back after.
+            try:
+                self.agent.stop()
+            except Exception as e:
+                self.logger.debug(f"Agent stop during module reload failed: {e}")
+
+            recovered = self.connection.reload_bt_module()
+
+            try:
+                self.agent.start()
+                import pwnagotchi
+                self.connection.set_device_name(pwnagotchi.name())
+            except Exception as e:
+                self.logger.debug(f"Agent/name restore after module reload failed: {e}")
+
+            if recovered:
+                with self._lock:
+                    self._bt_stuck = False
+                    self._message = "Bluetooth recovered (module reload)"
+                self.logger.info("Controller recovered via module reload - link will re-establish")
+                self._emit_event("bt:recovered", {"method": "module_reload"})
+                return
+
+        # Rung 3: module reload didn't help (or was rate-limited) - genuinely stuck.
         with self._lock:
             self._bt_stuck = True
             self._message = "Bluetooth stuck - power-cycle the Pi"
-        self.logger.error("Bluetooth controller stuck after restart - a power-cycle is needed")
+        self.logger.error("Bluetooth controller stuck - module reload didn't clear it, a power-cycle is needed")
         self._emit_event("bt:stuck", {})
 
         if self.options.get("reboot_on_stuck_bluetooth", False):
