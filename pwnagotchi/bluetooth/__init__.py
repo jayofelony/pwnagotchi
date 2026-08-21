@@ -333,16 +333,24 @@ class BluetoothService:
                             if self.connection._consecutive_busy >= self.connection.RECOVER_BUSY_THRESHOLD:
                                 with self._lock:
                                     self._message = "Bluetooth busy - recovering..."
-                                if self._recover_bluetooth():
+                                outcome = self._recover_bluetooth()
+                                if outcome == "recovered":
                                     nap_connected = self.connection.connect_nap(mac)
                                     if nap_connected:
                                         break
-                                    # We only get here after repeated br-connection-busy
-                                    # (a controller-side wedge). If a bluetooth restart
-                                    # still can't reconnect - whatever the error now - the
-                                    # stack is wedged in a way only a power-cycle clears.
+                                    # A restart completed but the connect still fails
+                                    # -> wedged in a way only a power-cycle clears.
                                     self._handle_bt_stuck()
                                     break
+                                elif outcome == "failed":
+                                    # The restart itself couldn't complete (e.g. bluetooth
+                                    # hung on stop) - the controller is badly wedged, so
+                                    # escalate straight to the power-cycle path.
+                                    self._handle_bt_stuck()
+                                    break
+                                # "rate_limited": restarted very recently - don't hammer
+                                # or reboot-loop; let the monitor's backoff retry later.
+                                break
 
                 if nap_connected:
                     self.logger.info("NAP connection successful!")
@@ -444,11 +452,14 @@ class BluetoothService:
         """Clear a wedged controller (repeated br-connection-busy): restart the
         Bluetooth stack and re-register the pairing agent.
 
-        Rate-limited so a persistent fault can't turn into a restart loop.
+        Rate-limited so a persistent fault can't turn into a restart loop. Returns
+        one of: "recovered" (restart completed, controller responsive),
+        "failed" (restart couldn't complete - controller badly wedged, only a
+        power-cycle will clear it), or "rate_limited" (restarted too recently).
         """
         now = time.time()
         if now - self._last_recover_time < self.RECOVER_MIN_INTERVAL:
-            return False
+            return "rate_limited"
         self._last_recover_time = now
 
         self.logger.warning("Repeated br-connection-busy - recovering the Bluetooth stack")
@@ -469,7 +480,7 @@ class BluetoothService:
             self.connection.set_device_name(pwnagotchi.name())
         except Exception:
             pass
-        return ok
+        return "recovered" if ok else "failed"
 
     def _handle_bt_stuck(self):
         """A bluetooth restart did NOT clear the busy wedge - the controller is
