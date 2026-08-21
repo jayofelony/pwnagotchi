@@ -377,14 +377,19 @@ class BtTether(Plugin):
                     current_mac = device.mac
                     break
 
+        # Report the CORE service state (CONNECTING/PAIRING/TRUSTING/...), not the
+        # plugin's IDLE/CONNECTED/ERROR shadow - the web UI gates its live refresh
+        # on this to show in-progress pair/connect operations.
+        core_status = self.bt.status
+        in_progress = core_status in ("PAIRING", "TRUSTING", "CONNECTING", "RECONNECTING")
         return jsonify({
-            "status": self._status,
+            "status": core_status,
             "message": self._message,
             "mac": current_mac,
             "initialized": self.bt.initialized,
-            "scanning": False,
-            "connection_in_progress": False,
-            "disconnecting": False,
+            "scanning": core_status == "SCANNING",
+            "connection_in_progress": in_progress,
+            "disconnecting": core_status == "DISCONNECTING",
             "untrusting": False,
             "initializing": not self.bt.initialized,
             "bt_stuck": self.bt.bt_stuck,
@@ -884,9 +889,12 @@ class BtTether(Plugin):
         try {
           await fetch('/plugins/bt-tether/scan', { method: 'GET' });
 
-          // Poll /scan-progress every 1 second to show devices as they appear
+          // Poll /scan-progress every 1 second to show devices as they appear.
+          // maxPolls must exceed the backend scan duration (30s) so we actually
+          // observe scanning flip to false and reach the clean completion branch;
+          // otherwise the "still scanning" spinner is left on screen forever.
           let pollCount = 0;
-          const maxPolls = 30;
+          const maxPolls = 40;
           let lastDeviceCount = 0;
           let scanProgressInterval = setInterval(async () => {
             pollCount++;
@@ -934,7 +942,11 @@ class BtTether(Plugin):
 
               if (pollCount >= maxPolls) {
                 clearInterval(scanProgressInterval);
-                if (lastDeviceCount === 0) {
+                // Always finalize the status line (clears the spinner), whether or
+                // not devices were found - never leave "...still scanning" up.
+                if (lastDeviceCount > 0) {
+                  scanStatus.textContent = `Scan complete - Found ${lastDeviceCount} device(s):`;
+                } else {
                   scanStatus.textContent = 'Scan timeout - No devices found';
                 }
                 scanBtn.disabled = false;
@@ -953,8 +965,23 @@ class BtTether(Plugin):
       }
 
       async function pairAndConnectDevice(mac, name) {
-        await fetch(`/plugins/bt-tether/pair-device?mac=${encodeURIComponent(mac)}&name=${encodeURIComponent(name)}`);
         macInput.value = mac;
+        // Immediate feedback + clear the scan list so the just-paired device
+        // stops showing a "Pair" button while the async connect runs.
+        const scanStatus = document.getElementById('scanStatus');
+        const deviceList = document.getElementById('deviceList');
+        const scanResults = document.getElementById('scanResults');
+        if (scanStatus) scanStatus.innerHTML = `<span class="spinner"></span> Pairing with ${name}...`;
+        if (deviceList) deviceList.innerHTML = '';
+        try {
+          await fetch(`/plugins/bt-tether/pair-device?mac=${encodeURIComponent(mac)}&name=${encodeURIComponent(name)}`);
+        } catch (e) {
+          console.error('Pair failed:', e);
+        }
+        // Hide the scan panel and refresh the device summary + live status. Status
+        // polling now works because /status reports the core CONNECTING state.
+        if (scanResults) scanResults.style.display = 'none';
+        loadTrustedDevicesSummary();
         setTimeout(checkConnectionStatus, 1000);
       }
 
