@@ -73,6 +73,9 @@ class BluetoothService:
         # Wedged-controller ("stuck") tracking: set only when a bluetooth restart
         # did NOT clear the busy state (distinct from "phone tethering off").
         self._bt_stuck = False
+        # True while the recovery ladder is actively resetting Bluetooth, so the
+        # display can say "Healing..." instead of a confusing Paired/Connected.
+        self._healing = False
         self._connected_since_boot = False
 
         # Scan state tracking
@@ -482,24 +485,30 @@ class BluetoothService:
         self._last_recover_time = now
 
         self.logger.warning(f"Recovering the Bluetooth stack ({reason})")
+        with self._lock:
+            self._healing = True
         try:
-            self.agent.stop()
-        except Exception as e:
-            self.logger.debug(f"Agent stop during recovery failed: {e}")
+            try:
+                self.agent.stop()
+            except Exception as e:
+                self.logger.debug(f"Agent stop during recovery failed: {e}")
 
-        ok = self.connection.force_restart_bluetooth()
+            ok = self.connection.force_restart_bluetooth()
 
-        # The restart drops the agent's bluetoothctl session - bring it back up
-        try:
-            self.agent.start()
-        except Exception as e:
-            self.logger.debug(f"Agent restart during recovery failed: {e}")
-        try:
-            import pwnagotchi
-            self.connection.set_device_name(pwnagotchi.name())
-        except Exception:
-            pass
-        return "recovered" if ok else "failed"
+            # The restart drops the agent's bluetoothctl session - bring it back up
+            try:
+                self.agent.start()
+            except Exception as e:
+                self.logger.debug(f"Agent restart during recovery failed: {e}")
+            try:
+                import pwnagotchi
+                self.connection.set_device_name(pwnagotchi.name())
+            except Exception:
+                pass
+            return "recovered" if ok else "failed"
+        finally:
+            with self._lock:
+                self._healing = False
 
     def _handle_bt_stuck(self):
         """A bluetooth daemon restart did NOT clear the busy wedge. Escalate:
@@ -525,22 +534,27 @@ class BluetoothService:
 
         self._last_module_reload_time = now
         with self._lock:
+            self._healing = True
             self._message = "Bluetooth wedged - reloading module..."
         # The reload restarts bluetooth, dropping the agent's bluetoothctl
         # session - stop it first, bring it back after.
         try:
-            self.agent.stop()
-        except Exception as e:
-            self.logger.debug(f"Agent stop during module reload failed: {e}")
+            try:
+                self.agent.stop()
+            except Exception as e:
+                self.logger.debug(f"Agent stop during module reload failed: {e}")
 
-        recovered = self.connection.reload_bt_module()
+            recovered = self.connection.reload_bt_module()
 
-        try:
-            self.agent.start()
-            import pwnagotchi
-            self.connection.set_device_name(pwnagotchi.name())
-        except Exception as e:
-            self.logger.debug(f"Agent/name restore after module reload failed: {e}")
+            try:
+                self.agent.start()
+                import pwnagotchi
+                self.connection.set_device_name(pwnagotchi.name())
+            except Exception as e:
+                self.logger.debug(f"Agent/name restore after module reload failed: {e}")
+        finally:
+            with self._lock:
+                self._healing = False
 
         if recovered:
             with self._lock:
@@ -600,6 +614,11 @@ class BluetoothService:
     def bt_stuck(self):
         with self._lock:
             return self._bt_stuck
+
+    @property
+    def bt_healing(self):
+        with self._lock:
+            return self._healing
 
     def disconnect(self, mac):
         """Disconnect from a device."""

@@ -204,17 +204,20 @@ class BtTether(Plugin):
                 self._phone_name = connected_device.name
 
             # Rendering (glyph + detailed line) lives in the core UIRenderer so the
-            # logic is shared and testable. bt_stuck flags a wedged controller that a
-            # bluetooth restart could not clear, i.e. a power-cycle is needed; the
-            # renderer only surfaces it while not connected.
+            # logic is shared and testable. Transient flags: bt_stuck is a wedged
+            # controller needing a power-cycle, bt_healing an active recovery
+            # (restart/module reload) and link_stalled a suspect half-open link -
+            # each shown instead of a misleading Paired/Connected/IP.
             bt_stuck = self.bt.bt_stuck
+            healing = self.bt.bt_healing
+            stalled = self.bt.monitor.link_stalled
             renderer = self.bt.ui_renderer
-            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck)
+            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck, healing=healing, stalled=stalled)
             # Keep the bare text for /status (the "BT:" prefix is display-only)
             self._message = detailed[3:] if detailed.startswith("BT:") else detailed
 
             if self.show_mini_status:
-                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck))
+                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck, healing=healing, stalled=stalled))
 
             if self.show_detailed_status:
                 ui.set("bt-detail", detailed)

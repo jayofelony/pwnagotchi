@@ -75,6 +75,12 @@ class ConnectionMonitor:
             self.logger.error(f"Failed to start monitor: {e}")
             return False
 
+    @property
+    def link_stalled(self):
+        """True while the watchdog has unanswered peer probes on a live link -
+        the connection LOOKS up but may be half-open. Cleared by a healthy probe."""
+        return self._half_open_count > 0
+
     def set_device(self, mac):
         """Tell the monitor which device to watch for drops (called after a successful connect)."""
         with self._lock:
