@@ -342,7 +342,7 @@ INDEX = """
         position = messages.length - 1;
     }
 
-    var scrollingElement = (document.scrollingElement || document.body)
+    var scrollingElement = document.querySelector(".page-content") || document.scrollingElement || document.body;
     function scrollToBottom () {
        scrollingElement.scrollTop = scrollingElement.scrollHeight;
     }
