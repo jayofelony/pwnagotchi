@@ -39,6 +39,9 @@ class ConnectionManager:
     # wedged and only a bluetooth restart clears it.
     RECOVER_BUSY_THRESHOLD = 3
     BLUETOOTH_RESTART_TIMEOUT = 15
+    # `systemctl restart bluetooth` on a wedged controller can take well over 5s
+    # (bluetoothd hangs on stop until systemd's stop timeout), so give it room.
+    BLUETOOTH_RESTART_CMD_TIMEOUT = 30
 
     def __init__(self, logger=None, options=None):
         self.logger = logger or logging.getLogger(__name__)
@@ -145,9 +148,11 @@ class ConnectionManager:
                 ["systemctl", "restart", "bluetooth"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                timeout=self.BLUETOOTH_RESTART_CMD_TIMEOUT,
             )
         except Exception as e:
+            # A restart that can't even complete means the controller is badly
+            # wedged - only a power-cycle will clear it. Signal that to the caller.
             self.logger.warning(f"Failed to restart bluetooth: {e}")
             return False
 
