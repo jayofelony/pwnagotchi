@@ -1,4 +1,8 @@
-"""Pwnagotchi Bluetooth service - core module for Bluetooth operations."""
+"""Pwnagotchi Bluetooth service - core module for Bluetooth operations.
+
+Ported from the bt-tether plugin by wsvdmeer
+(https://github.com/wsvdmeer/pwnagotchi-plugins/tree/main/bt-tether).
+"""
 
 import logging
 import threading
@@ -37,6 +41,10 @@ class BluetoothService:
     STUCK_REBOOT_MIN_INTERVAL = 1800
     # Persisted last-reboot timestamp (survives the reboot to break loops)
     REBOOT_STAMP = "/root/.bt-tether-last-reboot"
+    # Don't reload the BT kernel module more than once per this window. Kept well
+    # below the reboot cadence: on combo chips the reload clears the wedge (a
+    # reboot often doesn't), so it should get first crack on every recurrence.
+    BT_MODULE_RELOAD_MIN_INTERVAL = 120
 
     def __init__(self, options=None, logger=None):
         self.options = options or {}
@@ -51,6 +59,11 @@ class BluetoothService:
         self.monitor = ConnectionMonitor(self.connection, logger=self.logger, options=self.options)
         # Let the monitor reconnect using the full connect flow (NAP + DHCP + verify)
         self.monitor.reconnect_callback = self.connect
+        # Give the monitor the network layer so its half-open watchdog can probe
+        # whether the phone is actually reachable over the PAN, and the recovery
+        # ladder so a watchdog heal shares the rate limit and agent handling.
+        self.monitor.network = self.network
+        self.monitor.heal_callback = self._heal_bluetooth
         self.ui_renderer = UIRenderer()
 
         # State
@@ -60,9 +73,13 @@ class BluetoothService:
         self._initialized = False
         self._event_handlers = {}
         self._last_recover_time = 0
+        self._last_module_reload_time = 0
         # Wedged-controller ("stuck") tracking: set only when a bluetooth restart
         # did NOT clear the busy state (distinct from "phone tethering off").
         self._bt_stuck = False
+        # True while the recovery ladder is actively resetting Bluetooth, so the
+        # display can say "Recovering..." instead of a confusing Paired/Connected.
+        self._recovering = False
         self._connected_since_boot = False
 
         # Scan state tracking
@@ -448,9 +465,18 @@ class BluetoothService:
         thread.start()
         return True
 
-    def _recover_bluetooth(self):
-        """Clear a wedged controller (repeated br-connection-busy): restart the
-        Bluetooth stack and re-register the pairing agent.
+    def _heal_bluetooth(self, reason):
+        """Watchdog entry point into the recovery ladder: restart the stack and,
+        if that doesn't clear the wedge, escalate through the stuck path (module
+        reload -> opt-in reboot). Shares _recover_bluetooth's rate limit."""
+        outcome = self._recover_bluetooth(reason)
+        if outcome == "failed":
+            self._handle_bt_stuck()
+        return outcome
+
+    def _recover_bluetooth(self, reason="repeated br-connection-busy"):
+        """Clear a wedged controller: restart the Bluetooth stack and re-register
+        the pairing agent.
 
         Rate-limited so a persistent fault can't turn into a restart loop. Returns
         one of: "recovered" (restart completed, controller responsive),
@@ -462,35 +488,91 @@ class BluetoothService:
             return "rate_limited"
         self._last_recover_time = now
 
-        self.logger.warning("Repeated br-connection-busy - recovering the Bluetooth stack")
+        self.logger.warning(f"Recovering the Bluetooth stack ({reason})")
+        with self._lock:
+            self._recovering = True
         try:
-            self.agent.stop()
-        except Exception as e:
-            self.logger.debug(f"Agent stop during recovery failed: {e}")
+            try:
+                self.agent.stop()
+            except Exception as e:
+                self.logger.debug(f"Agent stop during recovery failed: {e}")
 
-        ok = self.connection.force_restart_bluetooth()
+            ok = self.connection.force_restart_bluetooth()
 
-        # The restart drops the agent's bluetoothctl session - bring it back up
-        try:
-            self.agent.start()
-        except Exception as e:
-            self.logger.debug(f"Agent restart during recovery failed: {e}")
-        try:
-            import pwnagotchi
-            self.connection.set_device_name(pwnagotchi.name())
-        except Exception:
-            pass
-        return "recovered" if ok else "failed"
+            # The restart drops the agent's bluetoothctl session - bring it back up
+            try:
+                self.agent.start()
+            except Exception as e:
+                self.logger.debug(f"Agent restart during recovery failed: {e}")
+            try:
+                import pwnagotchi
+                self.connection.set_device_name(pwnagotchi.name())
+            except Exception:
+                pass
+            return "recovered" if ok else "failed"
+        finally:
+            with self._lock:
+                self._recovering = False
 
     def _handle_bt_stuck(self):
-        """A bluetooth restart did NOT clear the busy wedge - the controller is
-        genuinely stuck and only a power-cycle clears it. Flag it (surfaced on the
-        screen/web and in /status) and, if opted in, reboot.
+        """A bluetooth daemon restart did NOT clear the busy wedge. Escalate:
+        first try reloading the BT kernel module (re-downloads the firmware, which
+        clears wedges that survive both a restart AND a reboot); only if that fails
+        flag the controller stuck (surfaced on screen/web and in /status) and, if
+        opted in, reboot as the true last resort.
         """
+        # Rung 2: module reload. Rate-limited so a persistent fault can't turn into
+        # a reload loop.
+        now = time.time()
+        if now - self._last_module_reload_time < self.BT_MODULE_RELOAD_MIN_INTERVAL:
+            # We reloaded very recently and it wedged again. A reboot doesn't clear
+            # this wedge on combo chips (the module reload does), so don't reboot on
+            # a fresh recurrence - flag it and let the next cycle retry the reload
+            # once the window opens, rather than reboot-looping.
+            with self._lock:
+                self._bt_stuck = True
+                self._message = "Bluetooth wedged - will retry module reload"
+            self.logger.warning("Controller wedged again shortly after a module reload - waiting to retry (not rebooting)")
+            self._emit_event("bt:stuck", {})
+            return
+
+        self._last_module_reload_time = now
+        with self._lock:
+            self._recovering = True
+            self._message = "Bluetooth wedged - reloading module..."
+        # The reload restarts bluetooth, dropping the agent's bluetoothctl
+        # session - stop it first, bring it back after.
+        try:
+            try:
+                self.agent.stop()
+            except Exception as e:
+                self.logger.debug(f"Agent stop during module reload failed: {e}")
+
+            recovered = self.connection.reload_bt_module()
+
+            try:
+                self.agent.start()
+                import pwnagotchi
+                self.connection.set_device_name(pwnagotchi.name())
+            except Exception as e:
+                self.logger.debug(f"Agent/name restore after module reload failed: {e}")
+        finally:
+            with self._lock:
+                self._recovering = False
+
+        if recovered:
+            with self._lock:
+                self._bt_stuck = False
+                self._message = "Bluetooth recovered (module reload)"
+            self.logger.info("Controller recovered via module reload - link will re-establish")
+            self._emit_event("bt:recovered", {"method": "module_reload"})
+            return
+
+        # Rung 3: the module reload actually RAN and FAILED - genuinely wedged.
         with self._lock:
             self._bt_stuck = True
             self._message = "Bluetooth stuck - power-cycle the Pi"
-        self.logger.error("Bluetooth controller stuck after restart - a power-cycle is needed")
+        self.logger.error("Bluetooth controller stuck - module reload didn't clear it, a power-cycle is needed")
         self._emit_event("bt:stuck", {})
 
         if self.options.get("reboot_on_stuck_bluetooth", False):
@@ -536,6 +618,11 @@ class BluetoothService:
     def bt_stuck(self):
         with self._lock:
             return self._bt_stuck
+
+    @property
+    def bt_recovering(self):
+        with self._lock:
+            return self._recovering
 
     def disconnect(self, mac):
         """Disconnect from a device."""

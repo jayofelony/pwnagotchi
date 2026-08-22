@@ -30,7 +30,7 @@ phy_for_interface() {
 # reboot can, because the kernel's mmc power-sequence provider toggles the
 # chip's reset line as part of normal boot probing.
 brcm_backplane_wedged() {
-  dmesg | tail -n 30 | grep -q "brcmf_attach: dongle is not responding"
+  dmesg | tail -n 30 | grep -qE "brcmf_attach: dongle is not responding|failed backplane access over SDIO"
 }
 
 BRCM_REBOOT_STATE_FILE="/root/.pwnagotchi-brcm-reboot-state"

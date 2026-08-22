@@ -213,6 +213,18 @@ class Agent(Client, Automata, AsyncAdvertiser):
                     continue
                 elif ap['hostname'] in whitelist or ap['mac'][:13].lower() in whitelist or ap['mac'].lower() in whitelist:
                     continue
+                elif ap['channel'] not in self._supported_channels:
+                    # a beacon can report any channel number it wants (seen
+                    # in the wild from a 5GHz-capable device broadcasting
+                    # channel 40 in range of a 2.4GHz-only radio) - accepting
+                    # that at face value fed a channel this hardware can't
+                    # tune to into both the deauth/associate loop and the
+                    # Strategy's active-channel list, which then repeatedly
+                    # told bettercap to hop there and preceded a brcmfmac
+                    # wedge (wlan0 disappearing) closely enough to be the
+                    # likely trigger
+                    logging.debug("ignoring AP %s on unsupported channel %s", ap['mac'], ap['channel'])
+                    continue
                 else:
                     aps.append(ap)
         except Exception as e:

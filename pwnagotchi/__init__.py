@@ -130,7 +130,7 @@ def shutdown():
         logging.critical("halt command failed: %s", e)
 
 
-def restart(mode):
+def restart(mode, restart_bettercap=True):
     logging.warning("restarting in %s mode ...", mode)
     mode = mode.upper()
     if mode == 'AUTO':
@@ -138,8 +138,17 @@ def restart(mode):
     else:
         Path("/root/.pwnagotchi-manual").touch()
 
-    subprocess.run(["service", "bettercap", "restart"])
-    time.sleep(1)
+    # bettercap's pwnagotchi-auto/pwnagotchi-manual caplets set the same
+    # wifi.interface wlan0mon either way - the only differences are the
+    # session log filename and whether bettercap's own built-in web ui is
+    # on, neither of which needs the wifi driver touched. Restarting
+    # bettercap.service here runs bettercap-launcher's reload_brcm(), a
+    # full modprobe -r/modprobe brcmfmac cycle, on every mode switch/config
+    # save - callers recovering from an actually-broken bettercap should
+    # still request it explicitly.
+    if restart_bettercap:
+        subprocess.run(["service", "bettercap", "restart"])
+        time.sleep(1)
     subprocess.run(["service", "pwnagotchi", "restart"])
 
 

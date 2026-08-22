@@ -676,7 +676,11 @@ class WebConfig(plugins.Plugin):
             if path == "save-config":
                 try:
                     save_config(request.get_json(), '/etc/pwnagotchi/config.toml')  # test
-                    threading.Thread(target=restart, args=(self.mode,), daemon=True).start()  # FIX B5
+                    # bettercap doesn't need reloading for a config save / mode
+                    # switch (see pwnagotchi.restart()'s restart_bettercap arg) -
+                    # doing so anyway reloads the wifi driver on every save,
+                    # which has been observed to trigger a brcmfmac SDIO wedge
+                    threading.Thread(target=restart, args=(self.mode,), kwargs={"restart_bettercap": False}, daemon=True).start()  # FIX B5
                     return "success"
                 except Exception as ex:
                     logging.error(ex)
