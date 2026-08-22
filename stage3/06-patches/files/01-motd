@@ -20,6 +20,8 @@ echo "    - pwnlog, to see live logging"
 echo "    - sudo pwnagotchi --version, to check the current version"
 echo "    - sudo pwnagotchi --donate, to see how you can donate to this project"
 echo "    - sudo pwnagotchi --check-update, to see if there is a new version available"
+echo "    - sudo pwnstore update, to update your installed plugins"
+echo "    - sudo pwnstore upgrade, to update PwnStore itself"
 echo
 echo "    If you want to know if I'm running, you can use"
 echo "    sudo systemctl status pwnagotchi"
