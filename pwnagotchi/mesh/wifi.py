@@ -14,16 +14,17 @@ def freq_to_channel(freq: float) -> int:
         return int(((freq - 2412) / 5) + 1)
     elif freq == 2484:  # Channel 14 special
         return 14
-    # 5 GHz Wi-Fi channels
-    elif 5150 <= freq <= 5850:  # 5 GHz Wi-Fi
-        if 5150 <= freq <= 5350:  # Channels 36-64
-            return int(((freq - 5180) / 20) + 36)
-        elif 5470 <= freq <= 5725:  # Channels 100-144
-            return int(((freq - 5500) / 20) + 100)
-        else:  # Channels 149-165
-            return int(((freq - 5745) / 20) + 149)
-    # 6 GHz Wi-Fi channels
-    elif 5925 <= freq <= 7125:  # 6 GHz Wi-Fi
-        return int(((freq - 5950) / 20) + 11)
+    # 5 GHz Wi-Fi channels (36-177): channel number and frequency are
+    # linearly related (freq = 5000 + 5*channel) across the whole band, not
+    # per 20MHz-spaced sub-block - dividing by 20 without multiplying back
+    # up by 4 only produced a correct result for the first channel of each
+    # sub-band (36, 100, 149) and was wrong for every other one, and the
+    # 5850 upper bound cut off channels 169/173/177 (5845/5865/5885 MHz)
+    # entirely.
+    elif 5150 <= freq <= 5895:  # 5 GHz Wi-Fi
+        return int((freq - 5000) / 5)
+    # 6 GHz Wi-Fi channels (1-233): freq = 5950 + 5*channel, same fix as above
+    elif 5925 <= freq <= 7115:  # 6 GHz Wi-Fi
+        return int((freq - 5950) / 5)
     # If the frequency does not match any valid channel
     raise ValueError(f"The frequency {freq} MHz is not a valid Wi-Fi frequency.")
