@@ -209,7 +209,10 @@ class FixServices(plugins.Plugin):
                 display.set('status', 'Wifi channel stuck. Restarting recon.')
                 display.update(force=True)
                 self.LASTTRY = time.time()
-                pwnagotchi.restart("AUTO")
+                # monstop/monstart above already cycled reload_brcm() and
+                # recreated wlan0mon - restarting bettercap here too would be
+                # a second full driver reload for the same event
+                pwnagotchi.restart("AUTO", restart_bettercap=False)
 
             # Look for pattern 2
             elif len(self.pattern2.findall(bettercap_last_lines)) >= 5:
@@ -266,7 +269,9 @@ class FixServices(plugins.Plugin):
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting pwnagotchi!')
                     display.update(force=True)
-                subprocess.run(["systemctl", "restart", "bettercap"])
+                # pwnagotchi.restart() below already restarts bettercap
+                # (default restart_bettercap=True) - an explicit restart here
+                # too would be a second full driver reload for the same event
                 pwnagotchi.restart("AUTO")
 
             # Look for pattern 6
@@ -275,7 +280,6 @@ class FixServices(plugins.Plugin):
                 if hasattr(agent, 'view'):
                     display.set('status', 'Restarting pwnagotchi!')
                     display.update(force=True)
-                subprocess.run(["systemctl", "restart", "bettercap"])
                 pwnagotchi.restart("AUTO")
 
             # Look for pattern 7

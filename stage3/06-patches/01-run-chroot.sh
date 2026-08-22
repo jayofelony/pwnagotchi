@@ -6,7 +6,7 @@ chmod +x /usr/local/bin/*
 chmod +x /etc/update-motd.d/*
 
 echo -e "\e[32m### Enabling services ###\e[0m"
-systemctl enable bettercap pwngrid-peer pwnagotchi bluetooth.service auto-update.timer
+systemctl enable bettercap pwngrid-peer pwnagotchi bluetooth.service auto-update.timer brcmfmac-watchdog.service
 systemctl disable wpa_supplicant apt-daily-upgrade.service apt-daily-upgrade.timer apt-daily.service apt-daily.timer
 
 echo -e "\e[32m### Disable apt packages from upgrading ###\e[0m"

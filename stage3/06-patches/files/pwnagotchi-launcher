@@ -10,8 +10,17 @@ if is_crypted_mode; then
 fi
 
 if is_auto_mode; then
-  systemctl restart bettercap
-  sleep 3
+  # only (re)start bettercap if it isn't already running - it's already
+  # independently managed by systemd (Restart=always), so unconditionally
+  # restarting it here on every pwnagotchi.service (re)start forces a full
+  # reload_brcm() driver reload each time, which has been observed to wedge
+  # the brcmfmac SDIO backplane. A caller that specifically needs bettercap
+  # itself restarted (crash recovery, etc.) already does so before getting
+  # here.
+  if ! systemctl is-active --quiet bettercap; then
+    systemctl restart bettercap
+    sleep 3
+  fi
   /opt/.pwn/bin/pwnagotchi
 else
   /opt/.pwn/bin/pwnagotchi --manual
