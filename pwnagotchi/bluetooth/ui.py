@@ -14,8 +14,9 @@ class UIRenderer:
         "I": "Initializing",
         "S": "Scanning",
         ">": "Connecting",
-        "R": "Reconnecting",
+        "R": "Recovering Bluetooth",
         "D": "Disconnecting",
+        "~": "Link stalled (probing)",
         "!": "Controller stuck - power-cycle",
         "?": "Error",
     }
@@ -23,6 +24,12 @@ class UIRenderer:
     # Shown when a bluetooth restart could not clear a wedged controller
     STUCK_ICON = "!"
     STUCK_TEXT = "BT:Stuck-reboot"
+    # Shown while the recovery ladder is actively resetting Bluetooth
+    RECOVERING_ICON = "R"
+    RECOVERING_TEXT = "BT:Recovering..."
+    # Shown while the watchdog is counting failed peer probes on a live link
+    STALLED_ICON = "~"
+    STALLED_TEXT = "BT:Stalled?"
 
     @staticmethod
     def strip_ansi(text):
@@ -33,13 +40,19 @@ class UIRenderer:
         return ansi_escape.sub("", text)
 
     @classmethod
-    def format_status(cls, status_dict, bt_stuck=False):
+    def format_status(cls, status_dict, bt_stuck=False, recovering=False, stalled=False):
         """Format status dict into the detailed display line.
 
         Shows the tether address once PAN is up (IPv4, falling back to IPv6 for
-        v6-only tethering). bt_stuck takes precedence while not connected: a
-        bluetooth restart could not clear the controller, so a power-cycle is
-        needed and the user should see that rather than a plain "Paired".
+        v6-only tethering). Transient truths outrank the steady-state view:
+        - bt_stuck (while not connected): a bluetooth restart could not clear the
+          controller, so a power-cycle is needed - not a plain "Paired".
+        - recovering: the recovery ladder is actively resetting Bluetooth - the link
+          bouncing through Paired/Connected is expected, not a problem.
+        - stalled: the watchdog is counting failed peer probes - the link LOOKS
+          connected but may be half-open, so don't show a healthy IP.
+        A PAN without an address is shown as "No IP" (DHCP starving), which is a
+        different situation than a healthy connect.
         """
         connected = status_dict.get("connected", False)
         paired = status_dict.get("paired", False)
@@ -49,9 +62,13 @@ class UIRenderer:
 
         if bt_stuck and not connected:
             return cls.STUCK_TEXT
+        if recovering:
+            return cls.RECOVERING_TEXT
 
         if pan_active:
-            return f"BT:{ip_address}" if ip_address else "BT:Connected"
+            if stalled:
+                return cls.STALLED_TEXT
+            return f"BT:{ip_address}" if ip_address else "BT:No IP"
         elif connected and trusted:
             return "BT:Trusted"
         elif connected:
@@ -62,10 +79,11 @@ class UIRenderer:
             return "BT:- -"
 
     @classmethod
-    def get_status_icon(cls, status_dict, bt_stuck=False):
+    def get_status_icon(cls, status_dict, bt_stuck=False, recovering=False, stalled=False):
         """Get the single-character status icon.
 
-        Settled states are uppercase (C/T/N/P/X); "!" flags a wedged controller.
+        Settled states are uppercase (C/T/N/P/X); "R" is a recovery in progress,
+        "~" a suspect (possibly half-open) link, "!" a wedged controller.
         """
         pan_active = status_dict.get("pan_active", False)
         connected = status_dict.get("connected", False)
@@ -74,9 +92,11 @@ class UIRenderer:
 
         if bt_stuck and not connected:
             return cls.STUCK_ICON
+        if recovering:
+            return cls.RECOVERING_ICON
 
         if pan_active:
-            return "C"
+            return cls.STALLED_ICON if stalled else "C"
         elif connected and trusted:
             return "T"
         elif connected:

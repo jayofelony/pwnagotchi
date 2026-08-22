@@ -28,7 +28,7 @@ from flask import render_template_string, request, jsonify
 
 class BtTether(Plugin):
     __author__ = "wsvdmeer"
-    __version__ = "2.1.0"
+    __version__ = "2.2.0"
     __license__ = "GPL3"
     __description__ = "Guided Bluetooth tethering"
 
@@ -204,17 +204,20 @@ class BtTether(Plugin):
                 self._phone_name = connected_device.name
 
             # Rendering (glyph + detailed line) lives in the core UIRenderer so the
-            # logic is shared and testable. bt_stuck flags a wedged controller that a
-            # bluetooth restart could not clear, i.e. a power-cycle is needed; the
-            # renderer only surfaces it while not connected.
+            # logic is shared and testable. Transient flags: bt_stuck is a wedged
+            # controller needing a power-cycle, bt_recovering an active recovery
+            # (restart/module reload) and link_stalled a suspect half-open link -
+            # each shown instead of a misleading Paired/Connected/IP.
             bt_stuck = self.bt.bt_stuck
+            recovering = self.bt.bt_recovering
+            stalled = self.bt.monitor.link_stalled
             renderer = self.bt.ui_renderer
-            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck)
+            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled)
             # Keep the bare text for /status (the "BT:" prefix is display-only)
             self._message = detailed[3:] if detailed.startswith("BT:") else detailed
 
             if self.show_mini_status:
-                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck))
+                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled))
 
             if self.show_detailed_status:
                 ui.set("bt-detail", detailed)
@@ -374,17 +377,23 @@ class BtTether(Plugin):
                     current_mac = device.mac
                     break
 
+        # Report the CORE service state (CONNECTING/PAIRING/TRUSTING/...), not the
+        # plugin's IDLE/CONNECTED/ERROR shadow - the web UI gates its live refresh
+        # on this to show in-progress pair/connect operations.
+        core_status = self.bt.status
+        in_progress = core_status in ("PAIRING", "TRUSTING", "CONNECTING", "RECONNECTING")
         return jsonify({
-            "status": self._status,
+            "status": core_status,
             "message": self._message,
             "mac": current_mac,
             "initialized": self.bt.initialized,
-            "scanning": False,
-            "connection_in_progress": False,
-            "disconnecting": False,
+            "scanning": core_status == "SCANNING",
+            "connection_in_progress": in_progress,
+            "disconnecting": core_status == "DISCONNECTING",
             "untrusting": False,
             "initializing": not self.bt.initialized,
             "bt_stuck": self.bt.bt_stuck,
+            "bt_recovering": self.bt.bt_recovering,
         })
 
     def _get_connection_status(self, mac):
@@ -595,6 +604,8 @@ class BtTether(Plugin):
         <div id="trustedDevicesSummary" style="color: #4ec9b0; font-size: 14px;">Loading...</div>
       </div>
 
+      <div id="statusBanner" style="display: none; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; font-weight: bold;"></div>
+
       <div style="background: #0d1117; color: #d4d4d4; padding: 12px; border-radius: 4px; margin-bottom: 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5;">
         <div style="color: #888; margin-bottom: 8px;">Connection Status:</div>
         <div id="statusPaired" style="margin: 4px 0;">📱 Paired: <span>Checking...</span></div>
@@ -654,6 +665,14 @@ class BtTether(Plugin):
       const macInput = document.getElementById("macInput");
       let statusInterval = null;
       let logInterval = null;
+
+      // Bluetooth device names are attacker-controllable - escape before inserting
+      // into innerHTML so a crafted name can't inject markup/script.
+      function escapeHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
 
       // Show initializing state first
       setInitializingStatus();
@@ -762,8 +781,30 @@ class BtTether(Plugin):
             `🔐 Trusted: <span style="color: ${trusted ? '#4ec9b0' : '#f48771'};">${trusted ? '✓ Yes' : '✗ No'}</span>`;
           document.getElementById("statusConnected").innerHTML =
             `🔵 Connected: <span style="color: ${connected ? '#4ec9b0' : '#f48771'};">${connected ? '✓ Yes' : '✗ No'}</span>`;
+          // A PAN that's up but has no IP is half-open, not "Active" - show No IP.
+          const online = pan_active && !!ip_address;
+          const netLabel = online ? '✓ Active' : (pan_active ? '⚠ No IP' : '✗ Not Active');
+          const netColor = online ? '#4ec9b0' : (pan_active ? '#d29922' : '#f48771');
           document.getElementById("statusInternet").innerHTML =
-            `🌐 Internet: <span style="color: ${pan_active ? '#4ec9b0' : '#f48771'};">${pan_active ? '✓ Active' : '✗ Not Active'}</span>${data.interface ? ` <span style="color: #888;">(${data.interface})</span>` : ''}`;
+            `🌐 Internet: <span style="color: ${netColor};">${netLabel}</span>${data.interface ? ` <span style="color: #888;">(${escapeHtml(data.interface)})</span>` : ''}`;
+
+          // Trouble banner: surface stuck/recovering/stalled/messages the boolean
+          // rows can't convey, so the page explains what's happening.
+          const banner = document.getElementById('statusBanner');
+          if (banner) {
+            let text = '', bg = '';
+            if (statusData.bt_stuck) {
+              text = '⛔ Bluetooth controller stuck — a power-cycle may be needed'; bg = '#5a1e1e';
+            } else if (statusData.bt_recovering) {
+              text = '🔧 Recovering Bluetooth…'; bg = '#5a4a1e';
+            } else if (pan_active && !ip_address) {
+              text = '⚠ Link up but no IP (DHCP not completed / half-open)'; bg = '#5a4a1e';
+            } else if (statusData.message && /stall|half-open|recover|wedge|stuck/i.test(statusData.message)) {
+              text = '⚠ ' + escapeHtml(statusData.message); bg = '#5a4a1e';
+            }
+            if (text) { banner.style.display = 'block'; banner.style.background = bg; banner.style.color = '#fff'; banner.innerHTML = text; }
+            else { banner.style.display = 'none'; }
+          }
 
           const statusIPElement = document.getElementById('statusIP');
           if (ip_address && pan_active) {
@@ -881,9 +922,12 @@ class BtTether(Plugin):
         try {
           await fetch('/plugins/bt-tether/scan', { method: 'GET' });
 
-          // Poll /scan-progress every 1 second to show devices as they appear
+          // Poll /scan-progress every 1 second to show devices as they appear.
+          // maxPolls must exceed the backend scan duration (30s) so we actually
+          // observe scanning flip to false and reach the clean completion branch;
+          // otherwise the "still scanning" spinner is left on screen forever.
           let pollCount = 0;
-          const maxPolls = 30;
+          const maxPolls = 40;
           let lastDeviceCount = 0;
           let scanProgressInterval = setInterval(async () => {
             pollCount++;
@@ -902,12 +946,17 @@ class BtTether(Plugin):
                   progressData.devices.forEach(device => {
                     const div = document.createElement('div');
                     div.className = 'device-item';
+                    // encodeURIComponent yields only URL-safe chars (no quotes,
+                    // backslashes, or <>), so it's safe both inside the onclick
+                    // single-quotes and in HTML; the handler decodes it back.
+                    const encName = encodeURIComponent(device.name || '');
+                    const encMac = encodeURIComponent(device.mac || '');
                     div.innerHTML = `
                       <div style="flex: 1; font-family: 'Courier New', monospace; font-size: 12px;">
-                        <b>${device.name}</b><br>
-                        <small style="color: #888;">${device.mac}</small>
+                        <b>${escapeHtml(device.name)}</b><br>
+                        <small style="color: #888;">${escapeHtml(device.mac)}</small>
                       </div>
-                      <button onclick="pairAndConnectDevice('${device.mac}', '${device.name.replace(/'/g, "\\'")}'); return false;" class="success" style="margin: 0; padding: 6px 12px; font-size: 12px;">Pair</button>
+                      <button onclick="pairAndConnectDevice(decodeURIComponent('${encMac}'), decodeURIComponent('${encName}')); return false;" class="success" style="margin: 0; padding: 6px 12px; font-size: 12px;">Pair</button>
                     `;
                     deviceList.appendChild(div);
                   });
@@ -931,7 +980,11 @@ class BtTether(Plugin):
 
               if (pollCount >= maxPolls) {
                 clearInterval(scanProgressInterval);
-                if (lastDeviceCount === 0) {
+                // Always finalize the status line (clears the spinner), whether or
+                // not devices were found - never leave "...still scanning" up.
+                if (lastDeviceCount > 0) {
+                  scanStatus.textContent = `Scan complete - Found ${lastDeviceCount} device(s):`;
+                } else {
                   scanStatus.textContent = 'Scan timeout - No devices found';
                 }
                 scanBtn.disabled = false;
@@ -950,8 +1003,23 @@ class BtTether(Plugin):
       }
 
       async function pairAndConnectDevice(mac, name) {
-        await fetch(`/plugins/bt-tether/pair-device?mac=${encodeURIComponent(mac)}&name=${encodeURIComponent(name)}`);
         macInput.value = mac;
+        // Immediate feedback + clear the scan list so the just-paired device
+        // stops showing a "Pair" button while the async connect runs.
+        const scanStatus = document.getElementById('scanStatus');
+        const deviceList = document.getElementById('deviceList');
+        const scanResults = document.getElementById('scanResults');
+        if (scanStatus) scanStatus.innerHTML = `<span class="spinner"></span> Pairing with ${escapeHtml(name)}...`;
+        if (deviceList) deviceList.innerHTML = '';
+        try {
+          await fetch(`/plugins/bt-tether/pair-device?mac=${encodeURIComponent(mac)}&name=${encodeURIComponent(name)}`);
+        } catch (e) {
+          console.error('Pair failed:', e);
+        }
+        // Hide the scan panel and refresh the device summary + live status. Status
+        // polling now works because /status reports the core CONNECTING state.
+        if (scanResults) scanResults.style.display = 'none';
+        loadTrustedDevicesSummary();
         setTimeout(checkConnectionStatus, 1000);
       }
 
@@ -969,12 +1037,12 @@ class BtTether(Plugin):
             // Hide device discovery section only if a device is actively connected
             if (connectedDevice) {
               deviceDiscoverySection.style.display = 'none';
-              summaryDiv.innerHTML = `<span style="color: #3fb950;">🔵 Connected to ${connectedDevice.name}</span><br><small style="color: #888;">${connectedDevice.mac}</small>`;
+              summaryDiv.innerHTML = `<span style="color: #3fb950;">🔵 Connected to ${escapeHtml(connectedDevice.name)}</span><br><small style="color: #888;">${escapeHtml(connectedDevice.mac)}</small>`;
             } else if (napDevices.length > 0) {
               // Show device list and discovery section if not connected
               deviceDiscoverySection.style.display = 'block';
               summaryDiv.innerHTML = napDevices.map(d =>
-                `<div style="margin: 4px 0;">📱 ${d.name}<br><small style="color: #888;">${d.mac}</small></div>`
+                `<div style="margin: 4px 0;">📱 ${escapeHtml(d.name)}<br><small style="color: #888;">${escapeHtml(d.mac)}</small></div>`
               ).join('');
             } else {
               // No tethering support
