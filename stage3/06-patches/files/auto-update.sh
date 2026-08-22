@@ -164,17 +164,28 @@ sync_file "pwnlib" "/usr/bin/pwnlib" 755
 sync_file "bettercap-launcher" "/usr/bin/bettercap-launcher" 755
 sync_file "pwnagotchi-launcher" "/usr/bin/pwnagotchi-launcher" 755
 sync_file "auto-update.sh" "/usr/bin/auto-update.sh" 755
+sync_file "brcmfmac-watchdog.sh" "/usr/bin/brcmfmac-watchdog.sh" 755
 sync_file "01-motd" "/etc/update-motd.d/01-motd" 755
 sync_file "pwnagotchi.service" "/etc/systemd/system/pwnagotchi.service" 644
 sync_file "bettercap.service" "/etc/systemd/system/bettercap.service" 644
 sync_file "pwngrid-peer.service" "/etc/systemd/system/pwngrid-peer.service" 644
 sync_file "auto-update.service" "/etc/systemd/system/auto-update.service" 644
 sync_file "auto-update.timer" "/etc/systemd/system/auto-update.timer" 644
+sync_file "brcmfmac-watchdog.service" "/etc/systemd/system/brcmfmac-watchdog.service" 644
 sync_file "profile" "/etc/profile" 644
 
 if [ "$reload_units" -eq 1 ]; then
   systemctl daemon-reload
 fi
+
+# Devices imaged before brcmfmac-watchdog.service existed will have just had
+# the unit file synced in above for the first time, but a plain file on disk
+# doesn't start on boot unless it's enabled - only fresh images get that for
+# free, via stage3/06-patches/01-run-chroot.sh at build time. `enable` is
+# idempotent, so this is safe to run unconditionally on every update rather
+# than trying to detect "is this the first time" - it converges an
+# already-enabled or even a previously-half-applied device to the same state.
+systemctl enable brcmfmac-watchdog.service
 
 # pip install already copied the package into the venv and sync_file copied
 # out the system files it needs, so the clone itself is just clutter now.

@@ -25,12 +25,14 @@ SYSTEM_FILES = [
     ("stage3/06-patches/files/bettercap-launcher", "/usr/bin/bettercap-launcher", 0o755),
     ("stage3/06-patches/files/pwnagotchi-launcher", "/usr/bin/pwnagotchi-launcher", 0o755),
     ("stage3/06-patches/files/auto-update.sh", "/usr/bin/auto-update.sh", 0o755),
+    ("stage3/06-patches/files/brcmfmac-watchdog.sh", "/usr/bin/brcmfmac-watchdog.sh", 0o755),
     ("stage3/06-patches/files/01-motd", "/etc/update-motd.d/01-motd", 0o755),
     ("stage3/06-patches/files/pwnagotchi.service", "/etc/systemd/system/pwnagotchi.service", 0o644),
     ("stage3/06-patches/files/bettercap.service", "/etc/systemd/system/bettercap.service", 0o644),
     ("stage3/06-patches/files/pwngrid-peer.service", "/etc/systemd/system/pwngrid-peer.service", 0o644),
     ("stage3/06-patches/files/auto-update.service", "/etc/systemd/system/auto-update.service", 0o644),
     ("stage3/06-patches/files/auto-update.timer", "/etc/systemd/system/auto-update.timer", 0o644),
+    ("stage3/06-patches/files/brcmfmac-watchdog.service", "/etc/systemd/system/brcmfmac-watchdog.service", 0o644),
     ("stage3/06-patches/files/profile", "/etc/profile", 0o644)
 ]
 
@@ -70,6 +72,13 @@ def sync_system_files(repo_root):
 
     if reload_units:
         subprocess.run(["systemctl", "daemon-reload"], check=True)
+        # Devices imaged before brcmfmac-watchdog.service existed just had the
+        # unit file synced above for the first time, but a plain file on disk
+        # doesn't start on boot unless it's enabled - only fresh images get
+        # that for free, via stage3/06-patches/01-run-chroot.sh at build time.
+        # enable is idempotent, so this is safe to run whenever any unit
+        # changed rather than trying to detect "is this the first time".
+        subprocess.run(["systemctl", "enable", "brcmfmac-watchdog.service"], check=False)
 
     if changed:
         logging.info("[update] synced %d system file(s)" % changed)
