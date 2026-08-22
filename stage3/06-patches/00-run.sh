@@ -14,6 +14,7 @@ install -v -m 755 files/monstop "${ROOTFS_DIR}/usr/bin/monstop"
 install -v -m 755 files/pwnagotchi-launcher "${ROOTFS_DIR}/usr/bin/pwnagotchi-launcher"
 install -v -m 755 files/pwnlib "${ROOTFS_DIR}/usr/bin/pwnlib"
 install -v -m 755 files/auto-update.sh "${ROOTFS_DIR}/usr/bin/auto-update.sh"
+install -v -m 755 files/brcmfmac-watchdog.sh "${ROOTFS_DIR}/usr/bin/brcmfmac-watchdog.sh"
 
 # /etc/
 echo -e "\e[32m### Installing /etc/ files ###\e[0m"
@@ -30,6 +31,7 @@ install -v -m 644 files/pwnagotchi.service "${ROOTFS_DIR}/etc/systemd/system/pwn
 install -v -m 644 files/pwngrid-peer.service "${ROOTFS_DIR}/etc/systemd/system/pwngrid-peer.service"
 install -v -m 644 files/auto-update.service "${ROOTFS_DIR}/etc/systemd/system/auto-update.service"
 install -v -m 644 files/auto-update.timer "${ROOTFS_DIR}/etc/systemd/system/auto-update.timer"
+install -v -m 644 files/brcmfmac-watchdog.service "${ROOTFS_DIR}/etc/systemd/system/brcmfmac-watchdog.service"
 
 # /etc/update-motd.d/
 # must be executable (755)

@@ -42,6 +42,10 @@ class ConnectionManager:
     # `systemctl restart bluetooth` on a wedged controller can take well over 5s
     # (bluetoothd hangs on stop until systemd's stop timeout), so give it room.
     BLUETOOTH_RESTART_CMD_TIMEOUT = 30
+    # Kernel transport module for the built-in Broadcom controller. Reloading it
+    # re-downloads the BT firmware, which clears a wedge that survives both a
+    # daemon restart and a full reboot. (Serial-attached combo chips: hci_uart.)
+    BT_MODULE = "hci_uart"
 
     def __init__(self, logger=None, options=None):
         self.logger = logger or logging.getLogger(__name__)
@@ -125,7 +129,9 @@ class ConnectionManager:
                     ["systemctl", "restart", "bluetooth"],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    timeout=self.SUBPROCESS_TIMEOUT_STANDARD,
+                    # A hung bluetoothd takes well over 5s to stop (see
+                    # force_restart_bluetooth) - same headroom here.
+                    timeout=self.BLUETOOTH_RESTART_CMD_TIMEOUT,
                 )
                 time.sleep(3)
                 return True
@@ -142,7 +148,7 @@ class ConnectionManager:
         'responsive' but stuck rejecting connects with br-connection-busy - the
         only thing that reliably clears that state.
         """
-        self.logger.warning("Restarting Bluetooth to clear a stuck (br-connection-busy) state")
+        self.logger.warning("Force-restarting Bluetooth to clear a wedged controller")
         try:
             subprocess.run(
                 ["systemctl", "restart", "bluetooth"],
@@ -165,6 +171,54 @@ class ConnectionManager:
                 self.logger.info("Bluetooth restarted and responsive")
                 return True
         self.logger.warning("Bluetooth still not responsive after restart")
+        return False
+
+    def reload_bt_module(self):
+        """Reload the Bluetooth transport module to force a firmware re-download.
+
+        The rung between a daemon restart and a full reboot: on combo WiFi+BT
+        chips the controller firmware can wedge (HCI commands time out - the
+        kernel logs 'command tx timeout' / opcode failures with -110) in a way
+        that survives both 'systemctl restart bluetooth' AND a reboot, yet is
+        cleared by unloading and reloading the module. Runs as root (pwnagotchi
+        already runs as root, so no sudo); returns True if the controller comes
+        back responsive.
+        """
+        self.logger.warning(f"Reloading Bluetooth module ({self.BT_MODULE}) to reset a wedged controller")
+        try:
+            subprocess.run(
+                ["modprobe", "-r", self.BT_MODULE],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=self.BLUETOOTH_RESTART_CMD_TIMEOUT,
+            )
+            time.sleep(self.SUBPROCESS_TIMEOUT_MEDIUM)
+            subprocess.run(
+                ["modprobe", self.BT_MODULE],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=self.BLUETOOTH_RESTART_CMD_TIMEOUT,
+            )
+            time.sleep(self.SUBPROCESS_TIMEOUT_NORMAL)
+            subprocess.run(
+                ["systemctl", "restart", "bluetooth"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=self.BLUETOOTH_RESTART_CMD_TIMEOUT,
+            )
+        except Exception as e:
+            self.logger.warning(f"Bluetooth module reload failed: {e}")
+            return False
+
+        deadline = time.time() + self.BLUETOOTH_RESTART_TIMEOUT
+        while time.time() < deadline:
+            time.sleep(1)
+            if self.is_responsive():
+                self._run_cmd(["bluetoothctl", "power", "on"], capture=True, timeout=self.SUBPROCESS_TIMEOUT_NORMAL)
+                self._consecutive_busy = 0
+                self.logger.info("Bluetooth module reloaded and controller responsive")
+                return True
+        self.logger.warning("Bluetooth still not responsive after module reload")
         return False
 
     def get_status(self, mac):
