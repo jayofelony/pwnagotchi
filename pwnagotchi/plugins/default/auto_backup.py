@@ -1,3 +1,4 @@
+import pwnagotchi
 import pwnagotchi.plugins as plugins
 from pwnagotchi.utils import StatusFile
 import logging
@@ -7,18 +8,59 @@ import time
 import socket
 import threading
 import glob
+import toml
 from flask import render_template_string
+
+# --- Config-driven path resolution -----------------------------------------
+# pwnagotchi-noai moved these locations; plugins must follow the config rather
+# than hardcode old paths. Canonical values are last-resort fallbacks only.
+CANONICAL_HANDSHAKES = "/etc/pwnagotchi/handshakes"
+CANONICAL_CUSTOM_PLUGINS = "/etc/pwnagotchi/custom-plugins/"
+CONFIG_FILE = "/etc/pwnagotchi/config.toml"
+
+
+def _config_value(section, key):
+    """Read section.key from the merged runtime config, falling back to a
+    direct parse of config.toml. Returns None if unavailable."""
+    try:
+        cfg = getattr(pwnagotchi, "config", None)
+        if cfg and cfg.get(section, {}).get(key):
+            return cfg[section][key]
+    except Exception:
+        pass
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            data = toml.load(f)
+        val = data.get(section, {}).get(key)
+        if val:
+            return val
+    except Exception:
+        pass
+    return None
+
+
+def config_handshake_dir():
+    """bettercap.handshakes from config, else canonical /etc/pwnagotchi/handshakes."""
+    return _config_value("bettercap", "handshakes") or CANONICAL_HANDSHAKES
+
+
+def config_custom_plugins_dir():
+    """main.custom_plugins from config, else canonical /etc/pwnagotchi/custom-plugins/."""
+    return _config_value("main", "custom_plugins") or CANONICAL_CUSTOM_PLUGINS
+# ---------------------------------------------------------------------------
 
 
 class AutoBackup(plugins.Plugin):
     __author__ = "WPA2"
-    __version__ = "2.3"
+    __version__ = "2.4"
     __license__ = "GPL3"
     __description__ = (
         "Backs up Pwnagotchi configuration and data, keeping recent backups."
     )
 
-    # Hardcoded defaults for Pwnagotchi
+    # Static defaults. The custom-plugins and handshakes directories are NOT
+    # listed here because they now come from config (see _default_files); the
+    # /home/pi entries below are the pi user's own home files, which are correct.
     DEFAULT_FILES = [
         "/root/settings.yaml",
         "/root/client_secrets.json",
@@ -28,9 +70,7 @@ class AutoBackup(plugins.Plugin):
         "/root/.profile",
         "/root/peers",
         "/etc/pwnagotchi/",
-        "/usr/local/share/pwnagotchi/custom-plugins",
         "/etc/ssh/",
-        "/home/pi/handshakes/",
         "/home/pi/.bashrc",
         "/home/pi/.profile",
         "/home/pi/.wpa_sec_uploads",
@@ -39,10 +79,18 @@ class AutoBackup(plugins.Plugin):
     DEFAULT_INTERVAL_SECONDS = 60 * 60  # 60 minutes
     DEFAULT_MAX_BACKUPS = 3
     DEFAULT_EXCLUDE = [
-        "/etc/pwnagotchi/logs/*",
+        "/etc/pwnagotchi/log/*",
         "*.bak",
         "*.tmp",
     ]
+
+    def _default_files(self):
+        """DEFAULT_FILES plus the config-resolved custom-plugins and handshakes
+        directories, so backups follow wherever the running config points."""
+        return list(self.DEFAULT_FILES) + [
+            config_custom_plugins_dir().rstrip("/"),
+            config_handshake_dir().rstrip("/"),
+        ]
 
     def __init__(self):
         self.ready = False
@@ -67,7 +115,7 @@ class AutoBackup(plugins.Plugin):
         self.hostname = socket.gethostname()
 
         # Read config with internal defaults - DO NOT modify self.options
-        self.files = self.options.get("files", self.DEFAULT_FILES)
+        self.files = self.options.get("files", self._default_files())
         self.interval_seconds = self.options.get(
             "interval_seconds", self.DEFAULT_INTERVAL_SECONDS
         )
