@@ -43,14 +43,7 @@ otg_mode=1
 [cm5]
 dtoverlay=dwc2,dr_mode=host
 
-[all]
-dtparam=i2c1=on
-dtparam=i2c_arm=on
-dtparam=spi=on
-gpu_mem=1
-dtoverlay=dwc2
-enable_uart=1
-
+# RPi settings per device
 [pi0]
 dtoverlay=spi0-2cs
 #dtoverlay=disable-wifi
@@ -66,3 +59,11 @@ dtoverlay=spi0-2cs
 [pi5]
 dtoverlay=spi0-2cs
 #dtoverlay=disable-wifi
+
+[all]
+dtparam=i2c1=on
+dtparam=i2c_arm=on
+dtparam=spi=on
+gpu_mem=1
+dtoverlay=dwc2
+enable_uart=1
