@@ -19,10 +19,17 @@ INDEX = """
 <style>
     /* Logtail-specific styles - plugin header */
     .logtail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
         margin-bottom: 2rem;
         padding: 1.5rem 0;
         border-bottom: 1px solid var(--border-color);
     }
+    .logtail-header > div { flex: 1; min-width: 0; }
+    .logtail-header h2, .logtail-header p { margin: 0; }
+    .logtail-header .btn { flex-shrink: 0; width: auto; min-width: 0; }
 
     /* Search/Control Bar */
     #divTop {
@@ -47,12 +54,27 @@ INDEX = """
         min-width: 200px;
     }
 
+    #filter, #levelFilter {
+        height: 44px;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    #levelFilter { min-width: 150px; }
+
     /* Autoscroll Toggle Wrapper */
     #divTop > span {
         display: flex;
         align-items: center;
         gap: 0.5rem;
         white-space: nowrap;
+    }
+
+    /* Separate the autoscroll toggle from the level dropdown (nudge right) */
+    #divTop > span:last-child {
+        margin-left: 1.5rem;
+    }
+    @media screen and (max-width: 768px) {
+        #divTop > span:last-child { margin-left: 0; }
     }
 
     #autoscroll {
@@ -219,6 +241,11 @@ INDEX = """
 
         .table-container {
             margin-bottom: 2rem;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            background: transparent;
+            overflow: visible;
         }
 
         /* Mobile table display */
@@ -231,7 +258,7 @@ INDEX = """
             border: none;
         }
 
-        tr:first-child, thead, th {
+        thead, th {
             display: none;
             border: none;
         }
@@ -272,10 +299,12 @@ INDEX = """
 {% block script %}
     var table = document.getElementById("table").querySelector("tbody");
     var filter = document.getElementById("filter");
+    var levelFilter = document.getElementById("levelFilter");
     var filterVal = filter.value.toUpperCase();
+    var levelVal = "";
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "logtail/stream");
+    xhr.open("GET", "/plugins/logtail/stream");
     xhr.send();
     var position = 0;
     var data;
@@ -333,7 +362,9 @@ INDEX = """
 
             tr.className = colorClass;
 
-            if (filterVal.length > 0 && value.toUpperCase().indexOf(filterVal) == -1) {
+            var txtOk = (filterVal.length === 0 || value.toUpperCase().indexOf(filterVal) > -1);
+            var lvlOk = (levelVal === "" || colorClass === levelVal);
+            if (!(txtOk && lvlOk)) {
                 tr.style.display = "none";
             }
 
@@ -360,40 +391,53 @@ INDEX = """
     }, 1000);
 
     var typingTimer;
-    var doneTypingInterval = 500;
+    var doneTypingInterval = 300;
+
+    // Combined filter: free-text (name/message) AND selected log level.
+    function applyFilters() {
+        filterVal = filter.value.toUpperCase();
+        var tr = table.getElementsByTagName("tr");
+        for (var i = 0; i < tr.length; i++) {
+            var txtValue = (tr[i].textContent || tr[i].innerText || "").toUpperCase();
+            var txtOk = (filterVal.length === 0 || txtValue.indexOf(filterVal) > -1);
+            var lvlOk = (levelVal === "" || tr[i].className === levelVal);
+            tr[i].style.display = (txtOk && lvlOk) ? "table-row" : "none";
+        }
+    }
 
     filter.onkeyup = function() {
         clearTimeout(typingTimer);
-        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+        typingTimer = setTimeout(applyFilters, doneTypingInterval);
     }
 
     filter.onkeydown = function() {
         clearTimeout(typingTimer);
     }
 
-    function doneTyping() {
-        var tr, tds, td, i, txtValue;
-        filterVal = filter.value.toUpperCase();
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            txtValue = tr[i].textContent || tr[i].innerText;
-            if (filterVal.length === 0 || txtValue.toUpperCase().indexOf(filterVal) > -1) {
-                tr[i].style.display = "table-row";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
+    levelFilter.onchange = function() {
+        levelVal = this.value;
+        applyFilters();
     }
 {% endblock %}
 
 {% block content %}
     <div class="logtail-header">
-        <h2>System Log</h2>
-        <p>Real-time log viewer with filtering and auto-scroll capabilities</p>
+        <div>
+            <h2>System Log</h2>
+            <p>Real-time log viewer with filtering and auto-scroll capabilities</p>
+        </div>
+        <a href="/plugins" class="btn secondary">Plugins</a>
     </div>
 
     <div id="divTop">
-        <input type="text" id="filter" placeholder="Filter logs..." title="Type to filter log messages">
+        <input type="text" id="filter" placeholder="Filter logs..." title="Type to filter log messages" autocomplete="off">
+        <span><select id="levelFilter" title="Filter by log level">
+            <option value="">All levels</option>
+            <option value="info">Info</option>
+            <option value="warning">Warning</option>
+            <option value="error">Error</option>
+            <option value="debug">Debug</option>
+        </select></span>
         <span>
             <input type="checkbox" id="autoscroll" checked>
             <label for="autoscroll">Auto-scroll</label>

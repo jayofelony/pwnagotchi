@@ -23,10 +23,17 @@ INDEX = """
 <style>
     /* Webcfg-specific styles - plugin header */
     .webcfg-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
         margin-bottom: 2rem;
         padding: 1.5rem 0;
         border-bottom: 1px solid var(--border-color);
     }
+    .webcfg-header > div { flex: 1; min-width: 0; }
+    .webcfg-header h2, .webcfg-header p { margin: 0; }
+    .webcfg-header .btn { flex-shrink: 0; width: auto; min-width: 0; }
 
     /* Search/Control Bar */
     #divTop {
@@ -58,9 +65,43 @@ INDEX = """
     }
 
     /* Wrapper spans */
-    #divTop > span {
+    #divTop > span, #divAdd > span {
         display: flex;
         align-items: center;
+    }
+
+    /* Add-option row (separate from the filter bar) */
+    #divAdd {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        width: 100%;
+        padding: 0 0.25rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    #newOptName { flex: 1; min-width: 200px; }
+
+    /* Toolbar consistency: input, select and buttons share one height + baseline */
+    #divTop input, #divAdd input,
+    #divAdd select,
+    #divTop .btn, #divAdd .btn {
+        height: 44px;
+        margin: 0;
+        box-sizing: border-box;
+    }
+    #divTop .btn, #divAdd .btn {
+        min-width: auto;
+        padding-top: 0;
+        padding-bottom: 0;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+    #resultCount { flex-shrink: 0; }
+
+    @media screen and (max-width: 768px) {
+        #divAdd { flex-direction: column; align-items: stretch; }
+        #divAdd > span, #divAdd select, #divAdd .btn { width: 100%; }
     }
 
     /* Table Container */
@@ -231,11 +272,12 @@ INDEX = """
         }
 
         td:nth-child(1) {
-            width: 50px;
-            padding: 8px 4px;
+            width: 100%;
+            padding: 0;
         }
 
         .remove {
+            width: auto;
             min-width: 28px;
             min-height: 28px;
             padding: 4px 4px;
@@ -243,6 +285,11 @@ INDEX = """
 
         .table-container {
             margin-bottom: 2rem;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            background: transparent;
+            overflow: visible;
         }
 
         #divSaveTop {
@@ -302,7 +349,7 @@ INDEX = """
         }
 
         td[data-label=""] .del_btn_wrapper {
-            text-align: right;
+            justify-content: flex-end;
             margin-bottom: 0.75rem;
         }
     }
@@ -311,16 +358,25 @@ INDEX = """
 
 {% block content %}
     <div class="webcfg-header">
-        <h2>Configuration Manager</h2>
-        <p>Edit your Pwnagotchi configuration settings</p>
+        <div>
+            <h2>Configuration Manager</h2>
+            <p>Edit your Pwnagotchi configuration settings</p>
+        </div>
+        <a href="/plugins" class="btn secondary">Plugins</a>
     </div>
 
     <div id="divTop">
-        <input type="text" id="searchText" placeholder="Search for options ..." title="Type an option name">
-        <span><select id="selAddType"><option value="text">Text</option><option value="number">Number</option></select></span>
-        <span><button class="btn primary" type="button" onclick="addOption()">+</button></span>
+        <input type="text" id="searchText" placeholder="Filter options ..." title="Filter by option name or value" autocomplete="off">
+        <button id="clearSearch" class="btn secondary" type="button" title="Clear filter">Clear</button>
+        <span id="resultCount" class="badge"></span>
     </div>
-    
+
+    <div id="divAdd">
+        <input type="text" id="newOptName" placeholder="new.option.path" title="Name of the option to add" autocomplete="off">
+        <span><select id="selAddType"><option value="text">Text</option><option value="number">Number</option></select></span>
+        <button class="btn primary" type="button" onclick="addOption()">Add option</button>
+    </div>
+
     <div class="table-container" id="content"></div>
 
     <div id="divSaveTop">
@@ -332,8 +388,8 @@ INDEX = """
 {% block script %}
         function addOption() {
           var input, table, tr, td, divDelBtn, btnDel, selType, selTypeVal;
-          input = document.getElementById("searchText");
-          inputVal = input.value;
+          inputVal = document.getElementById("newOptName").value;
+          if (!inputVal) { return; }
           selType = document.getElementById("selAddType");
           selTypeVal = selType.options[selType.selectedIndex].value;
           table = document.getElementById("tableOptions");
@@ -367,6 +423,8 @@ INDEX = """
 
             input.value = "";
           }
+          document.getElementById("newOptName").value = "";
+          applyFilter();
         }
 
         function saveConfig(){
@@ -374,7 +432,7 @@ INDEX = """
             var table = document.getElementById("tableOptions");
             if (table) {
                 var json = tableToJson(table);
-                sendJSON("webcfg/save-config", json, function(response) {
+                sendJSON("/plugins/webcfg/save-config", json, function(response) {
                     if (response) {
                         if (response.status == "200") {
                             alert("Config got updated");
@@ -391,7 +449,7 @@ INDEX = """
             var table = document.getElementById("tableOptions");
             if (table) {
                 var json = tableToJson(table);
-                sendJSON("webcfg/merge-save-config", json, function(response) {
+                sendJSON("/plugins/webcfg/merge-save-config", json, function(response) {
                     if (response) {
                         if (response.status == "200") {
                             alert("Config got updated");
@@ -403,27 +461,41 @@ INDEX = """
             }
         }
 
-        var searchInput = document.getElementById("searchText");
-        searchInput.onkeyup = function() {
-            var filter, table, tr, td, i, txtValue;
-            filter = searchInput.value.toUpperCase();
-            table = document.getElementById("tableOptions");
+        // Filter by option name AND value; keep a live count and a no-results state.
+        function applyFilter() {
+            var filter = document.getElementById("searchText").value.toUpperCase();
+            var table = document.getElementById("tableOptions");
+            var shown = 0, total = 0;
             if (table) {
-                tr = table.getElementsByTagName("tr");
-
-                for (i = 0; i < tr.length; i++) {
-                    td = tr[i].getElementsByTagName("td")[1];
-                    if (td) {
-                        txtValue = td.textContent || td.innerText;
-                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                            tr[i].style.display = "";
-                        }else{
-                            tr[i].style.display = "none";
-                        }
+                var tr = table.getElementsByTagName("tr");
+                for (var i = 0; i < tr.length; i++) {
+                    var td = tr[i].getElementsByTagName("td");
+                    if (td.length < 3) { continue; }           // skip the header row
+                    total++;
+                    var opt = (td[1].textContent || td[1].innerText || "").toUpperCase();
+                    var field = td[2].querySelector("input, select");
+                    var val = field ? (field.value || "").toUpperCase() : "";
+                    if (filter === "" || opt.indexOf(filter) > -1 || val.indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                        shown++;
+                    } else {
+                        tr[i].style.display = "none";
                     }
                 }
             }
+            var rc = document.getElementById("resultCount");
+            if (rc) { rc.textContent = filter ? (shown + " / " + total) : (total + " options"); }
+            var nr = document.getElementById("noResults");
+            if (nr) { nr.style.display = (total > 0 && shown === 0) ? "block" : "none"; }
         }
+
+        var searchInput = document.getElementById("searchText");
+        searchInput.onkeyup = applyFilter;
+        document.getElementById("clearSearch").onclick = function() {
+            searchInput.value = "";
+            applyFilter();
+            searchInput.focus();
+        };
 
         function sendJSON(url, data, callback) {
           var xobj = new XMLHttpRequest();
@@ -611,12 +683,19 @@ INDEX = """
             return unFlattenJson(json);
         }
 
-        loadJSON("webcfg/get-config", function(response) {
+        loadJSON("/plugins/webcfg/get-config", function(response) {
             var flat_json = flattenJson(response);
             var table = jsonToTable(flat_json);
             var divContent = document.getElementById("content");
             divContent.innerHTML = "";
             divContent.appendChild(table);
+            var nr = document.createElement("div");
+            nr.id = "noResults";
+            nr.className = "status";
+            nr.textContent = "No options match your filter.";
+            nr.style.display = "none";
+            divContent.appendChild(nr);
+            applyFilter();
         });
 {% endblock %}
 """

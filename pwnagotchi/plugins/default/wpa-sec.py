@@ -11,6 +11,91 @@ from pwnagotchi import plugins
 from pwnagotchi.ui.components import LabeledValue
 from pwnagotchi.ui.view import BLACK
 import pwnagotchi.ui.fonts as fonts
+from flask import render_template_string
+
+
+INDEX = """
+{% extends "base.html" %}
+{% set active_page = "plugins" %}
+{% block title %}WPA-SEC{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        .wpa-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .wpa-header > div { flex: 1; min-width: 0; }
+        .wpa-header h2, .wpa-header p { margin: 0; }
+        .wpa-header .btn { flex-shrink: 0; width: auto; min-width: 0; }
+
+        .wpa-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .wpa-stat {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .wpa-stat .num {
+            font-family: var(--font-pixel);
+            font-size: 2.2rem;
+            line-height: 1;
+            color: var(--accent);
+        }
+        .wpa-stat .lbl {
+            margin-top: 0.4rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+        .wpa-actions form { margin: 0; width: 100%; }
+        .wpa-actions .btn { width: 100%; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="wpa-header">
+        <div>
+            <h2>WPA-SEC</h2>
+            <p>Handshake uploads &amp; cracked results</p>
+        </div>
+        <a href="/plugins" class="btn secondary">Plugins</a>
+    </div>
+
+    <div class="wpa-stats">
+        <div class="wpa-stat"><div class="num">{{ to_upload }}</div><div class="lbl">To upload</div></div>
+        <div class="wpa-stat"><div class="num">{{ uploaded }}</div><div class="lbl">Uploaded</div></div>
+        <div class="wpa-stat"><div class="num">{{ invalid }}</div><div class="lbl">Invalid</div></div>
+        <div class="wpa-stat"><div class="num">{{ cracked }}</div><div class="lbl">Cracked</div></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Your uploads</div>
+        <div class="card-body">
+            <p>View and manage the handshakes you have uploaded on wpa-sec.net. Your API key is sent to open your personal dashboard.</p>
+        </div>
+        <div class="card-footer wpa-actions">
+            <form action="{{ api_url }}" method="POST" target="_blank">
+                <input type="hidden" name="key" value="{{ api_key }}">
+                <button type="submit" class="btn primary">View my uploads on wpa-sec.net &rarr;</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+"""
 
 
 class WpaSec(plugins.Plugin):
@@ -232,22 +317,38 @@ class WpaSec(plugins.Plugin):
         logging.info("WPA_SEC: Wrote cracked single files.")
 
     def on_webhook(self, path, request):
-        from flask import make_response
+        # Themed page: show upload/cracked stats + a button to open wpa-sec.net.
+        counts = {'toupload': 0, 'uploaded': 0, 'invalid': 0}
+        cracked = 0
+        try:
+            db_conn = sqlite3.connect('/etc/pwnagotchi/.wpa_sec_db')
+            cursor = db_conn.cursor()
+            for label, status in (('toupload', self.Status.TOUPLOAD.value),
+                                  ('uploaded', self.Status.SUCCESSFULL.value),
+                                  ('invalid', self.Status.INVALID.value)):
+                cursor.execute('SELECT COUNT(*) FROM handshakes WHERE status = ?', (status,))
+                counts[label] = cursor.fetchone()[0]
+            cursor.close()
+            db_conn.close()
+        except Exception:
+            logging.exception("WPA_SEC: could not read stats for web page")
+        try:
+            potfile = '/etc/pwnagotchi/handshakes/wpa-sec.cracked.potfile'
+            if os.path.exists(potfile):
+                with open(potfile) as f:
+                    cracked = sum(1 for _ in f)
+        except Exception:
+            pass
 
-        html_content = f'''
-            <html>
-                <body>
-                    <form id="postForm" action="{self.options['api_url']}" method="POST">
-                        <input type="hidden" name="key" value="{self.options['api_key']}">
-                    </form>
-                    <script type="text/javascript">
-                        document.getElementById('postForm').submit();
-                    </script>
-                </body>
-            </html>
-        '''
-        
-        return make_response(html_content)
+        return render_template_string(
+            INDEX,
+            to_upload=counts['toupload'],
+            uploaded=counts['uploaded'],
+            invalid=counts['invalid'],
+            cracked=cracked,
+            api_url=self.options.get('api_url', ''),
+            api_key=self.options.get('api_key', ''),
+        )
 
     def on_ui_setup(self, ui):
         if 'show_pwd' in self.options and self.options['show_pwd'] and 'download_results' in self.options and self.options['download_results']:
