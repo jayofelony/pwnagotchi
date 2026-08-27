@@ -22,19 +22,6 @@ INDEX = """
 {% block styles %}
     {{ super() }}
     <style>
-        .wpa-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            padding: 1.5rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .wpa-header > div { flex: 1; min-width: 0; }
-        .wpa-header h2, .wpa-header p { margin: 0; }
-        .wpa-header .btn { flex-shrink: 0; width: auto; min-width: 0; }
-
         .wpa-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -67,12 +54,10 @@ INDEX = """
 {% endblock %}
 
 {% block content %}
-    <div class="wpa-header">
-        <div>
-            <h2>WPA-SEC</h2>
-            <p>Handshake uploads &amp; cracked results</p>
-        </div>
-        <a href="/plugins" class="btn secondary">Plugins</a>
+    <div class="plugin-page-header">
+        <div class="header-nav"><a href="/plugins" class="btn ghost">← Plugins</a><span class="header-version">v2.2.1</span></div>
+        <h2>WPA-SEC</h2>
+        <p>Handshake uploads &amp; cracked results</p>
     </div>
 
     <div class="wpa-stats">
@@ -94,6 +79,8 @@ INDEX = """
             </form>
         </div>
     </div>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a>, edited by <a href="https://github.com/jayofelony" target="_blank" rel="noopener">jayofelony</a></div>
 {% endblock %}
 """
 

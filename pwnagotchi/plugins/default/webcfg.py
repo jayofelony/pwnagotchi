@@ -21,20 +21,6 @@ INDEX = """
 {% endblock %}{% block styles %}
 {{ super() }}
 <style>
-    /* Webcfg-specific styles - plugin header */
-    .webcfg-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        padding: 1.5rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-    .webcfg-header > div { flex: 1; min-width: 0; }
-    .webcfg-header h2, .webcfg-header p { margin: 0; }
-    .webcfg-header .btn { flex-shrink: 0; width: auto; min-width: 0; }
-
     /* Search/Control Bar */
     #divTop {
         position: -webkit-sticky;
@@ -45,7 +31,7 @@ INDEX = """
         align-items: center;
         width: 100%;
         padding: 1rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.6rem;
         font-size: 0.95rem;
         background-color: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -97,7 +83,9 @@ INDEX = """
         font-size: 0.9rem;
         white-space: nowrap;
     }
-    #resultCount { flex-shrink: 0; }
+    /* Result count on its own line, directly under the filter bar */
+    #divCount { margin: 0 0 1.5rem 0.5rem; }
+    #resultCount { display: inline-block; }
 
     @media screen and (max-width: 768px) {
         #divAdd { flex-direction: column; align-items: stretch; }
@@ -357,19 +345,17 @@ INDEX = """
 {% endblock %}
 
 {% block content %}
-    <div class="webcfg-header">
-        <div>
-            <h2>Configuration Manager</h2>
-            <p>Edit your Pwnagotchi configuration settings</p>
-        </div>
-        <a href="/plugins" class="btn secondary">Plugins</a>
+    <div class="plugin-page-header">
+        <div class="header-nav"><a href="/plugins" class="btn ghost">← Plugins</a><span class="header-version">v1.0.0</span></div>
+        <h2>Configuration Manager</h2>
+        <p>Edit your Pwnagotchi configuration settings</p>
     </div>
 
     <div id="divTop">
         <input type="text" id="searchText" placeholder="Filter options ..." title="Filter by option name or value" autocomplete="off">
         <button id="clearSearch" class="btn secondary" type="button" title="Clear filter">Clear</button>
-        <span id="resultCount" class="badge"></span>
     </div>
+    <div id="divCount"><span id="resultCount" class="badge"></span></div>
 
     <div id="divAdd">
         <input type="text" id="newOptName" placeholder="new.option.path" title="Name of the option to add" autocomplete="off">
@@ -383,6 +369,8 @@ INDEX = """
         <button class="btn primary" type="button" onclick="saveConfig()">Save and restart</button>
         <button class="btn danger" type="button" onclick="saveConfigNoRestart()">Merge and Save (CAUTION)</button>
     </div>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a>, modified by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 
 {% block script %}

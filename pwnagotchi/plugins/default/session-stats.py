@@ -19,13 +19,6 @@ TEMPLATE = """
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="/css/dygraph.css" />
     <style>
-        /* Session Stats Header */
-        .stats-header {
-            margin-bottom: 2rem;
-            padding: 1.5rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
         /* Session Selector */
         .session-selector {
             display: flex;
@@ -397,7 +390,8 @@ TEMPLATE = """
 {% endblock %}
 
 {% block content %}
-    <div class="stats-header">
+    <div class="plugin-page-header">
+        <div class="header-nav"><a href="/plugins" class="btn ghost">← Plugins</a><span class="header-version">v0.2.0</span></div>
         <h2>Session Statistics</h2>
         <p>Real-time monitoring of WiFi capture metrics and system performance</p>
     </div>
@@ -451,6 +445,8 @@ TEMPLATE = """
             <div id="chart_cpu" class="chart"><canvas></canvas></div>
         </div>
     </div>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a>, modified by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 """
 

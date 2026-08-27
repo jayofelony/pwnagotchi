@@ -672,6 +672,98 @@ input[type="reset"]:disabled,
   box-shadow: 0 6px 16px rgba(136, 136, 136, 0.4);
 }
 
+/* Ghost / outline button — used for the top-right "Plugins" back-nav so it sits
+   quietly in the header instead of competing with the page's primary action. */
+.btn.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+.btn.ghost:hover {
+  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+.btn.ghost:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ============================================
+   Plugin Page Header (shared)
+   Centered title/subtitle with a top-right "Plugins" back-nav.
+   Used by webcfg, logtail, wpa-sec and auto_backup so every page matches.
+   ============================================ */
+.plugin-page-header {
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.plugin-page-header .header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.plugin-page-header .header-nav .btn {
+  width: auto;
+  min-width: 0;
+}
+
+.plugin-page-header .header-version {
+  font-family: var(--font-pixel);
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.plugin-page-header h2 {
+  margin: 0;
+}
+
+.plugin-page-header p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+}
+
+/* Vertical rhythm for stacked cards on plugin pages (e.g. auto_backup,
+   bt-tether) so consecutive cards don't touch. Grids/tiles are unaffected. */
+.page-content > .card + .card {
+  margin-top: 1.5rem;
+}
+
+/* Shared plugin footer — author credit (linked to their GitHub when known). */
+.plugin-footer {
+  text-align: center;
+  margin-top: 2.5rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.plugin-footer strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.plugin-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.plugin-footer a:hover {
+  text-decoration: underline;
+}
+
 
 /* ============================================
    Toggle Switch (Checkbox)
@@ -770,8 +862,6 @@ li {
 
 .list-item:hover {
   background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
-  border-left: 4px solid var(--accent);
-  padding-left: calc(1rem - 4px);
   color: var(--text-bright);
 }
 
@@ -957,15 +1047,15 @@ li {
 }
 
 .toast-error {
-  background: linear-gradient(135deg, rgba(255, 85, 85, 0.12), #1e1e1e);
+  background-color: color-mix(in srgb, var(--danger) 12%, #1e1e1e);
 }
 
 .toast-success {
-  background: linear-gradient(135deg, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12), #1e1e1e);
+  background-color: color-mix(in srgb, var(--accent) 12%, #1e1e1e);
 }
 
 .toast-info {
-  background: linear-gradient(135deg, rgba(79, 195, 247, 0.12), #1e1e1e);
+  background-color: color-mix(in srgb, var(--info) 12%, #1e1e1e);
 }
 
 .alert {
@@ -990,18 +1080,18 @@ li {
 
 .alert-error,
 .error {
-  background: linear-gradient(135deg, rgba(255, 85, 85, 0.15), rgba(255, 85, 85, 0.08));
+  background-color: color-mix(in srgb, var(--danger) 15%, #1e1e1e);
   color: #ffb0b0;
 }
 
 .alert-success {
-  background: linear-gradient(135deg, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15), rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08));
+  background-color: color-mix(in srgb, var(--accent) 15%, #1e1e1e);
   color: var(--accent);
   filter: brightness(1.2);
 }
 
 .alert-info {
-  background: linear-gradient(135deg, rgba(79, 195, 247, 0.15), rgba(79, 195, 247, 0.08));
+  background-color: color-mix(in srgb, var(--info) 15%, #1e1e1e);
   color: #4fc3f7;
 }
 
