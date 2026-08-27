@@ -13,3 +13,7 @@
 	path = pi-gen-64bit
 	url = https://github.com/jayofelony/pi-gen.git
 	branch = arm64
+[submodule "stage3/03-nexmon/nexmon"]
+	path = stage3/03-nexmon/nexmon
+	url = https://github.com/jayofelony/nexmon.git
+	branch = dev
