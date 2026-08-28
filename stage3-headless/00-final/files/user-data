@@ -1,7 +1,7 @@
 #cloud-config
 
 # Set the hostname for this device. This will also update /etc/hosts if manage_etc_hosts is enabled.
-hostname: pwnagotchi
+hostname: test-build
 manage_etc_hosts: true
 
 runcmd:
