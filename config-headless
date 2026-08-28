@@ -1,0 +1,5 @@
+IMG_NAME="headless-64bit"
+WORK_DIR="/home/jayofelony/work-headless"
+DEPLOY_DIR="/home/jayofelony/images"
+DEPLOY_COMPRESSION="xz"
+STAGE_LIST="pi-gen-64bit/stage0 pi-gen-64bit/stage1 pi-gen-64bit/stage2 stage3-headless"
