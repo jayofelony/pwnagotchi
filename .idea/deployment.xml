@@ -3,6 +3,13 @@
   <component name="PublishConfigData" serverName="pwnagotchi" filePermissions="493" folderPermissions="493" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
+      <paths name="Pwnexternal">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/opt/.pwn/lib/python3.13/site-packages" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="pwnagotchi">
         <serverdata>
           <mappings>

@@ -9,6 +9,13 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
+      <webServer id="abb6c251-1c1c-41b0-80b8-be1ecd5f7b20" name="Pwnexternal">
+        <fileTransfer accessType="SFTP" host="192.168.1.132" port="22" sshConfigId="1ef2ffe3-7e26-4ec7-92b9-641569f77181" sshConfig="pi@192.168.1.132:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" isUseSudo="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

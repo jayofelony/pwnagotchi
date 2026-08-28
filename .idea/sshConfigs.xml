@@ -5,6 +5,7 @@
       <sshConfig authType="PASSWORD" connectionConfig="{&quot;hostKeyVerifier&quot;:{&quot;hashKnownHosts&quot;:true,&quot;stringHostKeyChecking&quot;:&quot;ASK&quot;},&quot;serverAliveInterval&quot;:300}" host="10.12.194.1" id="8b69df7d-cec5-421f-8edf-53ed6233f6b6" port="22" customName="pwnagotchi" nameFormat="CUSTOM" username="pi" useOpenSSHConfig="true">
         <option name="customName" value="pwnagotchi" />
       </sshConfig>
+      <sshConfig authType="PASSWORD" host="192.168.1.132" id="1ef2ffe3-7e26-4ec7-92b9-641569f77181" port="22" nameFormat="DESCRIPTIVE" username="pi" useOpenSSHConfig="true" />
     </configs>
   </component>
 </project>
