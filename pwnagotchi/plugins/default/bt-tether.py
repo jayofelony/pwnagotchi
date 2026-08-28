@@ -558,7 +558,7 @@ class BtTether(Plugin):
       .bt-summary small { color:var(--text-muted); font-family:monospace; }
       .bt-ip { margin-top:0.7rem; padding-top:0.7rem; border-top:1px solid var(--border-color); color:var(--text-secondary); font-size:0.85rem; }
       .bt-ip strong { color:var(--accent); font-family:monospace; }
-      .bt-log { background:#0d0d0d; border:1px solid var(--border-color); border-radius:8px; padding:0.8rem 1rem; font-family:monospace; font-size:0.78rem; line-height:1.7; max-height:300px; overflow:auto; }
+      .bt-log { background:#0d0d0d; border:1px solid var(--border-color); border-radius:8px; padding:0.8rem 1rem; font-family:monospace; font-size:0.78rem; line-height:1.7; max-height:220px; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
       .bt-actions { display:flex; flex-wrap:wrap; gap:10px; margin:1.5rem 0; }
       .bt-actions > * { flex:1 1 45%; }
       .bt-actions button { width:100%; }
@@ -595,7 +595,7 @@ class BtTether(Plugin):
     <div class="card">
       <div class="card-header">Trusted device</div>
       <div class="card-body">
-        <div id="trustedDevicesSummary" class="bt-summary">Loading&#8230;</div>
+        <div id="trustedDevicesSummary" class="bt-summary">Initializing&#8230;</div>
         <div id="statusIP" class="bt-ip" style="display:none;"></div>
       </div>
     </div>
@@ -1035,6 +1035,10 @@ class BtTether(Plugin):
           const data = await response.json();
           const logContent = document.getElementById('logContent');
           if (data.logs && data.logs.length > 0) {
+            // Preserve the reader's scroll position across the 5s refresh; only
+            // snap to the bottom if they were already at the bottom (tailing).
+            var atBottom = logContent.scrollTop + logContent.clientHeight >= logContent.scrollHeight - 4;
+            var prevTop = logContent.scrollTop;
             logContent.innerHTML = data.logs.map(log => {
               let color = 'var(--text-main)';
               if (log.level === 'ERROR') color = 'var(--danger)';
@@ -1042,6 +1046,7 @@ class BtTether(Plugin):
               else if (log.level === 'INFO') color = 'var(--info)';
               return `<div><span style="color: var(--text-muted);">${escapeHtml(log.timestamp)}</span> <span style="color: ${color};">[${escapeHtml(log.level)}]</span> ${escapeHtml(log.message)}</div>`;
             }).join('');
+            logContent.scrollTop = atBottom ? logContent.scrollHeight : prevTop;
           }
         } catch (error) {
           console.error('Failed to fetch logs:', error);
