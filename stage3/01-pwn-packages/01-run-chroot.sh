@@ -5,8 +5,8 @@ apt-get update
 apt-get -y dist-upgrade
 
 echo -e "\e[32m### Installing mitigation rpi-usb-gadget for linux ###\e[0m"
-dpkg -i /home/pi/rpi-usb-gadget_1.0.6_arm64.deb
-rm /home/pi/rpi-usb-gadget_1.0.6_arm64.deb
+dpkg -i /home/pi/rpi-usb-gadget_1.0.7_arm64.deb
+rm /home/pi/rpi-usb-gadget_1.0.7_arm64.deb
 
 echo -e "\e[32m### Installing rust ###\e[0m"
 curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y

@@ -4,8 +4,8 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/pi-gen-32bit" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/pi-gen-64bit" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/stage3-pwnagotchi/02-bettercap-pwngrid/bettercap" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/stage3-pwnagotchi/02-bettercap-pwngrid/pwngrid" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/stage3-pwnagotchi/03-nexmon/nexmon" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/stage3/02-bettercap-pwngrid/bettercap" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/stage3/02-bettercap-pwngrid/pwngrid" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/stage3/03-nexmon/nexmon" vcs="Git" />
   </component>
 </project>
