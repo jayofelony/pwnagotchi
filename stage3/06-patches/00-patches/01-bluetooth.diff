@@ -1,0 +1,11 @@
+--- pwn.orig/rootfs/usr/lib/systemd/system/bluetooth.service
++++ pwn/rootfs/usr/lib/systemd/system/bluetooth.service
+@@ -6,7 +6,7 @@
+ [Service]
+ Type=dbus
+ BusName=org.bluez
+-ExecStart=/usr/libexec/bluetooth/bluetoothd
++ExecStart=/usr/libexec/bluetooth/bluetoothd --noplugin=sap,a2dp
+ NotifyAccess=main
+ #WatchdogSec=10
+ #Restart=on-failure

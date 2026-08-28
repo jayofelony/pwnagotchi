@@ -1,0 +1,15 @@
+git
+libgmp3-dev
+gawk
+qpdf
+bison
+flex
+make
+autoconf
+libtool
+texinfo
+gcc-arm-none-eabi
+wl
+libfl-dev
+g++
+xxd
