@@ -80,7 +80,7 @@ INDEX = """
         </div>
     </div>
 
-    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a>, edited by <a href="https://github.com/jayofelony" target="_blank" rel="noopener">jayofelony</a></div>
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a>, edited by <a href="https://github.com/jayofelony" target="_blank" rel="noopener">jayofelony</a> &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 """
 

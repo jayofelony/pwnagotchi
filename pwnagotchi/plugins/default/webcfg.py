@@ -154,40 +154,30 @@ INDEX = """
         justify-content: center;
     }
 
-    /* Remove Button - Compact Icon Style */
+    /* Remove button - subtle inline icon (muted trash, turns red on hover) */
     .remove {
-        background-color: var(--danger);
-        color: transparent;
+        width: 34px;
+        height: 34px;
+        min-width: 0;
+        padding: 0;
         border: none;
-        padding: 6px 6px;
-        border-radius: 4px;
-        font-size: 0.7rem;
-        font-family: var(--font-pixel);
-        font-weight: 600;
+        border-radius: 6px;
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 1px 4px rgba(255, 85, 85, 0.2);
-        white-space: nowrap;
-        letter-spacing: 0px;
-        min-width: 32px;
-        min-height: 32px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 6 5 6 21 6'%3E%3C/polyline%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'%3E%3C/path%3E%3Cline x1='10' y1='11' x2='10' y2='17'%3E%3C/line%3E%3Cline x1='14' y1='11' x2='14' y2='17'%3E%3C/line%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 18px;
+        box-shadow: none;
+        background-color: var(--text-muted);
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 6 5 6 21 6'%3E%3C/polyline%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'%3E%3C/path%3E%3Cline x1='10' y1='11' x2='10' y2='17'%3E%3C/line%3E%3Cline x1='14' y1='11' x2='14' y2='17'%3E%3C/line%3E%3C/svg%3E") center / 18px no-repeat;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 6 5 6 21 6'%3E%3C/polyline%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'%3E%3C/path%3E%3Cline x1='10' y1='11' x2='10' y2='17'%3E%3C/line%3E%3Cline x1='14' y1='11' x2='14' y2='17'%3E%3C/line%3E%3C/svg%3E") center / 18px no-repeat;
+        transition: background-color 0.15s ease, transform 0.1s ease;
     }
 
     .remove:hover {
-        background-color: var(--danger-hover);
-        box-shadow: 0 2px 6px rgba(255, 85, 85, 0.3);
-        transform: scale(1.05);
+        background-color: var(--danger);
+        box-shadow: none;
+        transform: none;
     }
 
     .remove:active {
-        transform: scale(0.95);
+        transform: scale(0.9);
     }
 
     /* Save Button Group */
@@ -233,9 +223,8 @@ INDEX = """
         }
 
         .remove {
-            min-width: 30px;
-            min-height: 30px;
-            padding: 5px 5px;
+            width: 32px;
+            height: 32px;
         }
 
         #divSaveTop {
@@ -265,10 +254,8 @@ INDEX = """
         }
 
         .remove {
-            width: auto;
-            min-width: 28px;
-            min-height: 28px;
-            padding: 4px 4px;
+            width: 30px;
+            height: 30px;
         }
 
         .table-container {
@@ -370,7 +357,7 @@ INDEX = """
         <button class="btn danger" type="button" onclick="saveConfigNoRestart()">Merge and Save (CAUTION)</button>
     </div>
 
-    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a>, modified by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a> &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 
 {% block script %}

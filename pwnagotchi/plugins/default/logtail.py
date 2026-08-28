@@ -82,6 +82,24 @@ INDEX = """
         cursor: pointer;
     }
 
+    /* Floating "scroll to top" button — only shown while auto-scroll is off. */
+    #scrollTopBtn {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+        width: 48px;
+        height: 48px;
+        min-width: 0;
+        padding: 0;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 900;
+    }
+    #scrollTopBtn.show { display: flex; }
+    #scrollTopBtn svg { width: 22px; height: 22px; }
+
     /* Table Container */
     .table-container {
         background-color: var(--card-bg);
@@ -376,6 +394,19 @@ INDEX = """
         }
     }, 1000);
 
+    // Floating "scroll to top" button: visible only when auto-scroll is off,
+    // since with auto-scroll on you're always pinned to the bottom anyway.
+    var scrollTopBtn = document.getElementById("scrollTopBtn");
+    function updateScrollTopBtn() {
+        if (scrollElm.checked) { scrollTopBtn.classList.remove("show"); }
+        else { scrollTopBtn.classList.add("show"); }
+    }
+    scrollElm.addEventListener("change", updateScrollTopBtn);
+    updateScrollTopBtn();
+    scrollTopBtn.addEventListener("click", function () {
+        scrollingElement.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
     var typingTimer;
     var doneTypingInterval = 300;
 
@@ -442,7 +473,9 @@ INDEX = """
         </table>
     </div>
 
-    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a></div>
+    <button type="button" id="scrollTopBtn" class="btn" title="Scroll to top" aria-label="Scroll to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a> &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 """
 
