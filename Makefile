@@ -15,7 +15,7 @@ headless:
 	[ -d pi-gen-64bit ] || git clone --branch arm64 "https://github.com/jayofelony/pi-gen.git" pi-gen-64bit
 	[ -d pi-gen-64bit ] && cd pi-gen-64bit && git pull
 	rm -rf pi-gen-64bit/stage2/EXPORT_IMAGE
-	sed -i "s|WORK_DIR=.*|WORK_DIR=\"$(BUILD_HOME)/work-64bit\"|" config-headless
+	sed -i "s|WORK_DIR=.*|WORK_DIR=\"$(BUILD_HOME)/work-headless\"|" config-headless
 	sed -i "s|DEPLOY_DIR=.*|DEPLOY_DIR=\"$(IMAGE_DIR)\"|" config-headless
 	sudo ./pi-gen-64bit/build.sh -c config-headless
 	mkdir -p $(IMAGE_DIR)
