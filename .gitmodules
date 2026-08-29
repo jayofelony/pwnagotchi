@@ -17,3 +17,7 @@
 	path = stage3/03-nexmon/nexmon
 	url = https://github.com/jayofelony/nexmon.git
 	branch = dev
+[submodule "stage3/03-nexmon/brcmfmac-nexmon-dkms"]
+	path = stage3/03-nexmon/brcmfmac-nexmon-dkms
+	url = https://github.com/jayofelony/brcmfmac-nexmon-dkms.git
+	branch = kali/master

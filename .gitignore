@@ -2,3 +2,6 @@
 .vscode
 config-32bit
 config-64bit
+stage3/03-nexmon/files/*.deb
+stage3/03-nexmon/*.buildinfo
+stage3/03-nexmon/*.changes

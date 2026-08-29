@@ -5,9 +5,9 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-# A DKMS kernel module build (e.g. brcmfmac-nexmon-dkms) can easily take
+# A pip install of pwnagotchi (cloning the repo, then building any
+# dependency that has no prebuilt wheel for this arch) can easily take
 # longer than systemd's default 90s start timeout on a Pi Zero 2 W, which
-# would otherwise kill the build mid-compile and leave the package
-# half-configured (see issue #618).
+# would otherwise kill it mid-install and leave the venv half-updated.
 TimeoutStartSec=1200
 ExecStart=/usr/bin/auto-update.sh
