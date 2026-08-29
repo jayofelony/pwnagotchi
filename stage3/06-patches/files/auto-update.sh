@@ -3,8 +3,14 @@
 # pwnagotchi process (see pwnagotchi/plugins/default/auto-update.py for the
 # in-process updater that still handles bettercap/pwngrid). Runs from
 # auto-update.timer so a fatal bug that crash-loops pwnagotchi.service can
-# still be fixed by a later git pull, without needing the Python process to
+# still be fixed by a later update, without needing the Python process to
 # ever come up.
+#
+# Scope: this script updates *only* the pwnagotchi package, and only when the
+# repo publishes a release tag newer than what's installed. When it does
+# update, it also refreshes the device-side system files (scripts, systemd
+# units) that ship alongside the package but live outside the venv, because a
+# pip install alone would leave them at the old version.
 
 REPO_DIR="/opt/pwnagotchi"
 REPO_URL="https://github.com/jayofelony/pwnagotchi.git"
@@ -14,67 +20,6 @@ if ! wget -q --spider https://github.com; then
   exit 0
 fi
 
-NEXMON_REPO="jayofelony/brcmfmac-nexmon-dkms"
-NEED_REBOOT=0
-
-# The nexmon driver is installed once at image-build time (see
-# stage3/03-nexmon) with no runtime update path of its own, unlike
-# pwnagotchi. Check the installed dpkg version against the latest GitHub
-# release and install a newer one if available, same as pwnagotchi's own
-# update check below.
-check_nexmon_update() {
-  # dpkg records a package's new version as soon as it's unpacked, before
-  # configure/postinst (the actual DKMS build) runs - so if a prior build got
-  # interrupted (e.g. by a hardware-crash reboot mid-compile, see issue #618)
-  # and left the package half-configured, a naive version-string comparison
-  # below would see the broken in-progress version and conclude "already up
-  # to date" forever, leaving the device stuck. Detect that first and let the
-  # existing idempotent DKMS postinst resume before checking versions.
-  dpkg_status=$(dpkg-query -W -f='${Status}' brcmfmac-nexmon-dkms 2>/dev/null)
-  if [ -n "$dpkg_status" ] && [ "$dpkg_status" != "install ok installed" ]; then
-    echo "nexmon driver package is not fully configured ($dpkg_status), attempting to resume ..."
-    if apt-get install -f -y; then
-      echo "nexmon driver configuration resumed successfully"
-      NEED_REBOOT=1
-    else
-      echo "failed to resume nexmon driver configuration, will retry next run"
-    fi
-  fi
-
-  installed_ver=$(dpkg-query -W -f='${Version}' brcmfmac-nexmon-dkms 2>/dev/null)
-  latest_tag=$(wget -qO- "https://api.github.com/repos/${NEXMON_REPO}/releases/latest" | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p')
-  if [ -z "$latest_tag" ]; then
-    echo "could not determine latest nexmon driver version, skipping nexmon update check"
-    return
-  fi
-
-  latest_ver="${latest_tag#v}"
-  if [ "$installed_ver" = "$latest_ver" ]; then
-    echo "nexmon driver is already up to date ($installed_ver)"
-    return
-  fi
-
-  echo "updating nexmon driver ($installed_ver -> $latest_ver) ..."
-  deb_file="brcmfmac-nexmon-dkms_${latest_ver}_all.deb"
-  deb_url="https://github.com/${NEXMON_REPO}/releases/download/${latest_tag//+/%2B}/${deb_file}"
-
-  if ! wget -q -O "/tmp/$deb_file" "$deb_url"; then
-    echo "failed to download updated nexmon driver package from $deb_url"
-    rm -f "/tmp/$deb_file"
-    return
-  fi
-
-  if apt-get install -y "/tmp/$deb_file"; then
-    echo "nexmon driver updated to $latest_ver, a reboot is required to load it"
-    NEED_REBOOT=1
-  else
-    echo "failed to install updated nexmon driver package"
-  fi
-  rm -f "/tmp/$deb_file"
-}
-
-check_nexmon_update
-
 # pwnagotchi ships pre-installed on the image, but the repo checkout used to
 # build it is deleted afterward (see stage3/04-install-pwnagotchi), so
 # $REPO_DIR/.git may not exist even on an up-to-date, fully installed system.
@@ -82,7 +27,7 @@ check_nexmon_update
 # (not the raw branch tip, which can already be bumped ahead of the last
 # actual release for in-progress work) and only clone/pull when an update
 # to that release is actually needed.
-current_version=$(sudo pwnagotchi --version 2>/dev/null)
+current_version=$(pwnagotchi --version 2>/dev/null)
 latest_tag=$(wget -qO- "https://api.github.com/repos/jayofelony/pwnagotchi/releases/latest" | sed -n 's/.*"tag_name": *"\(v[^"]*\)".*/\1/p')
 
 if [ -z "$latest_tag" ]; then
@@ -97,22 +42,11 @@ version_ge() {
   [ "$1" = "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" ]
 }
 
-if [ -n "$current_version" ] && [ "$current_version" = "$remote_version" ]; then
-  echo "pwnagotchi is already up to date ($current_version)"
-  if [ "$NEED_REBOOT" -eq 1 ]; then
-    echo "rebooting to load the updated nexmon driver ..."
-    sync
-    reboot
-  fi
-  exit 0
-fi
-
 if [ -n "$current_version" ] && version_ge "$current_version" "$remote_version"; then
-  echo "installed pwnagotchi ($current_version) is newer than the latest release ($remote_version), not downgrading"
-  if [ "$NEED_REBOOT" -eq 1 ]; then
-    echo "rebooting to load the updated nexmon driver ..."
-    sync
-    reboot
+  if [ "$current_version" = "$remote_version" ]; then
+    echo "pwnagotchi is already up to date ($current_version)"
+  else
+    echo "installed pwnagotchi ($current_version) is newer than the latest release ($remote_version), not downgrading"
   fi
   exit 0
 fi
