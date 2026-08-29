@@ -137,6 +137,52 @@ install_firmware_image() {
     done
 }
 
+# brcmfmac derives the CLM blob name from the firmware name it requested, so
+# every name a board can ask for needs a matching .clm_blob beside it. Kali's
+# firmware-nexmon ships the blob only as cypress/cyfmac<chip>-sdio.clm_blob,
+# with no brcmfmac<chip>-sdio.clm_blob and none of the .raspberrypi,<model>
+# variants - so on a Pi 3B the driver logs
+#
+#   brcmf_c_process_clm_blob: no clm_blob available (err=-2)
+#
+# and the firmware comes up with every channel disabled. Monitor mode then
+# receives nothing at all, and any channel set fails, which surfaces as a
+# cascade of BCDC -110 timeouts that looks exactly like a firmware wedge.
+# Measured on a Pi 3B: without this, rx_packets stayed 0 and the -110s began
+# within ~40s; with it, 11 channels enabled and sustained RX with no -110s.
+ensure_clm_blob_aliases() {
+    base="$1"
+    chip="$(echo "${base}" | sed -n 's/^[a-z]*\([0-9]\{5\}\).*/\1/p')"
+    [ -n "${chip}" ] || return 0
+
+    src=""
+    for cand in "/lib/firmware/cypress/cyfmac${chip}-sdio.clm_blob" \
+                "/lib/firmware/brcm/brcmfmac${chip}-sdio.clm_blob"; do
+        if [ -e "${cand}" ] && [ ! -L "${cand}" ]; then
+            src="${cand}"
+            break
+        fi
+    done
+    if [ -z "${src}" ]; then
+        echo "no CLM blob available for chip ${chip}, channels may be restricted" >&2
+        return 0
+    fi
+
+    # The generic name, plus every board-specific name that has a .bin. Glob
+    # *.bin specifically: the same prefix also matches .txt (and .clm_blob
+    # itself), and stripping only the .bin suffix off those would produce
+    # names like "...sdio.raspberrypi,3-model-b.txt.clm_blob".
+    for bin in "/lib/firmware/brcm/brcmfmac${chip}-sdio.bin" \
+               /lib/firmware/brcm/brcmfmac${chip}-sdio.raspberrypi,*.bin; do
+        case "${bin}" in *"*"*) continue ;; esac
+        [ -e "${bin}" ] || continue
+        stem="${bin%.bin}"
+        if [ ! -e "${stem}.clm_blob" ]; then
+            ln -sfv "$(realpath --relative-to="$(dirname "${stem}")" "${src}")" "${stem}.clm_blob"
+        fi
+    done
+}
+
 build_nexmon_firmware() {
     install_build_deps
 
@@ -173,6 +219,7 @@ build_nexmon_firmware() {
         # driver comes from the prebuilt DKMS package regardless.
         make "${ram_file}"
         install_firmware_image "${ram_file}"
+        ensure_clm_blob_aliases "${ram_file}"
     done
 
     cd /

@@ -4,25 +4,7 @@
 hostname: testbuild
 manage_etc_hosts: true
 
-# 1. Schrijf de Auth Key rechtstreeks naar de thuismap van de gebruiker 'pi'
-write_files:
-  - path: /home/pi/.config/com.raspberrypi.connect/auth.key
-    owner: pi:pi
-    permissions: '0600'
-    content: |
-      JOUW_RPI_CONNECT_AUTH_KEY
-
-# 2. Activeer en start de achtergrondservice direct via de terminal
 runcmd:
-  # Zorg dat user-services actief blijven zonder dat de gebruiker 'pi' fysiek is ingelogd
-  - loginctl enable-linger pi
-
-  # Schakel de connect-lite service in onder de gebruiker 'pi'
-  - sudo -u pi rpi-connect-lite on
-
-  # Herstart de user-service zodat de nieuwe auth.key direct wordt uitgelezen
-  - systemctl --user -M pi restart rpi-connect-lite
-
   - nmcli dev set usb0 managed yes
 
 keyboard:

@@ -103,7 +103,7 @@ nexmon-dkms-release: nexmon-dkms
 	echo "publishing v$$ver from $$sha with $$deb"; \
 	gh release create "v$$ver" "$$deb" --repo $(NEXMON_DKMS_REPO) --target "$$sha" --title "v$$ver" --notes "$$notes"
 
-# clone pi-gen into pi-gen-32bit folder
+# stock test build with cloud-init ssh and rpi-usb-gadget enabled
 headless:
 	[ -d pi-gen-64bit ] || git clone --branch arm64 "https://github.com/jayofelony/pi-gen.git" pi-gen-64bit
 	[ -d pi-gen-64bit ] && cd pi-gen-64bit && git pull
@@ -113,6 +113,8 @@ headless:
 	sudo ./pi-gen-64bit/build.sh -c config-headless
 	mkdir -p $(IMAGE_DIR)
 	sudo chown $(BUILD_USER):$(BUILD_USER) -R $(IMAGE_DIR)
+
+# clone pi-gen into pi-gen-32bit folder
 32bit: nexmon-dkms
 	[ -d pi-gen-32bit ] || git clone "https://github.com/jayofelony/pi-gen.git" pi-gen-32bit
 	[ -d pi-gen-32bit ] && cd pi-gen-32bit && git pull
