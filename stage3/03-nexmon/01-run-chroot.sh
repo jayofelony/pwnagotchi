@@ -32,11 +32,11 @@ NEXMON_SRC_DIR="/home/pi/nexmon"
 # Latest version that has BOTH a patches/<chip>/<ver>/nexmon/Makefile and a
 # firmwares/<chip>/<ver>/definitions.mk on the dev branch. Some versions ship
 # firmware definitions with no patch tree yet (bcm43430a1/7_45_96_s1,
-# bcm43436b0/9_88_4_77, bcm43455c0/7_45_241) - those are not buildable, check
+# bcm43455c0/7_45_241) - those are not buildable, check
 # both trees before bumping.
 NEXMON_PATCHES="
 bcm43430a1/7_45_98
-bcm43436b0/9_88_4_65
+bcm43436b0/9_88_4_77
 bcm43455c0/7_45_265
 "
 
