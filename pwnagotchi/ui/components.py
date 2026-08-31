@@ -87,9 +87,13 @@ class LabeledValue(Widget):
         self.label_spacing = label_spacing
 
     def draw(self, canvas, drawer):
+        # guard against a None value reaching PIL's drawer.text (raises
+        # "expected string or bytes"), mirroring the Text widget above.
+        # A peer advertising with a missing field can propagate None here.
+        value = self.value if self.value is not None else ''
         if self.label is None:
-            drawer.text(self.xy, self.value, font=self.label_font, fill=self.color)
+            drawer.text(self.xy, value, font=self.label_font, fill=self.color)
         else:
             pos = self.xy
             drawer.text(pos, self.label, font=self.label_font, fill=self.color)
-            drawer.text((pos[0] + self.label_spacing + 5 * len(self.label), pos[1]), self.value, font=self.text_font, fill=self.color)
+            drawer.text((pos[0] + self.label_spacing + 5 * len(self.label), pos[1]), value, font=self.text_font, fill=self.color)
