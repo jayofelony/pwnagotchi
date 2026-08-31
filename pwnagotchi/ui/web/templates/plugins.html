@@ -10,17 +10,63 @@
   .plugins-header .subtitle { color: var(--text-muted); font-size: 0.9rem; }
   .plugins-header .restart-service { position: absolute; top: 0; right: 0; }
 
+  /* "restart to apply" notice — shown whenever the plugins on disk differ from what's loaded. */
+  .pc-notice { position: relative; display: flex; align-items: center; gap: 0.9rem;
+               flex-wrap: wrap; margin: 0 0 1rem; padding: 0.85rem 2.4rem 0.85rem 1rem;
+               border-radius: 12px; color: var(--text-primary);
+               background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12);
+               border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.45); }
+  .pc-notice-text { flex: 1 1 200px; font-size: 0.95rem; line-height: 1.35; }
+  .pc-notice-text strong { color: var(--accent); }
+  .pc-notice-form { margin: 0; flex: 0 0 auto; }
+  .pc-notice-btn { flex: 0 0 auto; }
+  .pc-notice-x { position: absolute; top: 0.4rem; right: 0.5rem; background: none; border: none;
+                 color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer;
+                 padding: 0 0.25rem; min-width: 0; box-shadow: none; }
+  .pc-notice-x:hover { color: var(--text-primary); }
+
+  /* On narrow screens the absolute button overlaps the centered title — stack it below instead. */
+  @media (max-width: 640px) {
+    .plugins-header { display: flex; flex-direction: column; align-items: center; }
+    .plugins-header h2 { order: 1; }
+    .plugins-header .subtitle { order: 2; }
+    .plugins-header .restart-service { position: static; order: 3; margin-top: 0.75rem; }
+  }
+
   .pill-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.75rem 0; }
   /* state pills and category buttons share ONE size + style */
+  /* width:auto + min-width:0 override the global mobile rule that forces buttons to 100% width,
+     so each pill hugs its own label instead of filling the row. */
   .pill { padding: 0.6rem 1.3rem; border-radius: 999px; border: 1px solid var(--border-color);
           background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem;
-          line-height: 1; box-shadow: none;
+          line-height: 1; box-shadow: none; flex: 0 0 auto; white-space: nowrap;
+          width: auto; min-width: 0;
           transition: background .12s, color .12s, border-color .12s, box-shadow .12s; }
   .pill:hover { background: var(--accent); color: #04120a; border-color: var(--accent); box-shadow: none; }
   /* shine only on the active (green) one */
   .pill.active { background: var(--accent); color: #04120a; border-color: var(--accent); font-weight: 700;
                  box-shadow: 0 2px 10px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35); }
   #catPills { gap: 0.6rem; }
+
+  /* Single-row strip: each button hugs its label (no line breaks), the row scrolls sideways. */
+  #statePills, #catPills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    padding-bottom: 6px;
+  }
+  /* top row (Installed/Store/All) fits on screen — keep it centered, equal-width pills */
+  #statePills { justify-content: center; }
+  #statePills .pill { min-width: 6rem; text-align: center; }
+  /* categories overflow and scroll — start them left with a small offset */
+  #catPills { justify-content: flex-start; padding-left: 0.75rem; scroll-padding-left: 0.75rem; }
+  #statePills .pill, #catPills .pill { scroll-snap-align: start; }
+  #statePills::-webkit-scrollbar, #catPills::-webkit-scrollbar { height: 6px; }
+  #statePills::-webkit-scrollbar-thumb, #catPills::-webkit-scrollbar-thumb {
+    background: var(--border-color); border-radius: 999px; }
 
   .plugins-search { width: 100%; box-sizing: border-box; height: 44px; margin: 0.5rem 0;
     padding: 0 1rem; border-radius: 10px;
@@ -91,6 +137,18 @@
     <h2>Plugins</h2>
     <div class="subtitle">Installed &amp; available in one place</div>
   </div>
+
+  {% if restart_pending %}
+  <div class="pc-notice" id="restartNotice">
+    <div class="pc-notice-text"><strong>Pending changes.</strong> Installed, removed or updated plugins won&rsquo;t take effect until you restart the service.</div>
+    <form method="POST" action="/restart" class="pc-notice-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="mode" value="auto" />
+      <button type="submit" class="btn ghost pc-notice-btn">Restart service</button>
+    </form>
+    <button type="button" class="pc-notice-x" aria-label="Dismiss" onclick="document.getElementById('restartNotice').remove()">&times;</button>
+  </div>
+  {% endif %}
 
   <div class="pill-row" id="statePills">
     <button class="pill" data-state="installed">Installed</button>
