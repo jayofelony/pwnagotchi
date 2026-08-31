@@ -98,7 +98,7 @@
     <button class="pill active" data-state="all">All</button>
   </div>
 
-  <input type="search" id="pluginFilter" class="plugins-search" placeholder="Search plugins&hellip;" autocomplete="off" />
+  <input type="search" id="pluginFilter" class="plugins-search" placeholder="Search by name, description or author&hellip;" autocomplete="off" />
 
   <div class="pill-row" id="catPills">
     <button class="pill active" data-cat="all">All</button>
@@ -117,6 +117,7 @@
     <div class="card plugin-card"
          data-name="{{ p.name | lower }}"
          data-desc="{{ (p.description or '') | lower }}"
+         data-author="{{ (p.author or '') | lower }}"
          data-state="{{ 'installed' if p.installed else 'available' }}"
          data-cat="{{ p.category | lower }}"
          data-default="{{ 'true' if p.default else 'false' }}">
@@ -205,7 +206,7 @@
       cards.forEach(function (c) {
         var hitState = state === 'all' || c.dataset.state === state;
         var hitCat = cat === 'all' || (cat === 'default' ? c.dataset.default === 'true' : c.dataset.cat === cat);
-        var hitText = !q || c.dataset.name.indexOf(q) !== -1 || c.dataset.desc.indexOf(q) !== -1;
+        var hitText = !q || c.dataset.name.indexOf(q) !== -1 || c.dataset.desc.indexOf(q) !== -1 || (c.dataset.author || '').indexOf(q) !== -1;
         c.classList.toggle('pc-hidden', !(hitState && hitCat && hitText));
       });
     }
