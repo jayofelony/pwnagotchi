@@ -350,7 +350,31 @@ class Handler:
             # Installed first, then available; alpha within each group.
             cards.sort(key=lambda c: (not c['installed'], c['name'].lower()))
 
-            return render_template("plugins.html", cards=cards)
+            # A restart is required to apply plugin file changes because plugins.database /
+            # plugins.loaded are snapshotted at startup. Detect this by diffing the plugins
+            # actually on disk now against the startup snapshot: a name added (install), a
+            # name removed (uninstall), or a changed __version__ (upgrade) all mean "pending".
+            restart_pending = False
+            try:
+                from pwnagotchi.utils import parse_version
+                installed_now = plugins_cmd._get_installed(self._agent.config())
+                if set(installed_now.keys()) != set(plugins.database.keys()):
+                    restart_pending = True
+                else:
+                    for pname, ppath in installed_now.items():
+                        inst = plugins.loaded.get(pname)
+                        if inst is None:
+                            continue
+                        disk_v = plugins_cmd._extract_version(ppath)
+                        loaded_raw = getattr(inst, '__version__', None)
+                        loaded_v = parse_version(loaded_raw) if loaded_raw else None
+                        if disk_v and loaded_v and disk_v != loaded_v:
+                            restart_pending = True
+                            break
+            except Exception:
+                restart_pending = False
+
+            return render_template("plugins.html", cards=cards, restart_pending=restart_pending)
 
         if name == "toggle" and request.method == "POST":
             checked = True if "enabled" in request.form else False

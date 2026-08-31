@@ -10,6 +10,21 @@
   .plugins-header .subtitle { color: var(--text-muted); font-size: 0.9rem; }
   .plugins-header .restart-service { position: absolute; top: 0; right: 0; }
 
+  /* "restart to apply" notice — shown whenever the plugins on disk differ from what's loaded. */
+  .pc-notice { position: relative; display: flex; align-items: center; gap: 0.9rem;
+               flex-wrap: wrap; margin: 0 0 1rem; padding: 0.85rem 2.4rem 0.85rem 1rem;
+               border-radius: 12px; color: var(--text-primary);
+               background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12);
+               border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.45); }
+  .pc-notice-text { flex: 1 1 200px; font-size: 0.95rem; line-height: 1.35; }
+  .pc-notice-text strong { color: var(--accent); }
+  .pc-notice-form { margin: 0; flex: 0 0 auto; }
+  .pc-notice-btn { flex: 0 0 auto; }
+  .pc-notice-x { position: absolute; top: 0.4rem; right: 0.5rem; background: none; border: none;
+                 color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer;
+                 padding: 0 0.25rem; min-width: 0; box-shadow: none; }
+  .pc-notice-x:hover { color: var(--text-primary); }
+
   /* On narrow screens the absolute button overlaps the centered title — stack it below instead. */
   @media (max-width: 640px) {
     .plugins-header { display: flex; flex-direction: column; align-items: center; }
@@ -122,6 +137,18 @@
     <h2>Plugins</h2>
     <div class="subtitle">Installed &amp; available in one place</div>
   </div>
+
+  {% if restart_pending %}
+  <div class="pc-notice" id="restartNotice">
+    <div class="pc-notice-text"><strong>Pending changes.</strong> Installed, removed or updated plugins won&rsquo;t take effect until you restart the service.</div>
+    <form method="POST" action="/restart" class="pc-notice-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="mode" value="auto" />
+      <button type="submit" class="btn ghost pc-notice-btn">Restart service</button>
+    </form>
+    <button type="button" class="pc-notice-x" aria-label="Dismiss" onclick="document.getElementById('restartNotice').remove()">&times;</button>
+  </div>
+  {% endif %}
 
   <div class="pill-row" id="statePills">
     <button class="pill" data-state="installed">Installed</button>
