@@ -201,7 +201,10 @@ class Agent(Client, Automata, AsyncAdvertiser):
         return self._access_points
 
     def get_access_points(self):
-        whitelist = self._config['main']['whitelist']
+        # normalize the whitelist to lowercase so matching is case-insensitive
+        # regardless of how the user wrote MACs/hostnames in config.toml
+        # (MACs are conventionally displayed uppercase by routers/macOS/docs)
+        whitelist = [entry.lower() for entry in self._config['main']['whitelist']]
         aps = []
         try:
             s = self.session()
@@ -211,7 +214,7 @@ class Agent(Client, Automata, AsyncAdvertiser):
             for ap in s['wifi']['aps']:
                 if ap['encryption'] == '' or ap['encryption'] == 'OPEN':
                     continue
-                elif ap['hostname'] in whitelist or ap['mac'][:13].lower() in whitelist or ap['mac'].lower() in whitelist:
+                elif (ap['hostname'] or '').lower() in whitelist or ap['mac'][:13].lower() in whitelist or ap['mac'].lower() in whitelist:
                     continue
                 elif ap['channel'] not in self._supported_channels:
                     # a beacon can report any channel number it wants (seen
