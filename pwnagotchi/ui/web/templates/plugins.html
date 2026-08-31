@@ -1,74 +1,237 @@
-{% extends "base.html" %} {% set active_page = "plugins" %} {% block
-title%}Plugins{% endblock %} {% block styles %}{{ super() }}{% endblock %} {%
-block script %}{% endblock %} {% block content %}
-<div id="container">
-  {% for name in database.keys() | sort %} {% set has_info =
-  plugin_info[name]['__description__'] %}
-  <div class="plugins-box">
-    <div class="tooltip">
-      <div class="plugin-header">
-        <h4>
-          {% if name in loaded and loaded[name].on_webhook is defined %}
-          <a href="/plugins/{{ name | urlencode }}">{{ name }}</a>
-          {% else %}{{ name }}{% endif %}
-        </h4>
-        {% if plugin_info[name]['__version__'] %}
-        <span class="badge version">{{ plugin_info[name]['__version__'] }}</span>
-        {% endif %}
-      </div>
-      <div class="author">
-        {% if plugin_info[name]['__author__'] %} {{
-        plugin_info[name]['__author__'] }} {% endif %}
-      </div>
-      <div class="plugin-badges">
-        {% if name in default_plugins %}
-        <span class="badge default">DEFAULT</span>
-        {% endif %}
-      </div>
-      {% if has_info %}
-      <span class="tooltiptext">{{ plugin_info[name]['__description__'] }}</span>
-      {% else %}
-      <span class="tooltiptext">Description unable to load yet.</span>
-      {% endif %}
-    </div>
-    <div>
-      <form method="POST" action="/plugins/toggle" class="plugin-toggle">
-        <label class="switch">
-          <input
-            type="checkbox"
-            name="enabled"
-            id="flip-checkbox-{{name}}"
-            {%
-            if
-            name
-            in
-            loaded
-            %}
-            checked
-            {%
-            endif
-            %}
-          />
-          <span class="slider"></span>
-        </label>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="plugin" value="{{ name }}" />
-      </form>
-      <form method="POST" action="/plugins/upgrade">
-        <button
-          type="submit"
-          name="upgrade"
-          class="btn primary plugin-upgrade-btn"
-        >
-          Upgrade Plugin
-        </button>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="plugin" value="{{ name }}" />
-      </form>
-    </div>
+{% extends "base.html" %}
+{% set active_page = "plugins" %}
+{% block title %}Plugins{% endblock %}
+
+{% block styles %}{{ super() }}
+<style>
+  .plugins-header { position: relative; text-align: center; padding: 0.25rem 0 1rem;
+                    border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+  .plugins-header h2 { color: var(--accent); margin: 0.2rem 0; }
+  .plugins-header .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+  .plugins-header .restart-service { position: absolute; top: 0; right: 0; }
+
+  .pill-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.75rem 0; }
+  /* state pills and category buttons share ONE size + style */
+  .pill { padding: 0.6rem 1.3rem; border-radius: 999px; border: 1px solid var(--border-color);
+          background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem;
+          line-height: 1; box-shadow: none;
+          transition: background .12s, color .12s, border-color .12s, box-shadow .12s; }
+  .pill:hover { background: var(--accent); color: #04120a; border-color: var(--accent); box-shadow: none; }
+  /* shine only on the active (green) one */
+  .pill.active { background: var(--accent); color: #04120a; border-color: var(--accent); font-weight: 700;
+                 box-shadow: 0 2px 10px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35); }
+  #catPills { gap: 0.6rem; }
+
+  .plugins-search { width: 100%; box-sizing: border-box; height: 44px; margin: 0.5rem 0;
+    padding: 0 1rem; border-radius: 10px;
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
+    border: 1px solid var(--border-color); color: var(--text-primary, #e6e6e6); font-size: 0.95rem; outline: none; }
+  .plugins-search::placeholder { color: var(--text-muted); }
+  .plugins-search:focus { border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25); }
+
+  .plugins-count { text-align: center; color: var(--text-muted); font-size: 0.82rem; margin: 0.25rem 0 1rem; }
+
+  .plugins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+  .plugin-card { display: flex; flex-direction: column; gap: 0.4rem; }
+  .pc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+  .pc-title h4 { margin: 0; font-size: 1.25rem; color: var(--accent); letter-spacing: 0.02em; text-transform: uppercase; }
+  .pc-title h4 a { color: var(--accent); text-decoration: none; }
+  .pc-title h4 a:hover { text-decoration: underline; }
+  .pc-meta { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+  .pc-ver { color: var(--text-muted); font-size: 0.8rem; }
+  a.pc-ver { text-decoration: none; }
+  a.pc-ver:hover { color: var(--accent); text-decoration: underline; }
+  .pc-desc[title]:not([title=""]) { cursor: help; }
+  .pc-author { color: var(--text-muted); font-size: 0.78rem; }
+  .pc-desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.35;
+             display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+             overflow: hidden; min-height: 2.3em; }
+
+  .pc-actions { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+                margin-top: auto; padding-top: 0.5rem; }
+  .pc-actions form { margin: 0; display: inline-flex; align-items: center; }
+  .pc-right { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
+  .pc-actions .btn { height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+
+  .pc-badge { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: 6px; text-transform: uppercase;
+              letter-spacing: 0.03em;
+              background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.10); color: var(--text-muted); }
+  .pc-badge.cat-Default { background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16); color: var(--accent); }
+  .pc-badge.update { background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.20); color: var(--accent); }
+
+  .btn.danger { background: var(--danger); color: #fff; }
+  .btn.danger:hover { background: var(--danger-hover); }
+
+  .plugins-credit { text-align: center; color: var(--text-muted); font-size: 0.82rem; margin: 1.5rem 0 0.5rem;
+                    padding-top: 1rem; border-top: 1px solid var(--border-color); }
+  .plugins-credit a { color: var(--accent); text-decoration: none; }
+
+  .btn.is-busy { opacity: 0.7; pointer-events: none; }
+  .btn.is-busy::before { content: ""; width: 12px; height: 12px; margin-right: 6px; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent; display: inline-block; animation: pc-spin 0.7s linear infinite; }
+  @keyframes pc-spin { to { transform: rotate(360deg); } }
+
+  .pc-hidden { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set installed_n = cards | selectattr('installed') | list | length %}
+{% set update_n = cards | selectattr('update_version') | list | length %}
+{% set available_n = cards | rejectattr('installed') | list | length %}
+{% set categories = cards | map(attribute='category') | unique | sort %}
+<div class="page-content">
+  <div class="plugins-header">
+    <form method="POST" action="/restart" class="restart-service">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="mode" value="auto" />
+      <button type="submit" class="btn ghost">Restart service</button>
+    </form>
+    <h2>Plugins</h2>
+    <div class="subtitle">Installed &amp; available in one place</div>
   </div>
-  {% endfor %}
+
+  <div class="pill-row" id="statePills">
+    <button class="pill" data-state="installed">Installed</button>
+    <button class="pill" data-state="available">Store</button>
+    <button class="pill active" data-state="all">All</button>
+  </div>
+
+  <input type="search" id="pluginFilter" class="plugins-search" placeholder="Search by name, description or author&hellip;" autocomplete="off" />
+
+  <div class="pill-row" id="catPills">
+    <button class="pill active" data-cat="all">All</button>
+    <button class="pill" data-cat="default">Default</button>
+    {% for c in categories %}
+    <button class="pill" data-cat="{{ c | lower }}">{{ c }}</button>
+    {% endfor %}
+  </div>
+
+  <div class="plugins-count" id="pluginCount">
+    {{ installed_n }} installed &middot; {{ update_n }} update &middot; {{ available_n }} available
+  </div>
+
+  <div class="plugins-grid" id="pluginsGrid">
+    {% for p in cards %}
+    <div class="card plugin-card"
+         data-name="{{ p.name | lower }}"
+         data-desc="{{ (p.description or '') | lower }}"
+         data-author="{{ (p.author or '') | lower }}"
+         data-state="{{ 'installed' if p.installed else 'available' }}"
+         data-cat="{{ p.category | lower }}"
+         data-default="{{ 'true' if p.default else 'false' }}">
+      <div class="pc-head">
+        <div class="pc-title">
+          <h4>{% if p.has_webpage %}<a href="/plugins/{{ p.name | urlencode }}">{{ p.name }}</a>{% else %}{{ p.name }}{% endif %}</h4>
+        </div>
+        <div class="pc-meta">
+          {% if p.default %}<span class="pc-badge cat-Default">default</span>{% endif %}
+          <span class="pc-badge">{{ p.category }}</span>
+          {% if p.version %}
+            {% if p.repo %}<a class="pc-ver" href="{{ p.repo }}" target="_blank" rel="noopener" title="Open repository">v{{ p.version }}</a>
+            {% else %}<span class="pc-ver">v{{ p.version }}</span>{% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+      {% if p.author %}<div class="pc-author">by {{ p.author }}</div>{% endif %}
+      <div class="pc-desc" title="{{ p.description or '' }}">{{ p.description or 'No description.' }}</div>
+
+      <div class="pc-actions">
+        <div class="pc-left">
+          {% if p.installed %}
+          <form method="POST" action="/plugins/toggle" class="plugin-toggle" title="Enable / disable">
+            <label class="switch">
+              <input type="checkbox" name="enabled" {% if p.enabled %}checked{% endif %} onchange="this.form.submit()" />
+              <span class="slider"></span>
+            </label>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="plugin" value="{{ p.name }}" />
+          </form>
+          {% endif %}
+        </div>
+        <div class="pc-right">
+          {% if p.installed %}
+            {% if p.has_webpage %}
+            <a class="btn ghost" href="/plugins/{{ p.name | urlencode }}" title="Open this plugin's web page">Open</a>
+            {% endif %}
+            {% if p.update_version %}
+            <form method="POST" action="/plugins/upgrade">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="plugin" value="{{ p.name }}" />
+              <button type="submit" class="btn primary">Update to v{{ p.update_version }}</button>
+            </form>
+            {% endif %}
+            {% if not p.default %}
+            <form method="POST" action="/plugins/uninstall" onsubmit="return confirm('Uninstall {{ p.name }}?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="plugin" value="{{ p.name }}" />
+              <button type="submit" class="btn danger">Uninstall</button>
+            </form>
+            {% endif %}
+          {% else %}
+            <form method="POST" action="/plugins/install">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="plugin" value="{{ p.name }}" />
+              <button type="submit" class="btn primary">Install</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="plugins-credit">
+    Store powered by <a href="https://github.com/wpa-2/pwnagotchi-store" target="_blank" rel="noopener">PwnStore</a>
+    &middot; created by <a href="https://github.com/wpa-2" target="_blank" rel="noopener">WPA2</a>
+    &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a>
+  </div>
 </div>
-{% endblock %} {% block scripts %}{{ super() }}
-<script src="/js/plugins.js"></script>
+{% endblock %}
+
+{% block scripts %}{{ super() }}
+<script>
+  (function () {
+    var filter = document.getElementById('pluginFilter');
+    var count = document.getElementById('pluginCount');
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.plugin-card'));
+    var statePills = Array.prototype.slice.call(document.querySelectorAll('#statePills .pill'));
+    var catPills = Array.prototype.slice.call(document.querySelectorAll('#catPills .pill'));
+    var state = 'all', cat = 'all';
+
+    function apply() {
+      var q = (filter && filter.value || '').trim().toLowerCase();
+      cards.forEach(function (c) {
+        var hitState = state === 'all' || c.dataset.state === state;
+        var hitCat = cat === 'all' || (cat === 'default' ? c.dataset.default === 'true' : c.dataset.cat === cat);
+        var hitText = !q || c.dataset.name.indexOf(q) !== -1 || c.dataset.desc.indexOf(q) !== -1 || (c.dataset.author || '').indexOf(q) !== -1;
+        c.classList.toggle('pc-hidden', !(hitState && hitCat && hitText));
+      });
+    }
+    function pick(pills, el, set) { pills.forEach(function (p) { p.classList.remove('active'); }); el.classList.add('active'); set(); apply(); }
+
+    statePills.forEach(function (p) { p.addEventListener('click', function () { pick(statePills, p, function () { state = p.dataset.state; }); }); });
+    catPills.forEach(function (p) { p.addEventListener('click', function () { pick(catPills, p, function () { cat = p.dataset.cat; }); }); });
+    if (filter) filter.addEventListener('input', apply);
+    apply();
+
+    // Inline per-tile progress: the clicked button itself becomes a spinner + verb,
+    // so you see exactly which plugin is working — no full-screen overlay.
+    function verbFor(a) {
+      if (a.indexOf('uninstall') !== -1) return 'Uninstalling';
+      if (a.indexOf('upgrade') !== -1) return 'Updating';
+      if (a.indexOf('restart') !== -1) return 'Restarting';
+      return 'Installing';
+    }
+    document.querySelectorAll('form[action*="/plugins/install"], form[action*="/plugins/uninstall"], form[action*="/plugins/upgrade"], form[action="/restart"]').forEach(function (f) {
+      f.addEventListener('submit', function (e) {
+        if (e.defaultPrevented) return;
+        var btn = f.querySelector('button[type="submit"]');
+        if (btn) { btn.classList.add('is-busy'); btn.textContent = verbFor(f.getAttribute('action')) + '…'; }
+      });
+    });
+  })();
+</script>
 {% endblock %}

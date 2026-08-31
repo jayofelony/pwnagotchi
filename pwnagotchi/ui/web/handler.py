@@ -27,6 +27,42 @@ from flask import redirect
 from flask import render_template, render_template_string
 
 
+# Category + repo metadata for store/available plugins comes from the community store
+# catalog (each entry has "category" and a "download_url"). Cached so /plugins doesn't
+# refetch on every load, and fails soft (offline -> empty map -> falls back gracefully).
+_STORE_CAT_URL = "https://raw.githubusercontent.com/wpa-2/pwnagotchi-store/main/plugins.json"
+_store_cache = {"ts": 0.0, "map": {}}
+
+
+def _store_meta():
+    """name -> {'category': str, 'repo': url} from the community store catalog."""
+    import time
+    now = time.time()
+    if _store_cache["map"] and now - _store_cache["ts"] < 3600:
+        return _store_cache["map"]
+    try:
+        import requests
+        import re as _re
+        data = requests.get(_STORE_CAT_URL, timeout=6).json()
+        m = {}
+        for e in data:
+            n = e.get("name")
+            if not n:
+                continue
+            url = e.get("download_url")
+            repo = None
+            if url:
+                mm = _re.match(r'(https?://github\.com/[^/]+/[^/]+)', url)
+                repo = mm.group(1) if mm else url
+            m[n] = {"category": e.get("category"), "repo": repo}
+        if m:
+            _store_cache["map"] = m
+            _store_cache["ts"] = now
+    except Exception:
+        pass
+    return _store_cache["map"]
+
+
 class Handler:
     def __init__(self, config, agent, app):
         self._config = config
@@ -215,32 +251,106 @@ class Handler:
 
     def plugins(self, name, subpath):
         if name is None:
-            # Determine which plugins are from the default folder
-            default_plugins = set()
-            default_path = os.path.join(os.path.dirname(os.path.realpath(plugins.__file__)), "default")
-            for plugin_name, plugin_path in plugins.database.items():
-                if plugin_path.startswith(default_path):
-                    default_plugins.add(plugin_name)
+            # Unified plugins page: installed plugins + the installable catalog (from core's
+            # available-plugins dir, refreshed by `pwnagotchi plugins update`). This folds the
+            # old PwnStore browse/install flow into /plugins so a separate store plugin isn't
+            # needed. Each card is state-aware (installed/enabled vs available-to-install) and
+            # exposes an "Open" link only when the plugin actually has a web page (on_webhook).
+            from pwnagotchi.plugins import cmd as plugins_cmd
 
-            plugin_info = {}
+            default_path = os.path.join(os.path.dirname(os.path.realpath(plugins.__file__)), "default")
+            default_plugins = {n for n, p in plugins.database.items() if p.startswith(default_path)}
+
+            # Curated categories for the shipped default plugins (so the category filter is
+            # populated without editing each plugin file). A plugin's own __category__ still
+            # wins when it declares one, so community plugins can self-categorise.
+            CAT_MAP = {
+                'bt-tether': 'Networking', 'grid': 'Networking',
+                'gps': 'GPS', 'gps_listener': 'GPS', 'webgpsmap': 'GPS', 'pwndroid': 'GPS',
+                'memtemp': 'Display', 'switcher': 'Display',
+                'wpa-sec': 'Attack', 'pwncrack': 'Attack', 'ohcapi': 'Attack',
+                'wigle': 'Data', 'session-stats': 'Data',
+                'webcfg': 'System', 'logtail': 'System', 'auto_backup': 'System',
+                'auto-update': 'System', 'fix_services': 'System',
+                'gpio_buttons': 'Hardware',
+                'pisugarx': 'Power', 'ups_lite': 'Power', 'ups_hat_c': 'Power', 'wittypi': 'Power',
+            }
+            store = _store_meta()  # name -> {category, repo} from the community store catalog
+
+            try:
+                available = plugins_cmd._get_available()  # name -> catalog .py path
+            except Exception:
+                available = {}
+
+            def _ver(v):
+                return '.'.join(v) if v else None
+
+            cards = []
+            # Installed plugins (loaded = enabled).
             for plugin_name, plugin_path in plugins.database.items():
                 instance = plugins.loaded.get(plugin_name)
                 if instance is not None:
-                    plugin_info[plugin_name] = {
-                        '__description__': getattr(instance, '__description__', None),
-                        '__author__': getattr(instance, '__author__', None),
-                        '__version__': getattr(instance, '__version__', None),
-                    }
+                    desc = getattr(instance, '__description__', None)
+                    author = getattr(instance, '__author__', None)
+                    version = getattr(instance, '__version__', None)
+                    cat = getattr(instance, '__category__', None)
+                    repo = getattr(instance, '__github__', None) or getattr(instance, '__url__', None)
                 else:
-                    plugin_info[plugin_name] = plugins.get_plugin_metadata(plugin_path)
+                    meta = plugins.get_plugin_metadata(plugin_path) or {}
+                    desc, author, version = (meta.get('__description__'),
+                                             meta.get('__author__'), meta.get('__version__'))
+                    cat = meta.get('__category__')
+                    repo = meta.get('__github__') or meta.get('__url__')
+                update_version = None
+                if plugin_name in available:
+                    try:
+                        av = plugins_cmd._extract_version(available[plugin_name])
+                        iv = plugins_cmd._extract_version(plugin_path)
+                        if av and iv and av > iv:
+                            update_version = _ver(av)
+                    except Exception:
+                        pass
+                cards.append({
+                    'name': plugin_name,
+                    'installed': True,
+                    'enabled': plugin_name in plugins.loaded,
+                    'default': plugin_name in default_plugins,
+                    'description': desc,
+                    'author': author,
+                    'version': version,
+                    'has_webpage': instance is not None and hasattr(instance, 'on_webhook'),
+                    'update_version': update_version,
+                    # Functional category for everyone (default status is a separate axis below).
+                    'category': cat or CAT_MAP.get(plugin_name) or (store.get(plugin_name) or {}).get('category') or 'Other',
+                    'repo': repo or (store.get(plugin_name) or {}).get('repo'),
+                })
+            # Available-but-not-installed (the store catalog).
+            for plugin_name, plugin_path in available.items():
+                if plugin_name in plugins.database:
+                    continue
+                try:
+                    av = plugins_cmd._extract_version(plugin_path)
+                    author = plugins_cmd._extract_author(plugin_path)
+                except Exception:
+                    av, author = None, None
+                meta = plugins.get_plugin_metadata(plugin_path) or {}
+                cards.append({
+                    'name': plugin_name,
+                    'installed': False,
+                    'enabled': False,
+                    'default': False,
+                    'description': meta.get('__description__'),
+                    'author': author or meta.get('__author__'),
+                    'version': _ver(av),
+                    'has_webpage': False,
+                    'update_version': None,
+                    'category': meta.get('__category__') or CAT_MAP.get(plugin_name) or (store.get(plugin_name) or {}).get('category') or 'Other',
+                    'repo': meta.get('__github__') or meta.get('__url__') or (store.get(plugin_name) or {}).get('repo'),
+                })
+            # Installed first, then available; alpha within each group.
+            cards.sort(key=lambda c: (not c['installed'], c['name'].lower()))
 
-            return render_template(
-                "plugins.html",
-                loaded=plugins.loaded,
-                database=plugins.database,
-                default_plugins=default_plugins,
-                plugin_info=plugin_info,
-            )
+            return render_template("plugins.html", cards=cards)
 
         if name == "toggle" and request.method == "POST":
             checked = True if "enabled" in request.form else False
@@ -255,6 +365,24 @@ class Handler:
             logging.info(f"Upgrading plugin: {plugin_name}")
             subprocess.run(["pwnagotchi", "plugins", "update"], check=False)
             subprocess.run(["pwnagotchi", "plugins", "upgrade", plugin_name], check=False)
+            return redirect("/plugins")
+
+        if name == "install" and request.method == "POST":
+            plugin_name = request.form["plugin"]
+            logging.info(f"Installing plugin: {plugin_name}")
+            subprocess.run(["pwnagotchi", "plugins", "install", plugin_name], check=False)
+            return redirect("/plugins")
+
+        if name == "uninstall" and request.method == "POST":
+            plugin_name = request.form["plugin"]
+            logging.info(f"Uninstalling plugin: {plugin_name}")
+            subprocess.run(["pwnagotchi", "plugins", "uninstall", plugin_name], check=False)
+            return redirect("/plugins")
+
+        if name == "refresh" and request.method == "POST":
+            # Refresh the installable catalog (pulls custom_plugin_repos into available-plugins/).
+            logging.info("Refreshing plugin catalog")
+            subprocess.run(["pwnagotchi", "plugins", "update"], check=False)
             return redirect("/plugins")
 
         if (
