@@ -1,74 +1,142 @@
-{% extends "base.html" %} {% set active_page = "plugins" %} {% block
-title%}Plugins{% endblock %} {% block styles %}{{ super() }}{% endblock %} {%
-block script %}{% endblock %} {% block content %}
-<div id="container">
-  {% for name in database.keys() | sort %} {% set has_info =
-  plugin_info[name]['__description__'] %}
-  <div class="plugins-box">
-    <div class="tooltip">
-      <div class="plugin-header">
-        <h4>
-          {% if name in loaded and loaded[name].on_webhook is defined %}
-          <a href="/plugins/{{ name | urlencode }}">{{ name }}</a>
-          {% else %}{{ name }}{% endif %}
-        </h4>
-        {% if plugin_info[name]['__version__'] %}
-        <span class="badge version">{{ plugin_info[name]['__version__'] }}</span>
-        {% endif %}
-      </div>
-      <div class="author">
-        {% if plugin_info[name]['__author__'] %} {{
-        plugin_info[name]['__author__'] }} {% endif %}
-      </div>
-      <div class="plugin-badges">
-        {% if name in default_plugins %}
-        <span class="badge default">DEFAULT</span>
-        {% endif %}
-      </div>
-      {% if has_info %}
-      <span class="tooltiptext">{{ plugin_info[name]['__description__'] }}</span>
-      {% else %}
-      <span class="tooltiptext">Description unable to load yet.</span>
-      {% endif %}
-    </div>
-    <div>
-      <form method="POST" action="/plugins/toggle" class="plugin-toggle">
-        <label class="switch">
-          <input
-            type="checkbox"
-            name="enabled"
-            id="flip-checkbox-{{name}}"
-            {%
-            if
-            name
-            in
-            loaded
-            %}
-            checked
-            {%
-            endif
-            %}
-          />
-          <span class="slider"></span>
-        </label>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="plugin" value="{{ name }}" />
-      </form>
-      <form method="POST" action="/plugins/upgrade">
-        <button
-          type="submit"
-          name="upgrade"
-          class="btn primary plugin-upgrade-btn"
-        >
-          Upgrade Plugin
-        </button>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="plugin" value="{{ name }}" />
-      </form>
-    </div>
+{% extends "base.html" %}
+{% set active_page = "plugins" %}
+{% block title %}Plugins{% endblock %}
+
+{% block styles %}{{ super() }}
+<style>
+  .plugins-toolbar { display: flex; gap: 0.75rem; align-items: center; margin: 1rem 0; flex-wrap: wrap; }
+  .plugins-toolbar input[type="search"] { flex: 1; min-width: 160px; }
+  .plugins-count { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+
+  .plugins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+  .plugin-card { display: flex; flex-direction: column; gap: 0.6rem; }
+  .pc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+  .pc-title { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .pc-title h4 { margin: 0; font-size: 1rem; }
+  .pc-title h4 a { color: var(--accent); text-decoration: none; }
+  .pc-title h4 a:hover { text-decoration: underline; }
+  .pc-author { color: var(--text-muted); font-size: 0.8rem; }
+  .pc-desc { color: var(--text-secondary); font-size: 0.85rem; flex: 1 1 auto; }
+  .pc-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: auto; }
+  .pc-actions form { margin: 0; display: inline-flex; align-items: center; }
+
+  .pc-badge { font-size: 0.7rem; padding: 0.12rem 0.45rem; border-radius: 6px;
+              background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.10); color: var(--text-muted); white-space: nowrap; }
+  .pc-badge.cat-default   { background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16); color: var(--accent); }
+  .pc-badge.cat-available { background: color-mix(in srgb, #ffa533 20%, transparent); color: #ffa533; }
+  .pc-badge.cat-installed { color: var(--text-secondary); }
+  .pc-badge.update        { background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.20); color: var(--accent); }
+
+  .btn.danger { background: var(--danger); color: #fff; }
+  .btn.danger:hover { background: var(--danger-hover); }
+
+  .pc-hidden { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="plugin-page-header">
+    <div class="header-nav"><a href="/" class="btn ghost">&#8592; Home</a></div>
+    <h2>Plugins</h2>
+    <p>Manage installed plugins &amp; browse the store</p>
   </div>
-  {% endfor %}
+
+  <div class="plugins-toolbar">
+    <input type="search" id="pluginFilter" placeholder="Filter by name or description&hellip;" autocomplete="off" />
+    <form method="POST" action="/plugins/refresh">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn ghost" title="Pull the latest plugin catalog">&#8635; Refresh catalog</button>
+    </form>
+    <span class="plugins-count" id="pluginCount"></span>
+  </div>
+
+  <div class="plugins-grid" id="pluginsGrid">
+    {% for p in cards %}
+    <div class="card plugin-card" data-name="{{ p.name | lower }}" data-desc="{{ (p.description or '') | lower }}">
+      <div class="pc-head">
+        <div class="pc-title">
+          <h4>
+            {% if p.has_webpage %}<a href="/plugins/{{ p.name | urlencode }}">{{ p.name }}</a>{% else %}{{ p.name }}{% endif %}
+          </h4>
+          {% if p.version %}<span class="pc-badge version">v{{ p.version }}</span>{% endif %}
+          {% if p.update_version %}<span class="pc-badge update">update &rarr; v{{ p.update_version }}</span>{% endif %}
+        </div>
+        {% if not p.installed %}
+        <span class="pc-badge cat-available">available</span>
+        {% elif p.default %}
+        <span class="pc-badge cat-default">default</span>
+        {% else %}
+        <span class="pc-badge cat-installed">installed</span>
+        {% endif %}
+      </div>
+
+      {% if p.author %}<div class="pc-author">by {{ p.author }}</div>{% endif %}
+      <div class="pc-desc">{{ p.description or 'No description.' }}</div>
+
+      <div class="pc-actions">
+        {% if p.installed %}
+          <form method="POST" action="/plugins/toggle" class="plugin-toggle" title="Enable / disable">
+            <label class="switch">
+              <input type="checkbox" name="enabled" {% if p.enabled %}checked{% endif %} onchange="this.form.submit()" />
+              <span class="slider"></span>
+            </label>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="plugin" value="{{ p.name }}" />
+          </form>
+          {% if p.has_webpage %}
+          <a class="btn ghost" href="/plugins/{{ p.name | urlencode }}" title="Open this plugin's web page">Open &#8599;</a>
+          {% endif %}
+          {% if p.update_version %}
+          <form method="POST" action="/plugins/upgrade">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="plugin" value="{{ p.name }}" />
+            <button type="submit" class="btn primary">Update</button>
+          </form>
+          {% endif %}
+          {% if not p.default %}
+          <form method="POST" action="/plugins/uninstall" onsubmit="return confirm('Uninstall {{ p.name }}?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="plugin" value="{{ p.name }}" />
+            <button type="submit" class="btn danger">Uninstall</button>
+          </form>
+          {% endif %}
+        {% else %}
+          <form method="POST" action="/plugins/install">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="plugin" value="{{ p.name }}" />
+            <button type="submit" class="btn primary">Install</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="plugin-footer">
+    Plugin catalog powered by the community store &middot; install sources in <code>custom_plugin_repos</code>
+  </div>
 </div>
-{% endblock %} {% block scripts %}{{ super() }}
-<script src="/js/plugins.js"></script>
+{% endblock %}
+
+{% block scripts %}{{ super() }}
+<script>
+  (function () {
+    const filter = document.getElementById('pluginFilter');
+    const count = document.getElementById('pluginCount');
+    const cards = Array.prototype.slice.call(document.querySelectorAll('.plugin-card'));
+    function apply() {
+      const q = (filter && filter.value || '').trim().toLowerCase();
+      let shown = 0;
+      cards.forEach(function (c) {
+        const hit = !q || c.dataset.name.indexOf(q) !== -1 || c.dataset.desc.indexOf(q) !== -1;
+        c.classList.toggle('pc-hidden', !hit);
+        if (hit) shown++;
+      });
+      if (count) count.textContent = shown + ' / ' + cards.length + ' plugins';
+    }
+    if (filter) filter.addEventListener('input', apply);
+    apply();
+  })();
+</script>
 {% endblock %}
