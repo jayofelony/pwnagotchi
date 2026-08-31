@@ -109,8 +109,6 @@
 .peer:hover,
 .message:hover {
   background-color: #252525;
-  border-left: 3px solid var(--accent);
-  padding-left: calc(1rem - 3px);
 }
 
 .inbox-item a,
@@ -154,9 +152,22 @@
 .unread {
   font-weight: 600;
   color: var(--text-bright);
-  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
-  border-left: 3px solid var(--accent);
-  padding-left: calc(1rem - 3px);
+}
+
+/* Unread indicator: a small accent dot before the sender, not a full-height rail. */
+.unread .list-item-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unread .list-item-primary::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--accent);
 }
 
 /* ============================================

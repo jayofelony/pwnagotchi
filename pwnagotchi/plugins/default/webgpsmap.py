@@ -9,6 +9,14 @@ from flask import Response
 from functools import lru_cache
 from dateutil.parser import parse
 
+
+def _themed_message(title, subtitle=""):
+    """Small self-contained dark-themed status/error page (matches the web UI)."""
+    head = '''<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/><title>webgpsmap</title>
+<style>html,body{height:100%;margin:0}body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#121212;color:#e0e0e0;text-align:center;padding:2rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}h1{margin:0 0 .5rem;font-size:1.8rem;color:#4caf50;font-weight:600}p{margin:0;color:#888}</style></head><body>'''
+    return head + '<h1>' + title + '</h1><p>' + subtitle + '</p></body></html>'
+
 '''
     webgpsmap shows existing position data stored in your /handshakes/ directory
 
@@ -57,13 +65,7 @@ class Webgpsmap(plugins.Plugin):
         response_mimetype = "application/xhtml+xml"
         if not self.ready:
             try:
-                response_data = bytes('''<html>
-                    <head>
-                    <meta charset="utf-8"/>
-                    <style>body{font-size:1000%;}</style>
-                    </head>
-                    <body>Not ready yet</body>
-                    </html>''', "utf-8")
+                response_data = bytes(_themed_message("GPS not ready yet", "Waiting for position data..."), "utf-8")
                 response_status = 500
                 response_mimetype = "application/xhtml+xml"
                 response_header_contenttype = 'text/html'
@@ -118,23 +120,11 @@ class Webgpsmap(plugins.Plugin):
                 #     response_header_contenttype = 'application/json'
                 else:
                     # unknown GET path
-                    response_data = bytes('''<html>
-                    <head>
-                    <meta charset="utf-8"/>
-                    <style>body{font-size:1000%;}</style>
-                    </head>
-                    <body>4😋4</body>
-                    </html>''', "utf-8")
+                    response_data = bytes(_themed_message("404", "Page not found"), "utf-8")
                     response_status = 404
             else:
                 # unknown request.method
-                response_data = bytes('''<html>
-                    <head>
-                    <meta charset="utf-8"/>
-                    <style>body{font-size:1000%;}</style>
-                    </head>
-                    <body>4😋4 for bad boys</body>
-                    </html>''', "utf-8")
+                response_data = bytes(_themed_message("404", "Method not allowed"), "utf-8")
                 response_status = 404
         try:
             r = Response(response=response_data, status=response_status, mimetype=response_mimetype)
