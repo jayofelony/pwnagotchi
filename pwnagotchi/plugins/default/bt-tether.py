@@ -158,50 +158,29 @@ class BtTether(Plugin):
             return
 
         try:
-            # Try to get status for stored phone_mac first, then check for any connected tethering device
-            cached_status = None
-            connected_device = None
+            # Render the monitor thread's latest snapshot instead of making our
+            # own bluetoothctl/ip calls here. on_ui_update runs on the main loop
+            # under the view lock, and get_full_status/get_trusted_devices block
+            # for several seconds when the phone is out of range - long enough to
+            # freeze the whole display (face, status, web frame). The monitor
+            # already polls the link on its own thread; we just show what it saw.
+            snapshot = self.bt.monitor.get_ui_status()
+            cached_status = (snapshot or {}).get("status") or {}
 
-            if self.phone_mac:
-                cached_status = self.bt.connection.get_full_status(self.phone_mac)
-                # Try to get the device name if we have a MAC
-                if cached_status and not self._phone_name:
-                    trusted_devices = self.bt.connection.get_trusted_devices()
-                    for device in trusted_devices:
-                        if device.mac == self.phone_mac:
-                            self._phone_name = device.name
-                            connected_device = device
-                            break
-
-            # Look for a connected device with NAP when the stored MAC has none.
-            # A paired but absent device still answers with a status dict, so
-            # testing the dict alone latches onto the first device ever seen and
-            # keeps reporting it after tethering moved to another one.
-            # The rescan result is copied over only when it is actually connected,
-            # so a scan that finds nothing leaves the previous status in place and
-            # the display keeps the P (paired) vs X (no device) distinction.
-            if not cached_status or not cached_status.get("connected", False):
-                trusted_devices = self.bt.connection.get_trusted_devices()
-                for device in trusted_devices:
-                    if device.connected and device.has_nap:
-                        new_status = self.bt.connection.get_full_status(device.mac)
-                        if new_status and new_status.get("connected"):
-                            cached_status = new_status
-                            self.phone_mac = device.mac
-                            self._phone_name = device.name
-                            connected_device = device
-                            break
-
-            cached_status = cached_status or {}
+            snap_name = (snapshot or {}).get("name")
+            if snap_name:
+                self._phone_name = snap_name
+            # Adopt a freshly-connected device's MAC when we don't have one yet,
+            # but never clobber a user-/config-chosen MAC from the display path.
+            snap_mac = (snapshot or {}).get("mac")
+            if snap_mac and cached_status.get("connected") and not self.phone_mac:
+                self.phone_mac = snap_mac
 
             # Track connection state for status reporting
             if cached_status.get("connected", False):
                 self._status = "CONNECTED"
             elif self._status == "CONNECTED":
                 self._status = "IDLE"
-
-            if connected_device and connected_device.name:
-                self._phone_name = connected_device.name
 
             # Rendering (glyph + detailed line) lives in the core UIRenderer so the
             # logic is shared and testable. Transient flags: bt_stuck is a wedged

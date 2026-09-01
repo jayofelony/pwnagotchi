@@ -64,6 +64,15 @@ class ConnectionMonitor:
         # it. Beats a running counter, which a flapping link dilutes indefinitely.
         self._probe_history = deque(maxlen=self.watchdog_fail_threshold + 1)
 
+        # Latest poll snapshot for the UI thread (see get_ui_status). Written by
+        # the monitor thread every cycle and read by the plugin's on_ui_update so
+        # the display never makes its own blocking bluetoothctl/ip calls on the
+        # main loop. _picked_device caches the device chosen by _pick_device so
+        # the UI can show its name without a second trusted-devices lookup.
+        self._status_cache_lock = threading.Lock()
+        self._status_cache = None
+        self._picked_device = None
+
     def start(self):
         """Start the monitoring thread."""
         try:
@@ -85,7 +94,31 @@ class ConnectionMonitor:
         """True when the most recent peer probe failed on a live link - the
         connection LOOKS up but may be half-open. Reflects the latest probe so it
         clears as soon as one succeeds, rather than lingering for the whole window."""
-        return bool(self._probe_history) and self._probe_history[-1] is False
+        # Single indexing op so a concurrent clear() on the monitor thread can't
+        # wedge between a truthiness check and the [-1] read (would IndexError).
+        try:
+            return self._probe_history[-1] is False
+        except IndexError:
+            return False
+
+    def _cache_ui_status(self, mac, status):
+        """Store the latest poll so the UI thread can render it without blocking.
+        Called from the monitor thread each cycle."""
+        dev = self._picked_device
+        name = dev.name if (dev is not None and dev.mac == mac) else None
+        with self._status_cache_lock:
+            self._status_cache = {
+                "mac": mac,
+                "name": name,
+                "status": dict(status) if status else {},
+            }
+
+    def get_ui_status(self):
+        """Latest connection snapshot for the display, or None before the first
+        poll. Cheap and non-blocking - never triggers bluetoothctl/ip, so it is
+        safe to call from on_ui_update on the main loop (under the view lock)."""
+        with self._status_cache_lock:
+            return dict(self._status_cache) if self._status_cache else None
 
     def set_device(self, mac):
         """Tell the monitor which device to watch for drops (called after a successful connect)."""
@@ -152,14 +185,21 @@ class ConnectionMonitor:
             devices = self.connection.get_trusted_devices()
         except Exception as e:
             self.logger.debug(f"Could not list trusted devices: {e}")
+            self._picked_device = None
             return preferred
 
         if preferred and any(d.mac == preferred for d in devices):
+            self._picked_device = next((d for d in devices if d.mac == preferred), None)
             return preferred
         for d in devices:
             if getattr(d, "has_nap", False):
+                self._picked_device = d
                 return d.mac
-        return devices[0].mac if devices else None
+        if devices:
+            self._picked_device = devices[0]
+            return devices[0].mac
+        self._picked_device = None
+        return None
 
     def _loop(self):
         """Background monitoring loop."""
@@ -177,6 +217,10 @@ class ConnectionMonitor:
 
                 mac = self._pick_device()
                 if not mac:
+                    # No trusted device to watch (e.g. the last one was unpaired) -
+                    # clear the UI snapshot so the display drops to "no device"
+                    # instead of lingering on a stale connected/paired state.
+                    self._cache_ui_status(None, {})
                     self._adaptive_wait()
                     continue
 
@@ -184,6 +228,7 @@ class ConnectionMonitor:
                     self._current_mac = mac
 
                 status = self.connection.get_full_status(mac)
+                self._cache_ui_status(mac, status)
                 if not status:
                     self._adaptive_wait()
                     continue
