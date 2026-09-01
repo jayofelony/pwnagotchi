@@ -131,7 +131,7 @@
   <div class="plugins-header">
     <form method="POST" action="/restart" class="restart-service">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <input type="hidden" name="mode" value="auto" />
+      <input type="hidden" name="mode" value="{{ current_mode }}" />
       <button type="submit" class="btn ghost">Restart service</button>
     </form>
     <h2>Plugins</h2>
@@ -143,7 +143,7 @@
     <div class="pc-notice-text"><strong>Pending changes.</strong> Installed, removed or updated plugins won&rsquo;t take effect until you restart the service.</div>
     <form method="POST" action="/restart" class="pc-notice-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <input type="hidden" name="mode" value="auto" />
+      <input type="hidden" name="mode" value="{{ current_mode }}" />
       <button type="submit" class="btn ghost pc-notice-btn">Restart service</button>
     </form>
     <button type="button" class="pc-notice-x" aria-label="Dismiss" onclick="document.getElementById('restartNotice').remove()">&times;</button>

@@ -374,7 +374,10 @@ class Handler:
             except Exception:
                 restart_pending = False
 
-            return render_template("plugins.html", cards=cards, restart_pending=restart_pending)
+            # Restart-to-apply buttons should keep the unit in its current mode
+            # (the handler's restart() only accepts the uppercase "AUTO"/"MANU").
+            current_mode = "MANU" if self._agent.mode == "manual" else "AUTO"
+            return render_template("plugins.html", cards=cards, restart_pending=restart_pending, current_mode=current_mode)
 
         if name == "toggle" and request.method == "POST":
             checked = True if "enabled" in request.form else False
@@ -387,26 +390,26 @@ class Handler:
         if name == "upgrade" and request.method == "POST":
             plugin_name = request.form["plugin"]
             logging.info(f"Upgrading plugin: {plugin_name}")
-            subprocess.run(["pwnagotchi", "plugins", "update"], check=False)
-            subprocess.run(["pwnagotchi", "plugins", "upgrade", plugin_name], check=False)
+            self._run_plugins_cli(["pwnagotchi", "plugins", "update"], self._CATALOG_TIMEOUT)
+            self._run_plugins_cli(["pwnagotchi", "plugins", "upgrade", plugin_name], self._PLUGIN_TIMEOUT)
             return redirect("/plugins")
 
         if name == "install" and request.method == "POST":
             plugin_name = request.form["plugin"]
             logging.info(f"Installing plugin: {plugin_name}")
-            subprocess.run(["pwnagotchi", "plugins", "install", plugin_name], check=False)
+            self._run_plugins_cli(["pwnagotchi", "plugins", "install", plugin_name], self._PLUGIN_TIMEOUT)
             return redirect("/plugins")
 
         if name == "uninstall" and request.method == "POST":
             plugin_name = request.form["plugin"]
             logging.info(f"Uninstalling plugin: {plugin_name}")
-            subprocess.run(["pwnagotchi", "plugins", "uninstall", plugin_name], check=False)
+            self._run_plugins_cli(["pwnagotchi", "plugins", "uninstall", plugin_name], self._PLUGIN_TIMEOUT)
             return redirect("/plugins")
 
         if name == "refresh" and request.method == "POST":
             # Refresh the installable catalog (pulls custom_plugin_repos into available-plugins/).
             logging.info("Refreshing plugin catalog")
-            subprocess.run(["pwnagotchi", "plugins", "update"], check=False)
+            self._run_plugins_cli(["pwnagotchi", "plugins", "update"], self._CATALOG_TIMEOUT)
             return redirect("/plugins")
 
         if (
@@ -420,6 +423,20 @@ class Handler:
                 abort(500)
         else:
             abort(404)
+
+    # Wall-clock caps for the plugin CLI. `update` hits every custom_plugin_repo
+    # over the network (slow on a Pi), per-plugin actions are mostly local.
+    _CATALOG_TIMEOUT = 180
+    _PLUGIN_TIMEOUT = 120
+
+    @staticmethod
+    def _run_plugins_cli(argv, timeout):
+        # Bound the plugin CLI so a slow/unreachable repo host can't hang the
+        # web worker thread indefinitely; the child is killed once it expires.
+        try:
+            subprocess.run(argv, check=False, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            logging.warning("plugin command timed out after %ss: %s", timeout, " ".join(argv))
 
     # serve a message and shuts down the unit
     def shutdown(self):
