@@ -1,0 +1,16 @@
+[Unit]
+Description=Apply Pwnagotchi USB gadget network configuration
+Documentation=https://github.com/jayofelony/pwnagotchi
+Wants=NetworkManager.service
+After=cloud-final.service NetworkManager.service rpi-usb-gadget-ics.service
+Before=pwnagotchi.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/.pwn/bin/pwnagotchi-usb-gadget
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

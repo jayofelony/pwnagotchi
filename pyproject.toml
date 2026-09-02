@@ -48,3 +48,4 @@ Download = "https://github.com/jayofelony/pwnagotchi/releases/latest"
 
 [project.scripts]
 pwnagotchi = "pwnagotchi.cli:pwnagotchi_cli"
+pwnagotchi-usb-gadget = "pwnagotchi.usb_gadget:main"
