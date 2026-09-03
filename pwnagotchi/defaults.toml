@@ -236,6 +236,15 @@ enabled = false
 rotation = 180
 type = "waveshare_4"
 
+[usb_gadget]
+# Opt in to managing rpi-usb-gadget's NetworkManager profiles from config.toml.
+# Changing the active mode can disconnect the current USB/SSH session.
+manage = false
+mode = "auto" # auto, client, or shared
+interface = "usb0"
+shared_address = "10.12.194.1/28"
+check_conflicts = true
+
 [bettercap]
 handshakes = "/etc/pwnagotchi/handshakes"
 silence = [
