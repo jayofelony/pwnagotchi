@@ -48,25 +48,36 @@
                  box-shadow: 0 2px 10px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35); }
   #catPills { gap: 0.6rem; }
 
-  /* Single-row strip: each button hugs its label (no line breaks), the row scrolls sideways. */
-  #statePills, #catPills {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    scrollbar-width: thin;
-    padding-bottom: 6px;
-  }
-  /* top row (Installed/Store/All) fits on screen — keep it centered, equal-width pills */
+  /* Wide screens: both rows are centered and wrap onto a second line if needed.
+     Deliberately NO overflow container here, so the active pill's glow and the
+     native hover tooltips are never clipped (an overflow:auto/hidden ancestor
+     crops them). The single-row scroll strip is reserved for narrow screens. */
   #statePills { justify-content: center; }
   #statePills .pill { min-width: 6rem; text-align: center; }
-  /* categories overflow and scroll — start them left with a small offset */
-  #catPills { justify-content: flex-start; padding-left: 0.75rem; scroll-padding-left: 0.75rem; }
-  #statePills .pill, #catPills .pill { scroll-snap-align: start; }
-  #statePills::-webkit-scrollbar, #catPills::-webkit-scrollbar { height: 6px; }
-  #statePills::-webkit-scrollbar-thumb, #catPills::-webkit-scrollbar-thumb {
-    background: var(--border-color); border-radius: 999px; }
+  #catPills { justify-content: center; }
+
+  /* Narrow screens: categories can outgrow the width, so turn them into a single
+     left-aligned strip (small start offset) that scrolls sideways instead of
+     wrapping. Placed AFTER the desktop #catPills rule so this override wins at
+     <=640px (media queries don't raise specificity — source order breaks the tie).
+     The overflow container exists ONLY here, so desktop hover/glow stays clip-free. */
+  @media (max-width: 640px) {
+    #catPills {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      padding-bottom: 6px;
+      padding-left: 0.75rem;
+      scroll-padding-left: 0.75rem;
+    }
+    #catPills .pill { scroll-snap-align: start; }
+    #catPills::-webkit-scrollbar { height: 6px; }
+    #catPills::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 999px; }
+  }
 
   .plugins-search { width: 100%; box-sizing: border-box; height: 44px; margin: 0.5rem 0;
     padding: 0 1rem; border-radius: 10px;
