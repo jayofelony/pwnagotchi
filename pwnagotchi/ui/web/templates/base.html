@@ -4,7 +4,7 @@
   <head>
     {% block meta %}
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#007bff" />
     <meta name="description" content="Pwnagotchi Web Interface" />
     {% endblock %}
@@ -16,7 +16,7 @@
     <link rel="stylesheet" type="text/css" href="/css/theme.css" />
     {% if active_page == 'profile' %}
     <link rel="stylesheet" type="text/css" href="/css/profile.css" />
-    {% elif active_page in ['inbox', 'new'] %}
+    {% elif active_page in ['inbox', 'new', 'peers'] %}
     <link rel="stylesheet" type="text/css" href="/css/inbox.css" />
     {% elif active_page == 'plugins' %}
     <link rel="stylesheet" type="text/css" href="/css/plugins.css" />
@@ -44,19 +44,21 @@
       <div class="page-content">{% block content %} {% endblock %}</div>
 
       <footer class="page-footer">
-        <nav class="navbar">
-          {% for href, id, caption in navigation %}
-          <li class="navbar-item">
-            <a
-              href="{{ href }}"
-              id="{{ id }}"
-              class="{% if active_page == id %}active{% endif %}"
-            >
-              <span class="navbar-icon"></span>
-              <span>{{ caption }}</span>
-            </a>
-          </li>
-          {% endfor %}
+        <nav aria-label="Primary">
+          <ul class="navbar">
+            {% for href, id, caption in navigation %}
+            <li class="navbar-item">
+              <a
+                href="{{ href }}"
+                id="{{ id }}"
+                class="{% if active_page == id %}active{% endif %}"
+              >
+                <span class="navbar-icon"></span>
+                <span>{{ caption }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
         </nav>
       </footer>
     </div>

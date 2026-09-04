@@ -22,7 +22,9 @@
   --text-bright: #ffffff;
   --text-body: #bfbfbf;
   --text-muted: #888;
+  --text-secondary: #9a9a9a;
   --accent: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+  --accent-hover: color-mix(in srgb, var(--accent) 82%, #ffffff);
   --danger: #ff5555;
   --danger-hover: #ff7777;
   --info: #4fc3f7;
@@ -52,6 +54,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100vh;
+  height: 100dvh; /* respect browser chrome (e.g. Discord in-app bar) */
   font-family: var(--font-main);
   font-size: 0.95rem;
   line-height: 1.6;
@@ -63,8 +66,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
 }
 
 body {
@@ -151,6 +152,8 @@ strong, b {
 .page-content {
   flex: 1;
   padding: 16px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -175,6 +178,7 @@ strong, b {
   margin-top: auto;
   background-color: #0d0d0d;
   padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px); /* clear home indicator */
   overflow: hidden;
 }
 
@@ -542,23 +546,20 @@ select:focus {
   background-color: #1e1e1e;
 }
 
-/* Select Box Styling - chevron-down.svg as mask with accent color */
+/* Select Box Styling — chevron as background-image (NOT a mask; masking clipped the
+   whole control to the chevron and hid the text). Matches the text-input styling. */
 select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  -webkit-mask-image: url("../svg/chevron-down.svg");
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: right 10px center;
-  -webkit-mask-size: 20px;
-  mask-image: url("../svg/chevron-down.svg");
-  mask-repeat: no-repeat;
-  mask-position: right 10px center;
-  mask-size: 20px;
   padding-right: 36px;
   cursor: pointer;
-  color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
-  background-color: rgb(var(--accent-r), var(--accent-g), var(--accent-b));
+  color: var(--text-main);
+  background-color: #1a1a1a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
 }
 
 select::-ms-expand {
@@ -671,6 +672,98 @@ input[type="reset"]:disabled,
   box-shadow: 0 6px 16px rgba(136, 136, 136, 0.4);
 }
 
+/* Ghost / outline button — used for the top-right "Plugins" back-nav so it sits
+   quietly in the header instead of competing with the page's primary action. */
+.btn.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+.btn.ghost:hover {
+  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+.btn.ghost:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ============================================
+   Plugin Page Header (shared)
+   Centered title/subtitle with a top-right "Plugins" back-nav.
+   Used by webcfg, logtail, wpa-sec and auto_backup so every page matches.
+   ============================================ */
+.plugin-page-header {
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.plugin-page-header .header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.plugin-page-header .header-nav .btn {
+  width: auto;
+  min-width: 0;
+}
+
+.plugin-page-header .header-version {
+  font-family: var(--font-pixel);
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.plugin-page-header h2 {
+  margin: 0;
+}
+
+.plugin-page-header p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+}
+
+/* Vertical rhythm for stacked cards on plugin pages (e.g. auto_backup,
+   bt-tether) so consecutive cards don't touch. Grids/tiles are unaffected. */
+.page-content > .card + .card {
+  margin-top: 1.5rem;
+}
+
+/* Shared plugin footer — author credit (linked to their GitHub when known). */
+.plugin-footer {
+  text-align: center;
+  margin-top: 2.5rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.plugin-footer strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.plugin-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.plugin-footer a:hover {
+  text-decoration: underline;
+}
+
 
 /* ============================================
    Toggle Switch (Checkbox)
@@ -769,8 +862,6 @@ li {
 
 .list-item:hover {
   background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
-  border-left: 4px solid var(--accent);
-  padding-left: calc(1rem - 4px);
   color: var(--text-bright);
 }
 
@@ -836,10 +927,6 @@ li {
   font-size: 0.9rem;
   color: var(--text-main);
   line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 999;
-  line-clamp: 999;
-  -webkit-box-orient: vertical;
   flex-grow: 1;
   background-color: var(--card-bg);
 }
@@ -939,14 +1026,13 @@ li {
 /* Toast Notifications */
 .toast {
   position: fixed;
-  bottom: 2rem;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px)); /* clear the bottom nav on every page */
   left: 50%;
   transform: translateX(-50%) translateY(120px);
   background-color: #1e1e1e;
   color: var(--text-main);
   padding: 1rem 1.5rem;
   border-radius: 8px;
-  border-left: 4px solid var(--danger);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   z-index: 9999;
   max-width: 90%;
@@ -961,24 +1047,20 @@ li {
 }
 
 .toast-error {
-  border-left-color: var(--danger);
-  background: linear-gradient(135deg, rgba(255, 85, 85, 0.1), rgba(255, 85, 85, 0.05));
+  background-color: color-mix(in srgb, var(--danger) 12%, #1e1e1e);
 }
 
 .toast-success {
-  border-left-color: var(--accent);
-  background: linear-gradient(135deg, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1), rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05));
+  background-color: color-mix(in srgb, var(--accent) 12%, #1e1e1e);
 }
 
 .toast-info {
-  border-left-color: var(--info);
-  background: linear-gradient(135deg, rgba(79, 195, 247, 0.1), rgba(79, 195, 247, 0.05));
+  background-color: color-mix(in srgb, var(--info) 12%, #1e1e1e);
 }
 
 .alert {
   padding: 1.25rem 1.5rem;
   margin-bottom: 1rem;
-  border-left: 4px solid;
   border-radius: 4px;
   font-weight: 500;
   display: flex;
@@ -998,21 +1080,18 @@ li {
 
 .alert-error,
 .error {
-  background: linear-gradient(135deg, rgba(255, 85, 85, 0.15), rgba(255, 85, 85, 0.08));
-  border-left-color: #ff5555;
+  background-color: color-mix(in srgb, var(--danger) 15%, #1e1e1e);
   color: #ffb0b0;
 }
 
 .alert-success {
-  background: linear-gradient(135deg, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15), rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08));
-  border-left-color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 15%, #1e1e1e);
   color: var(--accent);
   filter: brightness(1.2);
 }
 
 .alert-info {
-  background: linear-gradient(135deg, rgba(79, 195, 247, 0.15), rgba(79, 195, 247, 0.08));
-  border-left-color: var(--info);
+  background-color: color-mix(in srgb, var(--info) 15%, #1e1e1e);
   color: #4fc3f7;
 }
 
@@ -1319,16 +1398,16 @@ code {
   }
 
   .page-content {
-    padding: 12px 12px 80px 12px;
+    padding: 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   .page-content:has(.home-view) {
-    padding-bottom: 80px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
-  .toast {
-    bottom: 70px;
-  }
 
   .navbar-item a {
     padding: 0.4rem 0.25rem;
@@ -1418,6 +1497,43 @@ code {
 
   form {
     gap: 0.75rem;
+  }
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+/* Keyboard focus ring (only shows for keyboard nav via :focus-visible) */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.navbar-item a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.page-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card:hover,
+  .plugins-box:hover,
+  button:hover,
+  .btn:hover,
+  input[type="submit"]:hover {
+    transform: none !important;
   }
 }
 

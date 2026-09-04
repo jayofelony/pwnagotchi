@@ -17,13 +17,6 @@ INDEX = """
 {% block styles %}
 {{ super() }}
 <style>
-    /* Logtail-specific styles - plugin header */
-    .logtail-header {
-        margin-bottom: 2rem;
-        padding: 1.5rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-
     /* Search/Control Bar */
     #divTop {
         position: -webkit-sticky;
@@ -47,12 +40,27 @@ INDEX = """
         min-width: 200px;
     }
 
+    #filter, #levelFilter {
+        height: 44px;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    #levelFilter { min-width: 150px; }
+
     /* Autoscroll Toggle Wrapper */
     #divTop > span {
         display: flex;
         align-items: center;
         gap: 0.5rem;
         white-space: nowrap;
+    }
+
+    /* Separate the autoscroll toggle from the level dropdown (nudge right) */
+    #divTop > span:last-child {
+        margin-left: 1.5rem;
+    }
+    @media screen and (max-width: 768px) {
+        #divTop > span:last-child { margin-left: 0; }
     }
 
     #autoscroll {
@@ -73,6 +81,24 @@ INDEX = """
         font-family: var(--font-main);
         cursor: pointer;
     }
+
+    /* Floating "scroll to top" button — only shown while auto-scroll is off. */
+    #scrollTopBtn {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+        width: 48px;
+        height: 48px;
+        min-width: 0;
+        padding: 0;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 900;
+    }
+    #scrollTopBtn.show { display: flex; }
+    #scrollTopBtn svg { width: 22px; height: 22px; }
 
     /* Table Container */
     .table-container {
@@ -219,6 +245,11 @@ INDEX = """
 
         .table-container {
             margin-bottom: 2rem;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            background: transparent;
+            overflow: visible;
         }
 
         /* Mobile table display */
@@ -231,7 +262,7 @@ INDEX = """
             border: none;
         }
 
-        tr:first-child, thead, th {
+        thead, th {
             display: none;
             border: none;
         }
@@ -272,10 +303,12 @@ INDEX = """
 {% block script %}
     var table = document.getElementById("table").querySelector("tbody");
     var filter = document.getElementById("filter");
+    var levelFilter = document.getElementById("levelFilter");
     var filterVal = filter.value.toUpperCase();
+    var levelVal = "";
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "logtail/stream");
+    xhr.open("GET", "/plugins/logtail/stream");
     xhr.send();
     var position = 0;
     var data;
@@ -333,7 +366,9 @@ INDEX = """
 
             tr.className = colorClass;
 
-            if (filterVal.length > 0 && value.toUpperCase().indexOf(filterVal) == -1) {
+            var txtOk = (filterVal.length === 0 || value.toUpperCase().indexOf(filterVal) > -1);
+            var lvlOk = (levelVal === "" || colorClass === levelVal);
+            if (!(txtOk && lvlOk)) {
                 tr.style.display = "none";
             }
 
@@ -359,41 +394,65 @@ INDEX = """
         }
     }, 1000);
 
+    // Floating "scroll to top" button: visible only when auto-scroll is off,
+    // since with auto-scroll on you're always pinned to the bottom anyway.
+    var scrollTopBtn = document.getElementById("scrollTopBtn");
+    function updateScrollTopBtn() {
+        if (scrollElm.checked) { scrollTopBtn.classList.remove("show"); }
+        else { scrollTopBtn.classList.add("show"); }
+    }
+    scrollElm.addEventListener("change", updateScrollTopBtn);
+    updateScrollTopBtn();
+    scrollTopBtn.addEventListener("click", function () {
+        scrollingElement.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
     var typingTimer;
-    var doneTypingInterval = 500;
+    var doneTypingInterval = 300;
+
+    // Combined filter: free-text (name/message) AND selected log level.
+    function applyFilters() {
+        filterVal = filter.value.toUpperCase();
+        var tr = table.getElementsByTagName("tr");
+        for (var i = 0; i < tr.length; i++) {
+            var txtValue = (tr[i].textContent || tr[i].innerText || "").toUpperCase();
+            var txtOk = (filterVal.length === 0 || txtValue.indexOf(filterVal) > -1);
+            var lvlOk = (levelVal === "" || tr[i].className === levelVal);
+            tr[i].style.display = (txtOk && lvlOk) ? "table-row" : "none";
+        }
+    }
 
     filter.onkeyup = function() {
         clearTimeout(typingTimer);
-        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+        typingTimer = setTimeout(applyFilters, doneTypingInterval);
     }
 
     filter.onkeydown = function() {
         clearTimeout(typingTimer);
     }
 
-    function doneTyping() {
-        var tr, tds, td, i, txtValue;
-        filterVal = filter.value.toUpperCase();
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            txtValue = tr[i].textContent || tr[i].innerText;
-            if (filterVal.length === 0 || txtValue.toUpperCase().indexOf(filterVal) > -1) {
-                tr[i].style.display = "table-row";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
+    levelFilter.onchange = function() {
+        levelVal = this.value;
+        applyFilters();
     }
 {% endblock %}
 
 {% block content %}
-    <div class="logtail-header">
+    <div class="plugin-page-header">
+        <div class="header-nav"><a href="/plugins" class="btn ghost">← Plugins</a><span class="header-version">v0.1.0</span></div>
         <h2>System Log</h2>
         <p>Real-time log viewer with filtering and auto-scroll capabilities</p>
     </div>
 
     <div id="divTop">
-        <input type="text" id="filter" placeholder="Filter logs..." title="Type to filter log messages">
+        <input type="text" id="filter" placeholder="Filter logs..." title="Type to filter log messages" autocomplete="off">
+        <span><select id="levelFilter" title="Filter by log level">
+            <option value="">All levels</option>
+            <option value="info">Info</option>
+            <option value="warning">Warning</option>
+            <option value="error">Error</option>
+            <option value="debug">Debug</option>
+        </select></span>
         <span>
             <input type="checkbox" id="autoscroll" checked>
             <label for="autoscroll">Auto-scroll</label>
@@ -413,6 +472,10 @@ INDEX = """
             </tbody>
         </table>
     </div>
+
+    <button type="button" id="scrollTopBtn" class="btn" title="Scroll to top" aria-label="Scroll to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a> &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 """
 
