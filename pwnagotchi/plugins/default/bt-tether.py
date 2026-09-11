@@ -158,48 +158,34 @@ class BtTether(Plugin):
             return
 
         try:
-            # Render the monitor thread's latest snapshot instead of making our
-            # own bluetoothctl/ip calls here. on_ui_update runs on the main loop
-            # under the view lock, and get_full_status/get_trusted_devices block
-            # for several seconds when the phone is out of range - long enough to
-            # freeze the whole display (face, status, web frame). The monitor
-            # already polls the link on its own thread; we just show what it saw.
-            snapshot = self.bt.monitor.get_ui_status()
-            cached_status = (snapshot or {}).get("status") or {}
+            # Ask the facade for a ready-to-render snapshot. It reads the monitor's
+            # cached poll (non-blocking - no bluetoothctl/ip here, which would
+            # freeze the whole display for seconds when the phone is out of range),
+            # applies the transient-state precedence, and runs the renderer, so all
+            # of that logic lives in one place behind the facade.
+            snap = self.bt.ui_snapshot()
 
-            snap_name = (snapshot or {}).get("name")
-            if snap_name:
-                self._phone_name = snap_name
+            if snap.get("name"):
+                self._phone_name = snap["name"]
             # Adopt a freshly-connected device's MAC when we don't have one yet,
             # but never clobber a user-/config-chosen MAC from the display path.
-            snap_mac = (snapshot or {}).get("mac")
-            if snap_mac and cached_status.get("connected") and not self.phone_mac:
-                self.phone_mac = snap_mac
+            if snap.get("mac") and snap.get("connected") and not self.phone_mac:
+                self.phone_mac = snap["mac"]
 
             # Track connection state for status reporting
-            if cached_status.get("connected", False):
+            if snap.get("connected"):
                 self._status = "CONNECTED"
             elif self._status == "CONNECTED":
                 self._status = "IDLE"
 
-            # Rendering (glyph + detailed line) lives in the core UIRenderer so the
-            # logic is shared and testable. Transient flags: bt_stuck is a wedged
-            # controller needing a power-cycle, bt_recovering an active recovery
-            # (restart/module reload) and link_stalled a suspect half-open link -
-            # each shown instead of a misleading Paired/Connected/IP.
-            bt_stuck = self.bt.bt_stuck
-            recovering = self.bt.bt_recovering
-            stalled = self.bt.monitor.link_stalled
-            renderer = self.bt.ui_renderer
-            detailed = renderer.format_status(cached_status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled)
             # Keep the bare text for /status (the "BT:" prefix is display-only)
-            self._message = detailed[3:] if detailed.startswith("BT:") else detailed
+            self._message = snap["message"]
 
             if self.show_mini_status:
-                ui.set("bt-status", renderer.get_status_icon(cached_status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled))
+                ui.set("bt-status", snap["icon"])
 
             if self.show_detailed_status:
-                ui.set("bt-detail", detailed)
+                ui.set("bt-detail", snap["detail_line"])
 
         except Exception as e:
             logging.debug(f"UI update error: {e}")
@@ -350,7 +336,7 @@ class BtTether(Plugin):
         # Auto-detect connected device if phone_mac not set
         current_mac = self.phone_mac
         if not current_mac:
-            trusted_devices = self.bt.connection.get_trusted_devices()
+            trusted_devices = self.bt.get_trusted_devices()
             for device in trusted_devices:
                 if device.connected and device.has_nap:
                     current_mac = device.mac
@@ -381,7 +367,7 @@ class BtTether(Plugin):
             return jsonify({"success": False})
 
         try:
-            status = self.bt.connection.get_full_status(mac)
+            status = self.bt.get_status(mac)
             if not status:
                 return jsonify({"success": False})
 
@@ -394,7 +380,7 @@ class BtTether(Plugin):
                 "interface": status.get("interface"),
                 "ip_address": status.get("ip_address"),
                 "ipv6": status.get("ipv6"),
-                "default_route_interface": self.bt.network.get_default_route_interface(),
+                "default_route_interface": self.bt.default_route_interface(),
             })
         except Exception as e:
             self._log("ERROR", f"Failed to get connection status: {e}")
@@ -404,7 +390,7 @@ class BtTether(Plugin):
         """Return basic pair/connect status for a device."""
         if not mac:
             return jsonify({"paired": False, "connected": False})
-        status = self.bt.connection.get_status(mac)
+        status = self.bt.get_pair_status(mac)
         return jsonify({
             "paired": status.get("paired", False),
             "connected": status.get("connected", False),
@@ -412,7 +398,7 @@ class BtTether(Plugin):
 
     def _test_internet(self):
         """Test internet connectivity."""
-        results = self.bt.network.test_internet_connectivity()
+        results = self.bt.test_internet()
         return jsonify(results)
 
     def _get_logs(self):

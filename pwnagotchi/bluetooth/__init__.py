@@ -18,7 +18,15 @@ from .ui import UIRenderer
 
 
 class BluetoothService:
-    """Main facade for Bluetooth operations."""
+    """Main facade for Bluetooth operations.
+
+    This is the one supported interface for driving Bluetooth from a plugin
+    (bt-tether, or any third-party plugin): construct a BluetoothService and call
+    its methods. The manager objects it composes (connection/network/monitor/
+    ui_renderer) are internal implementation seams - reachable, since Python has
+    no true privates, but NOT a stable interface. If something you need isn't on
+    the facade, add it here rather than reaching into a manager.
+    """
 
     # State constants
     STATE_IDLE = "IDLE"
@@ -50,7 +58,9 @@ class BluetoothService:
         self.options = options or {}
         self.logger = logger or logging.getLogger(__name__)
 
-        # Initialize components
+        # Initialize components. These are internal seams, not a supported
+        # interface - drive Bluetooth through the BluetoothService methods below,
+        # not by reaching into these attributes from a plugin.
         self.connection = ConnectionManager(logger=self.logger, options=self.options)
         self.network = NetworkManager(logger=self.logger, options=self.options)
         self.agent = PairingAgent(logger=self.logger)
@@ -153,8 +163,64 @@ class BluetoothService:
             self.logger.error(f"Error stopping service: {e}")
 
     def get_status(self, mac):
-        """Get connection status for a device."""
+        """Full connection status for a device (paired/trusted/connected plus PAN
+        interface, IPv4/IPv6). For just paired/connected, see get_pair_status."""
         return self.connection.get_full_status(mac)
+
+    def get_pair_status(self, mac):
+        """Basic paired/connected status for the pairing UI (see get_status for
+        the full picture)."""
+        status = self.connection.get_status(mac)
+        return {
+            "paired": status.get("paired", False),
+            "connected": status.get("connected", False),
+        }
+
+    def test_internet(self):
+        """Run the internet-connectivity probe (ping + DNS + tether address)."""
+        return self.network.test_internet_connectivity()
+
+    def default_route_interface(self):
+        """Interface currently holding the default route, or None."""
+        return self.network.get_default_route_interface()
+
+    def ui_snapshot(self):
+        """Ready-to-render display snapshot for the e-ink UI and /status.
+
+        THIS is the supported way to render Bluetooth state from a plugin. It
+        reads the monitor's cached poll (non-blocking - never calls bluetoothctl/
+        ip, so it is safe on the main loop under the view lock), applies the
+        transient-state precedence (stuck > recovering > stalled > connected),
+        and runs the renderer, so all display logic lives here behind the facade
+        rather than in the plugin. Returns a dict:
+
+            icon         single-char glyph for the mini status element
+            detail_line  detailed display string, e.g. "BT:192.168.44.1"
+            message      detail_line without the "BT:" prefix (for /status)
+            name         connected/target device name, or None
+            mac          connected/target device MAC, or None
+            connected    bool
+        """
+        snap = self.monitor.get_ui_status() or {}
+        status = snap.get("status") or {}
+        bt_stuck = self.bt_stuck
+        recovering = self.bt_recovering
+        stalled = self.monitor.link_stalled
+        detail = self.ui_renderer.format_status(
+            status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled
+        )
+        icon = self.ui_renderer.get_status_icon(
+            status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled
+        )
+        message = detail[3:] if detail.startswith("BT:") else detail
+        return {
+            "icon": icon,
+            "detail_line": detail,
+            "message": message,
+            "name": snap.get("name"),
+            "mac": snap.get("mac"),
+            "connected": bool(status.get("connected", False)),
+        }
 
     def get_trusted_devices(self):
         """Get list of trusted devices."""
@@ -245,6 +311,10 @@ class BluetoothService:
                 self.logger.info("Making Pwnagotchi discoverable...")
                 with self._lock:
                     self._message = f"Making Pwnagotchi discoverable for {name}..."
+                # FOLLOW-UP: the facade reaches into ConnectionManager privates here
+                # and below (_run_cmd, _consecutive_busy). That's same-subsystem
+                # coupling, not a leak across the public seam, but worth giving
+                # ConnectionManager small public methods for later.
                 self.connection._run_cmd(["bluetoothctl", "discoverable", "on"], capture=True)
                 self.connection._run_cmd(["bluetoothctl", "pairable", "on"], capture=True)
                 time.sleep(2)
