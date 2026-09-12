@@ -251,133 +251,25 @@ class Handler:
 
     def plugins(self, name, subpath):
         if name is None:
-            # Unified plugins page: installed plugins + the installable catalog (from core's
-            # available-plugins dir, refreshed by `pwnagotchi plugins update`). This folds the
-            # old PwnStore browse/install flow into /plugins so a separate store plugin isn't
-            # needed. Each card is state-aware (installed/enabled vs available-to-install) and
-            # exposes an "Open" link only when the plugin actually has a web page (on_webhook).
-            from pwnagotchi.plugins import cmd as plugins_cmd
+            # Unified plugins page: installed plugins + the installable catalog. The
+            # merge/version/category/restart-pending logic lives in the shared
+            # PluginCatalog module (also used by the `pwnagotchi plugins list` CLI);
+            # here we just hand it the daemon's registered/loaded state plus the
+            # community store metadata (a network fetch kept web-side and injected).
+            from pwnagotchi.plugins.catalog import PluginCatalog
 
-            default_path = os.path.join(os.path.dirname(os.path.realpath(plugins.__file__)), "default")
-            default_plugins = {n for n, p in plugins.database.items() if p.startswith(default_path)}
-
-            # Curated categories for the shipped default plugins (so the category filter is
-            # populated without editing each plugin file). A plugin's own __category__ still
-            # wins when it declares one, so community plugins can self-categorise.
-            CAT_MAP = {
-                'bt-tether': 'Networking', 'grid': 'Networking',
-                'gps': 'GPS', 'gps_listener': 'GPS', 'webgpsmap': 'GPS', 'pwndroid': 'GPS',
-                'memtemp': 'Display', 'switcher': 'Display',
-                'wpa-sec': 'Attack', 'pwncrack': 'Attack', 'ohcapi': 'Attack',
-                'wigle': 'Data', 'session-stats': 'Data',
-                'webcfg': 'System', 'logtail': 'System', 'auto_backup': 'System',
-                'auto-update': 'System', 'fix_services': 'System',
-                'gpio_buttons': 'Hardware',
-                'pisugarx': 'Power', 'ups_lite': 'Power', 'ups_hat_c': 'Power', 'wittypi': 'Power',
-            }
-            store = _store_meta()  # name -> {category, repo} from the community store catalog
-
-            try:
-                available = plugins_cmd._get_available()  # name -> catalog .py path
-            except Exception:
-                available = {}
-
-            def _ver(v):
-                return '.'.join(v) if v else None
-
-            cards = []
-            # Installed plugins (loaded = enabled).
-            for plugin_name, plugin_path in plugins.database.items():
-                instance = plugins.loaded.get(plugin_name)
-                if instance is not None:
-                    desc = getattr(instance, '__description__', None)
-                    author = getattr(instance, '__author__', None)
-                    version = getattr(instance, '__version__', None)
-                    cat = getattr(instance, '__category__', None)
-                    repo = getattr(instance, '__github__', None) or getattr(instance, '__url__', None)
-                else:
-                    meta = plugins.get_plugin_metadata(plugin_path) or {}
-                    desc, author, version = (meta.get('__description__'),
-                                             meta.get('__author__'), meta.get('__version__'))
-                    cat = meta.get('__category__')
-                    repo = meta.get('__github__') or meta.get('__url__')
-                update_version = None
-                if plugin_name in available:
-                    try:
-                        av = plugins_cmd._extract_version(available[plugin_name])
-                        iv = plugins_cmd._extract_version(plugin_path)
-                        if av and iv and av > iv:
-                            update_version = _ver(av)
-                    except Exception:
-                        pass
-                cards.append({
-                    'name': plugin_name,
-                    'installed': True,
-                    'enabled': plugin_name in plugins.loaded,
-                    'default': plugin_name in default_plugins,
-                    'description': desc,
-                    'author': author,
-                    'version': version,
-                    'has_webpage': instance is not None and hasattr(instance, 'on_webhook'),
-                    'update_version': update_version,
-                    # Functional category for everyone (default status is a separate axis below).
-                    'category': cat or CAT_MAP.get(plugin_name) or (store.get(plugin_name) or {}).get('category') or 'Other',
-                    'repo': repo or (store.get(plugin_name) or {}).get('repo'),
-                })
-            # Available-but-not-installed (the store catalog).
-            for plugin_name, plugin_path in available.items():
-                if plugin_name in plugins.database:
-                    continue
-                try:
-                    av = plugins_cmd._extract_version(plugin_path)
-                    author = plugins_cmd._extract_author(plugin_path)
-                except Exception:
-                    av, author = None, None
-                meta = plugins.get_plugin_metadata(plugin_path) or {}
-                cards.append({
-                    'name': plugin_name,
-                    'installed': False,
-                    'enabled': False,
-                    'default': False,
-                    'description': meta.get('__description__'),
-                    'author': author or meta.get('__author__'),
-                    'version': _ver(av),
-                    'has_webpage': False,
-                    'update_version': None,
-                    'category': meta.get('__category__') or CAT_MAP.get(plugin_name) or (store.get(plugin_name) or {}).get('category') or 'Other',
-                    'repo': meta.get('__github__') or meta.get('__url__') or (store.get(plugin_name) or {}).get('repo'),
-                })
-            # Installed first, then available; alpha within each group.
-            cards.sort(key=lambda c: (not c['installed'], c['name'].lower()))
-
-            # A restart is required to apply plugin file changes because plugins.database /
-            # plugins.loaded are snapshotted at startup. Detect this by diffing the plugins
-            # actually on disk now against the startup snapshot: a name added (install), a
-            # name removed (uninstall), or a changed __version__ (upgrade) all mean "pending".
-            restart_pending = False
-            try:
-                from pwnagotchi.utils import parse_version
-                installed_now = plugins_cmd._get_installed(self._agent.config())
-                if set(installed_now.keys()) != set(plugins.database.keys()):
-                    restart_pending = True
-                else:
-                    for pname, ppath in installed_now.items():
-                        inst = plugins.loaded.get(pname)
-                        if inst is None:
-                            continue
-                        disk_v = plugins_cmd._extract_version(ppath)
-                        loaded_raw = getattr(inst, '__version__', None)
-                        loaded_v = parse_version(loaded_raw) if loaded_raw else None
-                        if disk_v and loaded_v and disk_v != loaded_v:
-                            restart_pending = True
-                            break
-            except Exception:
-                restart_pending = False
+            catalog = PluginCatalog.from_environment(
+                self._agent.config(),
+                installed_paths=dict(plugins.database),
+                loaded=plugins.loaded,
+                store_meta=_store_meta(),
+            )
 
             # Restart-to-apply buttons should keep the unit in its current mode
             # (the handler's restart() only accepts the uppercase "AUTO"/"MANU").
             current_mode = "MANU" if self._agent.mode == "manual" else "AUTO"
-            return render_template("plugins.html", cards=cards, restart_pending=restart_pending, current_mode=current_mode)
+            return render_template("plugins.html", cards=catalog.entries,
+                                   restart_pending=catalog.restart_pending, current_mode=current_mode)
 
         if name == "toggle" and request.method == "POST":
             checked = True if "enabled" in request.form else False

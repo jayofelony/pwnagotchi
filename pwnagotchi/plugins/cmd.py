@@ -186,66 +186,41 @@ def list_plugins(args, config, pattern='*'):
     """
     Lists the available and installed plugins
     """
-    found = False
+    # Catalog assembly (merge installed/available, version-diff, categories) is
+    # shared with the web /plugins page; here we just print the table. loaded=None
+    # so "enabled" comes from config (the CLI runs outside the daemon).
+    from pwnagotchi.plugins.catalog import PluginCatalog
 
-    # MODIFIED: Added {author} placeholder
-    line = "|{name:^{width}}|{version:^9}|{enabled:^10}|{status:^15}|{author:^22}|"
+    catalog = PluginCatalog.from_environment(config, loaded=None, store_meta={})
 
-    available = _get_available()
-    installed = _get_installed(config)
+    # With --installed: installed plugins + the available-not-installed catalog.
+    # Without it: only available-not-installed (unchanged from before).
+    if args.installed:
+        entries = [e for e in catalog.entries if fnmatch(e.name, pattern)]
+    else:
+        entries = [e for e in catalog.entries if not e.installed and fnmatch(e.name, pattern)]
 
-    available_and_installed = set(list(available.keys()) + list(installed.keys()))
-    available_not_installed = set(available.keys()) - set(installed.keys())
-
-    max_len_list = available_and_installed if args.installed else available_not_installed
-    if not max_len_list:
+    if not entries:
         print('Maybe try: sudo pwnagotchi plugins update')
         return 1
-    max_len = max(map(len, max_len_list))
-    # MODIFIED: Added author to the header format
+
+    line = "|{name:^{width}}|{version:^9}|{enabled:^10}|{status:^15}|{author:^22}|"
+    max_len = max(len(e.name) for e in entries)
     header = line.format(name='Plugin', width=max_len, version='Version', enabled='Active', status='Status', author='Author')
-    line_length = len(header) - 10 # Adjusted for new column length
+    line_length = len(header) - 10
 
     print('-' * line_length)
     print(header)
     print('-' * line_length)
 
-    if args.installed:
-        # only installed (maybe update available?)
-        for plugin, filename in sorted(installed.items()):
-            if not fnmatch(plugin, pattern):
-                continue
-            found = True
-            installed_version = _extract_version(filename)
-            available_version = None
-            if plugin in available:
-                available_version = _extract_version(available[plugin])
-
-            status = "installed"
-            if installed_version and available_version:
-                if available_version > installed_version:
-                    status = "installed (^)"
-
-            enabled = 'enabled' if (plugin in config['main']['plugins'] and
-                                     'enabled' in config['main']['plugins'][plugin] and
-                                     config['main']['plugins'][plugin]['enabled']) else 'disabled'
-
-            # MODIFIED: Added author=_extract_author(filename) to the print format
-            print(line.format(name=plugin, width=max_len, version='.'.join(installed_version), enabled=enabled, status=status, author=_extract_author(filename)))
-
-    for plugin in sorted(available_not_installed):
-        if not fnmatch(plugin, pattern):
-            continue
-        found = True
-        available_version = _extract_version(available[plugin])
-        # MODIFIED: Added author=_extract_author(available[plugin]) to the print format
-        print(line.format(name=plugin, width=max_len, version='.'.join(available_version), enabled='-', status='available', author=_extract_author(available[plugin])))
+    # Installed first, then available; alpha within each group (catalog is already
+    # sorted this way).
+    for e in entries:
+        enabled = ('enabled' if e.enabled else 'disabled') if e.installed else '-'
+        print(line.format(name=e.name, width=max_len, version=(e.version or ''),
+                          enabled=enabled, status=e.status, author=(e.author or 'n/a')))
 
     print('-' * line_length)
-
-    if not found:
-        print('Maybe try: sudo pwnagotchi plugins update')
-        return 1
     return 0
 
 
