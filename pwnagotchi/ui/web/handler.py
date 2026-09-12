@@ -1,6 +1,5 @@
 import logging
 import os
-import base64
 import threading  # FIX B5: replaced _thread with threading
 import secrets
 import json
@@ -16,6 +15,7 @@ import pwnagotchi
 import pwnagotchi.grid as grid
 import pwnagotchi.ui.web as web
 from pwnagotchi import plugins
+from pwnagotchi.ui.web.gridview import GridView
 
 from flask import send_file
 from flask import Response
@@ -67,6 +67,7 @@ class Handler:
         self._config = config
         self._agent = agent
         self._app = app
+        self._grid_view = GridView()
 
         # Dynamic theme CSS route
         self._app.add_url_rule("/css/theme.css", "dynamic_theme", self.dynamic_theme)
@@ -154,32 +155,13 @@ class Handler:
 
     def inbox(self):
         page = request.args.get("p", default=1, type=int)
-        inbox = {"pages": 1, "records": 0, "messages": []}
-        error = None
-
-        try:
-            if not grid.is_connected():
-                raise Exception("not connected")
-
-            inbox = grid.inbox(page, with_pager=True)
-        except Exception as e:
-            logging.exception("error while reading pwnmail inbox")
-            error = str(e)
-
+        inbox, error = self._grid_view.inbox(page)
         return render_template(
             "inbox.html", name=pwnagotchi.name(), page=page, error=error, inbox=inbox
         )
 
     def inbox_profile(self):
-        data = {}
-        error = None
-
-        try:
-            data = grid.get_advertisement_data()
-        except Exception as e:
-            logging.exception("error while reading pwngrid data")
-            error = str(e)
-
+        data, error = self._grid_view.profile()
         return render_template(
             "profile.html",
             name=pwnagotchi.name(),
@@ -189,34 +171,13 @@ class Handler:
         )
 
     def inbox_peers(self):
-        peers = {}
-        error = None
-
-        try:
-            peers = grid.memory()
-        except Exception as e:
-            logging.exception("error while reading pwngrid peers")
-            error = str(e)
-
+        peers, error = self._grid_view.peers()
         return render_template(
             "peers.html", name=pwnagotchi.name(), peers=peers, error=error
         )
 
     def show_message(self, id):
-        message = {}
-        error = None
-
-        try:
-            if not grid.is_connected():
-                raise Exception("not connected")
-
-            message = grid.inbox_message(id)
-            if message["data"]:
-                message["data"] = base64.b64decode(message["data"]).decode("utf-8")
-        except Exception as e:
-            logging.exception("error while reading pwnmail message %d" % int(id))
-            error = str(e)
-
+        message, error = self._grid_view.message(id)
         return render_template(
             "message.html", name=pwnagotchi.name(), error=error, message=message
         )
@@ -228,16 +189,7 @@ class Handler:
     def send_message(self):
         to = request.form["to"]
         message = request.form["message"]
-        error = None
-
-        try:
-            if not grid.is_connected():
-                raise Exception("not connected")
-
-            grid.send_message(to, message)
-        except Exception as e:
-            error = str(e)
-
+        _, error = self._grid_view.send(to, message)
         return jsonify({"error": error})
 
     def mark_message(self, id, mark):
