@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 import base64
 import threading  # FIX B5: replaced _thread with threading
 import secrets
@@ -279,29 +278,31 @@ class Handler:
                 else "failed"
             )
 
-        if name == "upgrade" and request.method == "POST":
-            plugin_name = request.form["plugin"]
-            logging.info(f"Upgrading plugin: {plugin_name}")
-            self._run_plugins_cli(["pwnagotchi", "plugins", "update"], self._CATALOG_TIMEOUT)
-            self._run_plugins_cli(["pwnagotchi", "plugins", "upgrade", plugin_name], self._PLUGIN_TIMEOUT)
-            return redirect("/plugins")
+        # Plugin actions run in-process via the shared plugin-actions interface
+        # (also used by the CLI) instead of shelling out to the CLI as a
+        # subprocess. The network refresh is bounded by download_file's timeout.
+        if name in ("upgrade", "install", "uninstall", "refresh") and request.method == "POST":
+            from pwnagotchi.plugins import actions
+            cfg = self._agent.config()
 
-        if name == "install" and request.method == "POST":
-            plugin_name = request.form["plugin"]
-            logging.info(f"Installing plugin: {plugin_name}")
-            self._run_plugins_cli(["pwnagotchi", "plugins", "install", plugin_name], self._PLUGIN_TIMEOUT)
-            return redirect("/plugins")
+            if name == "refresh":
+                r = actions.refresh(cfg)
+                logging.info("plugin catalog refresh: %s", r.message)
+            elif name == "install":
+                plugin_name = request.form["plugin"]
+                r = actions.install(plugin_name, cfg)
+                logging.info("plugin install %s: %s", plugin_name, r.message)
+            elif name == "uninstall":
+                plugin_name = request.form["plugin"]
+                r = actions.uninstall(plugin_name, cfg)
+                logging.info("plugin uninstall %s: %s", plugin_name, r.message)
+            else:  # upgrade: refresh the catalog first (as before), then upgrade
+                plugin_name = request.form["plugin"]
+                rr = actions.refresh(cfg)
+                logging.info("plugin catalog refresh: %s", rr.message)
+                r = actions.upgrade(plugin_name, cfg)
+                logging.info("plugin upgrade %s: %s", plugin_name, r.message)
 
-        if name == "uninstall" and request.method == "POST":
-            plugin_name = request.form["plugin"]
-            logging.info(f"Uninstalling plugin: {plugin_name}")
-            self._run_plugins_cli(["pwnagotchi", "plugins", "uninstall", plugin_name], self._PLUGIN_TIMEOUT)
-            return redirect("/plugins")
-
-        if name == "refresh" and request.method == "POST":
-            # Refresh the installable catalog (pulls custom_plugin_repos into available-plugins/).
-            logging.info("Refreshing plugin catalog")
-            self._run_plugins_cli(["pwnagotchi", "plugins", "update"], self._CATALOG_TIMEOUT)
             return redirect("/plugins")
 
         if (
@@ -315,20 +316,6 @@ class Handler:
                 abort(500)
         else:
             abort(404)
-
-    # Wall-clock caps for the plugin CLI. `update` hits every custom_plugin_repo
-    # over the network (slow on a Pi), per-plugin actions are mostly local.
-    _CATALOG_TIMEOUT = 180
-    _PLUGIN_TIMEOUT = 120
-
-    @staticmethod
-    def _run_plugins_cli(argv, timeout):
-        # Bound the plugin CLI so a slow/unreachable repo host can't hang the
-        # web worker thread indefinitely; the child is killed once it expires.
-        try:
-            subprocess.run(argv, check=False, timeout=timeout)
-        except subprocess.TimeoutExpired:
-            logging.warning("plugin command timed out after %ss: %s", timeout, " ".join(argv))
 
     # serve a message and shuts down the unit
     def shutdown(self):
