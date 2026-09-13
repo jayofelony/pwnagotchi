@@ -153,28 +153,33 @@ class Handler:
             fingerprint=self._agent.fingerprint(),
         )
 
+    # The inbox/profile/peers pages make a (slow) pwngrid call. To keep tab
+    # navigation snappy they render a chrome-only shell on a normal GET and the
+    # page fetches the data as an XHR fragment (see loadFragment in app.js); the
+    # pwngrid call only happens on the fragment request.
     def inbox(self):
         page = request.args.get("p", default=1, type=int)
-        inbox, error = self._grid_view.inbox(page)
-        return render_template(
-            "inbox.html", name=pwnagotchi.name(), page=page, error=error, inbox=inbox
-        )
+        if self._is_fragment():
+            inbox, error = self._grid_view.inbox(page)
+            return render_template("inbox.html", name=pwnagotchi.name(), page=page,
+                                   error=error, inbox=inbox, is_fragment=True)
+        return render_template("inbox.html", name=pwnagotchi.name(), page=page, is_fragment=False)
 
     def inbox_profile(self):
-        data, error = self._grid_view.profile()
-        return render_template(
-            "profile.html",
-            name=pwnagotchi.name(),
-            fingerprint=self._agent.fingerprint(),
-            data=json.dumps(data, indent=2),
-            error=error,
-        )
+        if self._is_fragment():
+            data, error = self._grid_view.profile()
+            return render_template("profile.html", name=pwnagotchi.name(),
+                                   fingerprint=self._agent.fingerprint(),
+                                   data=json.dumps(data, indent=2), error=error, is_fragment=True)
+        return render_template("profile.html", name=pwnagotchi.name(),
+                               fingerprint=self._agent.fingerprint(), is_fragment=False)
 
     def inbox_peers(self):
-        peers, error = self._grid_view.peers()
-        return render_template(
-            "peers.html", name=pwnagotchi.name(), peers=peers, error=error
-        )
+        if self._is_fragment():
+            peers, error = self._grid_view.peers()
+            return render_template("peers.html", name=pwnagotchi.name(), peers=peers,
+                                   error=error, is_fragment=True)
+        return render_template("peers.html", name=pwnagotchi.name(), is_fragment=False)
 
     def show_message(self, id):
         message, error = self._grid_view.message(id)
@@ -282,6 +287,12 @@ class Handler:
         # return JSON instead of their no-JS redirect/text fallback.
         return (request.headers.get("X-Requested-With") == "XMLHttpRequest"
                 or "application/json" in (request.headers.get("Accept") or ""))
+
+    @staticmethod
+    def _is_fragment():
+        # True when the page is fetching its data fragment (loadFragment), so the
+        # inbox/profile/peers routes do the pwngrid call and render just the list.
+        return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     # serve a message and shuts down the unit
     def shutdown(self):

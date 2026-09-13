@@ -1075,6 +1075,14 @@ li {
 }
 .top-progress.active { opacity: 1; }
 
+/* Async fragment loading (inbox/peers/profile data streamed into the shell). */
+.fragment-loading { text-align: center; color: var(--text-muted); padding: 2rem 1rem; }
+.fragment-error { text-align: center; color: var(--danger); padding: 1.5rem 1rem; }
+.fragment-spinner { display: inline-block; width: 14px; height: 14px; vertical-align: middle;
+  margin-right: 6px; border: 2px solid var(--border-color); border-top-color: var(--accent);
+  border-radius: 50%; animation: frag-spin 0.7s linear infinite; }
+@keyframes frag-spin { to { transform: rotate(360deg); } }
+
 .alert {
   padding: 1.25rem 1.5rem;
   margin-bottom: 1rem;

@@ -1,24 +1,34 @@
-{% extends "base.html" %} {% set active_page = "peers" %} {% block title %} {{
-name }} Peers {% endblock %} {% block script %} filterList('.search-box input',
-'.peers li'); {% endblock %} {% block content %}
-<div class="search-box">
-  <input type="text" placeholder="Search peers..." />
-</div>
+{% extends "base.html" if not is_fragment else "fragment_base.html" %}
+{% set active_page = "peers" %}
+{% block title %}{{ name }} Peers{% endblock %}
 
+{% block content %}
+{% if is_fragment %}
+{% if error %}<div class="fragment-error">Couldn&rsquo;t load peers: {{ error }}</div>{% endif %}
 <ul class="peers">
   {% for peer in peers %}
   <li class="peer">
     <a href="/inbox/new?to={{ peer.fingerprint }}">
       <div class="list-item-primary">
-        {{ peer.advertisement.face }} {{ peer.advertisement.name }}@{{
-        peer.fingerprint }}
+        {{ peer.advertisement.face }} {{ peer.advertisement.name }}@{{ peer.fingerprint }}
       </div>
       <div class="list-item-secondary">
-        Pwned {{ peer.advertisement.pwnd_tot }} networks, {{ peer.encounters }}
-        encounters
+        Pwned {{ peer.advertisement.pwnd_tot }} networks, {{ peer.encounters }} encounters
       </div>
     </a>
   </li>
   {% endfor %}
 </ul>
+{% else %}
+<div class="search-box">
+  <input type="text" placeholder="Search peers..." />
+</div>
+<div id="peers-data"></div>
+{% endif %}
 {% endblock %}
+
+{% block script %}{% if not is_fragment %}
+loadFragment('#peers-data', location.pathname, function () {
+  filterList('.search-box input', '.peers li');
+});
+{% endif %}{% endblock %}

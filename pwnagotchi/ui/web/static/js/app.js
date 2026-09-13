@@ -271,6 +271,30 @@ const showToast = (message, duration = 4000, type = "error") => {
   }, duration);
 };
 
+// Load a server-rendered fragment into a container. The pwngrid-backed tabs
+// (inbox/peers/profile) render a chrome-only shell instantly, then call this to
+// fetch the slow data list under a spinner - so the tab switch is snappy.
+const loadFragment = (selector, url, onload) => {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.innerHTML =
+    '<div class="fragment-loading"><span class="fragment-spinner"></span> Loading&hellip;</div>';
+  fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }, credentials: "same-origin" })
+    .then((r) => {
+      if (!r.ok) throw new Error(r.status);
+      return r.text();
+    })
+    .then((html) => {
+      el.innerHTML = html;
+      if (typeof updateTimeElements === "function") updateTimeElements();
+      if (typeof onload === "function") onload();
+    })
+    .catch(() => {
+      el.innerHTML =
+        '<div class="fragment-error">Couldn’t reach pwngrid — reload to retry.</div>';
+    });
+};
+
 // Top navigation progress bar. Full-page navigations (especially the
 // pwngrid-backed tabs) can take seconds; this shows an indeterminate bar the
 // moment a link/form navigation starts, then completes when the next page loads.
