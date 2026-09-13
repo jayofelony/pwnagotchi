@@ -1,12 +1,7 @@
-"""Plugin catalog — the single source for "what plugins exist, installed vs
-available, with versions, categories and update status", shared by the web
-/plugins page and the `pwnagotchi plugins list` CLI.
+"""Plugin catalog shared by the web /plugins page and `pwnagotchi plugins list`.
 
-This is the supported interface. The underscore helpers in ``plugins.cmd``
-(_get_available/_get_installed/_extract_version/_extract_author) stay put and are
-called from here to read the filesystem; nothing else should reach into them. The
-pure builder (``_build``) takes already-gathered maps, so the merge/version/
-category logic can be tested without touching disk, network or Flask.
+The pure ``_build`` takes already-gathered maps, so the merge/version/category
+logic is testable without disk, network or Flask.
 """
 import os
 from dataclasses import dataclass
@@ -15,10 +10,7 @@ from typing import Optional
 from pwnagotchi.utils import parse_version
 
 
-# Curated categories for the shipped default plugins (so the category filter is
-# populated without editing each plugin file). A plugin's own __category__ wins;
-# the community store catalog is a further fallback. Moved here from the web
-# handler so the CLI and web share one category source.
+# A plugin's own __category__ wins, then the community store catalog, then this.
 CAT_MAP = {
     'bt-tether': 'Networking', 'grid': 'Networking',
     'gps': 'GPS', 'gps_listener': 'GPS', 'webgpsmap': 'GPS', 'pwndroid': 'GPS',
@@ -48,7 +40,6 @@ class PluginEntry:
 
     @property
     def status(self):
-        """Short status string for the CLI table."""
         if not self.installed:
             return "available"
         return "installed (^)" if self.update_version else "installed"
@@ -63,28 +54,15 @@ def _resolve_repo(raw, name, store_meta):
 
 
 class PluginCatalog:
-    """Catalog of plugins for a given environment.
-
-    Build it with :meth:`from_environment`, then read ``.entries`` (a sorted
-    ``list[PluginEntry]``) and ``.restart_pending`` (bool).
-    """
+    """Build via :meth:`from_environment`, then read ``.entries`` and ``.restart_pending``."""
 
     def __init__(self, entries, restart_pending=False):
         self.entries = entries
         self.restart_pending = restart_pending
 
-    # ---- pure core (the test surface): no filesystem, network or Flask ----
     @staticmethod
     def _build(installed, available, loaded_names, config_enabled, store_meta, default_names):
-        """Merge installed + available into one sorted list of PluginEntry.
-
-        installed:      name -> {version, description, author, category, repo, has_webpage}
-        available:      name -> {version, description, author, category, repo}
-        loaded_names:   set of running plugin names, or None to derive "enabled" from config
-        config_enabled: set of names enabled in config (used when loaded_names is None)
-        store_meta:     name -> {'category', 'repo'} from the community store catalog
-        default_names:  set of names that are shipped default plugins
-        """
+        """Merge installed + available into one sorted list of PluginEntry."""
         store_meta = store_meta or {}
         entries = []
 
@@ -113,14 +91,12 @@ class PluginCatalog:
                 repo=_resolve_repo(info.get('repo'), name, store_meta),
             ))
 
-        # Installed first, then available; alpha within each group.
         entries.sort(key=lambda e: (not e.installed, e.name.lower()))
         return entries
 
     @staticmethod
     def _restart_pending(disk_names, registered_names, disk_versions, loaded_versions):
-        """True when the plugins on disk differ from what's loaded (install/uninstall/
-        upgrade needs a restart to apply). Pure: name sets + name->version maps in."""
+        """True when the plugins on disk differ from the loaded/registered set."""
         if set(disk_names) != set(registered_names):
             return True
         for name, lv in loaded_versions.items():
@@ -129,20 +105,10 @@ class PluginCatalog:
                 return True
         return False
 
-    # ---- adapter: reads the world, then calls the pure core ----
     @classmethod
     def from_environment(cls, config, installed_paths=None, loaded=None, store_meta=None):
-        """Build a catalog for the current environment.
-
-        config:         the pwnagotchi config (for config-derived "enabled").
-        installed_paths: name -> path of installed plugins. Defaults to
-                        ``cmd._get_installed`` (disk). The web passes
-                        ``plugins.database`` (the daemon's registered set).
-        loaded:         name -> plugin instance (``plugins.loaded``) in the daemon,
-                        or None in the CLI (where "enabled" comes from config).
-        store_meta:     name -> {category, repo} from the community store. Injected
-                        so no network happens here; the CLI passes None/{}.
-        """
+        """Build a catalog. The web passes plugins.database + plugins.loaded + the
+        fetched store map; the CLI passes none (enabled from config, no network)."""
         from pwnagotchi.plugins import cmd as _cmd
         from pwnagotchi import plugins as _plugins
 
@@ -169,7 +135,6 @@ class PluginCatalog:
             except Exception:
                 return {}
 
-        # Installed: prefer a loaded instance's live attributes, else file metadata.
         installed = {}
         loaded_versions = {}
         for name, path in installed_paths.items():
@@ -197,15 +162,12 @@ class PluginCatalog:
                     'has_webpage': False,
                 }
 
-        # Available (catalog) plugins. Installed ones keep only a version, for the
-        # update-available comparison; the rest carry full metadata.
         available = {}
         for name, path in available_paths.items():
             if name in installed_paths:
-                available[name] = {'version': _ver_str(path)}
+                available[name] = {'version': _ver_str(path)}  # only needed for the update check
                 continue
             m = _meta(path)
-            author = None
             try:
                 author = _cmd._extract_author(path)
             except Exception:
@@ -224,10 +186,8 @@ class PluginCatalog:
         entries = cls._build(installed, available, loaded_names, config_enabled,
                              store_meta or {}, default_names)
 
-        # Restart-pending only makes sense in the daemon (it compares disk vs the
-        # startup-loaded snapshot); the CLI has no running set.
         restart_pending = False
-        if loaded is not None:
+        if loaded is not None:  # only meaningful in the daemon
             try:
                 disk = _cmd._get_installed(config)
                 disk_versions = {n: _ver_str(p) for n, p in disk.items()}
@@ -242,7 +202,6 @@ class PluginCatalog:
 
 
 def _config_enabled_names(config):
-    """Names with ``[main.plugins.<name>].enabled = true`` in config."""
     out = set()
     try:
         plugins_cfg = config['main']['plugins']

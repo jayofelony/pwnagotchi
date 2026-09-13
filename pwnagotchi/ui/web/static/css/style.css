@@ -1058,8 +1058,7 @@ li {
   background-color: color-mix(in srgb, var(--info) 12%, #1e1e1e);
 }
 
-/* Top navigation progress bar: gives immediate feedback on full-page
-   navigations (the pwngrid-backed tabs can take seconds to respond). */
+/* Top navigation progress bar. */
 .top-progress {
   position: fixed;
   top: 0;
@@ -1075,7 +1074,7 @@ li {
 }
 .top-progress.active { opacity: 1; }
 
-/* Async fragment loading (inbox/peers/profile data streamed into the shell). */
+/* Async fragment loading states. */
 .fragment-loading { text-align: center; color: var(--text-muted); padding: 2rem 1rem; }
 .fragment-error { text-align: center; color: var(--danger); padding: 1.5rem 1rem; }
 .fragment-spinner { display: inline-block; width: 14px; height: 14px; vertical-align: middle;

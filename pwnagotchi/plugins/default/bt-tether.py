@@ -158,11 +158,7 @@ class BtTether(Plugin):
             return
 
         try:
-            # Ask the facade for a ready-to-render snapshot. It reads the monitor's
-            # cached poll (non-blocking - no bluetoothctl/ip here, which would
-            # freeze the whole display for seconds when the phone is out of range),
-            # applies the transient-state precedence, and runs the renderer, so all
-            # of that logic lives in one place behind the facade.
+            # Non-blocking snapshot from the facade (no bluetoothctl/ip on the main loop).
             snap = self.bt.ui_snapshot()
 
             if snap.get("name"):

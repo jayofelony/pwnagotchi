@@ -284,8 +284,7 @@
       if (typeof showToast === 'function') showToast(msg, 4000, ok ? 'success' : 'error');
     }
 
-    // Show/hide cards by the active state pill, category pill and search text.
-    // Re-queries the cards each call so it still works after a soft-refresh.
+    // Filter cards by state pill + category pill + search (re-queried each call).
     function apply() {
       var q = (filter && filter.value || '').trim().toLowerCase();
       document.querySelectorAll('.plugin-card').forEach(function (c) {
@@ -308,9 +307,8 @@
       return 'Installing';
     }
 
-    // Re-fetch /plugins and swap the grid + count + restart banner in place, so
-    // installed<->available / version / restart-pending are server-accurate
-    // without a full-page reload. Filters, search and scroll are preserved.
+    // Re-fetch /plugins and swap the grid/count/restart-banner in place (no full
+    // reload), keeping state server-accurate and preserving filters/scroll.
     function softRefresh() {
       return fetch('/plugins', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (r) { return r.text(); })
@@ -325,8 +323,7 @@
         });
     }
 
-    // POST an action form via fetch: spinner on its button, toast the result,
-    // then soft-refresh. Full-page submit is prevented.
+    // POST an action via fetch: spinner, toast the result, then soft-refresh.
     function submitAction(form) {
       var btn = form.querySelector('button[type="submit"]');
       var orig = btn ? btn.textContent : '';
@@ -386,8 +383,7 @@
         });
     }
 
-    // (Re)bind action forms + toggles - also called after each soft-refresh, so
-    // the freshly-swapped grid cards get their handlers.
+    // (Re)bind action forms + toggles; re-run after each soft-refresh.
     function bindActions() {
       document.querySelectorAll('form[action^="/plugins/"]').forEach(function (form) {
         if (form._bound) return; form._bound = true;

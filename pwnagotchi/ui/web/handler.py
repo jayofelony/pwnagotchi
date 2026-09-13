@@ -153,10 +153,8 @@ class Handler:
             fingerprint=self._agent.fingerprint(),
         )
 
-    # The inbox/profile/peers pages make a (slow) pwngrid call. To keep tab
-    # navigation snappy they render a chrome-only shell on a normal GET and the
-    # page fetches the data as an XHR fragment (see loadFragment in app.js); the
-    # pwngrid call only happens on the fragment request.
+    # Render a chrome-only shell on a normal GET; the page fetches the (slow)
+    # pwngrid data as an XHR fragment (loadFragment) so tab switches stay instant.
     def inbox(self):
         page = request.args.get("p", default=1, type=int)
         if self._is_fragment():
@@ -208,11 +206,8 @@ class Handler:
 
     def plugins(self, name, subpath):
         if name is None:
-            # Unified plugins page: installed plugins + the installable catalog. The
-            # merge/version/category/restart-pending logic lives in the shared
-            # PluginCatalog module (also used by the `pwnagotchi plugins list` CLI);
-            # here we just hand it the daemon's registered/loaded state plus the
-            # community store metadata (a network fetch kept web-side and injected).
+            # Assembly lives in the shared PluginCatalog; hand it the daemon's
+            # registered/loaded state + the store metadata (network kept web-side).
             from pwnagotchi.plugins.catalog import PluginCatalog
 
             catalog = PluginCatalog.from_environment(
@@ -241,9 +236,7 @@ class Handler:
                 })
             return "success" if ok else "failed"
 
-        # Plugin actions run in-process via the shared plugin-actions interface
-        # (also used by the CLI) instead of shelling out to the CLI as a
-        # subprocess. The network refresh is bounded by download_file's timeout.
+        # Actions run in-process via the shared plugins.actions interface.
         if name in ("upgrade", "install", "uninstall", "refresh") and request.method == "POST":
             from pwnagotchi.plugins import actions
             cfg = self._agent.config()
@@ -284,15 +277,13 @@ class Handler:
 
     @staticmethod
     def _wants_json():
-        # True for the page's AJAX fetch() calls, so the plugin-action routes
-        # return JSON instead of their no-JS redirect/text fallback.
+        # AJAX calls get JSON; plain requests get the redirect/text fallback.
         return (request.headers.get("X-Requested-With") == "XMLHttpRequest"
                 or "application/json" in (request.headers.get("Accept") or ""))
 
     @staticmethod
     def _is_fragment():
-        # True when the page is fetching its data fragment (loadFragment), so the
-        # inbox/profile/peers routes do the pwngrid call and render just the list.
+        # True when loadFragment is fetching the data fragment (renders list only).
         return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     # serve a message and shuts down the unit

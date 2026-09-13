@@ -1,12 +1,6 @@
-"""Plugin actions — install / uninstall / upgrade / refresh, callable in-process
-by both the CLI (``plugins/cmd.py``) and the web ``/plugins`` route, so the web no
-longer shells out to the CLI as a subprocess.
-
-Each action returns a :class:`Result` ``(ok, message)``. The install/uninstall/
-upgrade ops are local file copy/remove and fast; :func:`refresh` is the only
-network op and is bounded by ``download_file``'s timeout. The catalog helpers
-(``_get_available``/``_get_installed``/``_extract_version``) and the install paths
-stay in ``cmd.py`` and are imported lazily here to avoid a circular import.
+"""Plugin actions (install/uninstall/upgrade/refresh) shared in-process by the CLI
+and the web /plugins route, so the web no longer shells out to the CLI. Each
+returns a Result(ok, message); refresh is the only network op.
 """
 import os
 import glob
@@ -26,9 +20,7 @@ class Result:
 
 
 def _cmd():
-    # Lazy import: cmd.py imports this module for its thin CLI wrappers, so a
-    # top-level import here would be circular.
-    from pwnagotchi.plugins import cmd
+    from pwnagotchi.plugins import cmd  # lazy: cmd imports this module (circular otherwise)
     return cmd
 
 
@@ -101,12 +93,8 @@ def upgrade(name, config):
 
 
 def refresh(config):
-    """Refresh the available-plugins catalog from the configured repos (network).
-
-    Bounded by download_file's timeout, so a dead repo host can't hang the caller
-    the way the unbounded request used to (which is why the web wrapped it in a
-    killable subprocess).
-    """
+    """Refresh the available-plugins catalog from the configured repos (network,
+    bounded by download_file's timeout)."""
     cmd = _cmd()
 
     if not cmd._check_internet():

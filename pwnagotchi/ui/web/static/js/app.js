@@ -271,9 +271,8 @@ const showToast = (message, duration = 4000, type = "error") => {
   }, duration);
 };
 
-// Load a server-rendered fragment into a container. The pwngrid-backed tabs
-// (inbox/peers/profile) render a chrome-only shell instantly, then call this to
-// fetch the slow data list under a spinner - so the tab switch is snappy.
+// Fetch a server-rendered fragment into a container (used by the pwngrid tabs so
+// the shell shows instantly and the slow data streams in under a spinner).
 const loadFragment = (selector, url, onload) => {
   const el = document.querySelector(selector);
   if (!el) return;
@@ -295,9 +294,7 @@ const loadFragment = (selector, url, onload) => {
     });
 };
 
-// Top navigation progress bar. Full-page navigations (especially the
-// pwngrid-backed tabs) can take seconds; this shows an indeterminate bar the
-// moment a link/form navigation starts, then completes when the next page loads.
+// Top progress bar: shows on a full-page navigation, completes on load.
 (function () {
   let bar, creep, pct;
 
@@ -325,16 +322,15 @@ const loadFragment = (selector, url, onload) => {
   function done() {
     clearInterval(creep);
     const b = ensureBar();
-    b.classList.add("active"); // opacity 1 (visible at 100%)
+    b.classList.add("active");
     b.style.width = "100%";
     setTimeout(() => {
-      b.classList.remove("active"); // fade out via the opacity transition
+      b.classList.remove("active");
       setTimeout(() => { b.style.width = "0%"; }, 300);
     }, 180);
   }
 
-  // Start on a real same-origin navigation click (bubble phase, so we can honour
-  // a handler that already called preventDefault — e.g. the /plugins AJAX forms).
+  // Start on a same-origin navigation click (bubble phase honours preventDefault).
   document.addEventListener("click", (e) => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const a = e.target.closest && e.target.closest("a[href]");

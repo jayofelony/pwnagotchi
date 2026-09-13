@@ -18,14 +18,9 @@ from .ui import UIRenderer
 
 
 class BluetoothService:
-    """Main facade for Bluetooth operations.
-
-    This is the one supported interface for driving Bluetooth from a plugin
-    (bt-tether, or any third-party plugin): construct a BluetoothService and call
-    its methods. The manager objects it composes (connection/network/monitor/
-    ui_renderer) are internal implementation seams - reachable, since Python has
-    no true privates, but NOT a stable interface. If something you need isn't on
-    the facade, add it here rather than reaching into a manager.
+    """Main facade for Bluetooth operations - the one supported interface for a
+    plugin. The managers it composes (connection/network/monitor/ui_renderer) are
+    internal seams; add to the facade rather than reaching into one.
     """
 
     # State constants
@@ -58,9 +53,7 @@ class BluetoothService:
         self.options = options or {}
         self.logger = logger or logging.getLogger(__name__)
 
-        # Initialize components. These are internal seams, not a supported
-        # interface - drive Bluetooth through the BluetoothService methods below,
-        # not by reaching into these attributes from a plugin.
+        # Internal seams (see class docstring) - not a supported interface.
         self.connection = ConnectionManager(logger=self.logger, options=self.options)
         self.network = NetworkManager(logger=self.logger, options=self.options)
         self.agent = PairingAgent(logger=self.logger)
@@ -185,22 +178,10 @@ class BluetoothService:
         return self.network.get_default_route_interface()
 
     def ui_snapshot(self):
-        """Ready-to-render display snapshot for the e-ink UI and /status.
-
-        THIS is the supported way to render Bluetooth state from a plugin. It
-        reads the monitor's cached poll (non-blocking - never calls bluetoothctl/
-        ip, so it is safe on the main loop under the view lock), applies the
-        transient-state precedence (stuck > recovering > stalled > connected),
-        and runs the renderer, so all display logic lives here behind the facade
-        rather than in the plugin. Returns a dict:
-
-            icon         single-char glyph for the mini status element
-            detail_line  detailed display string, e.g. "BT:192.168.44.1"
-            message      detail_line without the "BT:" prefix (for /status)
-            name         connected/target device name, or None
-            mac          connected/target device MAC, or None
-            connected    bool
-        """
+        """Ready-to-render display snapshot (icon, detail_line, message, name, mac,
+        connected) for the e-ink UI and /status. Non-blocking (reads the monitor's
+        cached poll, safe on the main loop) and applies the transient-state
+        precedence: stuck > recovering > stalled > connected."""
         snap = self.monitor.get_ui_status() or {}
         status = snap.get("status") or {}
         bt_stuck = self.bt_stuck
@@ -311,10 +292,8 @@ class BluetoothService:
                 self.logger.info("Making Pwnagotchi discoverable...")
                 with self._lock:
                     self._message = f"Making Pwnagotchi discoverable for {name}..."
-                # FOLLOW-UP: the facade reaches into ConnectionManager privates here
-                # and below (_run_cmd, _consecutive_busy). That's same-subsystem
-                # coupling, not a leak across the public seam, but worth giving
-                # ConnectionManager small public methods for later.
+                # FOLLOW-UP: give ConnectionManager public methods so the facade
+                # stops reaching into its privates (_run_cmd, _consecutive_busy).
                 self.connection._run_cmd(["bluetoothctl", "discoverable", "on"], capture=True)
                 self.connection._run_cmd(["bluetoothctl", "pairable", "on"], capture=True)
                 time.sleep(2)

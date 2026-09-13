@@ -148,10 +148,7 @@ def disable(args, config):
 
 
 def upgrade(args, config, pattern='*'):
-    """
-    Upgrades installed plugins matching the pattern (delegates to the shared
-    plugin-actions interface).
-    """
+    """Upgrade installed plugins matching the pattern (via plugins.actions)."""
     from pwnagotchi.plugins import actions
     available = _get_available()
     for plugin in sorted(_get_installed(config)):
@@ -164,15 +161,12 @@ def list_plugins(args, config, pattern='*'):
     """
     Lists the available and installed plugins
     """
-    # Catalog assembly (merge installed/available, version-diff, categories) is
-    # shared with the web /plugins page; here we just print the table. loaded=None
-    # so "enabled" comes from config (the CLI runs outside the daemon).
+    # Shared with the web /plugins page; loaded=None -> "enabled" from config.
     from pwnagotchi.plugins.catalog import PluginCatalog
 
     catalog = PluginCatalog.from_environment(config, loaded=None, store_meta={})
 
-    # With --installed: installed plugins + the available-not-installed catalog.
-    # Without it: only available-not-installed (unchanged from before).
+    # --installed shows installed too; otherwise only available-not-installed.
     if args.installed:
         entries = [e for e in catalog.entries if fnmatch(e.name, pattern)]
     else:
@@ -191,8 +185,6 @@ def list_plugins(args, config, pattern='*'):
     print(header)
     print('-' * line_length)
 
-    # Installed first, then available; alpha within each group (catalog is already
-    # sorted this way).
     for e in entries:
         enabled = ('enabled' if e.enabled else 'disabled') if e.installed else '-'
         print(line.format(name=e.name, width=max_len, version=(e.version or ''),
@@ -255,9 +247,7 @@ def _get_installed(config):
 
 
 def uninstall(args, config):
-    """
-    Uninstalls a plugin (delegates to the shared plugin-actions interface).
-    """
+    """Uninstall a plugin (via plugins.actions)."""
     from pwnagotchi.plugins import actions
     res = actions.uninstall(args.name, config)
     (logging.info if res.ok else logging.error)(res.message)
@@ -265,9 +255,7 @@ def uninstall(args, config):
 
 
 def install(args, config):
-    """
-    Installs the given plugin (delegates to the shared plugin-actions interface).
-    """
+    """Install the given plugin (via plugins.actions)."""
     from pwnagotchi.plugins import actions
     res = actions.install(args.name, config, config_path=args.user_config)
     (logging.info if res.ok else logging.error)(res.message)
@@ -300,10 +288,7 @@ def _check_internet():
 
 
 def update(config):
-    """
-    Refreshes the available-plugins catalog (delegates to the shared plugin-actions
-    interface). _check_internet / _analyse_dir stay here and are used by it.
-    """
+    """Refresh the available-plugins catalog (via plugins.actions)."""
     from pwnagotchi.plugins import actions
     res = actions.refresh(config)
     (logging.info if res.ok else logging.error)(res.message)

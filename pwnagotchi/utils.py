@@ -47,9 +47,7 @@ def remove_whitelisted(list_of_handshakes, list_of_whitelisted_strings, valid_on
 
 
 def download_file(url, destination, chunk_size=128, timeout=(10, 30)):
-    # timeout is a (connect, read-inactivity) tuple so a dead/hung host fails
-    # fast instead of blocking forever; a slow-but-progressing download still
-    # completes (read timeout is per-chunk, not total).
+    # (connect, read) timeout so a dead host fails fast instead of hanging.
     import requests
     resp = requests.get(url, timeout=timeout)
     resp.raise_for_status()

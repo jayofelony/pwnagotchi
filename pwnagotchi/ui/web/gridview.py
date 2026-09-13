@@ -1,22 +1,12 @@
-"""GridView — one seam over the ``pwnagotchi.grid`` module for the web inbox pages.
-
-The inbox/profile/peers/message/send handlers all repeated the same dance: maybe
-check ``grid.is_connected()``, call a grid function, and on any exception stringify
-it into an ``error`` for the template. That connection policy + error handling now
-lives here once, so the handlers shrink to "get data-or-error, render".
-
-Each method returns a ``(data, error)`` tuple: ``error`` is ``None`` on success,
-else a message string (with ``data`` left at its safe default). ``grid`` is
-injected (defaulting to the real module) so the mapping is testable with a fake -
-no live pwngrid needed.
+"""One seam over pwngrid for the web inbox pages. Each method returns (data, error);
+grid is injected (defaulting to the real module) so the mapping is testable.
 """
 import base64
 import logging
 
 
 def _friendly_grid_error(e):
-    """Map a raw grid/requests exception to a short, user-facing message. The full
-    exception is still logged (logging.exception) at the call site for debugging."""
+    """Map a raw grid/requests exception to a short, user-facing message."""
     name = type(e).__name__
     text = str(e)
     if "ConnectionError" in name or "Connection refused" in text or "Max retries" in text:
@@ -36,14 +26,13 @@ class GridView:
         self._grid = grid
 
     def _fetch(self, fn, default, log_msg, require_connected):
-        """Run a grid call, returning (data, error). Honours the per-call
-        connection policy and turns any exception into an error string."""
+        """Run a grid call, returning (data, error) per the connection policy."""
         if require_connected and not self._grid.is_connected():
             return default, "pwngrid isn't connected yet — waiting for the mesh."
         try:
             return fn(), None
         except Exception as e:
-            logging.exception(log_msg)  # full detail stays in the log
+            logging.exception(log_msg)
             return default, _friendly_grid_error(e)
 
     def inbox(self, page):
