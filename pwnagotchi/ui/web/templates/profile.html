@@ -4,8 +4,11 @@
 
 {% block content %}
 {% if is_fragment %}
-{% if error %}<div class="fragment-error">Couldn&rsquo;t load profile data: {{ error }}</div>{% endif %}
+{% if error %}
+<div class="fragment-error">Couldn&rsquo;t load profile data: {{ error }}</div>
+{% else %}
 <pre><code>{{ data }}</code></pre>
+{% endif %}
 {% else %}
 <div class="card">
   <div class="card-body">

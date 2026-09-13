@@ -14,6 +14,20 @@ import base64
 import logging
 
 
+def _friendly_grid_error(e):
+    """Map a raw grid/requests exception to a short, user-facing message. The full
+    exception is still logged (logging.exception) at the call site for debugging."""
+    name = type(e).__name__
+    text = str(e)
+    if "ConnectionError" in name or "Connection refused" in text or "Max retries" in text:
+        return "pwngrid isn't reachable — is the pwngrid-peer service running?"
+    if "Timeout" in name or "timed out" in text:
+        return "pwngrid took too long to respond — try again."
+    if "not connected" in text.lower():
+        return "pwngrid isn't connected to the mesh yet."
+    return "couldn't reach pwngrid."
+
+
 class GridView:
     def __init__(self, grid=None):
         if grid is None:
@@ -25,12 +39,12 @@ class GridView:
         """Run a grid call, returning (data, error). Honours the per-call
         connection policy and turns any exception into an error string."""
         if require_connected and not self._grid.is_connected():
-            return default, "not connected"
+            return default, "pwngrid isn't connected yet — waiting for the mesh."
         try:
             return fn(), None
         except Exception as e:
-            logging.exception(log_msg)
-            return default, str(e)
+            logging.exception(log_msg)  # full detail stays in the log
+            return default, _friendly_grid_error(e)
 
     def inbox(self, page):
         return self._fetch(
