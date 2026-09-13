@@ -1058,6 +1058,23 @@ li {
   background-color: color-mix(in srgb, var(--info) 12%, #1e1e1e);
 }
 
+/* Top navigation progress bar: gives immediate feedback on full-page
+   navigations (the pwngrid-backed tabs can take seconds to respond). */
+.top-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.6);
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: width 0.2s ease, opacity 0.3s ease;
+}
+.top-progress.active { opacity: 1; }
+
 .alert {
   padding: 1.25rem 1.5rem;
   margin-bottom: 1rem;

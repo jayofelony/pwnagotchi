@@ -270,3 +270,68 @@ const showToast = (message, duration = 4000, type = "error") => {
     setTimeout(() => toast.remove(), 300);
   }, duration);
 };
+
+// Top navigation progress bar. Full-page navigations (especially the
+// pwngrid-backed tabs) can take seconds; this shows an indeterminate bar the
+// moment a link/form navigation starts, then completes when the next page loads.
+(function () {
+  let bar, creep, pct;
+
+  function ensureBar() {
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "top-progress";
+      (document.body || document.documentElement).appendChild(bar);
+    }
+    return bar;
+  }
+
+  function start() {
+    const b = ensureBar();
+    b.classList.add("active");
+    pct = 8;
+    b.style.width = pct + "%";
+    clearInterval(creep);
+    creep = setInterval(() => {
+      pct += (90 - pct) * 0.12; // ease toward 90%, never reaching it
+      b.style.width = Math.min(pct, 90) + "%";
+    }, 200);
+  }
+
+  function done() {
+    clearInterval(creep);
+    const b = ensureBar();
+    b.classList.add("active"); // opacity 1 (visible at 100%)
+    b.style.width = "100%";
+    setTimeout(() => {
+      b.classList.remove("active"); // fade out via the opacity transition
+      setTimeout(() => { b.style.width = "0%"; }, 300);
+    }, 180);
+  }
+
+  // Start on a real same-origin navigation click (bubble phase, so we can honour
+  // a handler that already called preventDefault — e.g. the /plugins AJAX forms).
+  document.addEventListener("click", (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest("a[href]");
+    if (!a || (a.target && a.target !== "_self") || a.hasAttribute("download")) return;
+    const href = a.getAttribute("href");
+    if (!href || href[0] === "#" || href.toLowerCase().indexOf("javascript:") === 0) return;
+    let url;
+    try { url = new URL(a.href, location.href); } catch (_) { return; }
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.hash) return; // same-page anchor
+    start();
+  });
+
+  // Start on non-AJAX form submits (AJAX forms preventDefault before this bubbles).
+  document.addEventListener("submit", (e) => {
+    if (e.defaultPrevented) return;
+    if (e.target && e.target.getAttribute && e.target.getAttribute("target") === "_blank") return;
+    start();
+  });
+
+  // Complete on the freshly-loaded page (and when returning via bfcache).
+  window.addEventListener("load", done);
+  window.addEventListener("pageshow", (e) => { if (e.persisted) done(); });
+})();
