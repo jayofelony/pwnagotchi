@@ -224,11 +224,16 @@ class Handler:
 
         if name == "toggle" and request.method == "POST":
             checked = True if "enabled" in request.form else False
-            return (
-                "success"
-                if plugins.toggle_plugin(request.form["plugin"], checked)
-                else "failed"
-            )
+            plugin_name = request.form["plugin"]
+            ok = bool(plugins.toggle_plugin(plugin_name, checked))
+            if self._wants_json():
+                verb = "Enabled" if checked else "Disabled"
+                return jsonify({
+                    "ok": ok,
+                    "message": (f"{verb} {plugin_name}" if ok
+                                else f"Failed to {'enable' if checked else 'disable'} {plugin_name}"),
+                })
+            return "success" if ok else "failed"
 
         # Plugin actions run in-process via the shared plugin-actions interface
         # (also used by the CLI) instead of shelling out to the CLI as a
@@ -255,6 +260,8 @@ class Handler:
                 r = actions.upgrade(plugin_name, cfg)
                 logging.info("plugin upgrade %s: %s", plugin_name, r.message)
 
+            if self._wants_json():
+                return jsonify({"ok": r.ok, "message": r.message})
             return redirect("/plugins")
 
         if (
@@ -268,6 +275,13 @@ class Handler:
                 abort(500)
         else:
             abort(404)
+
+    @staticmethod
+    def _wants_json():
+        # True for the page's AJAX fetch() calls, so the plugin-action routes
+        # return JSON instead of their no-JS redirect/text fallback.
+        return (request.headers.get("X-Requested-With") == "XMLHttpRequest"
+                or "application/json" in (request.headers.get("Accept") or ""))
 
     # serve a message and shuts down the unit
     def shutdown(self):

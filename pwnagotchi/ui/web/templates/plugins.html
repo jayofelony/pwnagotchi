@@ -2,6 +2,10 @@
 {% set active_page = "plugins" %}
 {% block title %}Plugins{% endblock %}
 
+{% block meta %}{{ super() }}
+<meta name="csrf_token" content="{{ csrf_token() }}" />
+{% endblock %}
+
 {% block styles %}{{ super() }}
 <style>
   .plugins-header { position: relative; text-align: center; padding: 0.25rem 0 1rem;
@@ -149,6 +153,7 @@
     <div class="subtitle">Installed &amp; available in one place</div>
   </div>
 
+  <div id="restartNoticeSlot">
   {% if restart_pending %}
   <div class="pc-notice" id="restartNotice">
     <div class="pc-notice-text"><strong>Pending changes.</strong> Installed, removed or updated plugins won&rsquo;t take effect until you restart the service.</div>
@@ -160,6 +165,7 @@
     <button type="button" class="pc-notice-x" aria-label="Dismiss" onclick="document.getElementById('restartNotice').remove()">&times;</button>
   </div>
   {% endif %}
+  </div>
 
   <div class="pill-row" id="statePills">
     <button class="pill" data-state="installed">Installed</button>
@@ -212,7 +218,7 @@
           {% if p.installed %}
           <form method="POST" action="/plugins/toggle" class="plugin-toggle" title="Enable / disable">
             <label class="switch">
-              <input type="checkbox" name="enabled" {% if p.enabled %}checked{% endif %} onchange="this.form.submit()" />
+              <input type="checkbox" name="enabled" {% if p.enabled %}checked{% endif %} />
               <span class="slider"></span>
             </label>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -264,15 +270,23 @@
 <script>
   (function () {
     var filter = document.getElementById('pluginFilter');
-    var count = document.getElementById('pluginCount');
-    var cards = Array.prototype.slice.call(document.querySelectorAll('.plugin-card'));
     var statePills = Array.prototype.slice.call(document.querySelectorAll('#statePills .pill'));
     var catPills = Array.prototype.slice.call(document.querySelectorAll('#catPills .pill'));
     var state = 'all', cat = 'all';
 
+    function csrf() {
+      var m = document.querySelector('meta[name="csrf_token"]');
+      return m ? m.getAttribute('content') : '';
+    }
+    function toast(msg, ok) {
+      if (typeof showToast === 'function') showToast(msg, 4000, ok ? 'success' : 'error');
+    }
+
+    // Show/hide cards by the active state pill, category pill and search text.
+    // Re-queries the cards each call so it still works after a soft-refresh.
     function apply() {
       var q = (filter && filter.value || '').trim().toLowerCase();
-      cards.forEach(function (c) {
+      document.querySelectorAll('.plugin-card').forEach(function (c) {
         var hitState = state === 'all' || c.dataset.state === state;
         var hitCat = cat === 'all' || (cat === 'default' ? c.dataset.default === 'true' : c.dataset.cat === cat);
         var hitText = !q || c.dataset.name.indexOf(q) !== -1 || c.dataset.desc.indexOf(q) !== -1 || (c.dataset.author || '').indexOf(q) !== -1;
@@ -280,27 +294,90 @@
       });
     }
     function pick(pills, el, set) { pills.forEach(function (p) { p.classList.remove('active'); }); el.classList.add('active'); set(); apply(); }
-
     statePills.forEach(function (p) { p.addEventListener('click', function () { pick(statePills, p, function () { state = p.dataset.state; }); }); });
     catPills.forEach(function (p) { p.addEventListener('click', function () { pick(catPills, p, function () { cat = p.dataset.cat; }); }); });
     if (filter) filter.addEventListener('input', apply);
-    apply();
 
-    // Inline per-tile progress: the clicked button itself becomes a spinner + verb,
-    // so you see exactly which plugin is working — no full-screen overlay.
-    function verbFor(a) {
-      if (a.indexOf('uninstall') !== -1) return 'Uninstalling';
-      if (a.indexOf('upgrade') !== -1) return 'Updating';
-      if (a.indexOf('restart') !== -1) return 'Restarting';
+    function verbFor(action) {
+      if (action.indexOf('uninstall') !== -1) return 'Uninstalling';
+      if (action.indexOf('upgrade') !== -1) return 'Updating';
+      if (action.indexOf('refresh') !== -1) return 'Refreshing catalog';
       return 'Installing';
     }
-    document.querySelectorAll('form[action*="/plugins/install"], form[action*="/plugins/uninstall"], form[action*="/plugins/upgrade"], form[action="/restart"]').forEach(function (f) {
-      f.addEventListener('submit', function (e) {
-        if (e.defaultPrevented) return;
-        var btn = f.querySelector('button[type="submit"]');
-        if (btn) { btn.classList.add('is-busy'); btn.textContent = verbFor(f.getAttribute('action')) + '…'; }
+
+    // Re-fetch /plugins and swap the grid + count + restart banner in place, so
+    // installed<->available / version / restart-pending are server-accurate
+    // without a full-page reload. Filters, search and scroll are preserved.
+    function softRefresh() {
+      return fetch('/plugins', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          ['pluginsGrid', 'pluginCount', 'restartNoticeSlot'].forEach(function (id) {
+            var cur = document.getElementById(id), next = doc.getElementById(id);
+            if (cur && next) cur.innerHTML = next.innerHTML;
+          });
+          bindActions();
+          apply();
+        });
+    }
+
+    // POST an action form via fetch: spinner on its button, toast the result,
+    // then soft-refresh. Full-page submit is prevented.
+    function submitAction(form) {
+      var btn = form.querySelector('button[type="submit"]');
+      var orig = btn ? btn.textContent : '';
+      if (btn) { btn.classList.add('is-busy'); btn.textContent = verbFor(form.getAttribute('action')) + '…'; }
+      return fetch(form.getAttribute('action'), {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf() },
+        body: new FormData(form),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          toast(data.message || (data.ok ? 'Done' : 'Failed'), data.ok);
+          return softRefresh();
+        })
+        .catch(function () {
+          toast('Request failed', false);
+          if (btn) { btn.classList.remove('is-busy'); btn.textContent = orig; }
+        });
+    }
+
+    // Toggle enable/disable via fetch; revert the switch on failure.
+    function submitToggle(input) {
+      var form = input.closest('form');
+      input.disabled = true;
+      fetch(form.getAttribute('action'), {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf() },
+        body: new FormData(form),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          toast(data.message || (data.ok ? 'Done' : 'Failed'), data.ok);
+          if (!data.ok) input.checked = !input.checked;
+          input.disabled = false;
+        })
+        .catch(function () { toast('Request failed', false); input.checked = !input.checked; input.disabled = false; });
+    }
+
+    // (Re)bind action forms + toggles - also called after each soft-refresh, so
+    // the freshly-swapped grid cards get their handlers.
+    function bindActions() {
+      document.querySelectorAll('form[action^="/plugins/"]').forEach(function (form) {
+        if (form._bound) return; form._bound = true;
+        var toggle = form.querySelector('input[type="checkbox"][name="enabled"]');
+        if (toggle) {
+          toggle.addEventListener('change', function () { submitToggle(toggle); });
+        } else {
+          form.addEventListener('submit', function (e) { e.preventDefault(); submitAction(form); });
+        }
       });
-    });
+    }
+
+    bindActions();
+    apply();
   })();
 </script>
 {% endblock %}
