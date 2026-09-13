@@ -351,18 +351,39 @@
     function submitToggle(input) {
       var form = input.closest('form');
       input.disabled = true;
+      // Enable blocks ~3s server-side; a network failure isn't a rejection, so
+      // don't revert the switch on one (the change may have applied).
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 25000);
       fetch(form.getAttribute('action'), {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf() },
         body: new FormData(form),
+        signal: ctrl.signal,
       })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          clearTimeout(timer);
+          if (!r.ok) {
+            input.checked = !input.checked;
+            toast('Toggle failed (server error ' + r.status + ')', false);
+            input.disabled = false;
+            return null;
+          }
+          return r.json();
+        })
         .then(function (data) {
+          if (!data) return;
           toast(data.message || (data.ok ? 'Done' : 'Failed'), data.ok);
           if (!data.ok) input.checked = !input.checked;
           input.disabled = false;
         })
-        .catch(function () { toast('Request failed', false); input.checked = !input.checked; input.disabled = false; });
+        .catch(function () {
+          clearTimeout(timer);
+          if (typeof showToast === 'function') {
+            showToast('Still working — reload the page to confirm the change.', 6000, 'info');
+          }
+          input.disabled = false;
+        });
     }
 
     // (Re)bind action forms + toggles - also called after each soft-refresh, so
