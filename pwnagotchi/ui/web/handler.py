@@ -182,10 +182,11 @@ class Handler:
         return render_template("peers.html", name=pwnagotchi.name(), is_fragment=False)
 
     def show_message(self, id):
-        message, error = self._grid_view.message(id)
-        return render_template(
-            "message.html", name=pwnagotchi.name(), error=error, message=message
-        )
+        if self._is_fragment():
+            message, error = self._grid_view.message(id)
+            return render_template("message.html", name=pwnagotchi.name(),
+                                   error=error, message=message, is_fragment=True)
+        return render_template("message.html", name=pwnagotchi.name(), id=id, is_fragment=False)
 
     def new_message(self):
         to = request.args.get("to", default="")
