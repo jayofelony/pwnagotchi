@@ -347,6 +347,9 @@
     // Toggle enable/disable via fetch; revert the switch on failure.
     function submitToggle(input) {
       var form = input.closest('form');
+      // Capture the payload BEFORE disabling the input: a disabled checkbox is
+      // omitted from FormData, which would make every toggle post as "disable".
+      var body = new FormData(form);
       input.disabled = true;
       // Enable blocks ~3s server-side; a network failure isn't a rejection, so
       // don't revert the switch on one (the change may have applied).
@@ -355,7 +358,7 @@
       fetch(form.getAttribute('action'), {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf() },
-        body: new FormData(form),
+        body: body,
         signal: ctrl.signal,
       })
         .then(function (r) {
