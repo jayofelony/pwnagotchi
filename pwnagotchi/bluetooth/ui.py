@@ -68,7 +68,10 @@ class UIRenderer:
         if pan_active:
             if stalled:
                 return cls.STALLED_TEXT
-            return f"BT:{ip_address}" if ip_address else "BT:No IP"
+            # A connected PAN gets a DHCP lease within a second or two; show the
+            # address once it lands, and a plain "Connected" for that brief window
+            # rather than an alarming (and usually stale) "No IP".
+            return f"BT:{ip_address}" if ip_address else "BT:Connected"
         elif connected and trusted:
             return "BT:Trusted"
         elif connected:
