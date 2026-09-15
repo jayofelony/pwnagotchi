@@ -50,7 +50,12 @@ def _resolve_category(raw, name, store_meta):
 
 
 def _resolve_repo(raw, name, store_meta):
-    return raw or (store_meta.get(name) or {}).get('repo')
+    repo = raw or (store_meta.get(name) or {}).get('repo')
+    # Only surface http(s) links: the value ends up in an href, so a plugin
+    # setting __github__ = "javascript:…" must not become a clickable script.
+    if repo and str(repo).lower().startswith(('http://', 'https://')):
+        return repo
+    return None
 
 
 class PluginCatalog:

@@ -103,7 +103,6 @@
   .pc-ver { color: var(--text-muted); font-size: 0.8rem; }
   a.pc-ver { text-decoration: none; }
   a.pc-ver:hover { color: var(--accent); text-decoration: underline; }
-  .pc-desc[title]:not([title=""]) { cursor: help; }
   .pc-author { color: var(--text-muted); font-size: 0.78rem; }
   .pc-desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.35;
              display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
@@ -167,10 +166,20 @@
   {% endif %}
   </div>
 
+  {% if store_online is defined and not store_online %}
+  <div class="pc-notice store-notice">
+    <div class="pc-notice-text"><strong>Store offline.</strong> No internet connection &mdash; the plugin store can&rsquo;t sync. Connect to the internet and reload to browse &amp; install plugins.</div>
+  </div>
+  {% elif store_syncing %}
+  <div class="pc-notice store-notice">
+    <div class="pc-notice-text"><strong>Syncing store&hellip;</strong> Fetching the plugin catalog. Reload in a moment to see what&rsquo;s available.</div>
+  </div>
+  {% endif %}
+
   <div class="pill-row" id="statePills">
     <button class="pill" data-state="installed">Installed</button>
     <button class="pill" data-state="enabled">Enabled</button>
-    <button class="pill" data-state="available">Store</button>
+    {% if store_online is not defined or store_online %}<button class="pill" data-state="available">Store</button>{% endif %}
     <button class="pill active" data-state="all">All</button>
   </div>
 
@@ -213,7 +222,7 @@
       </div>
 
       {% if p.author %}<div class="pc-author">by {{ p.author }}</div>{% endif %}
-      <div class="pc-desc" title="{{ p.description or '' }}">{{ p.description or 'No description.' }}</div>
+      <div class="pc-desc">{{ p.description or 'No description.' }}</div>
 
       <div class="pc-actions">
         <div class="pc-left">
