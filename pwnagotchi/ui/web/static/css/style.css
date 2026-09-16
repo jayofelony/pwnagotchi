@@ -164,7 +164,9 @@ strong, b {
 .page-content:has(.home-view) {
   display: flex;
   flex-direction: column;
-  padding-bottom: 0;
+  /* keep the control-buttons card off the navbar; mobile overrides this with a
+     larger value to clear the fixed footer. */
+  padding-bottom: 16px;
 }
 
 .home-view {
@@ -218,6 +220,7 @@ strong, b {
 
 .navbar-item {
   flex: 1;
+  min-width: 0; /* allow the 6 tabs to shrink to fit narrow screens instead of overflowing */
   text-align: center;
   margin-bottom: 0;
 }
@@ -233,6 +236,8 @@ strong, b {
   border-bottom: 4px solid transparent;
   transition: var(--transition);
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
   height: 100%;
   flex: 1;
   min-height: 60px;
@@ -590,6 +595,7 @@ input[type="reset"],
 .btn {
   width: auto;
   min-width: 120px;
+  max-width: 100%; /* never exceed the container, even in a narrow card/form */
   padding: 12px 28px;
   background: var(--accent);
   color: #000;
@@ -598,7 +604,7 @@ input[type="reset"],
   font-family: var(--font-pixel);
   font-size: 1.2rem;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.4);
+  box-shadow: none;
   text-transform: uppercase;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-font-smoothing: antialiased;
@@ -641,7 +647,7 @@ input[type="reset"]:disabled,
 
 .btn.danger {
   background-color: var(--danger);
-  box-shadow: 0 4px 12px rgba(255, 85, 85, 0.3);
+  box-shadow: none;
   color: #fff;
 }
 
@@ -653,7 +659,7 @@ input[type="reset"]:disabled,
 .btn.info {
   background-color: var(--info);
   color: #000;
-  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.3);
+  box-shadow: none;
 }
 
 .btn.info:hover {
@@ -664,7 +670,7 @@ input[type="reset"]:disabled,
 .btn.secondary {
   background-color: var(--text-muted);
   color: #000;
-  box-shadow: 0 4px 12px rgba(136, 136, 136, 0.3);
+  box-shadow: none;
 }
 
 .btn.secondary:hover {
