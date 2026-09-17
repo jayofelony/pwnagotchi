@@ -113,7 +113,11 @@
                 margin-top: auto; padding-top: 0.5rem; }
   .pc-actions form { margin: 0; display: inline-flex; align-items: center; }
   .pc-right { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
-  .pc-actions .btn { height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+  /* width:auto + min-width:0 override the global mobile rule that stretches every
+     button to 100% width, so the card actions (Open / Update / Uninstall) stay
+     compact and sit on one row instead of stacking. */
+  .pc-actions .btn { height: 34px; display: inline-flex; align-items: center; justify-content: center;
+                     width: auto; min-width: 0; }
 
   .pc-badge { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: 6px; text-transform: uppercase;
               letter-spacing: 0.03em;
