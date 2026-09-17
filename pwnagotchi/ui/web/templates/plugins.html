@@ -101,8 +101,9 @@
   .pc-title h4 a:hover { text-decoration: underline; }
   .pc-meta { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
   .pc-ver { color: var(--text-muted); font-size: 0.8rem; }
-  a.pc-ver { text-decoration: none; }
-  a.pc-ver:hover { color: var(--accent); text-decoration: underline; }
+  /* A version that links to a repo should read as a link at rest, not only on hover. */
+  a.pc-ver { text-decoration: underline; text-underline-offset: 2px; }
+  a.pc-ver:hover { color: var(--accent); }
   .pc-author { color: var(--text-muted); font-size: 0.78rem; }
   .pc-desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.35;
              display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;

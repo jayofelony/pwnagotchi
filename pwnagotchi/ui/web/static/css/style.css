@@ -1082,7 +1082,20 @@ li {
 
 /* Async fragment loading states. */
 .fragment-loading { text-align: center; color: var(--text-muted); padding: 2rem 1rem; }
-.fragment-error { text-align: center; color: var(--danger); padding: 1.5rem 1rem; }
+/* Match the error toast: a danger-tinted alert banner rather than bare text. */
+.fragment-error {
+  margin: 1.25rem auto;
+  max-width: 640px;
+  padding: 0.9rem 1.2rem;
+  border-radius: 10px;
+  text-align: center;
+  color: var(--text-main);
+  background-color: color-mix(in srgb, var(--danger) 12%, #1e1e1e);
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
 .fragment-spinner { display: inline-block; width: 14px; height: 14px; vertical-align: middle;
   margin-right: 6px; border: 2px solid var(--border-color); border-top-color: var(--accent);
   border-radius: 50%; animation: frag-spin 0.7s linear infinite; }

@@ -276,6 +276,12 @@ const showToast = (message, duration = 4000, type = "error") => {
 const loadFragment = (selector, url, onload) => {
   const el = document.querySelector(selector);
   if (!el) return;
+  // Hide the page's search box when the fragment failed to load — searching a
+  // list that isn't there (e.g. pwngrid offline) is pointless.
+  const syncSearchBox = () => {
+    const box = document.querySelector(".search-box");
+    if (box) box.style.display = el.querySelector(".fragment-error") ? "none" : "";
+  };
   el.innerHTML =
     '<div class="fragment-loading"><span class="fragment-spinner"></span> Loading&hellip;</div>';
   fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }, credentials: "same-origin" })
@@ -286,11 +292,13 @@ const loadFragment = (selector, url, onload) => {
     .then((html) => {
       el.innerHTML = html;
       if (typeof updateTimeElements === "function") updateTimeElements();
+      syncSearchBox();
       if (typeof onload === "function") onload();
     })
     .catch(() => {
       el.innerHTML =
         '<div class="fragment-error">Couldn’t reach pwngrid — reload to retry.</div>';
+      syncSearchBox();
     });
 };
 
