@@ -12,6 +12,7 @@
                     border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
   .plugins-header h2 { color: var(--accent); margin: 0.2rem 0; }
   .plugins-header .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+  .plugins-header .plugins-version { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.2rem; letter-spacing: 0.03em; }
   .plugins-header .restart-service { position: absolute; top: 0; right: 0; }
 
   /* "restart to apply" notice — shown whenever the plugins on disk differ from what's loaded. */
@@ -34,7 +35,8 @@
     .plugins-header { display: flex; flex-direction: column; align-items: center; }
     .plugins-header h2 { order: 1; }
     .plugins-header .subtitle { order: 2; }
-    .plugins-header .restart-service { position: static; order: 3; margin-top: 0.75rem; }
+    .plugins-header .plugins-version { order: 3; }
+    .plugins-header .restart-service { position: static; order: 4; margin-top: 0.75rem; }
   }
 
   .pill-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.75rem 0; }
@@ -155,6 +157,7 @@
     </form>
     <h2>Plugins</h2>
     <div class="subtitle">Installed &amp; available in one place</div>
+    {% if version %}<div class="plugins-version">pwnagotchi v{{ version }}</div>{% endif %}
   </div>
 
   <div id="restartNoticeSlot">
@@ -183,9 +186,9 @@
 
   <div class="pill-row" id="statePills">
     <button class="pill" data-state="installed">Installed</button>
-    <button class="pill" data-state="enabled">Enabled</button>
+    <button class="pill active" data-state="enabled">Enabled</button>
     {% if store_online is not defined or store_online %}<button class="pill" data-state="available">Store</button>{% endif %}
-    <button class="pill active" data-state="all">All</button>
+    <button class="pill" data-state="all">All</button>
   </div>
 
   <input type="search" id="pluginFilter" class="plugins-search" placeholder="Search by name, description or author&hellip;" autocomplete="off" />
@@ -255,7 +258,7 @@
             </form>
             {% endif %}
             {% if not p.default %}
-            <form method="POST" action="/plugins/uninstall" onsubmit="return confirm('Uninstall {{ p.name }}?');">
+            <form method="POST" action="/plugins/uninstall" data-confirm="Uninstall {{ p.name }}?">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <input type="hidden" name="plugin" value="{{ p.name }}" />
               <button type="submit" class="btn danger">Uninstall</button>
@@ -288,7 +291,7 @@
     var filter = document.getElementById('pluginFilter');
     var statePills = Array.prototype.slice.call(document.querySelectorAll('#statePills .pill'));
     var catPills = Array.prototype.slice.call(document.querySelectorAll('#catPills .pill'));
-    var state = 'all', cat = 'all';
+    var state = 'enabled', cat = 'all';
 
     function csrf() {
       var m = document.querySelector('meta[name="csrf_token"]');
@@ -408,7 +411,12 @@
         if (toggle) {
           toggle.addEventListener('change', function () { submitToggle(toggle); });
         } else {
-          form.addEventListener('submit', function (e) { e.preventDefault(); submitAction(form); });
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var msg = form.getAttribute('data-confirm');
+            if (msg && !confirm(msg)) return;   // declined the confirm -> do nothing
+            submitAction(form);
+          });
         }
       });
     }

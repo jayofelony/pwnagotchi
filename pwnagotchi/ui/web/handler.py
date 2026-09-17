@@ -268,7 +268,7 @@ class Handler:
             current_mode = "MANU" if self._agent.mode == "manual" else "AUTO"
             return render_template("plugins.html", cards=catalog.entries,
                                    restart_pending=catalog.restart_pending,
-                                   current_mode=current_mode,
+                                   current_mode=current_mode, version=pwnagotchi.__version__,
                                    store_online=store_online, store_syncing=store_syncing)
 
         if name == "toggle" and request.method == "POST":
