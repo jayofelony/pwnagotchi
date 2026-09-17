@@ -14,6 +14,10 @@ INDEX = """
     Logtail
 {% endblock %}
 
+{% block meta %}{{ super() }}
+<meta name="csrf_token" content="{{ csrf_token() }}" />
+{% endblock %}
+
 {% block styles %}
 {{ super() }}
 <style>
@@ -46,6 +50,9 @@ INDEX = """
         margin: 0;
     }
     #levelFilter { min-width: 150px; }
+
+    #clearBtn { height: 44px; min-width: 0; padding: 0 1.1rem; font-size: 0.85rem; white-space: nowrap; }
+    @media screen and (max-width: 768px) { #clearBtn { width: 100%; } }
 
     /* Autoscroll Toggle Wrapper */
     #divTop > span {
@@ -435,6 +442,22 @@ INDEX = """
         levelVal = this.value;
         applyFilters();
     }
+
+    // Clear the log file (truncate server-side), then reload to resync the stream.
+    var clearBtn = document.getElementById("clearBtn");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function() {
+            if (!confirm("Clear the log file? This permanently deletes the current log contents.")) return;
+            var m = document.querySelector('meta[name="csrf_token"]');
+            fetch("/plugins/logtail/clear", {
+                method: "POST",
+                headers: { "X-CSRFToken": m ? m.getAttribute("content") : "", "X-Requested-With": "XMLHttpRequest" }
+            }).then(function(r) {
+                if (r.ok) { location.reload(); }
+                else { alert("Failed to clear the log."); }
+            }).catch(function() { alert("Failed to clear the log."); });
+        });
+    }
 {% endblock %}
 
 {% block content %}
@@ -457,6 +480,7 @@ INDEX = """
             <input type="checkbox" id="autoscroll" checked>
             <label for="autoscroll">Auto-scroll</label>
         </span>
+        <button type="button" id="clearBtn" class="btn danger" title="Clear the log file">Clear log</button>
     </div>
 
     <div class="table-container">
@@ -507,6 +531,19 @@ class Logtail(plugins.Plugin):
 
         if not path or path == "/":
             return render_template_string(INDEX)
+
+        if path == "clear" and request.method == "POST":
+            # Truncate in place (don't unlink): the logging FileHandler holds the
+            # file open in append mode, so truncation is safe - its next write lands
+            # at offset 0. Deleting the file instead would break logging until a
+            # restart. Callers should reload to resync any open live-tail stream.
+            with self.lock:
+                try:
+                    open(self.config["main"]["log"]["path"], "w").close()
+                except Exception as e:
+                    logging.warning("logtail: failed to clear log: %s", e)
+                    return "error", 500
+            return "ok"
 
         if path == "stream":
 
