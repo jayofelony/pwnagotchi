@@ -12,7 +12,6 @@
                     border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
   .plugins-header h2 { color: var(--accent); margin: 0.2rem 0; }
   .plugins-header .subtitle { color: var(--text-muted); font-size: 0.9rem; }
-  .plugins-header .plugins-version { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.2rem; letter-spacing: 0.03em; }
   .plugins-header .restart-service { position: absolute; top: 0; right: 0; }
 
   /* "restart to apply" notice — shown whenever the plugins on disk differ from what's loaded. */
@@ -35,8 +34,7 @@
     .plugins-header { display: flex; flex-direction: column; align-items: center; }
     .plugins-header h2 { order: 1; }
     .plugins-header .subtitle { order: 2; }
-    .plugins-header .plugins-version { order: 3; }
-    .plugins-header .restart-service { position: static; order: 4; margin-top: 0.75rem; }
+    .plugins-header .restart-service { position: static; order: 3; margin-top: 0.75rem; }
   }
 
   .pill-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.75rem 0; }
@@ -157,7 +155,6 @@
     </form>
     <h2>Plugins</h2>
     <div class="subtitle">Installed &amp; available in one place</div>
-    {% if version %}<div class="plugins-version">pwnagotchi v{{ version }}</div>{% endif %}
   </div>
 
   <div id="restartNoticeSlot">
@@ -185,8 +182,8 @@
   {% endif %}
 
   <div class="pill-row" id="statePills">
-    <button class="pill" data-state="installed">Installed</button>
     <button class="pill active" data-state="enabled">Enabled</button>
+    <button class="pill" data-state="installed">Installed</button>
     {% if store_online is not defined or store_online %}<button class="pill" data-state="available">Store</button>{% endif %}
     <button class="pill" data-state="all">All</button>
   </div>
