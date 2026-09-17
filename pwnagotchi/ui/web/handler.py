@@ -99,6 +99,35 @@ def _maybe_auto_sync(config):
     return True
 
 
+# Building the catalog parses metadata for ~70 plugins (~3s on a Pi Zero 2 W), so
+# cache it and rebuild only when something that affects it changes: the set of
+# plugin files (+ mtimes), the loaded set, the registered set, or store state. The
+# signature is cheap (globs + stat); the rebuild is not.
+_catalog_cache = {"sig": None, "catalog": None}
+
+
+def _catalog_signature(config, store_online, store_syncing):
+    import glob as _glob
+    from pwnagotchi.plugins import cmd as _pcmd
+    files = []
+    dirs = [getattr(_pcmd, "default_path", None),
+            config["main"].get("custom_plugins"),
+            getattr(_pcmd, "SAVE_DIR", None)]
+    for d in dirs:
+        if not d:
+            continue
+        try:
+            for f in _glob.glob(os.path.join(d, "*.py")):
+                try:
+                    files.append((f, int(os.path.getmtime(f))))
+                except OSError:
+                    pass
+        except Exception:
+            pass
+    return (frozenset(files), frozenset(plugins.loaded.keys()),
+            frozenset(plugins.database.keys()), store_online, store_syncing)
+
+
 class Handler:
     def __init__(self, config, agent, app):
         self._config = config
@@ -255,13 +284,21 @@ class Handler:
             store_online = _pcmd._check_internet()
             store_syncing = _maybe_auto_sync(cfg) if store_online else False
 
-            catalog = PluginCatalog.from_environment(
-                cfg,
-                installed_paths=_pcmd._get_installed(cfg),   # on-disk: install/uninstall show at once
-                loaded=plugins.loaded,
-                store_meta=_store_meta() if store_online else {},
-                registered_names=set(plugins.database.keys()),  # startup set: drives the restart banner
-            )
+            # Reuse the cached catalog unless the plugin files / loaded / registered
+            # sets changed (install, uninstall, upgrade, refresh, enable/disable).
+            sig = _catalog_signature(cfg, store_online, store_syncing)
+            if _catalog_cache["sig"] == sig and _catalog_cache["catalog"] is not None:
+                catalog = _catalog_cache["catalog"]
+            else:
+                catalog = PluginCatalog.from_environment(
+                    cfg,
+                    installed_paths=_pcmd._get_installed(cfg),   # on-disk: install/uninstall show at once
+                    loaded=plugins.loaded,
+                    store_meta=_store_meta() if store_online else {},
+                    registered_names=set(plugins.database.keys()),  # startup set: drives the restart banner
+                )
+                _catalog_cache["sig"] = sig
+                _catalog_cache["catalog"] = catalog
 
             # Restart-to-apply buttons should keep the unit in its current mode
             # (the handler's restart() only accepts the uppercase "AUTO"/"MANU").
