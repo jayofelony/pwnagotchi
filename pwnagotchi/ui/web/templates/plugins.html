@@ -388,7 +388,15 @@
         .then(function (data) {
           if (!data) return;
           toast(data.message || (data.ok ? 'Done' : 'Failed'), data.ok);
-          if (!data.ok) input.checked = !input.checked;
+          if (!data.ok) {
+            input.checked = !input.checked;
+          } else {
+            // Reflect the new state in the card so the Enabled/Installed filters
+            // (which read data-enabled) update without a page reload.
+            var card = input.closest('.plugin-card');
+            if (card) card.dataset.enabled = input.checked ? 'true' : 'false';
+            apply();
+          }
           input.disabled = false;
         })
         .catch(function () {
