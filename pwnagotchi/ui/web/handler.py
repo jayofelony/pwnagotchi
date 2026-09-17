@@ -257,9 +257,10 @@ class Handler:
 
             catalog = PluginCatalog.from_environment(
                 cfg,
-                installed_paths=dict(plugins.database),
+                installed_paths=_pcmd._get_installed(cfg),   # on-disk: install/uninstall show at once
                 loaded=plugins.loaded,
                 store_meta=_store_meta() if store_online else {},
+                registered_names=set(plugins.database.keys()),  # startup set: drives the restart banner
             )
 
             # Restart-to-apply buttons should keep the unit in its current mode
