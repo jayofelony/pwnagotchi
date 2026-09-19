@@ -1,10 +1,17 @@
-# bcm43430a1 / 7.45.98 — hardware findings, 2026-09-02/03
+# bcm43430a1 / 7.45.98 — hardware findings, 2026-09-02/03 and 2026-09-19
 
 Session notes from debugging a Pi Zero 2 W (`raspberrypi,model-zero-2-w`, BCM43430/1,
 kernel 6.18.39, firmware `7.45.98 (TOB) (56df937 CY)`, nexmon build `c6fc-1` =
 nexmon `c6fce06a`) that was wedging repeatedly under pwnagotchi 2.9.5.9 + bettercap.
 
-Everything below marked **MEASURED** was reproduced on that hardware in this session.
+A second session on **2026-09-19** re-ran the open questions against a newer image of the
+same board — kernel 6.18.50, same firmware, nexmon `1654e185` — and its results are folded
+in under dated **MEASURED 2026-09-19** sub-headings. Two of them disagree with the first
+session (§2, §5); where they do, both are kept and the difference is called out rather than
+overwritten, because what changed between the images has not been isolated.
+
+Everything below marked **MEASURED** was reproduced on that hardware in the session it is
+dated to.
 Everything marked **OPEN** or **INFERRED** was not, and is flagged as such deliberately —
 this file exists partly because three plausible-sounding hypotheses were killed by
 measurement, and the wrong ones cost more time than the right one saved.
@@ -13,8 +20,10 @@ Companion tools in this directory: `nexprobe.py`, `hoptest.sh`.
 
 ## Tooling note — nexutil vs nexprobe.py
 
-`nexutil` was **not** installed on the test image, so `nexprobe.py` was written to talk to
-the driver directly over netlink. Wire format, from
+`nexutil` was **not** installed on the test image this session, so `nexprobe.py` was
+written to talk to the driver directly over netlink. (It is now built from the same
+nexmon checkout and installed to `/usr/local/bin/nexutil` by `01-run-chroot.sh`'s
+`install_nexutil`, so on any image built after this note it is present.) Wire format, from
 `patches/driver/brcmfmac_6.18.y-nexmon/core.c`:
 
 - `NETLINK_USER = 31`
@@ -28,11 +37,19 @@ Once nexutil ships in the image, the ioctl half of `nexprobe.py` is redundant:
 
 | purpose | nexprobe.py | nexutil |
 |---|---|---|
-| sanity (`0xDEADBEEF`) | `nexprobe.py sanity` | `nexutil -g601 -l4 -i` |
-| pool/heap health (`NEX1`) | `nexprobe.py sample` | `nexutil -g612 -l32 -i` |
-| d11 registers (`NEX3`) | `nexprobe.py sample --d11` | `nexutil -g604 -l24 -i` |
-| injection counters (`NEX2`) | `nexprobe.py sample --guard` | `nexutil -g620 -l16 -i` |
+| sanity (`0xDEADBEEF`) | `nexprobe.py sanity` | `nexutil -g601 -l4` |
+| pool/heap health (`NEX1`) | `nexprobe.py sample` | `nexutil -g612 -l32` |
+| d11 registers (`NEX3`) | `nexprobe.py sample --d11` | `nexutil -g604 -l24` |
+| injection counters (`NEX2`) | `nexprobe.py sample --inject-counters` | `nexutil -g620 -l16` |
 | set monitor mode | `nexprobe.py monitor --mon 2` | `nexutil -m2` |
+
+> **Do not add `-i` to those get commands — it segfaults.** An earlier revision of this
+> table did. `-i` is the *input* encoding for `-v` ("read the value as an integer"), not an
+> output format, so on a `-g` it is meaningless to begin with. Without `-v`,
+> `custom_cmd_value` is `NULL` and `nexutil.c:446-450` still runs
+> `strtoul(custom_cmd_value, NULL, 0)`, which dereferences it. **MEASURED** on the test
+> device: `nexutil -g601 -l4 -i` → `rc=139`, while `nexutil -g601 -l4` returns
+> `ef be ad de` correctly. Output is a hexdump; the words are little-endian.
 
 The parts of `nexprobe.py` that stay useful are the ones nexutil does not do: raw frame
 injection (`burst`, `probe`), the escalating `soak`, and `leaktest`.
@@ -90,10 +107,28 @@ which probes that harness issued.
 The `MI_RXOV` / `im=bae7a864` data in `38750224` looks safe — it came from the
 firmware-side heartbeat, not from 604.
 
-**Fix** (uncommitted in the nexmon working tree): gate on `wlc->hw->up`, the same predicate
+**Fix** (landed in nexmon `1654e185`): gate on `wlc->hw->up`, the same predicate
 `sendframe()` already uses, and return a `NEX3` magic word plus that predicate so "core was
 down, didn't look" is distinguishable from "registers really read zero" and from a
 timed-out reply. Layout becomes 6 words, `len >= 24`.
+
+**MEASURED 2026-09-19 — the guard holds on hardware.** On an image carrying `1654e185`,
+`nexutil -g604 -l24` against a live radio returns
+
+```
+0x000000: 33 58 45 4e 01 00 00 00 03 04 52 c5 04 00 00 00 3XEN......R.....
+0x000010: 00 00 00 00 64 a8 e7 ba                         ....d...
+```
+
+`NEX3`, `hw_up=1`, `maccontrol=c5520403`, `maccommand=4`, `macintstatus=0`,
+`macintmask=bae7a864` — the same mask as `38750224` — and the chip stayed alive through
+this and every later probe. 604 was issued repeatedly during the 2026-09-19 session with no
+backplane error at all. On `c6fce06a` the first such call killed the chip.
+
+Whether a build is guarded can be checked without issuing the ioctl at all: the magic words
+are literal-pool constants, so they appear in the firmware image in little-endian byte
+order. `grep -abo 3XEN brcmfmac43430-sdio.bin` hitting means 604 is guarded; `2XEN` means
+620 exists.
 
 > **Rule: never call 604 on a build without that guard.** `nexprobe.py` makes it opt-in
 > (`--d11`) and refuses on an unguarded build.
@@ -145,6 +180,42 @@ churn contributes to the user-visible "failing a lot". Worth testing directly.
 land on the requested channel? If the chanspec was applied despite the timeout, swallowing
 `-ETIMEDOUT` is safe; if not, the caller is on the wrong channel until the next hop. Query
 `iw dev wlan0mon info` immediately after a failure to find out.
+
+### MEASURED 2026-09-19 — the `-110` did not occur at all, which is itself the finding
+
+The sub-question above is **still unanswered, and could not be answered**, because on an
+image carrying nexmon `1654e185` (kernel 6.18.50) the failure never happened:
+
+```
+run 1:  70 hops, 1.5s dwell, no concurrent RX     === hop failures: 0 / 70 ===
+run 2: 110 hops, 2.0s dwell, concurrent monitor RX
+                                                  === hop failures: 0 / 110 ===
+                                                  rx frames: 5971
+final health: NEX1 heapfree=73680 blocks=12 osh0=1 freebufs=64 mfail=0 lbfail=0
+final sanity: 0xDEADBEEF
+```
+
+Run 2 reproduces the original conditions deliberately — same `wlan0` down / `wlan0mon` up
+config (§4), same 2 s dwell, monitor RX running throughout, which is what run 1 lacked. The
+harness demonstrably reached the driver: `rc=0` on every hop (a cfg80211 `EBUSY` rejection
+would surface as a failure, not a silent pass — rule 3), and retuning visibly changed what
+was captured.
+
+**180 hops with zero failures is not consistent with the ~3% rate measured before.** At the
+originally observed 2/60, P(0 in 180) = 0.22%; at the 3% the text quotes, 0.42%. Something
+changed between the two sessions.
+
+**What changed is not isolated**, and the honest list is short: nexmon `c6fce06a` →
+`1654e185` (which touched only ioctl 604 and the counters, nothing in the chanspec path),
+kernel 6.18.39 → 6.18.50 with a newer DKMS driver build, a different image, and a different
+RF environment. The driver-side change is the plausible one; the firmware change is not.
+
+**Consequence for the retry debate above:** the premise on both sides of it — that a benign
+`-ETIMEDOUT` arrives at roughly 3% and has to be either absorbed or propagated — does not
+hold on this build. Restoring a bounded retry to `brcmf_cfg80211_nexmon_set_channel` would
+now be paying a possible 2.5 s stall to absorb something that did not occur once in 180
+hops. **`424adbd8` should stand until the `-110` is seen again on a current image.** If it
+does come back, the `iw dev wlan0mon info` check is still the right first move.
 
 ---
 
@@ -198,9 +269,15 @@ ETSI note already in the nexmon notes. Reg domain here is `country 00` (world).
 
 ---
 
-## 5. OPEN — injection produces no observable on-air effect
+## 5. RESOLVED — injection works; the 2026-09-02/03 null result did not reproduce
 
-**This is the most important open question and it is well-controlled.**
+> **Status 2026-09-19: closed by measurement.** This was the most important open
+> question in this file. On an image carrying nexmon `1654e185`, injected frames reach
+> `sendframe()` *and* reach the air, and real APs answer them. The original observation
+> below is kept because it was well-controlled and is still unexplained — what changed
+> between the two sessions is not established by this measurement.
+
+### Original observation (2026-09-02/03, nexmon `c6fce06a`) — not reproduced
 
 Config: `wlan0` down, `wlan0mon` verified tuned to channel 6, ~1250 ambient frames captured
 in the same runs (so RX and tuning both demonstrably work).
@@ -226,19 +303,69 @@ likelier reading is that **nothing was ever transmitted, so nothing was ever con
 that run says nothing either way about reclaim. Flat counters are not evidence of health
 when the path under test may be inert.
 
-### How to settle it — one build
+> *2026-09-19: with injection now proven live, the original reading turns out to have been
+> right after all — flat `freebufs` across 120 transmitted frames says there is no leak.
+> The retraction was still correct at the time it was written: the run could not
+> distinguish the two, and "inert path" was the live possibility. A conclusion that happens
+> to survive is not the same as one that was justified.*
 
-`nex_inject_calls` / `nex_inject_sent`, read via **ioctl 620** (uncommitted in the nexmon
-tree), split the two remaining possibilities:
+### MEASURED 2026-09-19 — both halves of the fork answered at once
 
-- `calls == 0` after injecting ⇒ frames never reach `wl_send_hook`; the fault is between the
-  BCDC/SDIO path and the hooked function pointer at `0x40fe0`
-- `calls` climbing in step with what was offered ⇒ frames reach `sendframe()` and are lost at
-  or below `wlc_txfifo`
+Pi Zero 2 W, kernel 6.18.50, firmware `7.45.98 (TOB) (56df937 CY)` + nexmon `1654e185`,
+`wlan0` down, `wlan0mon` up in monitor mode 2 on channel 6, pwnagotchi and bettercap
+**stopped**. RX proven live first (42 frames on ch1, 200 on ch6) per rule 2.
 
-Alternative without a rebuild: a second radio in monitor mode. On this desktop, `wlp5s0`
-(Intel `iwlwifi`) supports monitor but `wpa_supplicant` resets the interface — the channel
-will not stick until it is stopped or NetworkManager is told to release the device.
+**Counters — ioctl 620 climbs exactly in step with what was offered:**
+
+```
+620 BEFORE          2XEN  calls=0    sent=0
+inject 30 probes    sent=30 failed=0
+620 AFTER           2XEN  calls=30   sent=30
+inject 90 more      (30 each at 1, 2, 11 Mbit)
+620 AFTER           2XEN  calls=120  sent=120
+```
+
+Per the fork above, `calls` climbing in step means the frames **do** reach `wl_send_hook`
+and **are** handed to `sendframe()`. The BCDC/SDIO path and the hooked pointer at `0x40fe0`
+are exonerated.
+
+**On air — the APs answered.** `tcpdump -i wlan0mon "wlan addr1 00:11:22:33:44:55"` while
+injecting 90 frames captured **535 frames, all of them Probe Responses** addressed to the
+fabricated MAC, from three distinct BSSIDs:
+
+```
+14:31:26.535957 2437 MHz -81dBm BSSID:94:2a:6f:7a:b9:74 DA:00:11:22:33:44:55
+                SA:94:2a:6f:7a:b9:74 Probe Response (Jachtkamp18) CH: 6, PRIVACY
+  192  SA:9a:2a:6f:7a:b9:74
+  184  SA:94:2a:6f:7a:b9:74
+  159  SA:9e:2a:6f:7a:b9:74
+```
+
+**Control:** 20 s on the same channel with no injection produced **1** such frame, and ioctl
+620 stayed at `calls=120` throughout — so the 535 are caused by our injection and are not an
+ambient artifact.
+
+**Chip health across 120 injected frames:** `freebufs=64` unchanged, `mfail=0`, `lbfail=0`,
+heap 73796 → 73348 → 73284. No pool movement, no leak, no wedge.
+
+### What this does and does not establish
+
+It establishes that on this build injection works end to end. It does **not** explain the
+2026-09-02/03 null result, and the difference is not isolated: that session ran `c6fce06a`
+on kernel 6.18.39, this one runs `1654e185` on 6.18.50 from a later image. `1654e185`
+changed only ioctl 604 and added the counters — nothing in the TX path — so a firmware fix
+is *not* the obvious explanation.
+
+The likeliest candidate, and it is **INFERRED, not measured:** that session's chip had
+already been through unguarded 604 calls (§1), which is exactly the harness contamination
+§1 warns about. A chip whose backplane has been damaged can plausibly still receive while
+failing to transmit, which is the shape of the null result. Anyone re-opening this should
+re-read the §5 runs to check what the harness had issued beforehand.
+
+Alternative cross-check if it ever needs one: a second radio in monitor mode. On this
+desktop, `wlp5s0` (Intel `iwlwifi`) supports monitor but `wpa_supplicant` resets the
+interface — the channel will not stick until it is stopped or NetworkManager is told to
+release the device. The AP-response method above made this unnecessary.
 
 ---
 
@@ -262,7 +389,8 @@ still wrong. Correlation in a field log is not a mechanism.
 Post-`0x160b0`-NOP, none of these wedge the chip:
 
 - sustained channel hopping (60 hops, 2750 RX frames) — §2
-- injection at bettercap scale (600 frames) — §5, though possibly inert
+- injection at bettercap scale (600 frames) — §5, and since 2026-09-19 known to be
+  genuinely transmitting, not inert (120 frames, 535 probe responses, `freebufs` flat)
 - monitor RX soak (thousands of frames)
 - ioctl 612 hammering (768 alloc/free cycles) — §3
 
@@ -291,6 +419,13 @@ polling on a 2 s cadence (612 only — **never** 604 on an unguarded build), and
 last valid sample before the chip stops answering. That distinguishes resource exhaustion
 from a clean stop, which is the fork nothing has yet resolved for the *field* failure.
 
+**Still the open item as of 2026-09-19.** That session ran with pwnagotchi and bettercap
+deliberately stopped, to keep §5's counters clean. Everything it exercised — 120 injected
+frames, 180 hops, sustained monitor RX — left the chip healthy (`freebufs=64`, `mfail=0`,
+`lbfail=0`, `0xDEADBEEF` at the end of every run). The wedge has now survived two sessions
+of synthetic load without reproducing, which is itself evidence that it needs *bettercap's*
+particular sequence rather than raw volume.
+
 ---
 
 ## 8. Separate bug — pwnagotchi recovery is broken (FIX IN PROGRESS)
@@ -312,6 +447,25 @@ Combined with `28d42c04` delegating SDIO-reset recovery to userspace policy, a w
 means the Pi sits with a dead interface and never reboots itself. That is what turns a
 recoverable wedge into "failing a lot", independent of whatever causes the wedge.
 
+**FIXED.** Three firmware-independent hardening changes:
+
+- `pwnagotchi/mesh/peer.py` — peer advertisements are untrusted mesh JSON. A null
+  advertisement, or a null/wrong-typed `name`/`face`/`pwnd_run`/`pwnd_tot`/`rssi` inside
+  one, used to crash `_update_peers` on every `_fetch_stats` pass (`int(None)`, a bare
+  `.get()` returning `None` into the UI). All advert accessors now coerce to a sane typed
+  default via `_adv_str` / `_adv_int`.
+- `pwnagotchi/plugins/default/fix_services.py` — `on_bcap_sys_log` did
+  `re.search(pattern, event['data']['Message'])` with no guard; a partial bettercap
+  `sys.log` event (common while the radio is spewing errors) has `Message` missing or
+  non-string, so `re.search` raised `expected string or bytes` and took out the recovery
+  path — the `except` then logged `SYSLOG wifi.recon flip fail` and re-entered
+  `_tryTurningItOffAndOnAgain`, which crashed the same way. Now it extracts the message
+  defensively and returns early if it is not a string.
+- `pwnagotchi/ui/components.py` — `Text.draw` / `LabeledValue.draw` now coerce a
+  non-string value to `str` instead of letting it raise inside `TextWrapper`/PIL. Because
+  `view.update()` redraws every element on every call, one bad value used to wedge the
+  entire UI permanently, so the "I'm blind!" recovery screen could never render.
+
 ---
 
 ## Methodology rules this session re-earned
@@ -330,7 +484,7 @@ recoverable wedge into "failing a lot", independent of whatever causes the wedge
 
 ---
 
-## Uncommitted changes in the nexmon working tree
+## Changes to the nexmon tree — written here as uncommitted, landed as `1654e185`
 
 At `~/Projects/nexmon` (branch `dev`), not yet committed:
 
@@ -346,3 +500,13 @@ it removes a chip-bricking landmine from the debug build.
 path needs a system `arm-none-eabi-` plus the GCC-5.4-era plugin built from
 `buildtools/gcc-nexmon-plugin/nexmon.c`, and the current Debian candidate is GCC 14.2. The
 build has to go through this pi-gen stage.
+
+> ### Superseded — all of the above landed
+>
+> **2026-09-19.** Both files are committed as nexmon `1654e185`, and `~/Projects/nexmon` is
+> clean. They are no longer uncommitted, and they are no longer merely compile-untested:
+> the resulting firmware was built through this pi-gen stage, flashed, and exercised on a
+> Pi Zero 2 W. `3XEN` and `2XEN` are both present in the shipped
+> `brcmfmac43430-sdio.bin`, ioctl 604 answers without killing the chip (§1), and ioctl 620
+> produced the measurement that closed §5. This section is kept for the history of how the
+> change was carried; nothing in it is still pending.

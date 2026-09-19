@@ -25,7 +25,7 @@ NLMSG_DONE = 3
 IOCTL_SANITY = 601      # writes 0xDEADBEEF
 IOCTL_D11REGS = 604     # maccontrol, maccommand, macintstatus, macintmask
 IOCTL_HEALTH = 612      # "NEX1" magic, heap, osh[0], free-buffer probe
-IOCTL_INJGUARD = 620    # "NEX2" magic, inject sent/dropped (only after rebuild)
+IOCTL_INJCOUNT = 620    # "NEX2" magic, inject calls/sent (only after rebuild)
 
 WLC_SET_MONITOR = 108
 
@@ -123,21 +123,38 @@ def health(nex):
     }
 
 
-def injguard(nex):
-    w = nex.words(IOCTL_INJGUARD, 4)
+def injcounters(nex):
+    """Read the injection accounting via ioctl 620.
+
+    This is the readout that settles the open question in section 5 of
+    NEXMON-DEBUG-FINDINGS.md - injection produces no observable on-air effect,
+    and the two remaining explanations are split by where the frames stop:
+
+    - calls == 0 after injecting: they never reached wl_send_hook, so the fault
+      is between the BCDC/SDIO path and the hooked pointer at 0x40fe0
+    - calls climbing in step with what was offered: they reach sendframe() and
+      are lost at or below wlc_txfifo
+
+    calls counts entries to wl_send_hook with a frame that looks like an
+    injection; sent counts frames actually handed to sendframe(). out[3] is
+    reserved and reads 0 - the reserve counter it used to carry belonged to the
+    packet-pool guard, which was removed (section 6) because no measurement ever
+    supported it. Only the counters were kept.
+    """
+    w = nex.words(IOCTL_INJCOUNT, 4)
     if w is None or w[0] != MAGIC_NEX2:
         return None
-    return {"sent": w[1], "dropped": w[2], "reserve": w[3]}
+    return {"calls": w[1], "sent": w[2]}
 
 
-def sample(nex, label, want_guard=False, want_d11=False):
+def sample(nex, label, want_inj=False, want_d11=False):
     h = health(nex)
     # 604 is opt-in: on a firmware without the hw->up guard it bricks the chip.
     d = d11(nex) if want_d11 else None
     # Only probe 620 when the firmware is expected to have it. On a build
     # without it the ioctl falls through to wlc_ioctl, which never answers,
     # costing a 2500ms DCMD timeout and leaving the *next* read invalid.
-    g = injguard(nex) if want_guard else None
+    g = injcounters(nex) if want_inj else None
     if h is None and (d is None and want_d11):
         print("%-10s *** NO REPLY - chip wedged ***" % label)
         return False
@@ -162,7 +179,7 @@ def sample(nex, label, want_guard=False, want_d11=False):
         parts.append("hw_up=%d macintstatus=%08x RXOV=%d mask=%08x"
                      % (d["hw_up"], d["macintstatus"], d["rxov"], d["macintmask"]))
     if g is not None:
-        parts.append("inj_sent=%d inj_dropped=%d" % (g["sent"], g["dropped"]))
+        parts.append("inj_calls=%d inj_sent=%d" % (g["calls"], g["sent"]))
     print("  ".join(parts))
     return True
 
@@ -245,8 +262,13 @@ def main():
                     help="also read ioctl 604 - ONLY on a build with the hw->up guard")
     ap.add_argument("--rate", type=int, default=0,
                     help="radiotap rate in 500kbps units (0 = omit the field)")
-    ap.add_argument("--guard", action="store_true",
-                    help="also read ioctl 620 (only on a build that has it)")
+    # --guard is the original spelling, kept working because the findings
+    # document and existing run notes use it; it named the removed pool guard,
+    # not what 620 reports now.
+    ap.add_argument("--inject-counters", "--guard", dest="inject_counters",
+                    action="store_true",
+                    help="also read ioctl 620 injection counters "
+                         "(only on a build that has it)")
     args = ap.parse_args()
 
     nex = Nex()
@@ -261,7 +283,7 @@ def main():
         return
 
     if args.mode == "sample":
-        sample(nex, "sample", args.guard, args.d11)
+        sample(nex, "sample", args.inject_counters, args.d11)
         return
 
     if args.mode == "probe":
@@ -306,12 +328,12 @@ def main():
     if args.mode == "soak":
         print("# escalating injection burst soak on %s" % args.iface)
         print("# sanity:", sanity(nex))
-        sample(nex, "baseline", args.guard, args.d11)
+        sample(nex, "baseline", args.inject_counters, args.d11)
         for r in range(1, args.rounds + 1):
             n = args.count
             s, f = burst(args.iface, n, mac(args.sta), mac(args.ap))
             time.sleep(0.5)
-            alive = sample(nex, "r%-2d(+%d)" % (r, n), args.guard, args.d11)
+            alive = sample(nex, "r%-2d(+%d)" % (r, n), args.inject_counters, args.d11)
             print("           injected sent=%d failed=%d" % (s, f))
             if not alive:
                 print("*** wedged after %d rounds, ~%d frames offered ***"
