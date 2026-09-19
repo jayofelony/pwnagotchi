@@ -56,10 +56,17 @@ class Text(Widget):
     def draw(self, canvas, drawer):
         if self.value is not None:
             if not self.png:
+                # a non-string value here (a stray None-ish/number/dict that
+                # leaked in from a plugin, a peer advertisement, a bettercap
+                # reply) used to raise inside TextWrapper/PIL and, because
+                # view.update() redraws every element on every call, wedge
+                # the whole UI - so the "I'm blind!" recovery screen could
+                # never render. Coerce instead.
+                value = self.value if isinstance(self.value, str) else str(self.value)
                 if self.wrap:
-                    text = '\n'.join(self.wrapper.wrap(self.value))
+                    text = '\n'.join(self.wrapper.wrap(value))
                 else:
-                    text = self.value
+                    text = value
                 drawer.text(self.xy, text, font=self.font, fill=self.color)
             else:
                 self.image = Image.open(self.value)
@@ -87,9 +94,12 @@ class LabeledValue(Widget):
         self.label_spacing = label_spacing
 
     def draw(self, canvas, drawer):
+        # same reasoning as Text.draw: never let a wrong-typed value abort the
+        # whole render pass.
+        value = self.value if isinstance(self.value, str) else str(self.value)
         if self.label is None:
-            drawer.text(self.xy, self.value, font=self.label_font, fill=self.color)
+            drawer.text(self.xy, value, font=self.label_font, fill=self.color)
         else:
             pos = self.xy
             drawer.text(pos, self.label, font=self.label_font, fill=self.color)
-            drawer.text((pos[0] + self.label_spacing + 5 * len(self.label), pos[1]), self.value, font=self.text_font, fill=self.color)
+            drawer.text((pos[0] + self.label_spacing + 5 * len(self.label), pos[1]), value, font=self.text_font, fill=self.color)

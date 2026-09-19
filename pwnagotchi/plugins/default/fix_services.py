@@ -158,8 +158,17 @@ class FixServices(plugins.Plugin):
     def on_bcap_sys_log(self, agent, event):
         if self.is_disabled:
             return
-        if re.search('wifi error while hopping to channel', event['data']['Message']):
-            logging.debug("[Fix_Services]SYSLOG MATCH: %s" % event['data']['Message'])
+        # bettercap sys.log events are not guaranteed to carry a string
+        # Message - a malformed/partial event (common while the radio is
+        # wedged and bettercap is spewing errors) has it missing or None,
+        # and re.search() then raised "expected string or bytes", killing
+        # the recovery path exactly when it was needed.
+        data = event.get('data') if isinstance(event, dict) else None
+        message = data.get('Message') if isinstance(data, dict) else None
+        if not isinstance(message, str):
+            return
+        if re.search('wifi error while hopping to channel', message):
+            logging.debug("[Fix_Services]SYSLOG MATCH: %s" % message)
             logging.debug("[Fix_Services]**** restarting wifi.recon")
             try:
                 result = agent.run("wifi.recon off; wifi.recon on")
