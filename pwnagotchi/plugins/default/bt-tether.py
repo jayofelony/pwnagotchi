@@ -39,6 +39,10 @@ class BtTether(Plugin):
     # it), start the service anyway after this many seconds.
     FALLBACK_INIT_TIMEOUT = 5
 
+    # With ui.fps = 0 the display only repaints on major events, so BT status would
+    # sit stale. Watch the cached snapshot this often and force a repaint on change.
+    SCREEN_REFRESH_INTERVAL = 3
+
     def on_loaded(self):
         """Initialize plugin configuration and core Bluetooth service."""
         # Seed from the persisted MAC so the last-used phone survives a restart
@@ -49,7 +53,9 @@ class BtTether(Plugin):
         self._ui_logs = deque(maxlen=100)
         self._ui_log_lock = threading.Lock()
         self._ui_reference = None
-        self._screen_needs_refresh = False
+        self._screen_stop = threading.Event()
+        self._screen_thread = None
+        self._last_detail_line = None
         self._connection_time = None
         self._show_device_name = False
 
@@ -116,6 +122,7 @@ class BtTether(Plugin):
             self._log("INFO", "Unloading plugin...")
             # Prevent a pending fallback thread from starting the service post-unload
             self._initialization_done.set()
+            self._screen_stop.set()
             self.bt.stop()
             self._log("INFO", "Plugin unloaded")
         except Exception as e:
@@ -124,6 +131,15 @@ class BtTether(Plugin):
     def on_ui_setup(self, ui):
         """Setup UI elements for status display."""
         self._ui_reference = ui
+
+        # ui.fps = 0 means no periodic repaint, so push a refresh ourselves when the
+        # BT status line changes - otherwise "No IP"/"Paired" lingers until some
+        # unrelated event redraws the screen.
+        if self.show_on_screen and (self.show_mini_status or self.show_detailed_status) \
+                and self._screen_thread is None:
+            self._screen_thread = threading.Thread(
+                target=self._screen_refresh_loop, name="bt-tether-screen", daemon=True)
+            self._screen_thread.start()
 
         if self.show_on_screen and self.show_mini_status:
             pos = tuple(self.mini_status_position) if isinstance(self.mini_status_position, (list, tuple)) else self.mini_status_position
@@ -189,6 +205,25 @@ class BtTether(Plugin):
                 ui.set("bt-status", "?")
             if self.show_detailed_status:
                 ui.set("bt-detail", "BT:Error")
+
+    def _screen_refresh_loop(self):
+        """Force a display repaint whenever the BT status line changes.
+
+        The snapshot is the cheap, cached one (no bluetoothctl/ip), so this is safe
+        to poll. force=True is required because view.update() diffs state BEFORE
+        on_ui_update runs, so the bt-detail change we're about to make wouldn't
+        otherwise count as a change and the frame would be skipped."""
+        while not self._screen_stop.wait(self.SCREEN_REFRESH_INTERVAL):
+            try:
+                ui = self._ui_reference
+                if not self.show_on_screen or ui is None:
+                    continue
+                line = self.bt.ui_snapshot().get("detail_line")
+                if line != self._last_detail_line:
+                    self._last_detail_line = line
+                    ui.update(force=True)
+            except Exception as e:
+                logging.debug(f"BT screen refresh error: {e}")
 
     def on_webhook(self, path, request):
         """Handle webhook requests for web UI."""
@@ -450,7 +485,6 @@ class BtTether(Plugin):
         self._log("INFO", f"Connected to {name}")
         self._status = "CONNECTED"
         self._message = f"Connected to {name}"
-        self._screen_needs_refresh = True
 
         # Persist the MAC so the last-used phone survives a restart
         if mac:
@@ -475,7 +509,6 @@ class BtTether(Plugin):
         self._log("ERROR", f"Connection failed: {error}")
         self._status = "ERROR"
         self._message = f"Connection failed: {error}"
-        self._screen_needs_refresh = True
 
     def _on_disconnect_success(self, data):
         """Handle successful disconnection event."""
@@ -485,7 +518,6 @@ class BtTether(Plugin):
         self._log("INFO", f"Disconnected from {mac}")
         self._status = "IDLE"
         self._message = "Ready"
-        self._screen_needs_refresh = True
 
         # Clear the persisted MAC on an explicit disconnect
         self.phone_mac = ""
