@@ -13,10 +13,12 @@ class ConnectionMonitor:
     DEFAULT_RECONNECT_INTERVAL = 60
     DEFAULT_RECONNECT_FAST_INTERVAL = 15
     RECONNECT_FAST_CYCLES = 6
+    # After this many consecutive failures the phone is probably gone, so back off
+    # to a slow retry (reconnect_failure_cooldown) - but NEVER stop: keep trying so
+    # we always recover the moment it comes back.
     MAX_RECONNECT_FAILURES = 5
-    DEFAULT_RECONNECT_FAILURE_COOLDOWN = 300
+    DEFAULT_RECONNECT_FAILURE_COOLDOWN = 120
     MONITOR_INITIAL_DELAY = 5
-    MONITOR_PAUSED_CHECK_INTERVAL = 10
     OPERATION_SHORT_DELAY = 0.5
     # While connected the health/watchdog check only needs to run once per
     # reconnect_interval, but the display reads the poll cache - so re-poll it this
@@ -36,7 +38,6 @@ class ConnectionMonitor:
 
         self._thread = None
         self._stop = threading.Event()
-        self._paused = threading.Event()
         self._lock = threading.Lock()
 
         # Full-flow reconnect (NAP + PAN + DHCP + verify). Set by BluetoothService
@@ -138,7 +139,6 @@ class ConnectionMonitor:
             self.reconnect_failure_count = 0
             self.first_failure_time = None
             self._disconnected_cycles = 0
-        self._paused.clear()
 
     def clear_device(self):
         """Stop watching a device, e.g. after an explicit disconnect/unpair."""
@@ -160,14 +160,18 @@ class ConnectionMonitor:
         """Interruptible monitor wait with adaptive reconnect backoff.
 
         Right after a drop, retry quickly (reconnect_fast_interval) to catch a
-        phone that only briefly left range, then back off to reconnect_interval
-        if it stays down. When connected (steady health check) or paused (no
-        trusted device) always use the full interval - no point fast-polling.
-        Returns immediately if shutdown was requested.
+        phone that only briefly left range, then back off to reconnect_interval if
+        it stays down, and finally to a slow retry (reconnect_failure_cooldown) once
+        it's clearly gone. Crucially it never fully stops - it keeps trying at the
+        slow cadence so it always recovers when the phone returns. Returns
+        immediately if shutdown was requested.
         """
-        if self.last_known_connected or self._paused.is_set():
+        if self.last_known_connected:
             self._disconnected_cycles = 0
             interval = self.reconnect_interval
+        elif self.reconnect_failure_count >= self.max_reconnect_failures:
+            # Sustained failure (phone likely gone) - slow retry, but keep going.
+            interval = self.reconnect_failure_cooldown
         elif self.reconnect_fast_interval >= self.reconnect_interval:
             # Fast-retry disabled or misconfigured - use the normal interval.
             interval = self.reconnect_interval
@@ -253,24 +257,6 @@ class ConnectionMonitor:
 
         while not self._stop.is_set():
             try:
-                if self._paused.is_set():
-                    # Backing off reconnects - but keep the display honest instead of
-                    # freezing the cache for the whole cooldown. Refresh it, and if a
-                    # link is actually up (e.g. the user connected manually), resume
-                    # normal monitoring right away.
-                    mac = self._current_mac or self._pick_device()
-                    if mac:
-                        status = self.connection.get_full_status(mac)
-                        self._cache_ui_status(mac, status)
-                        if status and status.get("connected"):
-                            self._paused.clear()
-                            self.last_known_connected = True
-                            self.reconnect_failure_count = 0
-                            self.first_failure_time = None
-                            continue
-                    self._stop.wait(self.MONITOR_PAUSED_CHECK_INTERVAL)
-                    continue
-
                 mac = self._pick_device()
                 if not mac:
                     # No trusted device to watch (e.g. the last one was unpaired) -
@@ -437,20 +423,17 @@ class ConnectionMonitor:
         self.last_known_connected = False
 
     def _handle_reconnect_failure(self, mac):
-        """Handle a reconnection failure."""
+        """Count a reconnection failure and, past the threshold, slow the retry
+        cadence - without ever stopping. The loop keeps attempting every
+        reconnect_failure_cooldown seconds, so it recovers whenever the phone
+        returns; the count resets to fast retries on the next successful connect."""
         self.reconnect_failure_count += 1
         if self.first_failure_time is None:
             self.first_failure_time = time.time()
 
-        if self.reconnect_failure_count >= self.max_reconnect_failures:
-            self.logger.warning(f"⚠️ Auto-reconnect paused after {self.max_reconnect_failures} failed attempts")
-            self.logger.info(f"📱 Will retry after {self.reconnect_failure_cooldown}s cooldown")
-            self._paused.set()
-
-            def cooldown_timer():
-                time.sleep(self.reconnect_failure_cooldown)
-                self._paused.clear()
-                self.reconnect_failure_count = 0
-                self.first_failure_time = None
-
-            threading.Thread(target=cooldown_timer, daemon=True).start()
+        # Log once, on the transition into slow-retry, so the log isn't spammed.
+        if self.reconnect_failure_count == self.max_reconnect_failures:
+            self.logger.warning(
+                "⚠️ Auto-reconnect: %d attempts failed - backing off to a slow retry "
+                "every %ds (will keep trying)"
+                % (self.max_reconnect_failures, self.reconnect_failure_cooldown))
