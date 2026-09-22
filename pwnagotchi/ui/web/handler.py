@@ -62,6 +62,72 @@ def _store_meta():
     return _store_cache["map"]
 
 
+# One-shot background catalog sync. On a fresh install the available-plugins dir is
+# empty and there's nothing to browse; the moment internet is back we pull the catalog
+# once so the store fills itself without the user having to hit Refresh.
+_sync_lock = threading.Lock()
+_sync_running = {"v": False}
+
+
+def _auto_sync_worker(config):
+    from pwnagotchi.plugins import actions
+    try:
+        r = actions.refresh(config)
+        logging.info("plugin store auto-sync: %s", r.message)
+    except Exception as ex:
+        logging.warning("plugin store auto-sync failed: %s", ex)
+    finally:
+        with _sync_lock:
+            _sync_running["v"] = False
+
+
+def _maybe_auto_sync(config):
+    """Kick a background catalog sync iff the catalog is empty (fresh install) and
+    none is already running. Returns True when a sync is running/queued."""
+    from pwnagotchi.plugins import cmd as _pcmd
+    with _sync_lock:
+        if _sync_running["v"]:
+            return True
+        try:
+            has_catalog = bool(_pcmd._get_available())
+        except Exception:
+            has_catalog = True  # can't tell -> don't spam a sync
+        if has_catalog:
+            return False  # already synced; manual Refresh handles later updates
+        _sync_running["v"] = True
+    threading.Thread(target=_auto_sync_worker, args=(config,), daemon=True).start()
+    return True
+
+
+# Building the catalog parses metadata for ~70 plugins (~3s on a Pi Zero 2 W), so
+# cache it and rebuild only when something that affects it changes: the set of
+# plugin files (+ mtimes), the loaded set, the registered set, or store state. The
+# signature is cheap (globs + stat); the rebuild is not.
+_catalog_cache = {"sig": None, "catalog": None}
+
+
+def _catalog_signature(config, store_online, store_syncing):
+    import glob as _glob
+    from pwnagotchi.plugins import cmd as _pcmd
+    files = []
+    dirs = [getattr(_pcmd, "default_path", None),
+            config["main"].get("custom_plugins"),
+            getattr(_pcmd, "SAVE_DIR", None)]
+    for d in dirs:
+        if not d:
+            continue
+        try:
+            for f in _glob.glob(os.path.join(d, "*.py")):
+                try:
+                    files.append((f, int(os.path.getmtime(f))))
+                except OSError:
+                    pass
+        except Exception:
+            pass
+    return (frozenset(files), frozenset(plugins.loaded.keys()),
+            frozenset(plugins.database.keys()), store_online, store_syncing)
+
+
 class Handler:
     def __init__(self, config, agent, app):
         self._config = config
@@ -209,19 +275,38 @@ class Handler:
             # Assembly lives in the shared PluginCatalog; hand it the daemon's
             # registered/loaded state + the store metadata (network kept web-side).
             from pwnagotchi.plugins.catalog import PluginCatalog
+            from pwnagotchi.plugins import cmd as _pcmd
 
-            catalog = PluginCatalog.from_environment(
-                self._agent.config(),
-                installed_paths=dict(plugins.database),
-                loaded=plugins.loaded,
-                store_meta=_store_meta(),
-            )
+            cfg = self._agent.config()
+
+            # Store needs internet to sync; when offline we disable it (and skip the
+            # store-metadata fetch, which would otherwise hang on its timeout).
+            store_online = _pcmd._check_internet()
+            store_syncing = _maybe_auto_sync(cfg) if store_online else False
+
+            # Reuse the cached catalog unless the plugin files / loaded / registered
+            # sets changed (install, uninstall, upgrade, refresh, enable/disable).
+            sig = _catalog_signature(cfg, store_online, store_syncing)
+            if _catalog_cache["sig"] == sig and _catalog_cache["catalog"] is not None:
+                catalog = _catalog_cache["catalog"]
+            else:
+                catalog = PluginCatalog.from_environment(
+                    cfg,
+                    installed_paths=_pcmd._get_installed(cfg),   # on-disk: install/uninstall show at once
+                    loaded=plugins.loaded,
+                    store_meta=_store_meta() if store_online else {},
+                    registered_names=set(plugins.database.keys()),  # startup set: drives the restart banner
+                )
+                _catalog_cache["sig"] = sig
+                _catalog_cache["catalog"] = catalog
 
             # Restart-to-apply buttons should keep the unit in its current mode
             # (the handler's restart() only accepts the uppercase "AUTO"/"MANU").
             current_mode = "MANU" if self._agent.mode == "manual" else "AUTO"
             return render_template("plugins.html", cards=catalog.entries,
-                                   restart_pending=catalog.restart_pending, current_mode=current_mode)
+                                   restart_pending=catalog.restart_pending,
+                                   current_mode=current_mode,
+                                   store_online=store_online, store_syncing=store_syncing)
 
         if name == "toggle" and request.method == "POST":
             checked = True if "enabled" in request.form else False

@@ -50,7 +50,12 @@ def _resolve_category(raw, name, store_meta):
 
 
 def _resolve_repo(raw, name, store_meta):
-    return raw or (store_meta.get(name) or {}).get('repo')
+    repo = raw or (store_meta.get(name) or {}).get('repo')
+    # Only surface http(s) links: the value ends up in an href, so a plugin
+    # setting __github__ = "javascript:…" must not become a clickable script.
+    if repo and str(repo).lower().startswith(('http://', 'https://')):
+        return repo
+    return None
 
 
 class PluginCatalog:
@@ -106,9 +111,12 @@ class PluginCatalog:
         return False
 
     @classmethod
-    def from_environment(cls, config, installed_paths=None, loaded=None, store_meta=None):
-        """Build a catalog. The web passes plugins.database + plugins.loaded + the
-        fetched store map; the CLI passes none (enabled from config, no network)."""
+    def from_environment(cls, config, installed_paths=None, loaded=None, store_meta=None,
+                         registered_names=None):
+        """Build a catalog. The web passes the on-disk installed set (so install/
+        uninstall show immediately) plus plugins.loaded and the fetched store map;
+        registered_names (plugins.database, the startup set) drives the restart-
+        pending banner. The CLI passes none (enabled from config, no network)."""
         from pwnagotchi.plugins import cmd as _cmd
         from pwnagotchi import plugins as _plugins
 
@@ -191,8 +199,12 @@ class PluginCatalog:
             try:
                 disk = _cmd._get_installed(config)
                 disk_versions = {n: _ver_str(p) for n, p in disk.items()}
+                # Compare on-disk against what's actually registered/running (the
+                # startup set), not against the displayed set - which is now the
+                # on-disk set itself and would never differ.
+                registered = set(registered_names) if registered_names is not None else set(installed_paths.keys())
                 restart_pending = cls._restart_pending(
-                    set(disk.keys()), set(installed_paths.keys()),
+                    set(disk.keys()), registered,
                     disk_versions, loaded_versions,
                 )
             except Exception:

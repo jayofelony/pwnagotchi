@@ -55,9 +55,19 @@ def install(name, config, config_path=DEFAULT_CONFIG_PATH):
     os.makedirs(install_path, exist_ok=True)
     _copy_with_config(available[name], os.path.join(install_path, os.path.basename(available[name])))
 
+    # Auto-enable on install: the file is on disk now but only loads once it's
+    # marked enabled in config, so it comes up on the next restart.
+    plugins_cfg = config['main'].setdefault('plugins', {})
+    entry = plugins_cfg.get(name)
+    if not isinstance(entry, dict):
+        entry = {}
+        plugins_cfg[name] = entry
+    entry['enabled'] = True
+    save_config(config, config_path)
+
     if name in installed:
-        return Result(True, f"Reinstalled {name}.")
-    return Result(True, f"Installed {name}.")
+        return Result(True, f"Reinstalled & enabled {name}.")
+    return Result(True, f"Installed & enabled {name}.")
 
 
 def uninstall(name, config):

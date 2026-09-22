@@ -14,6 +14,10 @@ INDEX = """
     Logtail
 {% endblock %}
 
+{% block meta %}{{ super() }}
+<meta name="csrf_token" content="{{ csrf_token() }}" />
+{% endblock %}
+
 {% block styles %}
 {{ super() }}
 <style>
@@ -46,6 +50,14 @@ INDEX = """
         margin: 0;
     }
     #levelFilter { min-width: 150px; }
+
+    .log-actions { display: flex; gap: 0.5rem; align-items: center; }
+    #clearBtn, #copyBtn { height: 44px; min-width: 0; padding: 0 1.1rem; font-size: 0.85rem; white-space: nowrap; }
+    /* On mobile keep Copy and Clear side by side (each half) instead of stacking. */
+    @media screen and (max-width: 768px) {
+        .log-actions { width: 100%; }
+        #clearBtn, #copyBtn { flex: 1; width: auto; }
+    }
 
     /* Autoscroll Toggle Wrapper */
     #divTop > span {
@@ -435,6 +447,66 @@ INDEX = """
         levelVal = this.value;
         applyFilters();
     }
+
+    // Clear the log file (truncate server-side), then reload to resync the stream.
+    var clearBtn = document.getElementById("clearBtn");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function() {
+            if (!confirm("Clear the log file? This permanently deletes the current log contents.")) return;
+            var m = document.querySelector('meta[name="csrf_token"]');
+            fetch("/plugins/logtail/clear", {
+                method: "POST",
+                headers: { "X-CSRFToken": m ? m.getAttribute("content") : "", "X-Requested-With": "XMLHttpRequest" }
+            }).then(function(r) {
+                if (r.ok) { location.reload(); }
+                else { alert("Failed to clear the log."); }
+            }).catch(function() { alert("Failed to clear the log."); });
+        });
+    }
+
+    // Copy the currently-visible (filtered) log lines to the clipboard. The UI is
+    // served over plain HTTP on the LAN, which is a non-secure context where
+    // navigator.clipboard is unavailable, so fall back to execCommand.
+    function fallbackCopy(text) {
+        try {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.top = "-1000px";
+            document.body.appendChild(ta);
+            ta.focus(); ta.select();
+            var ok = document.execCommand("copy");
+            document.body.removeChild(ta);
+            return ok;
+        } catch (e) { return false; }
+    }
+
+    var copyBtn = document.getElementById("copyBtn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", function() {
+            var rows = table.getElementsByTagName("tr");
+            var lines = [];
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].style.display === "none") continue;
+                var tds = rows[i].getElementsByTagName("td");
+                var line = "";
+                for (var j = 0; j < tds.length; j++) { line += tds[j].textContent; }
+                lines.push(line);
+            }
+            var text = lines.join("\\n");
+            var ok = function() {
+                if (typeof showToast === "function") showToast("Copied " + lines.length + " lines", 2000, "success");
+            };
+            var no = function() {
+                if (typeof showToast === "function") showToast("Copy failed", 3000, "error");
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(ok).catch(function() { fallbackCopy(text) ? ok() : no(); });
+            } else {
+                fallbackCopy(text) ? ok() : no();
+            }
+        });
+    }
 {% endblock %}
 
 {% block content %}
@@ -456,6 +528,10 @@ INDEX = """
         <span>
             <input type="checkbox" id="autoscroll" checked>
             <label for="autoscroll">Auto-scroll</label>
+        </span>
+        <span class="log-actions">
+            <button type="button" id="copyBtn" class="btn ghost" title="Copy the visible log lines to the clipboard">Copy</button>
+            <button type="button" id="clearBtn" class="btn danger" title="Clear the log file">Clear log</button>
         </span>
     </div>
 
@@ -507,6 +583,19 @@ class Logtail(plugins.Plugin):
 
         if not path or path == "/":
             return render_template_string(INDEX)
+
+        if path == "clear" and request.method == "POST":
+            # Truncate in place (don't unlink): the logging FileHandler holds the
+            # file open in append mode, so truncation is safe - its next write lands
+            # at offset 0. Deleting the file instead would break logging until a
+            # restart. Callers should reload to resync any open live-tail stream.
+            with self.lock:
+                try:
+                    open(self.config["main"]["log"]["path"], "w").close()
+                except Exception as e:
+                    logging.warning("logtail: failed to clear log: %s", e)
+                    return "error", 500
+            return "ok"
 
         if path == "stream":
 

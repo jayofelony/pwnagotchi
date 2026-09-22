@@ -101,9 +101,9 @@
   .pc-title h4 a:hover { text-decoration: underline; }
   .pc-meta { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
   .pc-ver { color: var(--text-muted); font-size: 0.8rem; }
-  a.pc-ver { text-decoration: none; }
-  a.pc-ver:hover { color: var(--accent); text-decoration: underline; }
-  .pc-desc[title]:not([title=""]) { cursor: help; }
+  /* A version that links to a repo should read as a link at rest, not only on hover. */
+  a.pc-ver { text-decoration: underline; text-underline-offset: 2px; }
+  a.pc-ver:hover { color: var(--accent); }
   .pc-author { color: var(--text-muted); font-size: 0.78rem; }
   .pc-desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.35;
              display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
@@ -113,7 +113,11 @@
                 margin-top: auto; padding-top: 0.5rem; }
   .pc-actions form { margin: 0; display: inline-flex; align-items: center; }
   .pc-right { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
-  .pc-actions .btn { height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+  /* width:auto + min-width:0 override the global mobile rule that stretches every
+     button to 100% width, so the card actions (Open / Update / Uninstall) stay
+     compact and sit on one row instead of stacking. */
+  .pc-actions .btn { height: 34px; display: inline-flex; align-items: center; justify-content: center;
+                     width: auto; min-width: 0; }
 
   .pc-badge { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: 6px; text-transform: uppercase;
               letter-spacing: 0.03em;
@@ -167,11 +171,21 @@
   {% endif %}
   </div>
 
+  {% if store_online is defined and not store_online %}
+  <div class="pc-notice store-notice">
+    <div class="pc-notice-text"><strong>Store offline.</strong> No internet connection &mdash; the plugin store can&rsquo;t sync. Connect to the internet and reload to browse &amp; install plugins.</div>
+  </div>
+  {% elif store_syncing %}
+  <div class="pc-notice store-notice">
+    <div class="pc-notice-text"><strong>Syncing store&hellip;</strong> Fetching the plugin catalog. Reload in a moment to see what&rsquo;s available.</div>
+  </div>
+  {% endif %}
+
   <div class="pill-row" id="statePills">
+    <button class="pill active" data-state="enabled">Enabled</button>
     <button class="pill" data-state="installed">Installed</button>
-    <button class="pill" data-state="enabled">Enabled</button>
-    <button class="pill" data-state="available">Store</button>
-    <button class="pill active" data-state="all">All</button>
+    {% if store_online is not defined or store_online %}<button class="pill" data-state="available">Store</button>{% endif %}
+    <button class="pill" data-state="all">All</button>
   </div>
 
   <input type="search" id="pluginFilter" class="plugins-search" placeholder="Search by name, description or author&hellip;" autocomplete="off" />
@@ -213,7 +227,7 @@
       </div>
 
       {% if p.author %}<div class="pc-author">by {{ p.author }}</div>{% endif %}
-      <div class="pc-desc" title="{{ p.description or '' }}">{{ p.description or 'No description.' }}</div>
+      <div class="pc-desc">{{ p.description or 'No description.' }}</div>
 
       <div class="pc-actions">
         <div class="pc-left">
@@ -241,7 +255,7 @@
             </form>
             {% endif %}
             {% if not p.default %}
-            <form method="POST" action="/plugins/uninstall" onsubmit="return confirm('Uninstall {{ p.name }}?');">
+            <form method="POST" action="/plugins/uninstall" data-confirm="Uninstall {{ p.name }}?">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <input type="hidden" name="plugin" value="{{ p.name }}" />
               <button type="submit" class="btn danger">Uninstall</button>
@@ -274,7 +288,7 @@
     var filter = document.getElementById('pluginFilter');
     var statePills = Array.prototype.slice.call(document.querySelectorAll('#statePills .pill'));
     var catPills = Array.prototype.slice.call(document.querySelectorAll('#catPills .pill'));
-    var state = 'all', cat = 'all';
+    var state = 'enabled', cat = 'all';
 
     function csrf() {
       var m = document.querySelector('meta[name="csrf_token"]');
@@ -374,7 +388,15 @@
         .then(function (data) {
           if (!data) return;
           toast(data.message || (data.ok ? 'Done' : 'Failed'), data.ok);
-          if (!data.ok) input.checked = !input.checked;
+          if (!data.ok) {
+            input.checked = !input.checked;
+          } else {
+            // Reflect the new state in the card so the Enabled/Installed filters
+            // (which read data-enabled) update without a page reload.
+            var card = input.closest('.plugin-card');
+            if (card) card.dataset.enabled = input.checked ? 'true' : 'false';
+            apply();
+          }
           input.disabled = false;
         })
         .catch(function () {
@@ -394,7 +416,12 @@
         if (toggle) {
           toggle.addEventListener('change', function () { submitToggle(toggle); });
         } else {
-          form.addEventListener('submit', function (e) { e.preventDefault(); submitAction(form); });
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var msg = form.getAttribute('data-confirm');
+            if (msg && !confirm(msg)) return;   // declined the confirm -> do nothing
+            submitAction(form);
+          });
         }
       });
     }
