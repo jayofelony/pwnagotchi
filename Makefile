@@ -104,7 +104,7 @@ nexmon-dkms-release: nexmon-dkms
 	gh release create "v$$ver" "$$deb" --repo $(NEXMON_DKMS_REPO) --target "$$sha" --title "v$$ver" --notes "$$notes"
 
 # stock test build with cloud-init ssh and rpi-usb-gadget enabled
-headless:
+headless: nexmon-dkms
 	[ -d pi-gen-64bit ] || git clone --branch arm64 "https://github.com/jayofelony/pi-gen.git" pi-gen-64bit
 	[ -d pi-gen-64bit ] && cd pi-gen-64bit && git pull
 	rm -rf pi-gen-64bit/stage2/EXPORT_IMAGE

@@ -1,7 +1,5 @@
 import logging
 import os
-import subprocess
-import base64
 import threading  # FIX B5: replaced _thread with threading
 import secrets
 import json
@@ -17,6 +15,7 @@ import pwnagotchi
 import pwnagotchi.grid as grid
 import pwnagotchi.ui.web as web
 from pwnagotchi import plugins
+from pwnagotchi.ui.web.gridview import GridView
 
 from flask import send_file
 from flask import Response
@@ -27,11 +26,114 @@ from flask import redirect
 from flask import render_template, render_template_string
 
 
+# Category + repo metadata for store/available plugins comes from the community store
+# catalog (each entry has "category" and a "download_url"). Cached so /plugins doesn't
+# refetch on every load, and fails soft (offline -> empty map -> falls back gracefully).
+_STORE_CAT_URL = "https://raw.githubusercontent.com/wpa-2/pwnagotchi-store/main/plugins.json"
+_store_cache = {"ts": 0.0, "map": {}}
+
+
+def _store_meta():
+    """name -> {'category': str, 'repo': url} from the community store catalog."""
+    import time
+    now = time.time()
+    if _store_cache["map"] and now - _store_cache["ts"] < 3600:
+        return _store_cache["map"]
+    try:
+        import requests
+        import re as _re
+        data = requests.get(_STORE_CAT_URL, timeout=6).json()
+        m = {}
+        for e in data:
+            n = e.get("name")
+            if not n:
+                continue
+            url = e.get("download_url")
+            repo = None
+            if url:
+                mm = _re.match(r'(https?://github\.com/[^/]+/[^/]+)', url)
+                repo = mm.group(1) if mm else url
+            m[n] = {"category": e.get("category"), "repo": repo}
+        if m:
+            _store_cache["map"] = m
+            _store_cache["ts"] = now
+    except Exception:
+        pass
+    return _store_cache["map"]
+
+
+# One-shot background catalog sync. On a fresh install the available-plugins dir is
+# empty and there's nothing to browse; the moment internet is back we pull the catalog
+# once so the store fills itself without the user having to hit Refresh.
+_sync_lock = threading.Lock()
+_sync_running = {"v": False}
+
+
+def _auto_sync_worker(config):
+    from pwnagotchi.plugins import actions
+    try:
+        r = actions.refresh(config)
+        logging.info("plugin store auto-sync: %s", r.message)
+    except Exception as ex:
+        logging.warning("plugin store auto-sync failed: %s", ex)
+    finally:
+        with _sync_lock:
+            _sync_running["v"] = False
+
+
+def _maybe_auto_sync(config):
+    """Kick a background catalog sync iff the catalog is empty (fresh install) and
+    none is already running. Returns True when a sync is running/queued."""
+    from pwnagotchi.plugins import cmd as _pcmd
+    with _sync_lock:
+        if _sync_running["v"]:
+            return True
+        try:
+            has_catalog = bool(_pcmd._get_available())
+        except Exception:
+            has_catalog = True  # can't tell -> don't spam a sync
+        if has_catalog:
+            return False  # already synced; manual Refresh handles later updates
+        _sync_running["v"] = True
+    threading.Thread(target=_auto_sync_worker, args=(config,), daemon=True).start()
+    return True
+
+
+# Building the catalog parses metadata for ~70 plugins (~3s on a Pi Zero 2 W), so
+# cache it and rebuild only when something that affects it changes: the set of
+# plugin files (+ mtimes), the loaded set, the registered set, or store state. The
+# signature is cheap (globs + stat); the rebuild is not.
+_catalog_cache = {"sig": None, "catalog": None}
+
+
+def _catalog_signature(config, store_online, store_syncing):
+    import glob as _glob
+    from pwnagotchi.plugins import cmd as _pcmd
+    files = []
+    dirs = [getattr(_pcmd, "default_path", None),
+            config["main"].get("custom_plugins"),
+            getattr(_pcmd, "SAVE_DIR", None)]
+    for d in dirs:
+        if not d:
+            continue
+        try:
+            for f in _glob.glob(os.path.join(d, "*.py")):
+                try:
+                    files.append((f, int(os.path.getmtime(f))))
+                except OSError:
+                    pass
+        except Exception:
+            pass
+    return (frozenset(files), frozenset(plugins.loaded.keys()),
+            frozenset(plugins.database.keys()), store_online, store_syncing)
+
+
 class Handler:
     def __init__(self, config, agent, app):
         self._config = config
         self._agent = agent
         self._app = app
+        self._grid_view = GridView()
 
         # Dynamic theme CSS route
         self._app.add_url_rule("/css/theme.css", "dynamic_theme", self.dynamic_theme)
@@ -117,74 +219,38 @@ class Handler:
             fingerprint=self._agent.fingerprint(),
         )
 
+    # Render a chrome-only shell on a normal GET; the page fetches the (slow)
+    # pwngrid data as an XHR fragment (loadFragment) so tab switches stay instant.
     def inbox(self):
         page = request.args.get("p", default=1, type=int)
-        inbox = {"pages": 1, "records": 0, "messages": []}
-        error = None
-
-        try:
-            if not grid.is_connected():
-                raise Exception("not connected")
-
-            inbox = grid.inbox(page, with_pager=True)
-        except Exception as e:
-            logging.exception("error while reading pwnmail inbox")
-            error = str(e)
-
-        return render_template(
-            "inbox.html", name=pwnagotchi.name(), page=page, error=error, inbox=inbox
-        )
+        if self._is_fragment():
+            inbox, error = self._grid_view.inbox(page)
+            return render_template("inbox.html", name=pwnagotchi.name(), page=page,
+                                   error=error, inbox=inbox, is_fragment=True)
+        return render_template("inbox.html", name=pwnagotchi.name(), page=page, is_fragment=False)
 
     def inbox_profile(self):
-        data = {}
-        error = None
-
-        try:
-            data = grid.get_advertisement_data()
-        except Exception as e:
-            logging.exception("error while reading pwngrid data")
-            error = str(e)
-
-        return render_template(
-            "profile.html",
-            name=pwnagotchi.name(),
-            fingerprint=self._agent.fingerprint(),
-            data=json.dumps(data, indent=2),
-            error=error,
-        )
+        if self._is_fragment():
+            data, error = self._grid_view.profile()
+            return render_template("profile.html", name=pwnagotchi.name(),
+                                   fingerprint=self._agent.fingerprint(),
+                                   data=json.dumps(data, indent=2), error=error, is_fragment=True)
+        return render_template("profile.html", name=pwnagotchi.name(),
+                               fingerprint=self._agent.fingerprint(), is_fragment=False)
 
     def inbox_peers(self):
-        peers = {}
-        error = None
-
-        try:
-            peers = grid.memory()
-        except Exception as e:
-            logging.exception("error while reading pwngrid peers")
-            error = str(e)
-
-        return render_template(
-            "peers.html", name=pwnagotchi.name(), peers=peers, error=error
-        )
+        if self._is_fragment():
+            peers, error = self._grid_view.peers()
+            return render_template("peers.html", name=pwnagotchi.name(), peers=peers,
+                                   error=error, is_fragment=True)
+        return render_template("peers.html", name=pwnagotchi.name(), is_fragment=False)
 
     def show_message(self, id):
-        message = {}
-        error = None
-
-        try:
-            if not grid.is_connected():
-                raise Exception("not connected")
-
-            message = grid.inbox_message(id)
-            if message["data"]:
-                message["data"] = base64.b64decode(message["data"]).decode("utf-8")
-        except Exception as e:
-            logging.exception("error while reading pwnmail message %d" % int(id))
-            error = str(e)
-
-        return render_template(
-            "message.html", name=pwnagotchi.name(), error=error, message=message
-        )
+        if self._is_fragment():
+            message, error = self._grid_view.message(id)
+            return render_template("message.html", name=pwnagotchi.name(),
+                                   error=error, message=message, is_fragment=True)
+        return render_template("message.html", name=pwnagotchi.name(), id=id, is_fragment=False)
 
     def new_message(self):
         to = request.args.get("to", default="")
@@ -193,16 +259,7 @@ class Handler:
     def send_message(self):
         to = request.form["to"]
         message = request.form["message"]
-        error = None
-
-        try:
-            if not grid.is_connected():
-                raise Exception("not connected")
-
-            grid.send_message(to, message)
-        except Exception as e:
-            error = str(e)
-
+        _, error = self._grid_view.send(to, message)
         return jsonify({"error": error})
 
     def mark_message(self, id, mark):
@@ -215,46 +272,80 @@ class Handler:
 
     def plugins(self, name, subpath):
         if name is None:
-            # Determine which plugins are from the default folder
-            default_plugins = set()
-            default_path = os.path.join(os.path.dirname(os.path.realpath(plugins.__file__)), "default")
-            for plugin_name, plugin_path in plugins.database.items():
-                if plugin_path.startswith(default_path):
-                    default_plugins.add(plugin_name)
+            # Assembly lives in the shared PluginCatalog; hand it the daemon's
+            # registered/loaded state + the store metadata (network kept web-side).
+            from pwnagotchi.plugins.catalog import PluginCatalog
+            from pwnagotchi.plugins import cmd as _pcmd
 
-            plugin_info = {}
-            for plugin_name, plugin_path in plugins.database.items():
-                instance = plugins.loaded.get(plugin_name)
-                if instance is not None:
-                    plugin_info[plugin_name] = {
-                        '__description__': getattr(instance, '__description__', None),
-                        '__author__': getattr(instance, '__author__', None),
-                        '__version__': getattr(instance, '__version__', None),
-                    }
-                else:
-                    plugin_info[plugin_name] = plugins.get_plugin_metadata(plugin_path)
+            cfg = self._agent.config()
 
-            return render_template(
-                "plugins.html",
-                loaded=plugins.loaded,
-                database=plugins.database,
-                default_plugins=default_plugins,
-                plugin_info=plugin_info,
-            )
+            # Store needs internet to sync; when offline we disable it (and skip the
+            # store-metadata fetch, which would otherwise hang on its timeout).
+            store_online = _pcmd._check_internet()
+            store_syncing = _maybe_auto_sync(cfg) if store_online else False
+
+            # Reuse the cached catalog unless the plugin files / loaded / registered
+            # sets changed (install, uninstall, upgrade, refresh, enable/disable).
+            sig = _catalog_signature(cfg, store_online, store_syncing)
+            if _catalog_cache["sig"] == sig and _catalog_cache["catalog"] is not None:
+                catalog = _catalog_cache["catalog"]
+            else:
+                catalog = PluginCatalog.from_environment(
+                    cfg,
+                    installed_paths=_pcmd._get_installed(cfg),   # on-disk: install/uninstall show at once
+                    loaded=plugins.loaded,
+                    store_meta=_store_meta() if store_online else {},
+                    registered_names=set(plugins.database.keys()),  # startup set: drives the restart banner
+                )
+                _catalog_cache["sig"] = sig
+                _catalog_cache["catalog"] = catalog
+
+            # Restart-to-apply buttons should keep the unit in its current mode
+            # (the handler's restart() only accepts the uppercase "AUTO"/"MANU").
+            current_mode = "MANU" if self._agent.mode == "manual" else "AUTO"
+            return render_template("plugins.html", cards=catalog.entries,
+                                   restart_pending=catalog.restart_pending,
+                                   current_mode=current_mode,
+                                   store_online=store_online, store_syncing=store_syncing)
 
         if name == "toggle" and request.method == "POST":
             checked = True if "enabled" in request.form else False
-            return (
-                "success"
-                if plugins.toggle_plugin(request.form["plugin"], checked)
-                else "failed"
-            )
-
-        if name == "upgrade" and request.method == "POST":
             plugin_name = request.form["plugin"]
-            logging.info(f"Upgrading plugin: {plugin_name}")
-            subprocess.run(["pwnagotchi", "plugins", "update"], check=False)
-            subprocess.run(["pwnagotchi", "plugins", "upgrade", plugin_name], check=False)
+            ok = bool(plugins.toggle_plugin(plugin_name, checked))
+            if self._wants_json():
+                verb = "Enabled" if checked else "Disabled"
+                return jsonify({
+                    "ok": ok,
+                    "message": (f"{verb} {plugin_name}" if ok
+                                else f"Failed to {'enable' if checked else 'disable'} {plugin_name}"),
+                })
+            return "success" if ok else "failed"
+
+        # Actions run in-process via the shared plugins.actions interface.
+        if name in ("upgrade", "install", "uninstall", "refresh") and request.method == "POST":
+            from pwnagotchi.plugins import actions
+            cfg = self._agent.config()
+
+            if name == "refresh":
+                r = actions.refresh(cfg)
+                logging.info("plugin catalog refresh: %s", r.message)
+            elif name == "install":
+                plugin_name = request.form["plugin"]
+                r = actions.install(plugin_name, cfg)
+                logging.info("plugin install %s: %s", plugin_name, r.message)
+            elif name == "uninstall":
+                plugin_name = request.form["plugin"]
+                r = actions.uninstall(plugin_name, cfg)
+                logging.info("plugin uninstall %s: %s", plugin_name, r.message)
+            else:  # upgrade: refresh the catalog first (as before), then upgrade
+                plugin_name = request.form["plugin"]
+                rr = actions.refresh(cfg)
+                logging.info("plugin catalog refresh: %s", rr.message)
+                r = actions.upgrade(plugin_name, cfg)
+                logging.info("plugin upgrade %s: %s", plugin_name, r.message)
+
+            if self._wants_json():
+                return jsonify({"ok": r.ok, "message": r.message})
             return redirect("/plugins")
 
         if (
@@ -268,6 +359,17 @@ class Handler:
                 abort(500)
         else:
             abort(404)
+
+    @staticmethod
+    def _wants_json():
+        # AJAX calls get JSON; plain requests get the redirect/text fallback.
+        return (request.headers.get("X-Requested-With") == "XMLHttpRequest"
+                or "application/json" in (request.headers.get("Accept") or ""))
+
+    @staticmethod
+    def _is_fragment():
+        # True when loadFragment is fetching the data fragment (renders list only).
+        return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     # serve a message and shuts down the unit
     def shutdown(self):

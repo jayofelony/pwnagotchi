@@ -46,9 +46,10 @@ def remove_whitelisted(list_of_handshakes, list_of_whitelisted_strings, valid_on
     return filtered
 
 
-def download_file(url, destination, chunk_size=128):
+def download_file(url, destination, chunk_size=128, timeout=(10, 30)):
+    # (connect, read) timeout so a dead host fails fast instead of hanging.
     import requests
-    resp = requests.get(url)
+    resp = requests.get(url, timeout=timeout)
     resp.raise_for_status()
 
     with open(destination, 'wb') as fd:

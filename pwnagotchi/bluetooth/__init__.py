@@ -18,7 +18,10 @@ from .ui import UIRenderer
 
 
 class BluetoothService:
-    """Main facade for Bluetooth operations."""
+    """Main facade for Bluetooth operations - the one supported interface for a
+    plugin. The managers it composes (connection/network/monitor/ui_renderer) are
+    internal seams; add to the facade rather than reaching into one.
+    """
 
     # State constants
     STATE_IDLE = "IDLE"
@@ -50,7 +53,7 @@ class BluetoothService:
         self.options = options or {}
         self.logger = logger or logging.getLogger(__name__)
 
-        # Initialize components
+        # Internal seams (see class docstring) - not a supported interface.
         self.connection = ConnectionManager(logger=self.logger, options=self.options)
         self.network = NetworkManager(logger=self.logger, options=self.options)
         self.agent = PairingAgent(logger=self.logger)
@@ -153,8 +156,52 @@ class BluetoothService:
             self.logger.error(f"Error stopping service: {e}")
 
     def get_status(self, mac):
-        """Get connection status for a device."""
+        """Full connection status for a device (paired/trusted/connected plus PAN
+        interface, IPv4/IPv6). For just paired/connected, see get_pair_status."""
         return self.connection.get_full_status(mac)
+
+    def get_pair_status(self, mac):
+        """Basic paired/connected status for the pairing UI (see get_status for
+        the full picture)."""
+        status = self.connection.get_status(mac)
+        return {
+            "paired": status.get("paired", False),
+            "connected": status.get("connected", False),
+        }
+
+    def test_internet(self):
+        """Run the internet-connectivity probe (ping + DNS + tether address)."""
+        return self.network.test_internet_connectivity()
+
+    def default_route_interface(self):
+        """Interface currently holding the default route, or None."""
+        return self.network.get_default_route_interface()
+
+    def ui_snapshot(self):
+        """Ready-to-render display snapshot (icon, detail_line, message, name, mac,
+        connected) for the e-ink UI and /status. Non-blocking (reads the monitor's
+        cached poll, safe on the main loop) and applies the transient-state
+        precedence: stuck > recovering > stalled > connected."""
+        snap = self.monitor.get_ui_status() or {}
+        status = snap.get("status") or {}
+        bt_stuck = self.bt_stuck
+        recovering = self.bt_recovering
+        stalled = self.monitor.link_stalled
+        detail = self.ui_renderer.format_status(
+            status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled
+        )
+        icon = self.ui_renderer.get_status_icon(
+            status, bt_stuck=bt_stuck, recovering=recovering, stalled=stalled
+        )
+        message = detail[3:] if detail.startswith("BT:") else detail
+        return {
+            "icon": icon,
+            "detail_line": detail,
+            "message": message,
+            "name": snap.get("name"),
+            "mac": snap.get("mac"),
+            "connected": bool(status.get("connected", False)),
+        }
 
     def get_trusted_devices(self):
         """Get list of trusted devices."""
@@ -245,6 +292,8 @@ class BluetoothService:
                 self.logger.info("Making Pwnagotchi discoverable...")
                 with self._lock:
                     self._message = f"Making Pwnagotchi discoverable for {name}..."
+                # FOLLOW-UP: give ConnectionManager public methods so the facade
+                # stops reaching into its privates (_run_cmd, _consecutive_busy).
                 self.connection._run_cmd(["bluetoothctl", "discoverable", "on"], capture=True)
                 self.connection._run_cmd(["bluetoothctl", "pairable", "on"], capture=True)
                 time.sleep(2)

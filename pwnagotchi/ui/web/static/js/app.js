@@ -270,3 +270,96 @@ const showToast = (message, duration = 4000, type = "error") => {
     setTimeout(() => toast.remove(), 300);
   }, duration);
 };
+
+// Fetch a server-rendered fragment into a container (used by the pwngrid tabs so
+// the shell shows instantly and the slow data streams in under a spinner).
+const loadFragment = (selector, url, onload) => {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  // Hide the page's search box when the fragment failed to load — searching a
+  // list that isn't there (e.g. pwngrid offline) is pointless.
+  const syncSearchBox = () => {
+    const box = document.querySelector(".search-box");
+    if (box) box.style.display = el.querySelector(".fragment-error") ? "none" : "";
+  };
+  el.innerHTML =
+    '<div class="fragment-loading"><span class="fragment-spinner"></span> Loading&hellip;</div>';
+  fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }, credentials: "same-origin" })
+    .then((r) => {
+      if (!r.ok) throw new Error(r.status);
+      return r.text();
+    })
+    .then((html) => {
+      el.innerHTML = html;
+      if (typeof updateTimeElements === "function") updateTimeElements();
+      syncSearchBox();
+      if (typeof onload === "function") onload();
+    })
+    .catch(() => {
+      el.innerHTML =
+        '<div class="fragment-error">Couldn’t reach pwngrid — reload to retry.</div>';
+      syncSearchBox();
+    });
+};
+
+// Top progress bar: shows on a full-page navigation, completes on load.
+(function () {
+  let bar, creep, pct;
+
+  function ensureBar() {
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "top-progress";
+      (document.body || document.documentElement).appendChild(bar);
+    }
+    return bar;
+  }
+
+  function start() {
+    const b = ensureBar();
+    b.classList.add("active");
+    pct = 8;
+    b.style.width = pct + "%";
+    clearInterval(creep);
+    creep = setInterval(() => {
+      pct += (90 - pct) * 0.12; // ease toward 90%, never reaching it
+      b.style.width = Math.min(pct, 90) + "%";
+    }, 200);
+  }
+
+  function done() {
+    clearInterval(creep);
+    const b = ensureBar();
+    b.classList.add("active");
+    b.style.width = "100%";
+    setTimeout(() => {
+      b.classList.remove("active");
+      setTimeout(() => { b.style.width = "0%"; }, 300);
+    }, 180);
+  }
+
+  // Start on a same-origin navigation click (bubble phase honours preventDefault).
+  document.addEventListener("click", (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest("a[href]");
+    if (!a || (a.target && a.target !== "_self") || a.hasAttribute("download")) return;
+    const href = a.getAttribute("href");
+    if (!href || href[0] === "#" || href.toLowerCase().indexOf("javascript:") === 0) return;
+    let url;
+    try { url = new URL(a.href, location.href); } catch (_) { return; }
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.hash) return; // same-page anchor
+    start();
+  });
+
+  // Start on non-AJAX form submits (AJAX forms preventDefault before this bubbles).
+  document.addEventListener("submit", (e) => {
+    if (e.defaultPrevented) return;
+    if (e.target && e.target.getAttribute && e.target.getAttribute("target") === "_blank") return;
+    start();
+  });
+
+  // Complete on the freshly-loaded page (and when returning via bfcache).
+  window.addEventListener("load", done);
+  window.addEventListener("pageshow", (e) => { if (e.persisted) done(); });
+})();

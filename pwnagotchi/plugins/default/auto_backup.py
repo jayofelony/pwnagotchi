@@ -50,6 +50,85 @@ def config_custom_plugins_dir():
 # ---------------------------------------------------------------------------
 
 
+INDEX = """
+{% extends "base.html" %}
+{% set active_page = "plugins" %}
+{% block title %}Auto Backup{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        .ab-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .ab-stat { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; text-align: center; }
+        .ab-stat .num { font-family: var(--font-pixel); font-size: 2.2rem; line-height: 1; color: var(--accent); }
+        .ab-stat .lbl { margin-top: 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .ab-status { display: flex; align-items: center; gap: 0.5rem; }
+        .ab-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--text-muted); }
+        .ab-dot.ready { background: var(--success, #35c46a); }
+        .ab-dot.busy { background: var(--accent); animation: ab-pulse 1s ease-in-out infinite; }
+        @keyframes ab-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .ab-actions form { margin: 0; width: 100%; }
+        .ab-actions .btn { width: 100%; }
+        .ab-config { width: 100%; border-collapse: collapse; }
+        .ab-config td { padding: 0.55rem 0.25rem; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+        .ab-config tr:last-child td { border-bottom: 0; }
+        .ab-config td.k { color: var(--text-muted); white-space: nowrap; width: 1%; padding-right: 1.25rem; }
+        .ab-config td.v { word-break: break-word; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="plugin-page-header">
+        <div class="header-nav"><a href="/plugins" class="btn ghost">← Plugins</a><span class="header-version">v{{ version }}</span></div>
+        <h2>Auto Backup</h2>
+        <p>Scheduled backups of your config &amp; data</p>
+    </div>
+
+    {% if message %}
+    <div class="alert alert-success p-2" style="margin-bottom: 1.5rem;">{{ message }}</div>
+    {% endif %}
+
+    <div class="ab-stats">
+        <div class="ab-stat"><div class="num">{{ interval }}</div><div class="lbl">Interval (min)</div></div>
+        <div class="ab-stat"><div class="num">{{ max_backups }}</div><div class="lbl">Backups kept</div></div>
+        <div class="ab-stat"><div class="num">{{ backup_count }}</div><div class="lbl">On disk</div></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Status</div>
+        <div class="card-body">
+            <div class="ab-status">
+                {% if in_progress %}<span class="ab-dot busy"></span><b>Backup in progress&hellip;</b>
+                {% elif not ready %}<span class="ab-dot"></span><b>Not configured</b> &mdash; set <code>backup_location</code>
+                {% else %}<span class="ab-dot ready"></span><b>Ready</b>{% endif %}
+            </div>
+            {% if last_backup %}<p style="margin-top: 0.75rem; color: var(--text-muted);">Last backup: {{ last_backup }}</p>{% endif %}
+        </div>
+        <div class="card-footer ab-actions">
+            <form method="POST" action="{{ action_path }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn primary"{% if in_progress or not ready %} disabled{% endif %}>Start manual backup</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Configuration</div>
+        <div class="card-body">
+            <table class="ab-config">
+                <tr><td class="k">Location</td><td class="v">{{ backup_location }}</td></tr>
+                <tr><td class="k">Interval</td><td class="v">{{ interval }} minutes</td></tr>
+                <tr><td class="k">Max backups</td><td class="v">{{ max_backups }}</td></tr>
+                <tr><td class="k">Include</td><td class="v">{{ include }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/wpa-2" target="_blank" rel="noopener">WPA2</a> &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
+{% endblock %}
+"""
+
+
 class AutoBackup(plugins.Plugin):
     __author__ = "WPA2"
     __version__ = "2.4"
@@ -383,63 +462,68 @@ class AutoBackup(plugins.Plugin):
 
         logging.info("AUTO-BACKUP: Periodic backup scheduler started")
 
-    def on_webhook(self, path, request):
-        """Handle web UI requests."""
-        if request.method == "GET":
-            if path == "/" or not path:
-                action_path = (
-                    request.path
-                    if request.path.endswith("/backup")
-                    else "%s/backup" % request.path
-                )
-                ret = '<html><head><title>AUTO Backup</title><meta name="csrf_token" content="{{ csrf_token() }}"></head><body>'
-                ret += "<h1>AUTO Backup</h1>"
-                ret += "<p>Status: "
-                if self.backup_in_progress:
-                    ret += "<b>Backup in progress...</b>"
-                else:
-                    ret += "<b>Ready</b>"
-                ret += "</p>"
-                ret += '<form method="POST" action="%s">' % action_path
-                ret += '<input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">'
-                ret += '<input type="submit" value="Start Manual Backup" class="btn primary">'
-                ret += "</form>"
-                ret += "<hr>"
-                ret += "<h2>Configuration</h2>"
-                ret += '<table border="1" cellpadding="5">'
-                ret += (
-                    "<tr><td><b>Backup Location:</b></td><td>"
-                    + self.options.get("backup_location", "Not set")
-                    + "</td></tr>"
-                )
-                ret += (
-                    "<tr><td><b>Interval:</b></td><td>"
-                    + str(self.interval_seconds // 60)
-                    + " minutes</b></td></tr>"
-                )
-                ret += (
-                    "<tr><td><b>Max Backups:</b></td><td>"
-                    + str(self.max_backups)
-                    + "</td></tr>"
-                )
-                ret += (
-                    "<tr><td><b>Include Paths:</b></td><td>"
-                    + (", ".join(self.include) if self.include else "None")
-                    + "</td></tr>"
-                )
-                ret += "</table>"
-                ret += "</body></html>"
-                return render_template_string(ret)
+    def _backup_count(self):
+        """Number of this host's backup archives currently on disk."""
+        loc = self.options.get("backup_location")
+        if not loc:
+            return 0
+        try:
+            return len(glob.glob(os.path.join(loc, f"{self.hostname}-backup-*.tar.gz")))
+        except Exception:
+            return 0
 
-        elif request.method == "POST":
-            if path == "backup" or path == "/backup":
-                result = self.manual_backup(self._agent)
-                ret = '<html><head><title>AUTO Backup</title><meta name="csrf_token" content="{{ csrf_token() }}"></head><body>'
-                ret += "<h1>AUTO Backup</h1>"
-                ret += "<p><b>" + result["status"] + "</b></p>"
-                ret += '<a href="/plugins/auto_backup/">Back</a>'
-                ret += "</body></html>"
-                return render_template_string(ret)
+    def _last_backup_str(self):
+        """Timestamp of the last successful backup, or None if there isn't one."""
+        try:
+            if os.path.exists(self.status_file):
+                return time.strftime("%Y-%m-%d %H:%M", time.localtime(os.path.getmtime(self.status_file)))
+        except Exception:
+            pass
+        return None
+
+    def _render_page(self, action_path, message=None):
+        """Render the themed page. Uses getattr fallbacks so it also renders
+        before on_loaded (e.g. when backup_location isn't configured yet)."""
+        interval_seconds = getattr(
+            self, "interval_seconds",
+            self.options.get("interval_seconds", self.DEFAULT_INTERVAL_SECONDS),
+        )
+        max_backups = getattr(
+            self, "max_backups",
+            self.options.get("max_backups_to_keep", self.DEFAULT_MAX_BACKUPS),
+        )
+        include = getattr(self, "include", self.options.get("include", []))
+        return render_template_string(
+            INDEX,
+            version=self.__version__,
+            ready=self.ready,
+            in_progress=self.backup_in_progress,
+            backup_location=self.options.get("backup_location", "Not set"),
+            interval=interval_seconds // 60,
+            max_backups=max_backups,
+            backup_count=self._backup_count(),
+            include=", ".join(include) if include else "None",
+            last_backup=self._last_backup_str(),
+            action_path=action_path,
+            message=message,
+        )
+
+    def on_webhook(self, path, request):
+        """Themed status/config page + a manual-backup button."""
+        action_path = (
+            request.path
+            if request.path.endswith("/backup")
+            else "%s/backup" % request.path.rstrip("/")
+        )
+
+        if request.method == "POST" and path in ("backup", "/backup"):
+            result = self.manual_backup(self._agent)
+            # request.path already ends in /backup here, so action_path is the
+            # POST endpoint and the re-rendered button keeps working.
+            return self._render_page(action_path, message=result["status"])
+
+        if request.method == "GET" and (path == "/" or not path):
+            return self._render_page(action_path)
 
         return "Not found"
 

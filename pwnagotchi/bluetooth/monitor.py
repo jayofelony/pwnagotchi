@@ -13,11 +13,23 @@ class ConnectionMonitor:
     DEFAULT_RECONNECT_INTERVAL = 60
     DEFAULT_RECONNECT_FAST_INTERVAL = 15
     RECONNECT_FAST_CYCLES = 6
+    # After this many consecutive failures the phone is probably gone, so back off
+    # to a slow retry (reconnect_failure_cooldown) - but NEVER stop: keep trying so
+    # we always recover the moment it comes back.
     MAX_RECONNECT_FAILURES = 5
-    DEFAULT_RECONNECT_FAILURE_COOLDOWN = 300
+    DEFAULT_RECONNECT_FAILURE_COOLDOWN = 120
     MONITOR_INITIAL_DELAY = 5
-    MONITOR_PAUSED_CHECK_INTERVAL = 10
     OPERATION_SHORT_DELAY = 0.5
+    # While connected the health/watchdog check only needs to run once per
+    # reconnect_interval, but the display reads the poll cache - so re-poll it this
+    # often in between so a just-connected link stops showing "Paired" and the
+    # tether IP appears within seconds instead of after a full minute.
+    UI_REFRESH_INTERVAL = 10
+    # Right after a connect the link is up but DHCP hasn't leased yet ("No IP").
+    # Poll fast during that settle so the address shows within a few seconds, but
+    # only for a bounded window so an address-less link doesn't poll forever.
+    UI_SETTLE_INTERVAL = 2
+    UI_SETTLE_WINDOW = 12
 
     def __init__(self, connection_manager, logger=None, options=None):
         self.logger = logger or logging.getLogger(__name__)
@@ -26,7 +38,6 @@ class ConnectionMonitor:
 
         self._thread = None
         self._stop = threading.Event()
-        self._paused = threading.Event()
         self._lock = threading.Lock()
 
         # Full-flow reconnect (NAP + PAN + DHCP + verify). Set by BluetoothService
@@ -64,6 +75,15 @@ class ConnectionMonitor:
         # it. Beats a running counter, which a flapping link dilutes indefinitely.
         self._probe_history = deque(maxlen=self.watchdog_fail_threshold + 1)
 
+        # Latest poll snapshot for the UI thread (see get_ui_status). Written by
+        # the monitor thread every cycle and read by the plugin's on_ui_update so
+        # the display never makes its own blocking bluetoothctl/ip calls on the
+        # main loop. _picked_device caches the device chosen by _pick_device so
+        # the UI can show its name without a second trusted-devices lookup.
+        self._status_cache_lock = threading.Lock()
+        self._status_cache = None
+        self._picked_device = None
+
     def start(self):
         """Start the monitoring thread."""
         try:
@@ -85,7 +105,31 @@ class ConnectionMonitor:
         """True when the most recent peer probe failed on a live link - the
         connection LOOKS up but may be half-open. Reflects the latest probe so it
         clears as soon as one succeeds, rather than lingering for the whole window."""
-        return bool(self._probe_history) and self._probe_history[-1] is False
+        # Single indexing op so a concurrent clear() on the monitor thread can't
+        # wedge between a truthiness check and the [-1] read (would IndexError).
+        try:
+            return self._probe_history[-1] is False
+        except IndexError:
+            return False
+
+    def _cache_ui_status(self, mac, status):
+        """Store the latest poll so the UI thread can render it without blocking.
+        Called from the monitor thread each cycle."""
+        dev = self._picked_device
+        name = dev.name if (dev is not None and dev.mac == mac) else None
+        with self._status_cache_lock:
+            self._status_cache = {
+                "mac": mac,
+                "name": name,
+                "status": dict(status) if status else {},
+            }
+
+    def get_ui_status(self):
+        """Latest connection snapshot for the display, or None before the first
+        poll. Cheap and non-blocking - never triggers bluetoothctl/ip, so it is
+        safe to call from on_ui_update on the main loop (under the view lock)."""
+        with self._status_cache_lock:
+            return dict(self._status_cache) if self._status_cache else None
 
     def set_device(self, mac):
         """Tell the monitor which device to watch for drops (called after a successful connect)."""
@@ -95,7 +139,6 @@ class ConnectionMonitor:
             self.reconnect_failure_count = 0
             self.first_failure_time = None
             self._disconnected_cycles = 0
-        self._paused.clear()
 
     def clear_device(self):
         """Stop watching a device, e.g. after an explicit disconnect/unpair."""
@@ -117,14 +160,18 @@ class ConnectionMonitor:
         """Interruptible monitor wait with adaptive reconnect backoff.
 
         Right after a drop, retry quickly (reconnect_fast_interval) to catch a
-        phone that only briefly left range, then back off to reconnect_interval
-        if it stays down. When connected (steady health check) or paused (no
-        trusted device) always use the full interval - no point fast-polling.
-        Returns immediately if shutdown was requested.
+        phone that only briefly left range, then back off to reconnect_interval if
+        it stays down, and finally to a slow retry (reconnect_failure_cooldown) once
+        it's clearly gone. Crucially it never fully stops - it keeps trying at the
+        slow cadence so it always recovers when the phone returns. Returns
+        immediately if shutdown was requested.
         """
-        if self.last_known_connected or self._paused.is_set():
+        if self.last_known_connected:
             self._disconnected_cycles = 0
             interval = self.reconnect_interval
+        elif self.reconnect_failure_count >= self.max_reconnect_failures:
+            # Sustained failure (phone likely gone) - slow retry, but keep going.
+            interval = self.reconnect_failure_cooldown
         elif self.reconnect_fast_interval >= self.reconnect_interval:
             # Fast-retry disabled or misconfigured - use the normal interval.
             interval = self.reconnect_interval
@@ -139,6 +186,38 @@ class ConnectionMonitor:
             )
         self._stop.wait(interval)
 
+    def _refresh_wait(self, mac, total):
+        """Wait up to ``total`` seconds while keeping the UI snapshot fresh.
+
+        Re-polls status and updates the display cache so a freshly-established link
+        stops showing "Paired" and the tether IP appears within seconds - without
+        re-running the reconnect/half-open logic, which stays on the
+        reconnect_interval cadence. Polls fast while the link is still settling
+        (connected, no IP yet), then backs off once it has an address. Returns early
+        on shutdown, or if the link drops, so the main loop reconnects promptly."""
+        waited = 0
+        settled = False
+        while waited < total:
+            step = self.UI_REFRESH_INTERVAL if settled else self.UI_SETTLE_INTERVAL
+            step = min(step, total - waited)
+            if self._stop.wait(step):
+                return
+            waited += step
+            try:
+                status = self.connection.get_full_status(mac)
+            except Exception:
+                continue
+            if not status:
+                continue
+            self._cache_ui_status(mac, status)
+            if not status.get("connected"):
+                return
+            # Back off once we have an address, or after the settle window elapses
+            # so an address-less link doesn't keep polling fast indefinitely.
+            has_ip = bool(status.get("ip_address") or status.get("ipv6"))
+            if has_ip or waited >= self.UI_SETTLE_WINDOW:
+                settled = True
+
     def _pick_device(self):
         """Choose which trusted device to keep connected.
 
@@ -152,14 +231,21 @@ class ConnectionMonitor:
             devices = self.connection.get_trusted_devices()
         except Exception as e:
             self.logger.debug(f"Could not list trusted devices: {e}")
+            self._picked_device = None
             return preferred
 
         if preferred and any(d.mac == preferred for d in devices):
+            self._picked_device = next((d for d in devices if d.mac == preferred), None)
             return preferred
         for d in devices:
             if getattr(d, "has_nap", False):
+                self._picked_device = d
                 return d.mac
-        return devices[0].mac if devices else None
+        if devices:
+            self._picked_device = devices[0]
+            return devices[0].mac
+        self._picked_device = None
+        return None
 
     def _loop(self):
         """Background monitoring loop."""
@@ -171,12 +257,12 @@ class ConnectionMonitor:
 
         while not self._stop.is_set():
             try:
-                if self._paused.is_set():
-                    self._stop.wait(self.MONITOR_PAUSED_CHECK_INTERVAL)
-                    continue
-
                 mac = self._pick_device()
                 if not mac:
+                    # No trusted device to watch (e.g. the last one was unpaired) -
+                    # clear the UI snapshot so the display drops to "no device"
+                    # instead of lingering on a stale connected/paired state.
+                    self._cache_ui_status(None, {})
                     self._adaptive_wait()
                     continue
 
@@ -184,6 +270,7 @@ class ConnectionMonitor:
                     self._current_mac = mac
 
                 status = self.connection.get_full_status(mac)
+                self._cache_ui_status(mac, status)
                 if not status:
                     self._adaptive_wait()
                     continue
@@ -198,19 +285,29 @@ class ConnectionMonitor:
                         self._check_half_open_link()
                     else:
                         self._probe_history.clear()
-                else:
-                    # Not connected: reconnect. Covers both a dropped link and an
-                    # initial connect that hasn't succeeded yet (e.g. phone wasn't
-                    # in range at boot). A stale probe history must not carry
-                    # over into the next connection.
-                    self._probe_history.clear()
-                    if self.last_known_connected:
-                        self.logger.warning(f"Connection to {mac} dropped! Reconnecting...")
-                    else:
-                        self.logger.info(f"{mac} paired but not connected - attempting connect...")
-                    self.last_known_connected = self.reconnect(mac)
+                    # Idle the rest of the cycle but keep the display current so the
+                    # tether IP / "Connected" state show up promptly (not next poll).
+                    self._refresh_wait(mac, self.reconnect_interval)
+                    continue
 
-                self._adaptive_wait()
+                # Not connected: reconnect. Covers both a dropped link and an
+                # initial connect that hasn't succeeded yet (e.g. phone wasn't
+                # in range at boot). A stale probe history must not carry
+                # over into the next connection.
+                self._probe_history.clear()
+                if self.last_known_connected:
+                    self.logger.warning(f"Connection to {mac} dropped! Reconnecting...")
+                else:
+                    self.logger.info(f"{mac} paired but not connected - attempting connect...")
+                self.last_known_connected = self.reconnect(mac)
+
+                if self.last_known_connected:
+                    # Reconnected: keep the display fresh so the tether IP appears
+                    # promptly, instead of sleeping the whole interval the way a
+                    # failed attempt does. Mirrors the steady-connected branch.
+                    self._refresh_wait(mac, self.reconnect_interval)
+                else:
+                    self._adaptive_wait()
 
             except Exception as e:
                 self.logger.debug(f"Monitor loop error: {e}")
@@ -233,6 +330,10 @@ class ConnectionMonitor:
                     if self._stop.wait(1):
                         return self.last_known_connected
                     status = self.connection.get_full_status(mac)
+                    if status:
+                        # Track connect progress on the display in near-real-time
+                        # so it doesn't sit on the stale "Paired" snapshot.
+                        self._cache_ui_status(mac, status)
                     if status and status.get("connected"):
                         self.logger.info(f"Successfully reconnected to {mac}")
                         self.reconnect_failure_count = 0
@@ -322,20 +423,17 @@ class ConnectionMonitor:
         self.last_known_connected = False
 
     def _handle_reconnect_failure(self, mac):
-        """Handle a reconnection failure."""
+        """Count a reconnection failure and, past the threshold, slow the retry
+        cadence - without ever stopping. The loop keeps attempting every
+        reconnect_failure_cooldown seconds, so it recovers whenever the phone
+        returns; the count resets to fast retries on the next successful connect."""
         self.reconnect_failure_count += 1
         if self.first_failure_time is None:
             self.first_failure_time = time.time()
 
-        if self.reconnect_failure_count >= self.max_reconnect_failures:
-            self.logger.warning(f"⚠️ Auto-reconnect paused after {self.max_reconnect_failures} failed attempts")
-            self.logger.info(f"📱 Will retry after {self.reconnect_failure_cooldown}s cooldown")
-            self._paused.set()
-
-            def cooldown_timer():
-                time.sleep(self.reconnect_failure_cooldown)
-                self._paused.clear()
-                self.reconnect_failure_count = 0
-                self.first_failure_time = None
-
-            threading.Thread(target=cooldown_timer, daemon=True).start()
+        # Log once, on the transition into slow-retry, so the log isn't spammed.
+        if self.reconnect_failure_count == self.max_reconnect_failures:
+            self.logger.warning(
+                "⚠️ Auto-reconnect: %d attempts failed - backing off to a slow retry "
+                "every %ds (will keep trying)"
+                % (self.max_reconnect_failures, self.reconnect_failure_cooldown))

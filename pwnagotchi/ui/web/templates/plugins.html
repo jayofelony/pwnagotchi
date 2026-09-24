@@ -1,74 +1,433 @@
-{% extends "base.html" %} {% set active_page = "plugins" %} {% block
-title%}Plugins{% endblock %} {% block styles %}{{ super() }}{% endblock %} {%
-block script %}{% endblock %} {% block content %}
-<div id="container">
-  {% for name in database.keys() | sort %} {% set has_info =
-  plugin_info[name]['__description__'] %}
-  <div class="plugins-box">
-    <div class="tooltip">
-      <div class="plugin-header">
-        <h4>
-          {% if name in loaded and loaded[name].on_webhook is defined %}
-          <a href="/plugins/{{ name | urlencode }}">{{ name }}</a>
-          {% else %}{{ name }}{% endif %}
-        </h4>
-        {% if plugin_info[name]['__version__'] %}
-        <span class="badge version">{{ plugin_info[name]['__version__'] }}</span>
-        {% endif %}
-      </div>
-      <div class="author">
-        {% if plugin_info[name]['__author__'] %} {{
-        plugin_info[name]['__author__'] }} {% endif %}
-      </div>
-      <div class="plugin-badges">
-        {% if name in default_plugins %}
-        <span class="badge default">DEFAULT</span>
-        {% endif %}
-      </div>
-      {% if has_info %}
-      <span class="tooltiptext">{{ plugin_info[name]['__description__'] }}</span>
-      {% else %}
-      <span class="tooltiptext">Description unable to load yet.</span>
-      {% endif %}
-    </div>
-    <div>
-      <form method="POST" action="/plugins/toggle" class="plugin-toggle">
-        <label class="switch">
-          <input
-            type="checkbox"
-            name="enabled"
-            id="flip-checkbox-{{name}}"
-            {%
-            if
-            name
-            in
-            loaded
-            %}
-            checked
-            {%
-            endif
-            %}
-          />
-          <span class="slider"></span>
-        </label>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="plugin" value="{{ name }}" />
-      </form>
-      <form method="POST" action="/plugins/upgrade">
-        <button
-          type="submit"
-          name="upgrade"
-          class="btn primary plugin-upgrade-btn"
-        >
-          Upgrade Plugin
-        </button>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="plugin" value="{{ name }}" />
-      </form>
-    </div>
+{% extends "base.html" %}
+{% set active_page = "plugins" %}
+{% block title %}Plugins{% endblock %}
+
+{% block meta %}{{ super() }}
+<meta name="csrf_token" content="{{ csrf_token() }}" />
+{% endblock %}
+
+{% block styles %}{{ super() }}
+<style>
+  .plugins-header { position: relative; text-align: center; padding: 0.25rem 0 1rem;
+                    border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+  .plugins-header h2 { color: var(--accent); margin: 0.2rem 0; }
+  .plugins-header .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+  .plugins-header .restart-service { position: absolute; top: 0; right: 0; }
+
+  /* "restart to apply" notice — shown whenever the plugins on disk differ from what's loaded. */
+  .pc-notice { position: relative; display: flex; align-items: center; gap: 0.9rem;
+               flex-wrap: wrap; margin: 0 0 1rem; padding: 0.85rem 2.4rem 0.85rem 1rem;
+               border-radius: 12px; color: var(--text-primary);
+               background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12);
+               border: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.45); }
+  .pc-notice-text { flex: 1 1 200px; font-size: 0.95rem; line-height: 1.35; }
+  .pc-notice-text strong { color: var(--accent); }
+  .pc-notice-form { margin: 0; flex: 0 0 auto; }
+  .pc-notice-btn { flex: 0 0 auto; }
+  .pc-notice-x { position: absolute; top: 0.4rem; right: 0.5rem; background: none; border: none;
+                 color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer;
+                 padding: 0 0.25rem; min-width: 0; box-shadow: none; }
+  .pc-notice-x:hover { color: var(--text-primary); }
+
+  /* On narrow screens the absolute button overlaps the centered title — stack it below instead. */
+  @media (max-width: 640px) {
+    .plugins-header { display: flex; flex-direction: column; align-items: center; }
+    .plugins-header h2 { order: 1; }
+    .plugins-header .subtitle { order: 2; }
+    .plugins-header .restart-service { position: static; order: 3; margin-top: 0.75rem; }
+  }
+
+  .pill-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin: 0.75rem 0; }
+  /* state pills and category buttons share ONE size + style */
+  /* width:auto + min-width:0 override the global mobile rule that forces buttons to 100% width,
+     so each pill hugs its own label instead of filling the row. */
+  .pill { padding: 0.6rem 1.3rem; border-radius: 999px; border: 1px solid var(--border-color);
+          background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem;
+          line-height: 1; box-shadow: none; flex: 0 0 auto; white-space: nowrap;
+          width: auto; min-width: 0;
+          transition: background .12s, color .12s, border-color .12s, box-shadow .12s; }
+  .pill:hover { background: var(--accent); color: #04120a; border-color: var(--accent); box-shadow: none; }
+  /* shine only on the active (green) one */
+  .pill.active { background: var(--accent); color: #04120a; border-color: var(--accent); font-weight: 700;
+                 box-shadow: 0 2px 10px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35); }
+  #catPills { gap: 0.6rem; }
+
+  /* Wide screens: both rows are centered and wrap onto a second line if needed.
+     Deliberately NO overflow container here, so the active pill's glow and the
+     native hover tooltips are never clipped (an overflow:auto/hidden ancestor
+     crops them). The single-row scroll strip is reserved for narrow screens. */
+  #statePills { justify-content: center; }
+  #statePills .pill { min-width: 6rem; text-align: center; }
+  #catPills { justify-content: center; }
+
+  /* Narrow screens: categories can outgrow the width, so turn them into a single
+     left-aligned strip (small start offset) that scrolls sideways instead of
+     wrapping. Placed AFTER the desktop #catPills rule so this override wins at
+     <=640px (media queries don't raise specificity — source order breaks the tie).
+     The overflow container exists ONLY here, so desktop hover/glow stays clip-free. */
+  @media (max-width: 640px) {
+    #catPills {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      padding-bottom: 6px;
+      padding-left: 0.75rem;
+      scroll-padding-left: 0.75rem;
+    }
+    #catPills .pill { scroll-snap-align: start; }
+    #catPills::-webkit-scrollbar { height: 6px; }
+    #catPills::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 999px; }
+  }
+
+  .plugins-search { width: 100%; box-sizing: border-box; height: 44px; margin: 0.5rem 0;
+    padding: 0 1rem; border-radius: 10px;
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
+    border: 1px solid var(--border-color); color: var(--text-primary, #e6e6e6); font-size: 0.95rem; outline: none; }
+  .plugins-search::placeholder { color: var(--text-muted); }
+  .plugins-search:focus { border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25); }
+
+  .plugins-count { text-align: center; color: var(--text-muted); font-size: 0.82rem; margin: 0.25rem 0 1rem; }
+
+  .plugins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+  .plugin-card { display: flex; flex-direction: column; gap: 0.4rem; }
+  .pc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+  .pc-title h4 { margin: 0; font-size: 1.25rem; color: var(--accent); letter-spacing: 0.02em; text-transform: uppercase; }
+  .pc-title h4 a { color: var(--accent); text-decoration: none; }
+  .pc-title h4 a:hover { text-decoration: underline; }
+  .pc-meta { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+  .pc-ver { color: var(--text-muted); font-size: 0.8rem; }
+  /* A version that links to a repo should read as a link at rest, not only on hover. */
+  a.pc-ver { text-decoration: underline; text-underline-offset: 2px; }
+  a.pc-ver:hover { color: var(--accent); }
+  .pc-author { color: var(--text-muted); font-size: 0.78rem; }
+  .pc-desc { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.35;
+             display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+             overflow: hidden; min-height: 2.3em; }
+
+  .pc-actions { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+                margin-top: auto; padding-top: 0.5rem; }
+  .pc-actions form { margin: 0; display: inline-flex; align-items: center; }
+  .pc-right { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
+  /* width:auto + min-width:0 override the global mobile rule that stretches every
+     button to 100% width, so the card actions (Open / Update / Uninstall) stay
+     compact and sit on one row instead of stacking. */
+  .pc-actions .btn { height: 34px; display: inline-flex; align-items: center; justify-content: center;
+                     width: auto; min-width: 0; }
+
+  .pc-badge { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: 6px; text-transform: uppercase;
+              letter-spacing: 0.03em;
+              background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.10); color: var(--text-muted); }
+  .pc-badge.cat-Default { background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16); color: var(--accent); }
+  .pc-badge.update { background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.20); color: var(--accent); }
+
+  .btn.danger { background: var(--danger); color: #fff; }
+  .btn.danger:hover { background: var(--danger-hover); }
+
+  .plugins-credit { text-align: center; color: var(--text-muted); font-size: 0.82rem; margin: 1.5rem 0 0.5rem;
+                    padding-top: 1rem; border-top: 1px solid var(--border-color); }
+  .plugins-credit a { color: var(--accent); text-decoration: none; }
+
+  .btn.is-busy { opacity: 0.7; pointer-events: none; }
+  .btn.is-busy::before { content: ""; width: 12px; height: 12px; margin-right: 6px; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent; display: inline-block; animation: pc-spin 0.7s linear infinite; }
+  @keyframes pc-spin { to { transform: rotate(360deg); } }
+
+  .pc-hidden { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set installed_n = cards | selectattr('installed') | list | length %}
+{% set update_n = cards | selectattr('update_version') | list | length %}
+{% set available_n = cards | rejectattr('installed') | list | length %}
+{% set categories = cards | map(attribute='category') | unique | sort %}
+<div class="page-content">
+  <div class="plugins-header">
+    <form method="POST" action="/restart" class="restart-service">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="mode" value="{{ current_mode }}" />
+      <button type="submit" class="btn ghost">Restart service</button>
+    </form>
+    <h2>Plugins</h2>
+    <div class="subtitle">Installed &amp; available in one place</div>
   </div>
-  {% endfor %}
+
+  <div id="restartNoticeSlot">
+  {% if restart_pending %}
+  <div class="pc-notice" id="restartNotice">
+    <div class="pc-notice-text"><strong>Pending changes.</strong> Installed, removed or updated plugins won&rsquo;t take effect until you restart the service.</div>
+    <form method="POST" action="/restart" class="pc-notice-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="mode" value="{{ current_mode }}" />
+      <button type="submit" class="btn ghost pc-notice-btn">Restart service</button>
+    </form>
+    <button type="button" class="pc-notice-x" aria-label="Dismiss" onclick="document.getElementById('restartNotice').remove()">&times;</button>
+  </div>
+  {% endif %}
+  </div>
+
+  {% if store_online is defined and not store_online %}
+  <div class="pc-notice store-notice">
+    <div class="pc-notice-text"><strong>Store offline.</strong> No internet connection &mdash; the plugin store can&rsquo;t sync. Connect to the internet and reload to browse &amp; install plugins.</div>
+  </div>
+  {% elif store_syncing %}
+  <div class="pc-notice store-notice">
+    <div class="pc-notice-text"><strong>Syncing store&hellip;</strong> Fetching the plugin catalog. Reload in a moment to see what&rsquo;s available.</div>
+  </div>
+  {% endif %}
+
+  <div class="pill-row" id="statePills">
+    <button class="pill active" data-state="enabled">Enabled</button>
+    <button class="pill" data-state="installed">Installed</button>
+    {% if store_online is not defined or store_online %}<button class="pill" data-state="available">Store</button>{% endif %}
+    <button class="pill" data-state="all">All</button>
+  </div>
+
+  <input type="search" id="pluginFilter" class="plugins-search" placeholder="Search by name, description or author&hellip;" autocomplete="off" />
+
+  <div class="pill-row" id="catPills">
+    <button class="pill active" data-cat="all">All</button>
+    <button class="pill" data-cat="default">Default</button>
+    {% for c in categories %}
+    <button class="pill" data-cat="{{ c | lower }}">{{ c }}</button>
+    {% endfor %}
+  </div>
+
+  <div class="plugins-count" id="pluginCount">
+    {{ installed_n }} installed &middot; {{ update_n }} update &middot; {{ available_n }} available
+  </div>
+
+  <div class="plugins-grid" id="pluginsGrid">
+    {% for p in cards %}
+    <div class="card plugin-card"
+         data-name="{{ p.name | lower }}"
+         data-desc="{{ (p.description or '') | lower }}"
+         data-author="{{ (p.author or '') | lower }}"
+         data-state="{{ 'installed' if p.installed else 'available' }}"
+         data-cat="{{ p.category | lower }}"
+         data-default="{{ 'true' if p.default else 'false' }}"
+         data-enabled="{{ 'true' if p.enabled else 'false' }}">
+      <div class="pc-head">
+        <div class="pc-title">
+          <h4>{% if p.has_webpage %}<a href="/plugins/{{ p.name | urlencode }}">{{ p.name }}</a>{% else %}{{ p.name }}{% endif %}</h4>
+        </div>
+        <div class="pc-meta">
+          {% if p.default %}<span class="pc-badge cat-Default">default</span>{% endif %}
+          <span class="pc-badge">{{ p.category }}</span>
+          {% if p.version %}
+            {% if p.repo %}<a class="pc-ver" href="{{ p.repo }}" target="_blank" rel="noopener" title="Open repository">v{{ p.version }}</a>
+            {% else %}<span class="pc-ver">v{{ p.version }}</span>{% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+      {% if p.author %}<div class="pc-author">by {{ p.author }}</div>{% endif %}
+      <div class="pc-desc">{{ p.description or 'No description.' }}</div>
+
+      <div class="pc-actions">
+        <div class="pc-left">
+          {% if p.installed %}
+          <form method="POST" action="/plugins/toggle" class="plugin-toggle" title="Enable / disable">
+            <label class="switch">
+              <input type="checkbox" name="enabled" {% if p.enabled %}checked{% endif %} />
+              <span class="slider"></span>
+            </label>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="plugin" value="{{ p.name }}" />
+          </form>
+          {% endif %}
+        </div>
+        <div class="pc-right">
+          {% if p.installed %}
+            {% if p.has_webpage %}
+            <a class="btn ghost" href="/plugins/{{ p.name | urlencode }}" title="Open this plugin's web page">Open</a>
+            {% endif %}
+            {% if p.update_version %}
+            <form method="POST" action="/plugins/upgrade">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="plugin" value="{{ p.name }}" />
+              <button type="submit" class="btn primary">Update to v{{ p.update_version }}</button>
+            </form>
+            {% endif %}
+            {% if not p.default %}
+            <form method="POST" action="/plugins/uninstall" data-confirm="Uninstall {{ p.name }}?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="plugin" value="{{ p.name }}" />
+              <button type="submit" class="btn danger">Uninstall</button>
+            </form>
+            {% endif %}
+          {% else %}
+            <form method="POST" action="/plugins/install">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="plugin" value="{{ p.name }}" />
+              <button type="submit" class="btn primary">Install</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="plugins-credit">
+    Store powered by <a href="https://github.com/wpa-2/pwnagotchi-store" target="_blank" rel="noopener">PwnStore</a>
+    &middot; created by <a href="https://github.com/wpa-2" target="_blank" rel="noopener">WPA2</a>
+    &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a>
+  </div>
 </div>
-{% endblock %} {% block scripts %}{{ super() }}
-<script src="/js/plugins.js"></script>
+{% endblock %}
+
+{% block scripts %}{{ super() }}
+<script>
+  (function () {
+    var filter = document.getElementById('pluginFilter');
+    var statePills = Array.prototype.slice.call(document.querySelectorAll('#statePills .pill'));
+    var catPills = Array.prototype.slice.call(document.querySelectorAll('#catPills .pill'));
+    var state = 'enabled', cat = 'all';
+
+    function csrf() {
+      var m = document.querySelector('meta[name="csrf_token"]');
+      return m ? m.getAttribute('content') : '';
+    }
+    function toast(msg, ok) {
+      if (typeof showToast === 'function') showToast(msg, 4000, ok ? 'success' : 'error');
+    }
+
+    // Filter cards by state pill + category pill + search (re-queried each call).
+    function apply() {
+      var q = (filter && filter.value || '').trim().toLowerCase();
+      document.querySelectorAll('.plugin-card').forEach(function (c) {
+        var hitState = state === 'all'
+          || (state === 'enabled' ? c.dataset.enabled === 'true' : c.dataset.state === state);
+        var hitCat = cat === 'all' || (cat === 'default' ? c.dataset.default === 'true' : c.dataset.cat === cat);
+        var hitText = !q || c.dataset.name.indexOf(q) !== -1 || c.dataset.desc.indexOf(q) !== -1 || (c.dataset.author || '').indexOf(q) !== -1;
+        c.classList.toggle('pc-hidden', !(hitState && hitCat && hitText));
+      });
+    }
+    function pick(pills, el, set) { pills.forEach(function (p) { p.classList.remove('active'); }); el.classList.add('active'); set(); apply(); }
+    statePills.forEach(function (p) { p.addEventListener('click', function () { pick(statePills, p, function () { state = p.dataset.state; }); }); });
+    catPills.forEach(function (p) { p.addEventListener('click', function () { pick(catPills, p, function () { cat = p.dataset.cat; }); }); });
+    if (filter) filter.addEventListener('input', apply);
+
+    function verbFor(action) {
+      if (action.indexOf('uninstall') !== -1) return 'Uninstalling';
+      if (action.indexOf('upgrade') !== -1) return 'Updating';
+      if (action.indexOf('refresh') !== -1) return 'Refreshing catalog';
+      return 'Installing';
+    }
+
+    // Re-fetch /plugins and swap the grid/count/restart-banner in place (no full
+    // reload), keeping state server-accurate and preserving filters/scroll.
+    function softRefresh() {
+      return fetch('/plugins', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          ['pluginsGrid', 'pluginCount', 'restartNoticeSlot'].forEach(function (id) {
+            var cur = document.getElementById(id), next = doc.getElementById(id);
+            if (cur && next) cur.innerHTML = next.innerHTML;
+          });
+          bindActions();
+          apply();
+        });
+    }
+
+    // POST an action via fetch: spinner, toast the result, then soft-refresh.
+    function submitAction(form) {
+      var btn = form.querySelector('button[type="submit"]');
+      var orig = btn ? btn.textContent : '';
+      if (btn) { btn.classList.add('is-busy'); btn.textContent = verbFor(form.getAttribute('action')) + '…'; }
+      return fetch(form.getAttribute('action'), {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf() },
+        body: new FormData(form),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          toast(data.message || (data.ok ? 'Done' : 'Failed'), data.ok);
+          return softRefresh();
+        })
+        .catch(function () {
+          toast('Request failed', false);
+          if (btn) { btn.classList.remove('is-busy'); btn.textContent = orig; }
+        });
+    }
+
+    // Toggle enable/disable via fetch; revert the switch on failure.
+    function submitToggle(input) {
+      var form = input.closest('form');
+      // Capture the payload BEFORE disabling the input: a disabled checkbox is
+      // omitted from FormData, which would make every toggle post as "disable".
+      var body = new FormData(form);
+      input.disabled = true;
+      // Enable blocks ~3s server-side; a network failure isn't a rejection, so
+      // don't revert the switch on one (the change may have applied).
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 25000);
+      fetch(form.getAttribute('action'), {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf() },
+        body: body,
+        signal: ctrl.signal,
+      })
+        .then(function (r) {
+          clearTimeout(timer);
+          if (!r.ok) {
+            input.checked = !input.checked;
+            toast('Toggle failed (server error ' + r.status + ')', false);
+            input.disabled = false;
+            return null;
+          }
+          return r.json();
+        })
+        .then(function (data) {
+          if (!data) return;
+          toast(data.message || (data.ok ? 'Done' : 'Failed'), data.ok);
+          if (!data.ok) {
+            input.checked = !input.checked;
+          } else {
+            // Reflect the new state in the card so the Enabled/Installed filters
+            // (which read data-enabled) update without a page reload.
+            var card = input.closest('.plugin-card');
+            if (card) card.dataset.enabled = input.checked ? 'true' : 'false';
+            apply();
+          }
+          input.disabled = false;
+        })
+        .catch(function () {
+          clearTimeout(timer);
+          if (typeof showToast === 'function') {
+            showToast('Still working — reload the page to confirm the change.', 6000, 'info');
+          }
+          input.disabled = false;
+        });
+    }
+
+    // (Re)bind action forms + toggles; re-run after each soft-refresh.
+    function bindActions() {
+      document.querySelectorAll('form[action^="/plugins/"]').forEach(function (form) {
+        if (form._bound) return; form._bound = true;
+        var toggle = form.querySelector('input[type="checkbox"][name="enabled"]');
+        if (toggle) {
+          toggle.addEventListener('change', function () { submitToggle(toggle); });
+        } else {
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var msg = form.getAttribute('data-confirm');
+            if (msg && !confirm(msg)) return;   // declined the confirm -> do nothing
+            submitAction(form);
+          });
+        }
+      });
+    }
+
+    bindActions();
+    apply();
+  })();
+</script>
 {% endblock %}

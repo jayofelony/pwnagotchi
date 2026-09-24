@@ -14,7 +14,7 @@ def is_connected():
         # check DNS
         host = 'https://api.opwngrid.xyz/api/v1/uptime'
         headers = {'user-agent': f'pwnagotchi/{pwnagotchi.__version__}'}
-        r = requests.get(host, headers=headers, timeout=(30.0, 60.0))
+        r = requests.get(host, headers=headers, timeout=(5.0, 20.0))
         if r.json().get('isUp'):
             return True
     except:
@@ -25,11 +25,11 @@ def is_connected():
 def call(path, obj=None):
     url = '%s%s' % (API_ADDRESS, path)
     if obj is None:
-        r = requests.get(url, headers=None, timeout=(30.0, 60.0))
+        r = requests.get(url, headers=None, timeout=(5.0, 20.0))
     elif isinstance(obj, dict):
-        r = requests.post(url, headers=None, json=obj, timeout=(30.0, 60.0))
+        r = requests.post(url, headers=None, json=obj, timeout=(5.0, 20.0))
     else:
-        r = requests.post(url, headers=None, data=obj, timeout=(30.0, 60.0))
+        r = requests.post(url, headers=None, data=obj, timeout=(5.0, 20.0))
 
     if r.status_code != 200:
         raise Exception("(status %d) %s" % (r.status_code, r.text))

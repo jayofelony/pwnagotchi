@@ -14,16 +14,13 @@ INDEX = """
     Logtail
 {% endblock %}
 
+{% block meta %}{{ super() }}
+<meta name="csrf_token" content="{{ csrf_token() }}" />
+{% endblock %}
+
 {% block styles %}
 {{ super() }}
 <style>
-    /* Logtail-specific styles - plugin header */
-    .logtail-header {
-        margin-bottom: 2rem;
-        padding: 1.5rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-
     /* Search/Control Bar */
     #divTop {
         position: -webkit-sticky;
@@ -47,12 +44,35 @@ INDEX = """
         min-width: 200px;
     }
 
+    #filter, #levelFilter {
+        height: 44px;
+        box-sizing: border-box;
+        margin: 0;
+    }
+    #levelFilter { min-width: 150px; }
+
+    .log-actions { display: flex; gap: 0.5rem; align-items: center; }
+    #clearBtn, #copyBtn { height: 44px; min-width: 0; padding: 0 1.1rem; font-size: 0.85rem; white-space: nowrap; }
+    /* On mobile keep Copy and Clear side by side (each half) instead of stacking. */
+    @media screen and (max-width: 768px) {
+        .log-actions { width: 100%; }
+        #clearBtn, #copyBtn { flex: 1; width: auto; }
+    }
+
     /* Autoscroll Toggle Wrapper */
     #divTop > span {
         display: flex;
         align-items: center;
         gap: 0.5rem;
         white-space: nowrap;
+    }
+
+    /* Separate the autoscroll toggle from the level dropdown (nudge right) */
+    #divTop > span:last-child {
+        margin-left: 1.5rem;
+    }
+    @media screen and (max-width: 768px) {
+        #divTop > span:last-child { margin-left: 0; }
     }
 
     #autoscroll {
@@ -73,6 +93,24 @@ INDEX = """
         font-family: var(--font-main);
         cursor: pointer;
     }
+
+    /* Floating "scroll to top" button — only shown while auto-scroll is off. */
+    #scrollTopBtn {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+        width: 48px;
+        height: 48px;
+        min-width: 0;
+        padding: 0;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 900;
+    }
+    #scrollTopBtn.show { display: flex; }
+    #scrollTopBtn svg { width: 22px; height: 22px; }
 
     /* Table Container */
     .table-container {
@@ -219,6 +257,11 @@ INDEX = """
 
         .table-container {
             margin-bottom: 2rem;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            background: transparent;
+            overflow: visible;
         }
 
         /* Mobile table display */
@@ -231,7 +274,7 @@ INDEX = """
             border: none;
         }
 
-        tr:first-child, thead, th {
+        thead, th {
             display: none;
             border: none;
         }
@@ -272,10 +315,12 @@ INDEX = """
 {% block script %}
     var table = document.getElementById("table").querySelector("tbody");
     var filter = document.getElementById("filter");
+    var levelFilter = document.getElementById("levelFilter");
     var filterVal = filter.value.toUpperCase();
+    var levelVal = "";
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "logtail/stream");
+    xhr.open("GET", "/plugins/logtail/stream");
     xhr.send();
     var position = 0;
     var data;
@@ -333,7 +378,9 @@ INDEX = """
 
             tr.className = colorClass;
 
-            if (filterVal.length > 0 && value.toUpperCase().indexOf(filterVal) == -1) {
+            var txtOk = (filterVal.length === 0 || value.toUpperCase().indexOf(filterVal) > -1);
+            var lvlOk = (levelVal === "" || colorClass === levelVal);
+            if (!(txtOk && lvlOk)) {
                 tr.style.display = "none";
             }
 
@@ -359,44 +406,132 @@ INDEX = """
         }
     }, 1000);
 
+    // Floating "scroll to top" button: visible only when auto-scroll is off,
+    // since with auto-scroll on you're always pinned to the bottom anyway.
+    var scrollTopBtn = document.getElementById("scrollTopBtn");
+    function updateScrollTopBtn() {
+        if (scrollElm.checked) { scrollTopBtn.classList.remove("show"); }
+        else { scrollTopBtn.classList.add("show"); }
+    }
+    scrollElm.addEventListener("change", updateScrollTopBtn);
+    updateScrollTopBtn();
+    scrollTopBtn.addEventListener("click", function () {
+        scrollingElement.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
     var typingTimer;
-    var doneTypingInterval = 500;
+    var doneTypingInterval = 300;
+
+    // Combined filter: free-text (name/message) AND selected log level.
+    function applyFilters() {
+        filterVal = filter.value.toUpperCase();
+        var tr = table.getElementsByTagName("tr");
+        for (var i = 0; i < tr.length; i++) {
+            var txtValue = (tr[i].textContent || tr[i].innerText || "").toUpperCase();
+            var txtOk = (filterVal.length === 0 || txtValue.indexOf(filterVal) > -1);
+            var lvlOk = (levelVal === "" || tr[i].className === levelVal);
+            tr[i].style.display = (txtOk && lvlOk) ? "table-row" : "none";
+        }
+    }
 
     filter.onkeyup = function() {
         clearTimeout(typingTimer);
-        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+        typingTimer = setTimeout(applyFilters, doneTypingInterval);
     }
 
     filter.onkeydown = function() {
         clearTimeout(typingTimer);
     }
 
-    function doneTyping() {
-        var tr, tds, td, i, txtValue;
-        filterVal = filter.value.toUpperCase();
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            txtValue = tr[i].textContent || tr[i].innerText;
-            if (filterVal.length === 0 || txtValue.toUpperCase().indexOf(filterVal) > -1) {
-                tr[i].style.display = "table-row";
-            } else {
-                tr[i].style.display = "none";
+    levelFilter.onchange = function() {
+        levelVal = this.value;
+        applyFilters();
+    }
+
+    // Clear the log file (truncate server-side), then reload to resync the stream.
+    var clearBtn = document.getElementById("clearBtn");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function() {
+            if (!confirm("Clear the log file? This permanently deletes the current log contents.")) return;
+            var m = document.querySelector('meta[name="csrf_token"]');
+            fetch("/plugins/logtail/clear", {
+                method: "POST",
+                headers: { "X-CSRFToken": m ? m.getAttribute("content") : "", "X-Requested-With": "XMLHttpRequest" }
+            }).then(function(r) {
+                if (r.ok) { location.reload(); }
+                else { alert("Failed to clear the log."); }
+            }).catch(function() { alert("Failed to clear the log."); });
+        });
+    }
+
+    // Copy the currently-visible (filtered) log lines to the clipboard. The UI is
+    // served over plain HTTP on the LAN, which is a non-secure context where
+    // navigator.clipboard is unavailable, so fall back to execCommand.
+    function fallbackCopy(text) {
+        try {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.top = "-1000px";
+            document.body.appendChild(ta);
+            ta.focus(); ta.select();
+            var ok = document.execCommand("copy");
+            document.body.removeChild(ta);
+            return ok;
+        } catch (e) { return false; }
+    }
+
+    var copyBtn = document.getElementById("copyBtn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", function() {
+            var rows = table.getElementsByTagName("tr");
+            var lines = [];
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].style.display === "none") continue;
+                var tds = rows[i].getElementsByTagName("td");
+                var line = "";
+                for (var j = 0; j < tds.length; j++) { line += tds[j].textContent; }
+                lines.push(line);
             }
-        }
+            var text = lines.join("\\n");
+            var ok = function() {
+                if (typeof showToast === "function") showToast("Copied " + lines.length + " lines", 2000, "success");
+            };
+            var no = function() {
+                if (typeof showToast === "function") showToast("Copy failed", 3000, "error");
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(ok).catch(function() { fallbackCopy(text) ? ok() : no(); });
+            } else {
+                fallbackCopy(text) ? ok() : no();
+            }
+        });
     }
 {% endblock %}
 
 {% block content %}
-    <div class="logtail-header">
+    <div class="plugin-page-header">
+        <div class="header-nav"><a href="/plugins" class="btn ghost">← Plugins</a><span class="header-version">v0.1.0</span></div>
         <h2>System Log</h2>
         <p>Real-time log viewer with filtering and auto-scroll capabilities</p>
     </div>
 
     <div id="divTop">
-        <input type="text" id="filter" placeholder="Filter logs..." title="Type to filter log messages">
+        <input type="text" id="filter" placeholder="Filter logs..." title="Type to filter log messages" autocomplete="off">
+        <span><select id="levelFilter" title="Filter by log level">
+            <option value="">All levels</option>
+            <option value="info">Info</option>
+            <option value="warning">Warning</option>
+            <option value="error">Error</option>
+            <option value="debug">Debug</option>
+        </select></span>
         <span>
             <input type="checkbox" id="autoscroll" checked>
             <label for="autoscroll">Auto-scroll</label>
+        </span>
+        <span class="log-actions">
+            <button type="button" id="copyBtn" class="btn ghost" title="Copy the visible log lines to the clipboard">Copy</button>
+            <button type="button" id="clearBtn" class="btn danger" title="Clear the log file">Clear log</button>
         </span>
     </div>
 
@@ -413,6 +548,10 @@ INDEX = """
             </tbody>
         </table>
     </div>
+
+    <button type="button" id="scrollTopBtn" class="btn" title="Scroll to top" aria-label="Scroll to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a> &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 """
 
@@ -444,6 +583,19 @@ class Logtail(plugins.Plugin):
 
         if not path or path == "/":
             return render_template_string(INDEX)
+
+        if path == "clear" and request.method == "POST":
+            # Truncate in place (don't unlink): the logging FileHandler holds the
+            # file open in append mode, so truncation is safe - its next write lands
+            # at offset 0. Deleting the file instead would break logging until a
+            # restart. Callers should reload to resync any open live-tail stream.
+            with self.lock:
+                try:
+                    open(self.config["main"]["log"]["path"], "w").close()
+                except Exception as e:
+                    logging.warning("logtail: failed to clear log: %s", e)
+                    return "error", 500
+            return "ok"
 
         if path == "stream":
 

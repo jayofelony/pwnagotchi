@@ -17,14 +17,8 @@ TEMPLATE = """
 
 {% block styles %}
     {{ super() }}
+    <link rel="stylesheet" type="text/css" href="/css/dygraph.css" />
     <style>
-        /* Session Stats Header */
-        .stats-header {
-            margin-bottom: 2rem;
-            padding: 1.5rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
         /* Session Selector */
         .session-selector {
             display: flex;
@@ -118,7 +112,7 @@ TEMPLATE = """
         }
 
         div.chart {
-            height: 300px;
+            height: 340px;
             width: 100%;
             position: relative;
             background-color: var(--card-bg);
@@ -127,8 +121,7 @@ TEMPLATE = """
             padding: 1rem;
             box-shadow: var(--shadow-md);
             transition: all 0.3s ease;
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow: hidden;
         }
 
         div.chart:hover {
@@ -136,10 +129,27 @@ TEMPLATE = """
             box-shadow: 0 8px 25px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
         }
 
-        div.chart canvas {
-            max-height: 250px;
-            display: block;
-            min-width: 100%;
+        /* Dygraphs dark theme */
+        .dygraph-title {
+            color: #fff;
+            font-family: var(--font-pixel);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+        .dygraph-axis-label {
+            color: var(--text-muted);
+            font-family: var(--font-main);
+        }
+        .dygraph-legend {
+            background: rgba(0, 0, 0, 0.85) !important;
+            color: #fff !important;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px 8px !important;
+            font-family: var(--font-main);
+            font-size: 0.75rem;
+            box-shadow: var(--shadow-md);
+            width: auto !important;
         }
 
         .chart-hint {
@@ -173,7 +183,7 @@ TEMPLATE = """
             }
 
             div.chart {
-                height: 250px;
+                height: 320px;
             }
         }
 
@@ -214,7 +224,7 @@ TEMPLATE = """
             }
 
             div.chart {
-                height: 200px;
+                height: 300px;
                 padding: 0.75rem;
             }
         }
@@ -223,7 +233,7 @@ TEMPLATE = """
 
 {% block scripts %}
     {{ super() }}
-    <script src="/js/plugins/chart.min.js"></script>
+    <script src="/js/plugins/dygraph.min.js"></script>
 {% endblock %}
 
 {% block script %}
@@ -260,104 +270,60 @@ TEMPLATE = """
         });
         const labels = Array.from(allLabels).sort();
 
-        const datasets = data.values.map((values, index) => {
-            const color = getChartColor(index);
-            const valueMap = Object.fromEntries(values);
-            const chartData = labels.map(ts => valueMap[ts] ?? null);
-            
-            return {
-                label: data.labels[index],
-                data: chartData,
-                borderColor: color,
-                backgroundColor: getTransparentColor(color),
-                borderWidth: 2,
-                fill: true,
-                tension: 0.1,
-                pointRadius: 1,
-                pointHoverRadius: 4
-            };
-        });
+        // Build aligned rows [index, y0, y1, ...] for Dygraphs
+        const maps = data.values.map(series => Object.fromEntries(series));
+        const rows = labels.map((ts, idx) => [idx].concat(maps.map(m => (m[ts] ?? null))));
+        if (rows.length === 0) return;
+        const seriesNames = data.values.map((_, idx) => data.labels[idx] || ('series ' + idx));
+        const seriesColors = data.values.map((_, idx) => getChartColor(idx));
 
-        let canvas = container.querySelector('canvas');
-        if (!canvas) {
-            canvas = document.createElement('canvas');
-            container.appendChild(canvas);
-        }
-
-        // Calculate required width based on number of data points
-        const dataPointCount = labels.length;
-        const minPixelsPerPoint = 50; // minimum pixels for each data point
-        const calculatedWidth = Math.max(container.clientWidth, dataPointCount * minPixelsPerPoint);
-        
-        // Set canvas dimensions explicitly
-        canvas.width = calculatedWidth;
-        canvas.height = 250;
-
-        charts[elementId] = new Chart(canvas, {
-            type: 'line',
-            data: { labels, datasets },
-            options: {
-                responsive: false,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: title,
-                        font: { size: 16, family: 'var(--font-pixel)', weight: 'bold' },
-                        color: '#fff',
-                        padding: 20
-                    },
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: { 
-                            color: '#fff', 
-                            font: { family: 'var(--font-main)', size: 12, weight: 'bold' },
-                            padding: 15,
-                            boxHeight: 4
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#000',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        borderColor: 'var(--accent)',
-                        borderWidth: 1
-                    }
+        container.innerHTML = '';
+        const gdiv = document.createElement('div');
+        gdiv.style.width = '100%';
+        gdiv.style.height = '100%';
+        container.appendChild(gdiv);
+        charts[elementId] = new Dygraph(gdiv, rows, {
+            title: title,
+            labels: ['X'].concat(seriesNames),
+            colors: seriesColors,
+            fillGraph: true,
+            fillAlpha: 0.12,
+            strokeWidth: 2,
+            gridLineColor: '#333',
+            axisLineColor: '#444',
+            includeZero: true,
+            highlightCircleSize: 4,
+            legend: 'follow',
+            showRangeSelector: true,
+            rangeSelectorHeight: 40,
+            rangeSelectorPlotStrokeColor: seriesColors[0],
+            rangeSelectorPlotFillColor: getTransparentColor(seriesColors[0]),
+            rangeSelectorBackgroundStrokeColor: '#555',
+            axes: {
+                x: {
+                    axisLabelFontSize: 10,
+                    axisLabelWidth: 62,
+                    valueFormatter: function (x) { return labels[Math.round(x)] || ''; },
+                    axisLabelFormatter: function (x) { return labels[Math.round(x)] || ''; }
                 },
-                scales: {
-                    x: {
-                        grid: { 
-                            color: '#333',
-                            display: true
-                        },
-                        ticks: { 
-                            color: '#fff',
-                            font: { family: 'var(--font-main)', size: 11, weight: 'bold' },
-                            maxTicksLimit: 8
-                        }
-                    },
-                    y: {
-                        grid: { 
-                            color: '#333',
-                            display: true
-                        },
-                        ticks: { 
-                            color: '#fff',
-                            font: { family: 'var(--font-main)', size: 11, weight: 'bold' }
-                        }
-                    }
+                y: {
+                    axisLabelFontSize: 10,
+                    axisLabelWidth: 45
                 }
             }
         });
 
-        // Add hint text if it doesn't exist
-        if (!container.querySelector('.chart-hint')) {
-            const hint = document.createElement('div');
-            hint.className = 'chart-hint';
-            hint.textContent = 'Scroll left/right to view more data';
-            container.appendChild(hint);
-        }
+        // Theme the rangeSelector drag handles (accent colour, bigger for touch)
+        const hAcc = getChartColor(0);
+        const hSvg = "<svg xmlns='http://www.w3.org/2000/svg' width='13' height='26'>" +
+                     "<rect x='1' y='1' width='11' height='24' rx='3' fill='#0d0d0d' stroke='" + hAcc + "' stroke-width='1.5'/>" +
+                     "<line x1='6.5' y1='9' x2='6.5' y2='17' stroke='" + hAcc + "' stroke-width='1.3'/></svg>";
+        const hUri = 'data:image/svg+xml,' + encodeURIComponent(hSvg);
+        setTimeout(function () {
+            container.querySelectorAll('.dygraph-rangesel-zoomhandle').forEach(function (h) {
+                h.src = hUri; h.style.width = '13px'; h.style.height = '26px';
+            });
+        }, 0);
     }
 
     function getChartColor(index) {
@@ -424,7 +390,8 @@ TEMPLATE = """
 {% endblock %}
 
 {% block content %}
-    <div class="stats-header">
+    <div class="plugin-page-header">
+        <div class="header-nav"><a href="/plugins" class="btn ghost">← Plugins</a><span class="header-version">v0.2.0</span></div>
         <h2>Session Statistics</h2>
         <p>Real-time monitoring of WiFi capture metrics and system performance</p>
     </div>
@@ -478,6 +445,8 @@ TEMPLATE = """
             <div id="chart_cpu" class="chart"><canvas></canvas></div>
         </div>
     </div>
+
+    <div class="plugin-footer">Built by <a href="https://github.com/dadav" target="_blank" rel="noopener">dadav</a> &middot; UI by <a href="https://github.com/wsvdmeer" target="_blank" rel="noopener">wsvdmeer</a></div>
 {% endblock %}
 """
 

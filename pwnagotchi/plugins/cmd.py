@@ -148,37 +148,12 @@ def disable(args, config):
 
 
 def upgrade(args, config, pattern='*'):
-    """
-    Upgrades the given plugin
-    """
+    """Upgrade installed plugins matching the pattern (via plugins.actions)."""
+    from pwnagotchi.plugins import actions
     available = _get_available()
-    installed = _get_installed(config)
-
-    for plugin, filename in installed.items():
-        if not fnmatch(plugin, pattern) or plugin not in available:
-            continue
-
-        available_version = _extract_version(available[plugin])
-        installed_version = _extract_version(filename)
-
-        if installed_version and available_version:
-            if available_version <= installed_version:
-                continue
-        else:
-            continue
-
-        logging.info('Upgrade %s from %s to %s', plugin, '.'.join(installed_version), '.'.join(available_version))
-        shutil.copyfile(available[plugin], installed[plugin])
-
-        # maybe has config
-        for conf in glob.glob(available[plugin].replace('.py', '.y?ml')):
-            dst = os.path.join(os.path.dirname(installed[plugin]), os.path.basename(conf))
-            if os.path.exists(dst) and md5(dst) != md5(conf):
-                # backup
-                logging.info('Backing up config: %s', os.path.basename(conf))
-                shutil.move(dst, dst + '.bak')
-            shutil.copyfile(conf, dst)
-
+    for plugin in sorted(_get_installed(config)):
+        if fnmatch(plugin, pattern) and plugin in available:
+            actions.upgrade(plugin, config)
     return 0
 
 
@@ -186,66 +161,36 @@ def list_plugins(args, config, pattern='*'):
     """
     Lists the available and installed plugins
     """
-    found = False
+    # Shared with the web /plugins page; loaded=None -> "enabled" from config.
+    from pwnagotchi.plugins.catalog import PluginCatalog
 
-    # MODIFIED: Added {author} placeholder
-    line = "|{name:^{width}}|{version:^9}|{enabled:^10}|{status:^15}|{author:^22}|"
+    catalog = PluginCatalog.from_environment(config, loaded=None, store_meta={})
 
-    available = _get_available()
-    installed = _get_installed(config)
+    # --installed shows installed too; otherwise only available-not-installed.
+    if args.installed:
+        entries = [e for e in catalog.entries if fnmatch(e.name, pattern)]
+    else:
+        entries = [e for e in catalog.entries if not e.installed and fnmatch(e.name, pattern)]
 
-    available_and_installed = set(list(available.keys()) + list(installed.keys()))
-    available_not_installed = set(available.keys()) - set(installed.keys())
-
-    max_len_list = available_and_installed if args.installed else available_not_installed
-    if not max_len_list:
+    if not entries:
         print('Maybe try: sudo pwnagotchi plugins update')
         return 1
-    max_len = max(map(len, max_len_list))
-    # MODIFIED: Added author to the header format
+
+    line = "|{name:^{width}}|{version:^9}|{enabled:^10}|{status:^15}|{author:^22}|"
+    max_len = max(len(e.name) for e in entries)
     header = line.format(name='Plugin', width=max_len, version='Version', enabled='Active', status='Status', author='Author')
-    line_length = len(header) - 10 # Adjusted for new column length
+    line_length = len(header) - 10
 
     print('-' * line_length)
     print(header)
     print('-' * line_length)
 
-    if args.installed:
-        # only installed (maybe update available?)
-        for plugin, filename in sorted(installed.items()):
-            if not fnmatch(plugin, pattern):
-                continue
-            found = True
-            installed_version = _extract_version(filename)
-            available_version = None
-            if plugin in available:
-                available_version = _extract_version(available[plugin])
-
-            status = "installed"
-            if installed_version and available_version:
-                if available_version > installed_version:
-                    status = "installed (^)"
-
-            enabled = 'enabled' if (plugin in config['main']['plugins'] and
-                                     'enabled' in config['main']['plugins'][plugin] and
-                                     config['main']['plugins'][plugin]['enabled']) else 'disabled'
-
-            # MODIFIED: Added author=_extract_author(filename) to the print format
-            print(line.format(name=plugin, width=max_len, version='.'.join(installed_version), enabled=enabled, status=status, author=_extract_author(filename)))
-
-    for plugin in sorted(available_not_installed):
-        if not fnmatch(plugin, pattern):
-            continue
-        found = True
-        available_version = _extract_version(available[plugin])
-        # MODIFIED: Added author=_extract_author(available[plugin]) to the print format
-        print(line.format(name=plugin, width=max_len, version='.'.join(available_version), enabled='-', status='available', author=_extract_author(available[plugin])))
+    for e in entries:
+        enabled = ('enabled' if e.enabled else 'disabled') if e.installed else '-'
+        print(line.format(name=e.name, width=max_len, version=(e.version or ''),
+                          enabled=enabled, status=e.status, author=(e.author or 'n/a')))
 
     print('-' * line_length)
-
-    if not found:
-        print('Maybe try: sudo pwnagotchi plugins update')
-        return 1
     return 0
 
 
@@ -302,55 +247,19 @@ def _get_installed(config):
 
 
 def uninstall(args, config):
-    """
-    Uninstalls a plugin
-    """
-    plugin_name = args.name
-    installed = _get_installed(config)
-    if plugin_name not in installed:
-        logging.error('Plugin %s is not installed.', plugin_name)
-        return 1
-    os.remove(installed[plugin_name])
-    return 0
+    """Uninstall a plugin (via plugins.actions)."""
+    from pwnagotchi.plugins import actions
+    res = actions.uninstall(args.name, config)
+    (logging.info if res.ok else logging.error)(res.message)
+    return 0 if res.ok else 1
 
 
 def install(args, config):
-    """
-    Installs the given plugin
-    """
-    global DEFAULT_INSTALL_PATH
-    plugin_name = args.name
-    available = _get_available()
-    installed = _get_installed(config)
-
-    if plugin_name not in available:
-        logging.error('%s not found.', plugin_name)
-        return 1
-
-    if plugin_name in installed:
-        logging.error('%s already installed.', plugin_name)
-
-    # install into custom_plugins path
-    install_path = config['main']['custom_plugins']
-    if not install_path:
-        install_path = DEFAULT_INSTALL_PATH
-        config['main']['custom_plugins'] = install_path
-        save_config(config, args.user_config)
-
-    os.makedirs(install_path, exist_ok=True)
-
-    shutil.copyfile(available[plugin_name], os.path.join(install_path, os.path.basename(available[plugin_name])))
-
-    # maybe has config
-    for conf in glob.glob(available[plugin_name].replace('.py', '.y?ml')):
-        dst = os.path.join(install_path, os.path.basename(conf))
-        if os.path.exists(dst) and md5(dst) != md5(conf):
-            # backup
-            logging.info('Backing up config: %s', os.path.basename(conf))
-            shutil.move(dst, dst + '.bak')
-        shutil.copyfile(conf, dst)
-
-    return 0
+    """Install the given plugin (via plugins.actions)."""
+    from pwnagotchi.plugins import actions
+    res = actions.install(args.name, config, config_path=args.user_config)
+    (logging.info if res.ok else logging.error)(res.message)
+    return 0 if res.ok else 1
 
 
 def _analyse_dir(path):
@@ -379,57 +288,11 @@ def _check_internet():
 
 
 def update(config):
-    """
-    Updates the database
-    """
-    global SAVE_DIR
-
-    if not _check_internet():
-        logging.error("No internet connection or DNS not working. Please follow these instructions:")
-        logging.error("https://github.com/jayofelony/pwnagotchi/wiki/Step-2-Connecting")
-        print("No internet/DNS. Please follow these instructions:")
-        print("https://github.com/jayofelony/pwnagotchi/wiki/Step-2-Connecting")
-        return 1
-    else:
-        logging.info("Internet detected - Please run sudo pwnagotchi plugins list")
-        print("Internet detected - Please run sudo pwnagotchi plugins list")
-
-    urls = config['main']['custom_plugin_repos']
-    if not urls:
-        logging.info('No plugin repositories configured.')
-        return 1
-
-    rc = 0
-    for idx, REPO_URL in enumerate(urls):
-        DEST = os.path.join(SAVE_DIR, 'plugins%d.zip' % idx)
-        logging.info('Downloading plugins from %s to %s', REPO_URL, DEST)
-
-        try:
-            os.makedirs(SAVE_DIR, exist_ok=True)
-            before_update = _analyse_dir(SAVE_DIR)
-
-            download_file(REPO_URL, os.path.join(SAVE_DIR, DEST))
-
-            logging.info('Unzipping...')
-            unzip(DEST, SAVE_DIR, strip_dirs=1)
-
-            after_update = _analyse_dir(SAVE_DIR)
-
-            b_len = len(before_update)
-            a_len = len(after_update)
-
-            if a_len > b_len:
-                logging.info('Found %d new file(s).', a_len - b_len)
-
-            changed = 0
-            for filename, filehash in after_update.items():
-                if filename in before_update and filehash != before_update[filename]:
-                    changed += 1
-
-            if changed:
-                logging.info('%d file(s) were changed.', changed)
-
-        except Exception as ex:
-            logging.error('Error while updating plugins: %s', ex)
-            rc = 1
-    return rc
+    """Refresh the available-plugins catalog (via plugins.actions)."""
+    from pwnagotchi.plugins import actions
+    res = actions.refresh(config)
+    (logging.info if res.ok else logging.error)(res.message)
+    print(res.message)
+    if res.ok:
+        print("Run: sudo pwnagotchi plugins list")
+    return 0 if res.ok else 1

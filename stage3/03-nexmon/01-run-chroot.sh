@@ -222,9 +222,68 @@ build_nexmon_firmware() {
         ensure_clm_blob_aliases "${ram_file}"
     done
 
+    # same checkout, before it is deleted below
+    install_nexutil
+
     cd /
     rm -rf "${NEXMON_SRC_DIR}"
     purge_build_deps
+}
+
+# nexutil is the userspace half of nexmon: it issues the vendor ioctls the
+# patched firmware adds (monitor mode, chanspec get/set, the debug counters
+# in NEXMON-DEBUG-FINDINGS.md). It is a single self-contained binary and
+# entirely kernel-independent, so unlike brcmfmac.ko it needs no DKMS.
+#
+# Built by calling gcc directly instead of `make`: the utility's Makefile
+# branches on `uname -m`, which inside this qemu-emulated chroot reports the
+# build host's x86_64 and would route the build down the Android/NDK path.
+# gcc in the chroot is already the target (aarch64) compiler, so the recipe
+# below is just the Makefile's own Raspberry Pi branch - BUILD_ON_RPI,
+# netlink transport, no libnl vendor-command path - with a real version
+# string substituted for the Makefile's broken `$GIT_VERSION`.
+#
+# Only needs gcc/binutils/libc6-dev/git, all installed by 01-pwn-packages
+# and not purged, so this works whether or not NEXMON_FROM_SOURCE built the
+# firmware.
+install_nexutil() {
+    echo -e "\e[32m=== Building and installing nexutil ===\e[0m"
+
+    nexutil_own_checkout=0
+    if [ ! -f "${NEXMON_SRC_DIR}/utilities/nexutil/nexutil.c" ]; then
+        rm -rf "${NEXMON_SRC_DIR}"
+        git clone --depth 1 --branch "${NEXMON_SRC_BRANCH}" "${NEXMON_SRC_URL}" "${NEXMON_SRC_DIR}"
+        nexutil_own_checkout=1
+    fi
+
+    version="$(git -C "${NEXMON_SRC_DIR}" describe --abbrev=4 --dirty --always --tags 2>/dev/null || true)"
+    [ -n "${version}" ] || version="unknown"
+
+    # -std=gnu17: nexutil's typedefs.h still does `typedef unsigned char bool`,
+    # which is a hard error once the compiler defaults to C23 (gcc >= 15).
+    # The Makefile relies on the pre-C23 default; pin it so a newer toolchain
+    # in the base image does not break the build.
+    cd "${NEXMON_SRC_DIR}/utilities/libnexio"
+    gcc -std=gnu17 -c libnexio.c -o libnexio.o \
+        -DBUILD_ON_RPI -DVERSION="\"${version}\"" -I../../patches/include
+    ar rcs libnexio.a libnexio.o
+
+    cd "${NEXMON_SRC_DIR}/utilities/nexutil"
+    gcc -std=gnu17 -static -o nexutil \
+        nexutil.c bcmwifi_channels.c b64-encode.c b64-decode.c \
+        -DBUILD_ON_RPI -DVERSION="\"${version}\"" -DUSE_NETLINK \
+        -I. -I../../patches/include -I../libnexio -I../libargp \
+        -L../libnexio -lnexio
+
+    install -v -m 755 nexutil /usr/local/bin/nexutil
+    command -v nexutil >/dev/null || { echo "nexutil did not install" >&2; exit 1; }
+
+    cd /
+    # if build_nexmon_firmware owns the checkout it cleans up itself; only
+    # remove what this function cloned on its own.
+    if [ "${nexutil_own_checkout}" = "1" ]; then
+        rm -rf "${NEXMON_SRC_DIR}"
+    fi
 }
 
 # The .deb is Architecture: all and contains no compiled module - it ships
@@ -302,7 +361,9 @@ apt-get remove -y firmware-brcm80211
 install_base_firmware
 
 if [ "${NEXMON_FROM_SOURCE}" = "1" ]; then
-    build_nexmon_firmware
+    build_nexmon_firmware   # builds nexutil too, from the same checkout
+else
+    install_nexutil
 fi
 
 install_nexmon_driver

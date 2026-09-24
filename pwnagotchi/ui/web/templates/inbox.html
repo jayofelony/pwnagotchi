@@ -1,10 +1,10 @@
-{% extends "base.html" %} {% set active_page = "inbox" %} {% block title %} {{
-name }} Inbox {% endblock %} {% block script %} autoRefresh(15000);
-filterList('.search-box input', '.inbox li'); {% endblock %} {% block content %}
-<div class="search-box">
-  <input type="text" placeholder="Search inbox..." />
-</div>
+{% extends "base.html" if not is_fragment else "fragment_base.html" %}
+{% set active_page = "inbox" %}
+{% block title %}{{ name }} Inbox{% endblock %}
 
+{% block content %}
+{% if is_fragment %}
+{% if error %}<div class="fragment-error">Couldn&rsquo;t load the inbox: {{ error }}</div>{% endif %}
 <ul class="inbox">
   {% for message in inbox.messages %}
   <li class="message {{ 'unread' if not message.seen_at else 'read' }}">
@@ -14,13 +14,9 @@ filterList('.search-box input', '.inbox li'); {% endblock %} {% block content %}
       </div>
       <div class="list-item-secondary">
         Received
-        <time class="timeago" datetime="{{ message.created_at }}"
-          >{{ message.created_at }}</time
-        >
+        <time class="timeago" datetime="{{ message.created_at }}">{{ message.created_at }}</time>
         {% if message.seen_at %}, seen
-        <time class="timeago" datetime="{{ message.seen_at }}"
-          >{{ message.seen_at }}</time
-        >{% endif %}
+        <time class="timeago" datetime="{{ message.seen_at }}">{{ message.seen_at }}</time>{% endif %}
       </div>
     </a>
   </li>
@@ -30,26 +26,31 @@ filterList('.search-box input', '.inbox li'); {% endblock %} {% block content %}
 {% if inbox.pages > 1 %}
 <div class="pagination">
   {% if page > 1 %}
-  <div class="page-item">
-    <a href="/inbox?p={{ page - 1 }}" class="page-link">← Previous</a>
-  </div>
+  <div class="page-item"><a href="/inbox?p={{ page - 1 }}" class="page-link">← Previous</a></div>
   {% else %}
-  <div class="page-item disabled">
-    <span class="page-link">← Previous</span>
-  </div>
+  <div class="page-item disabled"><span class="page-link">← Previous</span></div>
   {% endif %}
-  <div
-    class="page-item"
-    style="padding: 0 1rem; display: flex; align-items: center"
-  >
+  <div class="page-item" style="padding: 0 1rem; display: flex; align-items: center">
     Page {{ page }} of {{ inbox.pages }}
   </div>
   {% if page < inbox.pages %}
-  <div class="page-item">
-    <a href="/inbox?p={{ page + 1 }}" class="page-link">Next →</a>
-  </div>
+  <div class="page-item"><a href="/inbox?p={{ page + 1 }}" class="page-link">Next →</a></div>
   {% else %}
   <div class="page-item disabled"><span class="page-link">Next →</span></div>
   {% endif %}
 </div>
-{% endif %} {% endblock %}
+{% endif %}
+{% else %}
+<div class="search-box">
+  <input type="text" placeholder="Search inbox..." />
+</div>
+<div id="inbox-data"></div>
+{% endif %}
+{% endblock %}
+
+{% block script %}{% if not is_fragment %}
+autoRefresh(15000);
+loadFragment('#inbox-data', location.pathname + location.search, function () {
+  filterList('.search-box input', '.inbox li');
+});
+{% endif %}{% endblock %}
