@@ -29,6 +29,27 @@ Multiple units within close physical proximity can "talk" to each other, adverti
 https://github.com/jayofelony/pwnagotchi/wiki 
 https://pwnagotchi.org
 
+### USB gadget network configuration
+
+Recent images use `rpi-usb-gadget` to switch the `usb0` link automatically
+between a host DHCP client and a Pi-hosted shared network. Management from
+Pwnagotchi is opt-in. To select a predictable, non-conflicting shared subnet,
+add the following to `/etc/pwnagotchi/config.toml`:
+
+```toml
+[usb_gadget]
+manage = true
+mode = "shared"
+interface = "usb0"
+shared_address = "10.12.195.1/28"
+check_conflicts = true
+```
+
+Valid modes are `auto`, `client`, and `shared`. `auto` preserves the upstream
+ICS watcher behavior. Settings are applied on boot; they can also be applied
+with `sudo systemctl restart pwnagotchi-usb-gadget.service`. Switching the
+active mode or shared address can disconnect the current USB/SSH session.
+
 ## Links
 
 | &nbsp;    | Official Links                                           |
