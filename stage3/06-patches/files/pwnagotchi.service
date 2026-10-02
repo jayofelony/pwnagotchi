@@ -1,8 +1,8 @@
 [Unit]
 Description=pwnagotchi Deep Reinforcement Learning instrumenting bettercap for WiFI pwning.
 Documentation=https://pwnagotchi.org
-Wants=network.target
-After=pwngrid-peer.service
+Wants=network.target pwnagotchi-usb-gadget.service
+After=pwngrid-peer.service pwnagotchi-usb-gadget.service
 
 [Service]
 Type=simple

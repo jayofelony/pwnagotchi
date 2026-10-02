@@ -101,6 +101,7 @@ sync_file "auto-update.sh" "/usr/bin/auto-update.sh" 755
 sync_file "brcmfmac-watchdog.sh" "/usr/bin/brcmfmac-watchdog.sh" 755
 sync_file "01-motd" "/etc/update-motd.d/01-motd" 755
 sync_file "pwnagotchi.service" "/etc/systemd/system/pwnagotchi.service" 644
+sync_file "pwnagotchi-usb-gadget.service" "/etc/systemd/system/pwnagotchi-usb-gadget.service" 644
 sync_file "bettercap.service" "/etc/systemd/system/bettercap.service" 644
 sync_file "pwngrid-peer.service" "/etc/systemd/system/pwngrid-peer.service" 644
 sync_file "auto-update.service" "/etc/systemd/system/auto-update.service" 644
@@ -119,7 +120,7 @@ fi
 # idempotent, so this is safe to run unconditionally on every update rather
 # than trying to detect "is this the first time" - it converges an
 # already-enabled or even a previously-half-applied device to the same state.
-systemctl enable brcmfmac-watchdog.service
+systemctl enable brcmfmac-watchdog.service pwnagotchi-usb-gadget.service
 
 # pip install already copied the package into the venv and sync_file copied
 # out the system files it needs, so the clone itself is just clutter now.
