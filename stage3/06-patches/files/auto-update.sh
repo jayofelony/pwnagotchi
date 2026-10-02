@@ -12,6 +12,9 @@
 # units) that ship alongside the package but live outside the venv, because a
 # pip install alone would leave them at the old version.
 
+set -Eeuo pipefail
+trap 'echo "pwnagotchi update failed at line $LINENO; not rebooting" >&2' ERR
+
 REPO_DIR="/opt/pwnagotchi"
 REPO_URL="https://github.com/jayofelony/pwnagotchi.git"
 
