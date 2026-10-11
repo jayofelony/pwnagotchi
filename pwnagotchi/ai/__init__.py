@@ -17,6 +17,17 @@ def load(config, agent, epoch, from_disk=True):
 
         logging.info("[AI] bootstrapping dependencies ...")
 
+        # On the Pi 4 (aarch64) torch's vectorized CPU kernels can hit a SIGILL (illegal
+        # instruction, exit 132) when several native thread pools (torch's own plus
+        # OpenBLAS/MKL) race while the policy network for this large MultiDiscrete action
+        # space is built. SIGILL kills the whole process with no Python traceback, so
+        # try/except can't catch it. Pin torch to one thread before anything uses it;
+        # pwnagotchi.service also sets the matching *_NUM_THREADS env vars.
+        start = time.time()
+        import torch
+        torch.set_num_threads(1)
+        logging.debug("[AI] torch imported and pinned to 1 thread in %.2fs" % (time.time() - start))
+
         start = time.time()
         from stable_baselines3 import A2C
         logging.debug("[AI] A2C imported in %.2fs" % (time.time() - start))

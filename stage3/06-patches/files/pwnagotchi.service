@@ -6,6 +6,11 @@ After=pwngrid-peer.service
 
 [Service]
 Type=simple
+# Single-threaded native math libs: avoids a SIGILL (exit 132) in torch's thread pools
+# on the Pi 4 when AI mode builds its policy network. See pwnagotchi/ai/__init__.py.
+Environment=OMP_NUM_THREADS=1
+Environment=OPENBLAS_NUM_THREADS=1
+Environment=MKL_NUM_THREADS=1
 WorkingDirectory=~
 ExecStart=/usr/bin/pwnagotchi-launcher
 Restart=always
