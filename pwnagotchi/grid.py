@@ -71,9 +71,10 @@ def update_data(last_session):
     enabled = [name for name, options in pwnagotchi.config['main']['plugins'].items() if
                'enabled' in options and options['enabled']]
     language = pwnagotchi.config['main']['lang']
+    ai = pwnagotchi.config.get('ai', {}).get('enabled', False)
 
     data = {
-        'ai': "No AI!",
+        'ai': ai,
         'session': {
             'duration': last_session.duration,
             'epochs': last_session.epochs,
@@ -87,8 +88,11 @@ def update_data(last_session):
             'peers': last_session.peers,
         },
         'uname': subprocess.getoutput("uname -a"),
+        # AI epochs lived/trained, read from the brain stats file above
+        'brain': brain,
         'version': pwnagotchi.__version__,
-        'build': "Pwnagotchi by Jayofelony",
+        # modified fork: don't present it as the upstream author's build
+        'build': "Pwnagotchi AI-mode fork by tedead (based on Jayofelony's)",
         'plugins': enabled,
         'language': language,
         'bettercap': subprocess.getoutput("bettercap -version"),
