@@ -29,38 +29,38 @@ msgid "Hack the Planet!"
 msgstr "Hackeie o Planeta!"
 
 msgid "No more mister Wi-Fi!!"
-msgstr ""
+msgstr "Chega de senhor Wi-Fi!!"
 
 msgid "Pretty fly 4 a Wi-Fi!"
-msgstr ""
+msgstr "Descolado pelo Wi-Fi!"
 
 msgid "Sniff. Deauth. Repeat."
-msgstr ""
+msgstr "Fareje. Desautentique. Repita."
 
 #, fuzzy
 msgid "Good Pwning!"
-msgstr "Boa noite."
+msgstr "Boa caçada!"
 
 msgid "Ensign, Engage!"
-msgstr ""
+msgstr "Alferes, em ação!"
 
 msgid "Free your Wi-Fi!"
-msgstr ""
+msgstr "Libere seu Wi-Fi!"
 
 msgid "Chevron Seven, locked."
-msgstr ""
+msgstr "Chevron sete, travado."
 
 msgid "May the Wi-fi be with you"
-msgstr ""
+msgstr "Que o Wi-Fi esteja com você"
 
 msgid "Generating keys, do not turn off ..."
 msgstr "Gerando chaves, não desligue ..."
 
 msgid "Are you the keymaster?"
-msgstr ""
+msgstr "Você é o mestre das chaves?"
 
 msgid "I am the keymaster!"
-msgstr ""
+msgstr "Eu sou o mestre das chaves!"
 
 #, python-brace-format
 msgid "Hey, channel {channel} is free! Your AP will say thanks."
@@ -83,10 +83,10 @@ msgid "This is the best day of my life!"
 msgstr "Este é o melhor dia da minha vida!"
 
 msgid "All your base are belong to us"
-msgstr ""
+msgstr "Todas as suas bases pertencem a nós"
 
 msgid "Fascinating!"
-msgstr ""
+msgstr "Fascinante!"
 
 msgid "Shitty day :/"
 msgstr "Que dia ruim :/"
@@ -102,10 +102,10 @@ msgstr "Estou triste"
 
 #, fuzzy
 msgid "I'm so happy ..."
-msgstr "Estou muito triste ..."
+msgstr "Estou tão feliz ..."
 
 msgid "Life? Don't talk to me about life."
-msgstr ""
+msgstr "Vida? Não fale comigo sobre vida."
 
 msgid "Leave me alone ..."
 msgstr "Me deixe em paz ..."
@@ -126,7 +126,7 @@ msgid "I'm having so much fun!"
 msgstr "Estou me divertindo muito!"
 
 msgid "It's a Wi-Fi system! I know this!"
-msgstr ""
+msgstr "É um sistema de Wi-Fi! Eu conheço isso!"
 
 msgid "My crime is that of curiosity ..."
 msgstr "Meu crime é a curiosidade ..."
@@ -179,7 +179,7 @@ msgid "I feel so alone ..."
 msgstr "Me sinto tão sozinho ..."
 
 msgid "Let's find friends"
-msgstr ""
+msgstr "Vamos encontrar amigos"
 
 msgid "Where's everybody?!"
 msgstr "Onde está todo mundo?!"
@@ -192,7 +192,7 @@ msgid "Zzzzz"
 msgstr "Zzzzz"
 
 msgid "Snoring ..."
-msgstr ""
+msgstr "Roncando ..."
 
 #, python-brace-format
 msgid "ZzzZzzz ({secs}s)"
@@ -205,7 +205,7 @@ msgid "Zzz"
 msgstr "Zzz"
 
 msgid "I dreamed of electric sheep"
-msgstr ""
+msgstr "Sonhei com ovelhas elétricas"
 
 #, python-brace-format
 msgid "Waiting for {secs}s ..."
@@ -229,19 +229,19 @@ msgstr "Olá {what}!"
 
 #, python-brace-format
 msgid "Hello there, {what}"
-msgstr ""
+msgstr "Olá, {what}"
 
 #, python-brace-format
 msgid "Mind if I join, {what}?"
-msgstr ""
+msgstr "Posso me juntar a você, {what}?"
 
 #, python-brace-format
 msgid "Rise and Shine Mr. {what}!"
-msgstr ""
+msgstr "Levante e brilhe, Sr. {what}!"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Just decided that {mac} needs no Wi-Fi!"
-msgstr "Acabei de decidir que {mac} não precisa de WiFi!"
+msgstr "Acabei de decidir que {mac} não precisa de Wi-Fi!"
 
 #, python-brace-format
 msgid "Deauthenticating {mac}"
@@ -249,23 +249,23 @@ msgstr "Desautenticando {mac}"
 
 #, python-brace-format
 msgid "No more Wi-Fi for {mac}"
-msgstr ""
+msgstr "Chega de Wi-Fi para {mac}"
 
 #, python-brace-format
 msgid "It's a trap! {mac}"
-msgstr ""
+msgstr "É uma armadilha! {mac}"
 
 #, python-brace-format
 msgid "Consider yourself unplugged, {mac}"
-msgstr ""
+msgstr "Considere-se desconectado, {mac}"
 
 #, python-brace-format
 msgid "Hasta la vista, {mac}"
-msgstr ""
+msgstr "Hasta la vista, {mac}"
 
 #, python-brace-format
 msgid "You shall not pass, {mac}"
-msgstr ""
+msgstr "Você não passará, {mac}"
 
 #, python-brace-format
 msgid "Kickbanning {mac}!"
@@ -283,25 +283,25 @@ msgid "Oops, something went wrong ... Rebooting ..."
 msgstr "Oops, algo deu errado ... Reiniciando ..."
 
 msgid "Well, this is awkward."
-msgstr ""
+msgstr "Bem, isso é constrangedor."
 
 msgid "Tell my packets I love them."
-msgstr ""
+msgstr "Diga aos meus pacotes que eu os amo."
 
 msgid "Have you tried turning it off and on again?"
-msgstr ""
+msgstr "Você tentou desligar e ligar novamente?"
 
 msgid "I'm afraid Dave"
-msgstr ""
+msgstr "Tenho medo, Dave"
 
 msgid "I'm dead, Jim!"
-msgstr ""
+msgstr "Estou morto, Jim!"
 
 msgid "I have a bad feeling about this"
-msgstr ""
+msgstr "Tenho um mau pressentimento sobre isso"
 
 msgid "You did this."
-msgstr ""
+msgstr "Você fez isso."
 
 #, python-brace-format
 msgid "Uploading data to {to} ..."
@@ -309,19 +309,19 @@ msgstr "Enviando dados para {to} ..."
 
 #, python-brace-format
 msgid "Beam me up to {to}"
-msgstr ""
+msgstr "Transporte-me para {to}"
 
 #, python-brace-format
 msgid "Engage warp drive, {to}"
-msgstr ""
+msgstr "Ative a unidade de dobra, {to}"
 
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Gift-wrapping data for {to}"
-msgstr "Enviando dados para {to} ..."
+msgstr "Empacotando os dados para {to}"
 
 #, python-brace-format
 msgid "Please wait, magic happening at {to}"
-msgstr ""
+msgstr "Aguarde, está acontecendo magia em {to}"
 
 #, python-brace-format
 msgid "Downloading from {name} ..."
